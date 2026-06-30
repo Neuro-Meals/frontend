@@ -1,38 +1,80 @@
-<section class="py-20 bg-white dark:bg-gray-900 transition-colors duration-300">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid lg:grid-cols-2 gap-12 items-center">
-            <div class="scroll-reveal">
-                <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">Manage Your Meals Anywhere</h2>
-                <p class="text-gray-600 dark:text-gray-300 mb-8">Download the Nutrio Meals app to manage subscriptions, track deliveries, and view your nutrition on the go.</p>
+<section class="py-20 lg:py-28 bg-gray-50 dark:bg-gray-950 transition-colors duration-300 relative overflow-hidden">
+    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-light/30 to-transparent"></div>
 
-                <div class="space-y-4">
-                    @foreach (['Manage subscription', 'Track meals & macros', 'View delivery status'] as $feature)
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            {{-- Copy --}}
+            <div class="scroll-reveal max-w-xl">
+                <span class="inline-block px-4 py-1.5 rounded-full bg-brand-light/10 text-brand-light text-xs font-bold uppercase tracking-wider mb-4">Mobile App</span>
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white leading-tight mb-5">
+                    Your nutrition companion, right in your pocket.
+                </h2>
+                <p class="text-gray-600 dark:text-gray-300 text-lg leading-relaxed mb-8">
+                    Track meals, manage subscriptions, and stay on top of your health goals with the Nutrio Meals app. Designed for Saudi Arabia's active lifestyle.
+                </p>
+
+                <div class="space-y-3 mb-8">
+                    @foreach (['Manage subscription plans', 'Track meals & macros daily', 'Real-time delivery status', 'Health calculator on the go'] as $feature)
                         <div class="flex items-center gap-3">
-                            <svg class="w-6 h-6 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <div class="w-6 h-6 rounded-full bg-brand-light/10 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-4 h-4 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            </div>
                             <p class="text-gray-700 dark:text-gray-200 font-medium">{{ $feature }}</p>
                         </div>
                     @endforeach
                 </div>
 
-                <div class="mt-8 flex flex-wrap gap-4">
-                    <button class="px-6 py-3 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold text-sm flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.05-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
-                        App Store
-                    </button>
-                    <button class="px-6 py-3 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold text-sm flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 010 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/></svg>
-                        Google Play
-                    </button>
+                <div class="flex flex-wrap gap-4">
+                    <a href="#" class="inline-flex items-center gap-2.5 bg-[#0f1115] text-white px-5 py-2.5 rounded-xl hover:bg-[#1f2228] transition-colors">
+                        <svg class="w-6 h-6 flex-shrink-0" viewBox="0 0 384 512" fill="currentColor"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+                        <span class="flex flex-col leading-tight">
+                            <span class="text-[10px] font-normal text-gray-400">Download on the</span>
+                            <span class="text-sm font-bold">App Store</span>
+                        </span>
+                    </a>
+                    <a href="#" class="inline-flex items-center gap-2.5 bg-[#0f1115] text-white px-5 py-2.5 rounded-xl hover:bg-[#1f2228] transition-colors">
+                        <svg class="w-6 h-6 flex-shrink-0" viewBox="0 0 512 512" fill="currentColor"><path d="M325.3 234.3L104.6 13.6c-5.6-5.6-14.4-6.5-21-2L256 224l69.3 10.3zM47.5 18.9C40.8 25.6 36 36.1 36 49.3v413.4c0 13.2 4.8 23.7 11.5 30.4L256 288 47.5 18.9zm322.7 124.5L327.5 159 256 224l71.5 65 92.7-53.5c14-8.1 14-28.4 0-36.5l-92.7-53.6zM104.6 498.4c6.6 4.5 15.4 3.6 21-2L325.3 277.7 256 224 104.6 498.4z"/></svg>
+                        <span class="flex flex-col leading-tight">
+                            <span class="text-[10px] font-normal text-gray-400">Get it on</span>
+                            <span class="text-sm font-bold">Google Play</span>
+                        </span>
+                    </a>
                 </div>
             </div>
 
-            <div class="scroll-reveal scroll-reveal-delay-1">
-                <div class="mx-auto max-w-sm p-4 rounded-[2.5rem] bg-gray-900 dark:bg-gray-800 border-8 border-gray-900 dark:border-gray-700 shadow-2xl">
-                    <div class="h-96 rounded-[2rem] bg-gray-800 dark:bg-gray-700 overflow-hidden relative">
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <img src="{{ asset('nitro FULL 3.png') }}" alt="Nutrio Meals App" class="h-24 w-auto object-contain opacity-80">
+            {{-- Phone Mockup --}}
+            <div class="scroll-reveal scroll-reveal-delay-1 flex justify-center">
+                <div class="relative" style="width:280px; height:572px;">
+                    {{-- Phone body --}}
+                    <div class="absolute inset-0 rounded-[46px] bg-[#0f1115] p-[14px] shadow-2xl" style="box-shadow: 0 30px 60px rgba(0,0,0,0.18);">
+                        {{-- Screen --}}
+                        <div class="w-full h-full rounded-[34px] overflow-hidden relative" style="background: radial-gradient(circle at 50% 38%, #6fd1a8 0%, #4cb893 18%, #2f8fad 42%, #1f4e8f 75%, #16306e 100%);">
+                            {{-- Notch --}}
+                            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] h-[24px] bg-[#0f1115] rounded-b-[16px] z-10"></div>
+
+                            {{-- Glow circle outer --}}
+                            <div class="absolute top-[18%] left-1/2 -translate-x-1/2 w-[230px] h-[230px] rounded-full" style="background: radial-gradient(circle at 40% 35%, rgba(255,255,255,0.18), rgba(255,255,255,0) 60%);"></div>
+
+                            {{-- Glow circle inner --}}
+                            <div class="absolute top-[42%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[130px] h-[130px] rounded-full" style="background: radial-gradient(circle at 35% 30%, #b9e7c2, #6fbf86 55%, #3f9e6a 100%); box-shadow: 0 0 40px rgba(120,220,160,0.4);"></div>
+
+                            {{-- Coming Soon text --}}
+                            <div class="absolute bottom-[20%] left-0 right-0 text-center">
+                                <p class="text-white/90 text-xs font-medium uppercase tracking-[3px] mb-1">Nutrio Meals</p>
+                                <p class="text-white text-2xl font-extrabold tracking-tight">Coming Soon</p>
+                                <div class="flex justify-center gap-1.5 mt-4">
+                                    <span class="w-2 h-2 rounded-full bg-white/60 animate-pulse"></span>
+                                    <span class="w-2 h-2 rounded-full bg-white/40 animate-pulse" style="animation-delay: 0.2s;"></span>
+                                    <span class="w-2 h-2 rounded-full bg-white/30 animate-pulse" style="animation-delay: 0.4s;"></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    {{-- Side buttons --}}
+                    <div class="absolute -left-[2px] top-[120px] w-[3px] h-[36px] bg-[#0f1115] rounded-[2px]"></div>
+                    <div class="absolute -left-[2px] top-[166px] w-[3px] h-[36px] bg-[#0f1115] rounded-[2px]"></div>
+                    <div class="absolute -right-[2px] top-[150px] w-[3px] h-[60px] bg-[#0f1115] rounded-[2px]"></div>
                 </div>
             </div>
         </div>
