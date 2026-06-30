@@ -21,6 +21,7 @@
                     'title' => 'Personalized Nutrition',
                     'text' => 'Every meal is crafted based on your fitness goals, dietary preferences, and body composition. Our system calculates your exact needs and builds a plan just for you.',
                     'stage' => '01',
+                    'is_fi' => false,
                 ],
                 [
                     'img' => '2147782465.jpg',
@@ -28,6 +29,7 @@
                     'title' => 'Macro Tracking',
                     'text' => 'Track calories, proteins, carbs, and fats with precision. Our dashboard gives you real-time insights into your daily nutrition intake and progress.',
                     'stage' => '02',
+                    'is_fi' => false,
                 ],
                 [
                     'img' => '2149722284.jpg',
@@ -35,13 +37,15 @@
                     'title' => 'Fresh Daily Delivery',
                     'text' => 'Meals prepared fresh every morning and delivered to your doorstep on schedule. Never worry about meal prep again — we handle everything.',
                     'stage' => '03',
+                    'is_fi' => false,
                 ],
                 [
                     'img' => '236.jpg',
-                    'icon' => 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z',
+                    'icon' => 'fi fi-sr-diamond',
                     'title' => 'Premium Quality',
                     'text' => 'Chef-prepared meals using only the finest ingredients. Locally sourced produce, premium proteins, and no artificial additives ever.',
                     'stage' => '04',
+                    'is_fi' => true,
                 ],
             ];
         @endphp
@@ -66,8 +70,14 @@
                         {{-- Content --}}
                         <div class="w-full lg:w-1/2 {{ $index % 2 === 0 ? 'lg:pl-4' : 'lg:pr-4 lg:text-right' }}">
                             {{-- Icon --}}
-                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#033133] to-[#259B00] text-white flex items-center justify-center shadow-lg mb-5 {{ $index % 2 === 1 ? 'lg:ml-auto' : '' }}">
-                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $card['icon'] }}"></path></svg>
+                            <div class="why-icon-wrap w-20 h-20 rounded-full bg-gradient-to-br from-[#033133] to-[#259B00] text-white flex items-center justify-center shadow-xl mb-5 {{ $index % 2 === 1 ? 'lg:ml-auto' : '' }}">
+                                <div class="why-icon-inner w-16 h-16 rounded-full bg-white/10 flex items-center justify-center">
+                                    @if ($card['is_fi'])
+                                        <i class="{{ $card['icon'] }} text-3xl text-white"></i>
+                                    @else
+                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $card['icon'] }}"></path></svg>
+                                    @endif
+                                </div>
                             </div>
 
                             {{-- Title --}}
@@ -95,3 +105,29 @@
         </div>
     </div>
 </section>
+
+<style>
+    @keyframes iconRoll {
+        0% { transform: rotate(0deg) scale(1); }
+        25% { transform: rotate(180deg) scale(1.15); }
+        50% { transform: rotate(360deg) scale(1); }
+        75% { transform: rotate(540deg) scale(1.15); }
+        100% { transform: rotate(720deg) scale(1); }
+    }
+    @keyframes iconPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(37, 155, 0, 0.4); }
+        50% { box-shadow: 0 0 0 12px rgba(37, 155, 0, 0); }
+    }
+    .why-card.is-visible .why-icon-wrap {
+        animation: iconRoll 1.5s ease-in-out, iconPulse 2s ease-in-out 1.5s;
+    }
+    .why-card.is-visible .why-icon-inner {
+        animation: iconRoll 1.5s ease-in-out reverse;
+    }
+    .why-icon-wrap {
+        transition: transform 0.3s ease;
+    }
+    .why-icon-wrap:hover {
+        transform: scale(1.1);
+    }
+</style>
