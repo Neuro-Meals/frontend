@@ -1,36 +1,78 @@
-<section id="testimonials" class="py-20 bg-gray-50 dark:bg-gray-800/50 transition-colors duration-300">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center max-w-3xl mx-auto mb-16 scroll-reveal">
-            <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">What Our Customers Say</h2>
-            <p class="text-gray-600 dark:text-gray-300">Real results from real people in Saudi Arabia.</p>
+<section id="testimonials" class="bg-white dark:bg-gray-900 transition-colors duration-300">
+    <div class="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-16 lg:px-6">
+        <div class="mx-auto max-w-screen-sm scroll-reveal">
+            <span class="inline-block px-4 py-1.5 rounded-full bg-brand-light/10 text-brand-light text-xs font-bold uppercase tracking-wider mb-4">Testimonials</span>
+            <h2 class="mb-4 text-3xl sm:text-4xl lg:text-5xl tracking-tight font-extrabold text-gray-900 dark:text-white">What Our Customers Say</h2>
+            <p class="mb-8 font-light text-gray-500 lg:mb-16 sm:text-xl dark:text-gray-400">Real stories from real people across Saudi Arabia who transformed their lifestyle with Nutrio Meals.</p>
         </div>
 
-        <div class="grid md:grid-cols-3 gap-8">
+        <div class="grid mb-8 lg:mb-12 lg:grid-cols-2">
             @php
-                $reviews = [
-                    ['name' => 'Ahmed Al-Farsi', 'role' => 'Fitness Coach', 'text' => 'The macro tracking and meal quality are exactly what I needed for my clients. Highly recommended.', 'stars' => 5],
-                    ['name' => 'Sara Mohammed', 'role' => 'Working Professional', 'text' => 'Fresh meals delivered daily save me so much time. The taste is amazing and the portions are perfect.', 'stars' => 5],
-                    ['name' => 'Khalid Nasser', 'role' => 'Gym Enthusiast', 'text' => 'Finally a meal plan that helps me gain muscle without eating boring food. Nutrio Meals is a game changer.', 'stars' => 5],
+                $testimonials = [
+                    [
+                        'title' => 'Best decision for my fitness journey',
+                        'text' => "I've been using Nutrio Meals for 3 months now and the results are incredible. The macro tracking is spot on, and every meal is fresh, delicious, and perfectly portioned. It's like having a personal nutritionist and chef combined.",
+                        'text2' => "The delivery is always on time, and the variety keeps me from getting bored. I've lost 8kg while still enjoying my food. Highly recommend to anyone serious about their health.",
+                        'name' => 'Ahmed Al-Farsi',
+                        'role' => 'Fitness Coach, Riyadh',
+                        'initials' => 'AA',
+                    ],
+                    [
+                        'title' => 'Saved me hours every single week',
+                        'text' => "As a busy professional working 10+ hour days, cooking was always a struggle. Nutrio Meals completely changed that. I come home to fresh, healthy meals every day without lifting a finger.",
+                        'text2' => "The subscription is flexible and the quality is consistently excellent. It's been a game-changer for my work-life balance and my health.",
+                        'name' => 'Sara Mohammed',
+                        'role' => 'Marketing Manager, Jeddah',
+                        'initials' => 'SM',
+                    ],
+                    [
+                        'title' => 'Perfect for muscle gain goals',
+                        'text' => "I've tried multiple meal plans but none matched my protein needs like Nutrio Meals. The fitness plan gives me exactly the macros I need for building muscle, and the food actually tastes great.",
+                        'text2' => "The dashboard makes it so easy to track my progress. I can see my calorie intake, macro breakdown, and even adjust my plan based on my workout schedule.",
+                        'text3' => "This is the best investment I've made for my fitness journey.",
+                        'name' => 'Khalid Nasser',
+                        'role' => 'Gym Enthusiast, Dammam',
+                        'initials' => 'KN',
+                    ],
+                    [
+                        'title' => 'Quality that you can taste',
+                        'text' => "What impressed me most is the quality of ingredients. Everything is fresh, locally sourced, and you can taste the difference. The meals feel like they're from a premium restaurant.",
+                        'text2' => "Their customer service is outstanding too. Any questions about my plan or delivery are answered immediately. Truly a five-star experience from start to finish.",
+                        'name' => 'Noura Abdullah',
+                        'role' => 'Health Blogger, Riyadh',
+                        'initials' => 'NA',
+                    ],
                 ];
             @endphp
 
-            @foreach ($reviews as $index => $review)
-                <div class="scroll-reveal scroll-reveal-delay-{{ ($index % 3) + 1 }} p-8 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 shadow-sm">
-                    <div class="flex gap-1 mb-4">
-                        @for ($i = 0; $i < $review['stars']; $i++)
-                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                        @endfor
-                    </div>
-                    <p class="text-gray-600 dark:text-gray-300 mb-6">"{{ $review['text'] }}"</p>
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-brand-light/10 flex items-center justify-center text-brand-light font-bold">{{ substr($review['name'], 0, 1) }}</div>
-                        <div>
-                            <p class="font-bold text-gray-900 dark:text-white text-sm">{{ $review['name'] }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ $review['role'] }}</p>
+            @foreach ($testimonials as $index => $t)
+                <figure class="scroll-reveal flex flex-col justify-center items-center p-8 text-center bg-gray-50 border-b border-gray-200 {{ $index === 0 ? 'lg:border-r' : '' }} {{ $index === 2 ? 'lg:border-b-0 lg:border-r' : '' }} {{ $index === 3 ? 'border-b-0' : '' }} md:p-12 dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors duration-300">
+                    <blockquote class="mx-auto mb-8 max-w-2xl text-gray-500 dark:text-gray-400">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ $t['title'] }}</h3>
+                        <p class="my-4">"{{ $t['text'] }}"</p>
+                        @if (isset($t['text2']))
+                            <p class="my-4">"{{ $t['text2'] }}"</p>
+                        @endif
+                        @if (isset($t['text3']))
+                            <p class="my-4">"{{ $t['text3'] }}"</p>
+                        @endif
+                    </blockquote>
+                    <figcaption class="flex justify-center items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#033133] to-[#259B00] text-white flex items-center justify-center text-sm font-bold shadow-md">{{ $t['initials'] }}</div>
+                        <div class="space-y-0.5 font-medium dark:text-white text-left">
+                            <div>{{ $t['name'] }}</div>
+                            <div class="text-sm font-light text-gray-500 dark:text-gray-400">{{ $t['role'] }}</div>
                         </div>
-                    </div>
-                </div>
+                    </figcaption>
+                </figure>
             @endforeach
+        </div>
+
+        <div class="text-center scroll-reveal">
+            <a href="#" class="inline-flex items-center gap-2 py-2.5 px-6 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-xl border border-gray-200 hover:bg-gray-100 hover:text-brand-light focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 transition-colors">
+                Show more...
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </a>
         </div>
     </div>
 </section>
