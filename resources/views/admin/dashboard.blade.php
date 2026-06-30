@@ -25,55 +25,71 @@
 {{-- KPI Cards Row --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     {{-- Revenue --}}
-    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#259B00] to-[#033133] flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <div class="kpi-card bg-gradient-to-br from-[#033133] to-[#259B00] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#259B00]/20">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="relative z-10">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">{{ $revGrowth >= 0 ? '+' : '' }}{{ $revGrowth }}%</span>
             </div>
-            <span class="text-xs font-bold {{ $revGrowth >= 0 ? 'text-green-600' : 'text-red-500' }}">{{ $revGrowth >= 0 ? '+' : '' }}{{ $revGrowth }}%</span>
+            <p class="text-xs text-white/60 font-medium mb-1">Monthly Revenue</p>
+            <p class="text-2xl font-bold tracking-tight">SAR {{ $fmt($stats['monthlyRevenue']) }}</p>
+            <p class="text-xs text-white/50 mt-1">vs SAR {{ $fmt($stats['lastMonthRevenue']) }} last mo.</p>
         </div>
-        <p class="text-xs text-gray-400 font-medium mb-1">Monthly Revenue</p>
-        <p class="text-2xl font-bold text-gray-900 tracking-tight">SAR {{ $fmt($stats['monthlyRevenue']) }}</p>
-        <p class="text-xs text-gray-400 mt-1">vs SAR {{ $fmt($stats['lastMonthRevenue']) }} last month</p>
     </div>
 
     {{-- Active Subscriptions --}}
-    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+    <div class="kpi-card bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-blue-500/20">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="relative z-10">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                </div>
+                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">+12.4%</span>
             </div>
-            <span class="text-xs font-bold text-green-600">+12.4%</span>
+            <p class="text-xs text-white/60 font-medium mb-1">Active Subscriptions</p>
+            <p class="text-2xl font-bold tracking-tight">{{ number_format($stats['activeSubscriptions']) }}</p>
+            <p class="text-xs text-white/50 mt-1">{{ $stats['retentionRate'] }}% retention rate</p>
         </div>
-        <p class="text-xs text-gray-400 font-medium mb-1">Active Subscriptions</p>
-        <p class="text-2xl font-bold text-gray-900 tracking-tight">{{ number_format($stats['activeSubscriptions']) }}</p>
-        <p class="text-xs text-gray-400 mt-1">{{ $stats['retentionRate'] }}% retention rate</p>
     </div>
 
     {{-- Orders Today --}}
-    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    <div class="kpi-card bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-amber-500/20">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="relative z-10">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                </div>
+                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">+8.2%</span>
             </div>
-            <span class="text-xs font-bold text-green-600">+8.2%</span>
+            <p class="text-xs text-white/60 font-medium mb-1">Orders Today</p>
+            <p class="text-2xl font-bold tracking-tight">{{ $stats['ordersToday'] }}</p>
+            <p class="text-xs text-white/50 mt-1">Avg. SAR {{ $stats['avgOrderValue'] }} / order</p>
         </div>
-        <p class="text-xs text-gray-400 font-medium mb-1">Orders Today</p>
-        <p class="text-2xl font-bold text-gray-900 tracking-tight">{{ $stats['ordersToday'] }}</p>
-        <p class="text-xs text-gray-400 mt-1">Avg. SAR {{ $stats['avgOrderValue'] }} per order</p>
     </div>
 
     {{-- Payment Success --}}
-    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+    <div class="kpi-card bg-gradient-to-br from-violet-500 to-purple-700 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-violet-500/20">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="relative z-10">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                </div>
+                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">{{ $stats['successRate'] }}%</span>
             </div>
-            <span class="text-xs font-bold text-green-600">{{ $stats['successRate'] }}%</span>
+            <p class="text-xs text-white/60 font-medium mb-1">Payment Success</p>
+            <p class="text-2xl font-bold tracking-tight">{{ $stats['successRate'] }}%</p>
+            <p class="text-xs text-white/50 mt-1">{{ $stats['pendingPayments'] }} pending payments</p>
         </div>
-        <p class="text-xs text-gray-400 font-medium mb-1">Payment Success Rate</p>
-        <p class="text-2xl font-bold text-gray-900 tracking-tight">{{ $stats['successRate'] }}%</p>
-        <p class="text-xs text-gray-400 mt-1">{{ $stats['pendingPayments'] }} pending payments</p>
     </div>
 </div>
 
