@@ -33,29 +33,27 @@
             @endphp
 
             @foreach ($meals as $meal)
-                <div class="meal-card flex-shrink-0 w-[80%] sm:w-[45%] lg:w-[24%] snap-center">
-                    <div class="relative rounded-3xl overflow-hidden shadow-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                <div class="meal-card flex-shrink-0 w-[70%] sm:w-[32%] lg:w-[18%] snap-center">
+                    <div class="relative rounded-2xl overflow-hidden shadow-md bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
                         {{-- Image --}}
-                        <div class="relative aspect-[4/3] overflow-hidden">
+                        <div class="relative aspect-square overflow-hidden">
                             <img src="{{ asset('images/' . $meal['img']) }}" alt="{{ $meal['name'] }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                             {{-- Category badge --}}
-                            <div class="absolute top-3 left-3 px-3 py-1 rounded-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm text-xs font-bold text-[#033133] dark:text-white shadow">{{ $meal['cat'] }}</div>
+                            <div class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm text-[10px] font-bold text-[#033133] dark:text-white shadow">{{ $meal['cat'] }}</div>
                             {{-- Name overlay --}}
-                            <div class="absolute bottom-0 left-0 right-0 p-4">
-                                <h3 class="text-white font-bold text-base leading-tight">{{ $meal['name'] }}</h3>
+                            <div class="absolute bottom-0 left-0 right-0 p-2.5">
+                                <h3 class="text-white font-bold text-xs leading-tight">{{ $meal['name'] }}</h3>
                             </div>
                         </div>
                         {{-- Nutrition info --}}
-                        <div class="px-4 py-3 flex items-center justify-between">
-                            <div class="flex items-center gap-1.5">
-                                <svg class="w-4 h-4 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ $meal['cal'] }}</span>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <svg class="w-4 h-4 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 11h.01M12 11h.01M16 11h.01M21 16v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2a4 4 0 004 4h10a4 4 0 004-4z"/></svg>
-                                <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ $meal['protein'] }}</span>
-                            </div>
+                        <div class="px-2.5 py-2 flex items-center justify-center gap-2">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-light/10 text-[10px] font-medium text-brand-light">
+                                {{ $meal['cal'] }}
+                            </span>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-light/10 text-[10px] font-medium text-brand-light">
+                                {{ $meal['protein'] }}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -85,6 +83,7 @@
 
         const cards = track.querySelectorAll('.meal-card');
         const cardWidth = () => cards[0].offsetWidth + 20;
+        const visibleCards = () => Math.round(track.clientWidth / cardWidth());
         let autoScrollTimer = null;
         let isHovered = false;
 
