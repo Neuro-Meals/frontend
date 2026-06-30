@@ -24,9 +24,7 @@ class PageController extends Controller
         return view('pages.' . $slug);
     }
 }
-                    [
-                        'type' => 'cards',
-                        'heading' => 'What Drives Us',
+
                         'cards' => [
                             ['icon' => 'M13 10V3L4 14h7v7l9-11h-7z', 'title' => 'Our Mission', 'text' => 'To make healthy eating effortless and enjoyable for everyone, every single day.'],
                             ['icon' => 'M5 13l4 4L19 7', 'title' => 'Quality First', 'text' => 'Every meal is prepared with premium ingredients and approved by certified nutritionists.'],
