@@ -48,25 +48,24 @@
                     {{-- Phone body --}}
                     <div class="absolute inset-0 rounded-[46px] bg-[#0f1115] p-[14px] shadow-2xl" style="box-shadow: 0 30px 60px rgba(0,0,0,0.18);">
                         {{-- Screen --}}
-                        <div class="w-full h-full rounded-[34px] overflow-hidden relative" style="background: radial-gradient(circle at 50% 38%, #6fd1a8 0%, #4cb893 18%, #2f8fad 42%, #1f4e8f 75%, #16306e 100%);">
+                        <div class="w-full h-full rounded-[34px] overflow-hidden relative bg-white">
                             {{-- Notch --}}
                             <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] h-[24px] bg-[#0f1115] rounded-b-[16px] z-10"></div>
 
-                            {{-- Glow circle outer --}}
-                            <div class="absolute top-[18%] left-1/2 -translate-x-1/2 w-[230px] h-[230px] rounded-full" style="background: radial-gradient(circle at 40% 35%, rgba(255,255,255,0.18), rgba(255,255,255,0) 60%);"></div>
-
-                            {{-- Glow circle inner --}}
-                            <div class="absolute top-[42%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[130px] h-[130px] rounded-full" style="background: radial-gradient(circle at 35% 30%, #b9e7c2, #6fbf86 55%, #3f9e6a 100%); box-shadow: 0 0 40px rgba(120,220,160,0.4);"></div>
-
                             {{-- Coming Soon text --}}
-                            <div class="absolute bottom-[20%] left-0 right-0 text-center">
-                                <p class="text-white/90 text-xs font-medium uppercase tracking-[3px] mb-1">Nutrio Meals</p>
-                                <p class="text-white text-2xl font-extrabold tracking-tight">Coming Soon</p>
-                                <div class="flex justify-center gap-1.5 mt-4">
-                                    <span class="w-2 h-2 rounded-full bg-white/60 animate-pulse"></span>
-                                    <span class="w-2 h-2 rounded-full bg-white/40 animate-pulse" style="animation-delay: 0.2s;"></span>
-                                    <span class="w-2 h-2 rounded-full bg-white/30 animate-pulse" style="animation-delay: 0.4s;"></span>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center px-6">
+                                <p class="text-gray-400 text-xs font-medium uppercase tracking-[3px] mb-2">Nutrio Meals</p>
+                                <p class="text-gray-900 text-2xl font-extrabold tracking-tight mb-4">Coming Soon</p>
+                                <div class="flex justify-center gap-1.5 mb-8">
+                                    <span class="w-2 h-2 rounded-full bg-[#259B00] animate-pulse"></span>
+                                    <span class="w-2 h-2 rounded-full bg-[#259B00]/60 animate-pulse" style="animation-delay: 0.2s;"></span>
+                                    <span class="w-2 h-2 rounded-full bg-[#259B00]/30 animate-pulse" style="animation-delay: 0.4s;"></span>
                                 </div>
+                            </div>
+
+                            {{-- Logo at bottom --}}
+                            <div class="absolute bottom-6 left-0 right-0 flex justify-center">
+                                <img src="{{ asset('nitro FULL 3.png') }}" alt="Nutrio Meals" class="h-12 w-auto object-contain opacity-80">
                             </div>
                         </div>
                     </div>
