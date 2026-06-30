@@ -26,6 +26,14 @@ Route::get('/home', function () {
 // Admin routes
 Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/customers', [AdminController::class, 'customers'])->name('customers');
+    Route::get('/plans', [AdminController::class, 'plans'])->name('plans');
+    Route::get('/orders', [AdminController::class, 'orders'])->name('orders');
+    Route::get('/deliveries', [AdminController::class, 'deliveries'])->name('deliveries');
+    Route::get('/payments', [AdminController::class, 'payments'])->name('payments');
+    Route::get('/reports', [AdminController::class, 'reports'])->name('reports');
+    Route::get('/content', [AdminController::class, 'content'])->name('content');
+    Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
 });
 
 // User routes
