@@ -53,8 +53,8 @@
     {{-- Sidebar --}}
     <aside id="adminSidebar" class="fixed top-0 left-0 z-50 w-60 h-screen bg-[#171717] transform -translate-x-full lg:translate-x-0 transition-transform duration-300 flex flex-col">
         {{-- Brand --}}
-        <div class="h-16 flex items-center px-5 border-b border-white/5 flex-shrink-0">
-            <img src="{{ asset('nitro FULL 3.png') }}" alt="Nutrio Meals" class="h-9 w-auto brightness-0 invert">
+        <div class="h-20 flex items-center justify-center border-b border-white/5 flex-shrink-0">
+            <img src="{{ asset('nitro FULL 3.png') }}" alt="Nutrio Meals" class="h-12 w-auto brightness-0 invert">
         </div>
 
         {{-- Menu --}}
