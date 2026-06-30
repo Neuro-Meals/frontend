@@ -4,9 +4,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
 
+use App\Http\Controllers\PageController;
+
 Route::get('/', function () {
     return view('landing');
 });
+
+// Static pages
+Route::get('/page/{slug}', [PageController::class, 'show'])->name('page.show');
 
 Auth::routes();
 
