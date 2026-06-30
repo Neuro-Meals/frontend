@@ -184,7 +184,7 @@
     {{-- Plan Distribution --}}
     <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div class="mb-6">
-            <h3 class="text-sm font-bold text-gray-900">Plan Distribution</h3>
+            <h3 class="text-base font-bold text-gray-900">Plan <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Distribution</span></h3>
             <p class="text-xs text-gray-400 mt-0.5">Active subscriptions by plan</p>
         </div>
         @php $totalPlans = array_sum(array_column($planDistribution, 'count')); @endphp
@@ -244,7 +244,7 @@
     {{-- Delivery Zones --}}
     <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div class="mb-5">
-            <h3 class="text-sm font-bold text-gray-900">Delivery Zones</h3>
+            <h3 class="text-base font-bold text-gray-900">Delivery <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Zones</span></h3>
             <p class="text-xs text-gray-400 mt-0.5">Today's distribution</p>
         </div>
         <div class="space-y-3">
