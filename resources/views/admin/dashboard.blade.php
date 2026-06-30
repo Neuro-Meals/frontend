@@ -139,7 +139,7 @@
     <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Revenue Trend</h3>
+                <h3 class="text-base font-bold text-gray-900">Revenue <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Trend</span></h3>
                 <p class="text-xs text-gray-400 mt-0.5">Last 14 days performance</p>
             </div>
             <div class="flex items-center gap-2">
