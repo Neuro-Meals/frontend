@@ -20,10 +20,7 @@
 
         {{-- Subscriber Workflow --}}
         <div class="hiw-workflow active" id="workflow-subscriber">
-            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4 relative">
-                {{-- Connecting line --}}
-                <div class="hidden lg:block absolute top-16 left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-brand-light/10 via-brand-light/40 to-brand-light/10"></div>
-
+            <div class="flex flex-col sm:flex-row sm:flex-wrap lg:flex-nowrap gap-6 lg:gap-0 items-center lg:items-stretch">
                 @php
                     $subscriberSteps = [
                         ['num' => '1', 'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', 'title' => 'Choose Your Goal', 'text' => 'Select Weight Loss, Muscle Gain, or Maintenance based on your body targets.'],
@@ -34,7 +31,7 @@
                 @endphp
 
                 @foreach ($subscriberSteps as $index => $step)
-                    <div class="hiw-step-card scroll-reveal relative" style="transition-delay: {{ $index * 100 }}ms;">
+                    <div class="hiw-step-card scroll-reveal relative w-full sm:w-[calc(50%-12px)] lg:w-full lg:flex-1" style="transition-delay: {{ $index * 100 }}ms;">
                         <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:border-brand-light/30 dark:hover:border-brand-light/30 hover:-translate-y-1 transition-all duration-300 h-full">
                             <div class="flex items-center gap-4 mb-4">
                                 <div class="relative flex-shrink-0">
@@ -48,15 +45,20 @@
                             <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{{ $step['text'] }}</p>
                         </div>
                     </div>
+                    @if (!$loop->last)
+                        <div class="hidden lg:flex items-center justify-center flex-shrink-0 w-10 scroll-reveal" style="transition-delay: {{ $index * 100 + 50 }}ms;">
+                            <div class="w-10 h-10 rounded-full bg-white dark:bg-gray-800 border-2 border-brand-light/30 flex items-center justify-center shadow-md">
+                                <svg class="w-5 h-5 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg>
+                            </div>
+                        </div>
+                    @endif
                 @endforeach
             </div>
         </div>
 
         {{-- Fitness Enthusiast Workflow --}}
         <div class="hiw-workflow hidden" id="workflow-fitness">
-            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4 relative">
-                <div class="hidden lg:block absolute top-16 left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-brand-light/10 via-brand-light/40 to-brand-light/10"></div>
-
+            <div class="flex flex-col sm:flex-row sm:flex-wrap lg:flex-nowrap gap-6 lg:gap-0 items-center lg:items-stretch">
                 @php
                     $fitnessSteps = [
                         ['num' => '1', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', 'title' => 'Calculate Macros', 'text' => 'Use our health calculator to determine your daily calorie and macro needs.'],
@@ -67,7 +69,7 @@
                 @endphp
 
                 @foreach ($fitnessSteps as $index => $step)
-                    <div class="hiw-step-card scroll-reveal relative" style="transition-delay: {{ $index * 100 }}ms;">
+                    <div class="hiw-step-card scroll-reveal relative w-full sm:w-[calc(50%-12px)] lg:w-full lg:flex-1" style="transition-delay: {{ $index * 100 }}ms;">
                         <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:border-brand-light/30 dark:hover:border-brand-light/30 hover:-translate-y-1 transition-all duration-300 h-full">
                             <div class="flex items-center gap-4 mb-4">
                                 <div class="relative flex-shrink-0">
@@ -81,6 +83,13 @@
                             <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{{ $step['text'] }}</p>
                         </div>
                     </div>
+                    @if (!$loop->last)
+                        <div class="hidden lg:flex items-center justify-center flex-shrink-0 w-10 scroll-reveal" style="transition-delay: {{ $index * 100 + 50 }}ms;">
+                            <div class="w-10 h-10 rounded-full bg-white dark:bg-gray-800 border-2 border-brand-light/30 flex items-center justify-center shadow-md">
+                                <svg class="w-5 h-5 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg>
+                            </div>
+                        </div>
+                    @endif
                 @endforeach
             </div>
         </div>
