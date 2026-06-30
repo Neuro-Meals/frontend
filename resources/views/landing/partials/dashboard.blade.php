@@ -2,8 +2,8 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid lg:grid-cols-2 gap-12 items-center">
             <div class="scroll-reveal">
-                <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">Your Nutrition, Under Control</h2>
-                <p class="text-gray-600 dark:text-gray-300 mb-8">Track every meal, macro, and milestone with your personal nutrition dashboard.</p>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">Smart Nutrition, Real Results</h2>
+                <p class="text-gray-600 dark:text-gray-300 mb-8">Monitor your daily intake, track macros, and stay on top of your fitness goals — all from one beautiful dashboard built for your health journey.</p>
 
                 <div class="grid sm:grid-cols-2 gap-4">
                     @foreach ([['Daily calories', 'See your exact calorie intake'], ['Macro progress', 'Protein, carbs & fat balance'], ['BMI tracking', 'Monitor body composition'], ['Fitness goals', 'Set and crush targets']] as $item)
