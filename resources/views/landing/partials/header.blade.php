@@ -1,19 +1,19 @@
 <header class="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-20">
+        <div class="flex items-center justify-between h-24">
             {{-- Logo --}}
-            <a href="#" class="flex items-center gap-2">
-                <img src="{{ asset('nitro FULL 3.png') }}" alt="{{ config('app.name', 'Nutrio Meals') }}" class="h-10 w-auto object-contain">
-                <span class="text-xl font-extrabold text-gray-900 dark:text-white">{{ config('app.name', 'Nutrio Meals') }}</span>
+            <a href="#" class="flex items-center gap-3">
+                <img src="{{ asset('nitro FULL 3.png') }}" alt="{{ config('app.name', 'Nutrio Meals') }}" class="h-16 w-auto object-contain">
+                <span class="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">{{ config('app.name', 'Nutrio Meals') }}</span>
             </a>
 
             {{-- Desktop Nav --}}
             <nav class="hidden md:flex items-center gap-8">
-                <a href="#how-it-works" class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">How It Works</a>
-                <a href="#plans" class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">Meal Plans</a>
-                <a href="#gallery" class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">Meals</a>
-                <a href="#testimonials" class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">Reviews</a>
-                <a href="#calculator" class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">Calculator</a>
+                <a href="#" class="text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">Home</a>
+                <a href="#plans" class="text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">Plans</a>
+                <a href="#how-it-works" class="text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">How It Works</a>
+                <a href="#gallery" class="text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">Meals</a>
+                <a href="#calculator" class="text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">Calculator</a>
             </nav>
 
             {{-- Actions --}}
