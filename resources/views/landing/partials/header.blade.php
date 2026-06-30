@@ -1,14 +1,16 @@
-<header class="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-24">
+<header class="fixed top-3 left-0 right-0 z-50 px-4">
+    <div class="max-w-7xl mx-auto bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-gray-200/60 dark:border-gray-700/60 rounded-2xl shadow-lg dark:shadow-gray-900/30 transition-colors duration-300">
+        <div class="flex items-center justify-between px-5 py-3">
             {{-- Logo --}}
             <a href="#" class="flex items-center gap-3">
-                <img src="{{ asset('nitro FULL 3.png') }}" alt="{{ config('app.name', 'Nutrio Meals') }}" class="h-16 w-auto object-contain">
-                <span class="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">{{ config('app.name', 'Nutrio Meals') }}</span>
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-1.5 shadow-sm">
+                    <img src="{{ asset('nitro FULL 3.png') }}" alt="{{ config('app.name', 'Nutrio Meals') }}" class="h-12 w-auto object-contain">
+                </div>
+                <span class="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">{{ config('app.name', 'Nutrio Meals') }}</span>
             </a>
 
             {{-- Desktop Nav --}}
-            <nav class="hidden md:flex items-center gap-8">
+            <nav class="hidden md:flex items-center gap-7">
                 <a href="#" class="text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">Home</a>
                 <a href="#plans" class="text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">Plans</a>
                 <a href="#how-it-works" class="text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">How It Works</a>
@@ -23,7 +25,10 @@
                     <svg id="theme-icon-moon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
                 </button>
                 @if (Route::has('login'))
-                    <a href="{{ route('login') }}" class="hidden sm:inline-flex px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-brand-light to-brand-dark hover:from-brand-dark hover:to-brand-light rounded-lg shadow-md hover:shadow-lg transition-all">Get Started</a>
+                    <a href="{{ route('login') }}" class="hidden sm:inline-flex items-center gap-1.5 px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-[#033133] to-[#259B00] hover:from-[#025C5F] hover:to-[#1E8A00] rounded-xl shadow-md shadow-brand-light/20 hover:shadow-lg hover:shadow-brand-light/30 hover:-translate-y-0.5 transition-all duration-300">
+                        Get Started
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                    </a>
                 @endif
             </div>
         </div>

@@ -7,6 +7,7 @@
 
     <main>
         @include('landing.partials.hero')
+        @include('landing.partials.about')
         @include('landing.partials.why')
         @include('landing.partials.how-it-works')
         @include('landing.partials.plans')
