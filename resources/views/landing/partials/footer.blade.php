@@ -9,10 +9,13 @@
                         <h6 class="mb-4 text-sm font-semibold uppercase text-gray-900 dark:text-white">Company</h6>
                         <ul class="space-y-3">
                             <li><a href="{{ route('page.show', 'about-us') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">About Us</a></li>
+                            <li><a href="/#about" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">How It Works</a></li>
                             <li><a href="/#why" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Why Choose Us</a></li>
                             <li><a href="/#plans" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Meal Plans</a></li>
                             <li><a href="/#gallery" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Our Menu</a></li>
                             <li><a href="/#calculator" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Nutrition Calculator</a></li>
+                            <li><a href="/#subscription" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Subscription</a></li>
+                            <li><a href="/#testimonials" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Testimonials</a></li>
                         </ul>
                     </div>
 
@@ -152,10 +155,10 @@
                 </a>
 
                 <ul class="flex flex-wrap items-center gap-4 text-sm text-gray-900 dark:text-white xl:justify-center">
-                    <li><a href="#" class="font-medium hover:underline">Privacy Policy</a></li>
-                    <li><a href="#" class="font-medium hover:underline">Terms of Use</a></li>
-                    <li><a href="#" class="font-medium hover:underline">Refund Policy</a></li>
-                    <li><a href="#" class="font-medium hover:underline">Cookie Policy</a></li>
+                    <li><a href="{{ route('page.show', 'privacy-policy') }}" class="font-medium hover:underline">Privacy Policy</a></li>
+                    <li><a href="{{ route('page.show', 'terms-of-service') }}" class="font-medium hover:underline">Terms of Use</a></li>
+                    <li><a href="{{ route('page.show', 'refund-policy') }}" class="font-medium hover:underline">Refund Policy</a></li>
+                    <li><a href="{{ route('page.show', 'cookie-policy') }}" class="font-medium hover:underline">Cookie Policy</a></li>
                 </ul>
 
                 <p class="text-sm text-gray-500 dark:text-gray-400">&copy; {{ date('Y') }} <a href="#" class="hover:underline">Nutrio Meals</a>, Inc. All rights reserved.</p>
