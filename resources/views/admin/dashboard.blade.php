@@ -344,28 +344,37 @@
 </div>
 
 {{-- System Status Bar --}}
-<div class="bg-gradient-to-r from-[#033133] to-[#01241f] rounded-2xl p-5 text-white flex items-center justify-between">
-    <div class="flex items-center gap-4">
-        <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+<div class="bg-gradient-to-r from-[#033133] via-[#01241f] to-[#033133] rounded-2xl p-5 text-white relative overflow-hidden shadow-xl">
+    <div class="absolute top-0 right-0 w-40 h-40 bg-[#259B00]/10 rounded-full -mr-20 -mt-20 blur-2xl"></div>
+    <div class="absolute bottom-0 left-1/3 w-32 h-32 bg-[#259B00]/5 rounded-full blur-2xl"></div>
+    <div class="relative z-10 flex items-center justify-between flex-wrap gap-4">
+        <div class="flex items-center gap-4">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-[#259B00] to-[#033133] flex items-center justify-center shadow-lg shadow-[#259B00]/30">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                    <p class="text-sm font-bold">All Systems Operational</p>
+                </div>
+                <p class="text-xs text-white/50 mt-0.5">Last updated {{ now()->format('M d, Y H:i') }}</p>
+            </div>
         </div>
-        <div>
-            <p class="text-sm font-semibold">All Systems Operational</p>
-            <p class="text-xs text-white/50 mt-0.5">Last updated {{ now()->format('M d, Y H:i') }}</p>
-        </div>
-    </div>
-    <div class="flex items-center gap-6">
-        <div class="text-right">
-            <p class="text-[10px] text-white/40 uppercase tracking-wider">Uptime</p>
-            <p class="text-sm font-bold">99.98%</p>
-        </div>
-        <div class="text-right">
-            <p class="text-[10px] text-white/40 uppercase tracking-wider">Response</p>
-            <p class="text-sm font-bold">124ms</p>
-        </div>
-        <div class="text-right">
-            <p class="text-[10px] text-white/40 uppercase tracking-wider">API Status</p>
-            <p class="text-sm font-bold text-green-400">Healthy</p>
+        <div class="flex items-center gap-6">
+            <div class="text-right">
+                <p class="text-[10px] text-white/40 uppercase tracking-wider">Uptime</p>
+                <p class="text-sm font-bold">99.98%</p>
+            </div>
+            <div class="w-px h-8 bg-white/10"></div>
+            <div class="text-right">
+                <p class="text-[10px] text-white/40 uppercase tracking-wider">Response</p>
+                <p class="text-sm font-bold">124ms</p>
+            </div>
+            <div class="w-px h-8 bg-white/10"></div>
+            <div class="text-right">
+                <p class="text-[10px] text-white/40 uppercase tracking-wider">API Status</p>
+                <p class="text-sm font-bold text-green-400">Healthy</p>
+            </div>
         </div>
     </div>
 </div>
