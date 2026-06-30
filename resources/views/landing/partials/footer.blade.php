@@ -6,7 +6,7 @@
                 {{-- Brand section --}}
                 <div class="lg:col-span-1">
                     <a href="{{ url('/') }}" class="mb-4 inline-block">
-                        <img src="{{ asset('nitro FULL 3.png') }}" alt="Nutrio Meals" class="h-14 w-auto object-contain">
+                        <img src="{{ asset('nitro FULL 3.png') }}" alt="Nutrio Meals" class="h-20 w-auto object-contain">
                     </a>
                     <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Premium healthy meal subscriptions designed for your fitness goals in Saudi Arabia.</p>
                     {{-- Social icons --}}
