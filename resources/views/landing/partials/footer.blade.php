@@ -8,66 +8,66 @@
                     <div>
                         <h6 class="mb-4 text-sm font-semibold uppercase text-gray-900 dark:text-white">Company</h6>
                         <ul class="space-y-3">
-                            <li><a href="#about" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">About Us</a></li>
-                            <li><a href="#why" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Why Choose Us</a></li>
-                            <li><a href="#plans" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Meal Plans</a></li>
-                            <li><a href="#gallery" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Our Menu</a></li>
-                            <li><a href="#calculator" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Nutrition Calculator</a></li>
+                            <li><a href="{{ route('page.show', 'about-us') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">About Us</a></li>
+                            <li><a href="/#why" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Why Choose Us</a></li>
+                            <li><a href="/#plans" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Meal Plans</a></li>
+                            <li><a href="/#gallery" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Our Menu</a></li>
+                            <li><a href="/#calculator" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Nutrition Calculator</a></li>
                         </ul>
                     </div>
 
                     <div>
                         <h6 class="mb-4 text-sm font-semibold uppercase text-gray-900 dark:text-white">Orders & Delivery</h6>
                         <ul class="space-y-3">
-                            <li><a href="#delivery" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Delivery Info</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Track Your Order</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Order History</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Subscription Management</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Payment Methods</a></li>
+                            <li><a href="/#delivery" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Delivery Info</a></li>
+                            <li><a href="{{ route('page.show', 'track-your-order') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Track Your Order</a></li>
+                            <li><a href="{{ route('page.show', 'order-history') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Order History</a></li>
+                            <li><a href="{{ route('page.show', 'subscription-management') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Subscription Management</a></li>
+                            <li><a href="{{ route('page.show', 'payment-methods') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Payment Methods</a></li>
                         </ul>
                     </div>
 
                     <div>
                         <h6 class="mb-4 text-sm font-semibold uppercase text-gray-900 dark:text-white">Support</h6>
                         <ul class="space-y-3">
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Contact Support</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">FAQs</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Help Center</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Live Chat</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">WhatsApp Support</a></li>
+                            <li><a href="{{ route('page.show', 'contact-support') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Contact Support</a></li>
+                            <li><a href="{{ route('page.show', 'faqs') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">FAQs</a></li>
+                            <li><a href="{{ route('page.show', 'help-center') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Help Center</a></li>
+                            <li><a href="{{ route('page.show', 'live-chat') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Live Chat</a></li>
+                            <li><a href="{{ route('page.show', 'whatsapp-support') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">WhatsApp Support</a></li>
                         </ul>
                     </div>
 
                     <div>
                         <h6 class="mb-4 text-sm font-semibold uppercase text-gray-900 dark:text-white">Partnerships</h6>
                         <ul class="space-y-3">
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Partner With Us</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Become a Supplier</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Affiliate Program</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Collaboration</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Sponsorship</a></li>
+                            <li><a href="{{ route('page.show', 'partner-with-us') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Partner With Us</a></li>
+                            <li><a href="{{ route('page.show', 'become-a-supplier') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Become a Supplier</a></li>
+                            <li><a href="{{ route('page.show', 'affiliate-program') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Affiliate Program</a></li>
+                            <li><a href="{{ route('page.show', 'collaboration') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Collaboration</a></li>
+                            <li><a href="{{ route('page.show', 'sponsorship') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Sponsorship</a></li>
                         </ul>
                     </div>
 
                     <div>
                         <h6 class="mb-4 text-sm font-semibold uppercase text-gray-900 dark:text-white">Account</h6>
                         <ul class="space-y-3">
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Sign In</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Create Account</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">My Subscriptions</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Reward Points</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Refer a Friend</a></li>
+                            <li><a href="{{ route('login') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Sign In</a></li>
+                            <li><a href="{{ route('register') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Create Account</a></li>
+                            <li><a href="{{ route('page.show', 'my-subscriptions') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">My Subscriptions</a></li>
+                            <li><a href="{{ route('page.show', 'reward-points') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Reward Points</a></li>
+                            <li><a href="{{ route('page.show', 'refer-a-friend') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Refer a Friend</a></li>
                         </ul>
                     </div>
 
                     <div>
                         <h6 class="mb-4 text-sm font-semibold uppercase text-gray-900 dark:text-white">Legal</h6>
                         <ul class="space-y-3">
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Privacy Policy</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Terms of Service</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Refund Policy</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Cookie Policy</a></li>
-                            <li><a href="#" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Food Safety</a></li>
+                            <li><a href="{{ route('page.show', 'privacy-policy') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Privacy Policy</a></li>
+                            <li><a href="{{ route('page.show', 'terms-of-service') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Terms of Service</a></li>
+                            <li><a href="{{ route('page.show', 'refund-policy') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Refund Policy</a></li>
+                            <li><a href="{{ route('page.show', 'cookie-policy') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Cookie Policy</a></li>
+                            <li><a href="{{ route('page.show', 'food-safety') }}" class="text-gray-500 hover:text-[#259B00] dark:text-gray-400 dark:hover:text-white transition-colors">Food Safety</a></li>
                         </ul>
                     </div>
                 </div>
