@@ -20,37 +20,37 @@
                             'name' => 'Weight Loss', 'price' => '299', 'period' => '/month',
                             'desc' => 'Perfect for shedding extra kilos while enjoying delicious meals',
                             'features' => ['Low-calorie meals (1200-1500 kcal)', 'High protein portions', 'Fat-burning ingredients', 'Daily fresh delivery', 'Macro tracking access'],
-                            'popular' => false, 'icon' => 'M13 10V3L4 14h7v7l9-11h-7z', 'color' => 'from-blue-500 to-cyan-500',
+                            'popular' => false,
                         ],
                         [
                             'name' => 'Muscle Gain', 'price' => '399', 'period' => '/month',
                             'desc' => 'Built for athletes and gym enthusiasts wanting serious gains',
                             'features' => ['High-protein meals (2500+ kcal)', 'Performance carbs', 'Pre/post workout meals', 'Daily fresh delivery', 'Macro tracking access', 'Free nutritionist consult'],
-                            'popular' => true, 'icon' => 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => 'from-[#033133] to-[#259B00]',
+                            'popular' => true,
                         ],
                         [
                             'name' => 'Maintenance', 'price' => '349', 'period' => '/month',
                             'desc' => 'Stay in shape with balanced, flexible daily nutrition',
                             'features' => ['Balanced nutrition (1800-2000 kcal)', 'Flexible meal choices', 'Healthy lifestyle support', 'Daily fresh delivery', 'Macro tracking access'],
-                            'popular' => false, 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => 'from-amber-500 to-orange-500',
+                            'popular' => false,
                         ],
                         [
                             'name' => 'Keto Plan', 'price' => '449', 'period' => '/month',
                             'desc' => 'Low-carb, high-fat meals designed for ketosis and energy',
                             'features' => ['Ultra low-carb meals', 'High healthy fats', 'Ketosis support', 'Daily fresh delivery', 'Macro tracking access', 'Weekly progress reports'],
-                            'popular' => false, 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', 'color' => 'from-purple-500 to-pink-500',
+                            'popular' => false,
                         ],
                         [
                             'name' => 'Athlete Pro', 'price' => '599', 'period' => '/month',
                             'desc' => 'Premium plan for competitive athletes with custom macros',
                             'features' => ['Custom macro calculation', 'Performance-optimized meals', 'Pre/post workout nutrition', '2x daily delivery', 'Personal nutritionist', 'Weekly progress reports', 'Priority support'],
-                            'popular' => false, 'icon' => 'M13 10V3L4 14h7v7l9-11h-7z', 'color' => 'from-red-500 to-rose-600',
+                            'popular' => false,
                         ],
                         [
                             'name' => 'Family Plan', 'price' => '899', 'period' => '/month',
                             'desc' => 'Healthy meals for the whole family, delivered together',
                             'features' => ['Meals for 2-4 people', 'Customizable per member', 'Balanced family nutrition', 'Daily fresh delivery', 'Macro tracking for all', 'Free nutritionist consult'],
-                            'popular' => false, 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', 'color' => 'from-teal-500 to-emerald-600',
+                            'popular' => false,
                         ],
                     ];
                 @endphp
@@ -64,18 +64,13 @@
                             @endif
 
                             <div class="p-8 {{ $plan['popular'] ? 'pt-14' : '' }}">
-                                {{-- Icon --}}
-                                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br {{ $plan['color'] }} text-white flex items-center justify-center shadow-lg mb-5">
-                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $plan['icon'] }}"></path></svg>
-                                </div>
-
                                 {{-- Name --}}
                                 <h3 class="text-2xl font-extrabold text-gray-900 dark:text-white mb-2">{{ $plan['name'] }}</h3>
                                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">{{ $plan['desc'] }}</p>
 
                                 {{-- Price --}}
                                 <div class="flex items-baseline gap-1 mb-6">
-                                    <span class="text-4xl font-extrabold text-gray-900 dark:text-white">{{ $plan['price'] }}</span>
+                                    <span class="text-4xl font-extrabold {{ $plan['popular'] ? 'text-[#259B00]' : 'text-gray-900 dark:text-white' }}">{{ $plan['price'] }}</span>
                                     <span class="text-lg font-medium text-gray-500 dark:text-gray-400">SAR{{ $plan['period'] }}</span>
                                 </div>
 
@@ -128,6 +123,8 @@
 
         const cards = track.querySelectorAll('.plan-card');
         const cardWidth = () => cards[0].offsetWidth + 24;
+        let autoScrollTimer = null;
+        let isHovered = false;
 
         function scrollBy(dir) {
             track.scrollBy({ left: dir * cardWidth(), behavior: 'smooth' });
@@ -164,8 +161,40 @@
             }
         }
 
+        function autoScroll() {
+            if (isHovered) return;
+            const maxScroll = track.scrollWidth - track.clientWidth;
+            if (maxScroll <= 10) return;
+            const currentScroll = track.scrollLeft;
+            if (currentScroll >= maxScroll - 5) {
+                track.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+                scrollBy(1);
+            }
+        }
+
+        function startAutoScroll() {
+            stopAutoScroll();
+            autoScrollTimer = setInterval(autoScroll, 3500);
+        }
+
+        function stopAutoScroll() {
+            if (autoScrollTimer) {
+                clearInterval(autoScrollTimer);
+                autoScrollTimer = null;
+            }
+        }
+
         track.addEventListener('scroll', updateDots);
         window.addEventListener('resize', updateDots);
+
+        const carousel = document.querySelector('.plans-carousel');
+        if (carousel) {
+            carousel.addEventListener('mouseenter', () => { isHovered = true; stopAutoScroll(); });
+            carousel.addEventListener('mouseleave', () => { isHovered = false; startAutoScroll(); });
+        }
+
         updateDots();
+        startAutoScroll();
     })();
 </script>
