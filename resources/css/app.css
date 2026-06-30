@@ -1,9 +1,51 @@
 @import 'tailwindcss';
 
+@source '../../resources/views/**/*.blade.php';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Nunito', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --color-emerald-50: #e6f5f1;
+    --color-emerald-100: #b3e0d4;
+    --color-emerald-200: #80cbc0;
+    --color-emerald-300: #4db5a8;
+    --color-emerald-400: #1a9f8e;
+    --color-emerald-500: #024938;
+    --color-emerald-600: #023d30;
+    --color-emerald-700: #013028;
+    --color-emerald-800: #01241f;
+    --color-emerald-900: #001816;
+
+    --color-gold-50: #fff5e0;
+    --color-gold-100: #ffe6b3;
+    --color-gold-200: #ffd680;
+    --color-gold-300: #ffc64d;
+    --color-gold-400: #ffb71a;
+    --color-gold-500: #f9ac00;
+    --color-gold-600: #d49700;
+    --color-gold-700: #b07c00;
+    --color-gold-800: #8c6100;
+    --color-gold-900: #684600;
+
+    --color-brand-dark: #033133;
+    --color-brand-light: #259B00;
+}
+
+/* Auth page animations */
+@keyframes simpleFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-simple-fade-in {
+    animation: simpleFadeIn 0.4s ease-out both;
 }
