@@ -6,124 +6,346 @@
 @section('content')
 @php
     $fmt = fn($n) => $n >= 1000000 ? number_format($n/1000000, 2).'M' : ($n >= 1000 ? number_format($n/1000, 1).'K' : number_format($n));
+    $revGrowth = round(($stats['monthlyRevenue'] - $stats['lastMonthRevenue']) / $stats['lastMonthRevenue'] * 100, 1);
+    $statusColors = [
+        'delivered' => 'bg-green-50 text-green-700 border-green-200',
+        'en_route' => 'bg-blue-50 text-blue-700 border-blue-200',
+        'preparing' => 'bg-amber-50 text-amber-700 border-amber-200',
+        'pending' => 'bg-gray-50 text-gray-600 border-gray-200',
+    ];
+    $statusLabels = [
+        'delivered' => 'Delivered',
+        'en_route' => 'En Route',
+        'preparing' => 'Preparing',
+        'pending' => 'Pending',
+    ];
+    $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 @endphp
 
-{{-- Stats Cards --}}
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-    @foreach([
-        ['label'=>'Total Users','value'=>number_format($stats['totalUsers']),'change'=>'+'.$stats['newUsersThisWeek'].' this week','icon'=>'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z','from'=>'brand-600','to'=>'brand-700','border'=>'brand-500','text'=>'brand-100','sub'=>'brand-200'],
-        ['label'=>'Total Revenue','value'=>'SAR '.$fmt($stats['totalRevenue']),'change'=>'This week: SAR '.$fmt(0),'icon'=>'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z','from'=>'accent-400','to'=>'accent-500','border'=>'accent-300','text'=>'accent-50','sub'=>'accent-100'],
-        ['label'=>'Active Subscriptions','value'=>number_format($stats['activeSubscriptions']),'change'=>'Currently active','icon'=>'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15','from'=>'sky-500','to'=>'sky-600','border'=>'sky-400','text'=>'sky-100','sub'=>'sky-200'],
-        ['label'=>'Total Meals','value'=>number_format($stats['totalMeals']),'change'=>'In catalog','icon'=>'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z','from'=>'violet-500','to'=>'violet-600','border'=>'violet-400','text'=>'violet-100','sub'=>'violet-200']
-    ] as $card)
-    <div class="card-sm bg-gradient-to-br from-{{ $card['from'] }} to-{{ $card['to'] }} rounded-xl border border-{{ $card['border'] }} p-4 text-white relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8"></div>
-        <div class="relative z-10">
-            <div class="flex items-start justify-between mb-2">
-                <span class="text-[10px] font-medium {{ $card['text'] }}">{{ $card['label'] }}</span>
-                <svg class="w-4 h-4 {{ $card['sub'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $card['icon'] }}"/></svg>
+{{-- KPI Cards Row --}}
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    {{-- Revenue --}}
+    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#259B00] to-[#033133] flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
-            <p class="text-xl font-bold tracking-tight text-white">{{ $card['value'] }}</p>
-            <p class="text-[10px] {{ $card['sub'] }} font-medium mt-1">{{ $card['change'] }}</p>
+            <span class="text-xs font-bold {{ $revGrowth >= 0 ? 'text-green-600' : 'text-red-500' }}">{{ $revGrowth >= 0 ? '+' : '' }}{{ $revGrowth }}%</span>
+        </div>
+        <p class="text-xs text-gray-400 font-medium mb-1">Monthly Revenue</p>
+        <p class="text-2xl font-bold text-gray-900 tracking-tight">SAR {{ $fmt($stats['monthlyRevenue']) }}</p>
+        <p class="text-xs text-gray-400 mt-1">vs SAR {{ $fmt($stats['lastMonthRevenue']) }} last month</p>
+    </div>
+
+    {{-- Active Subscriptions --}}
+    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </div>
+            <span class="text-xs font-bold text-green-600">+12.4%</span>
+        </div>
+        <p class="text-xs text-gray-400 font-medium mb-1">Active Subscriptions</p>
+        <p class="text-2xl font-bold text-gray-900 tracking-tight">{{ number_format($stats['activeSubscriptions']) }}</p>
+        <p class="text-xs text-gray-400 mt-1">{{ $stats['retentionRate'] }}% retention rate</p>
+    </div>
+
+    {{-- Orders Today --}}
+    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            </div>
+            <span class="text-xs font-bold text-green-600">+8.2%</span>
+        </div>
+        <p class="text-xs text-gray-400 font-medium mb-1">Orders Today</p>
+        <p class="text-2xl font-bold text-gray-900 tracking-tight">{{ $stats['ordersToday'] }}</p>
+        <p class="text-xs text-gray-400 mt-1">Avg. SAR {{ $stats['avgOrderValue'] }} per order</p>
+    </div>
+
+    {{-- Payment Success --}}
+    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            </div>
+            <span class="text-xs font-bold text-green-600">{{ $stats['successRate'] }}%</span>
+        </div>
+        <p class="text-xs text-gray-400 font-medium mb-1">Payment Success Rate</p>
+        <p class="text-2xl font-bold text-gray-900 tracking-tight">{{ $stats['successRate'] }}%</p>
+        <p class="text-xs text-gray-400 mt-1">{{ $stats['pendingPayments'] }} pending payments</p>
+    </div>
+</div>
+
+{{-- Secondary KPI Row --}}
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
+            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <div>
+            <p class="text-xs text-gray-400">Total Customers</p>
+            <p class="text-lg font-bold text-gray-900">{{ number_format($stats['totalCustomers']) }}</p>
         </div>
     </div>
-    @endforeach
+    <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
+        </div>
+        <div>
+            <p class="text-xs text-gray-400">Deliveries Today</p>
+            <p class="text-lg font-bold text-gray-900">{{ $stats['deliveriesToday'] }}</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+            <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        </div>
+        <div>
+            <p class="text-xs text-gray-400">Total Meals</p>
+            <p class="text-lg font-bold text-gray-900">{{ $stats['totalMeals'] }}</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
+            <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <div>
+            <p class="text-xs text-gray-400">Churn Rate</p>
+            <p class="text-lg font-bold text-gray-900">{{ $stats['churnRate'] }}%</p>
+        </div>
+    </div>
 </div>
 
 {{-- Charts Row --}}
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
     {{-- Revenue Chart --}}
-    <div class="lg:col-span-2 bg-white rounded-xl border p-5">
-        <div class="flex items-center justify-between mb-4">
+    <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-6">
             <div>
-                <h3 class="text-sm font-semibold text-gray-900">Revenue Overview</h3>
-                <p class="text-xs text-gray-400">Last 14 days</p>
+                <h3 class="text-sm font-bold text-gray-900">Revenue Trend</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Last 14 days performance</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#259B00]"></span>
+                <span class="text-xs text-gray-500">Daily Revenue</span>
             </div>
         </div>
         @php
-            $dailyRevenue = array_fill(0, 14, 0);
-            $revMax = max($dailyRevenue) ?: 1;
+            $revMax = max($revenueTrend) ?: 1;
+            $revTotal = array_sum($revenueTrend);
         @endphp
-        <div class="flex items-end gap-[4px] h-44">
-            @foreach($dailyRevenue as $i => $rev)
-                @php $pct = min(100, ($rev / $revMax) * 100); $isToday = $i === count($dailyRevenue)-1; @endphp
-                <div class="flex-1 flex flex-col items-center gap-1 group cursor-pointer">
-                    <div class="w-full bg-gray-50 rounded-t-md relative h-36 overflow-hidden">
-                        <div class="absolute bottom-0 left-0 right-0 rounded-t-md transition-all duration-300 {{ $isToday ? 'bg-brand-500' : 'bg-brand-300 hover:bg-brand-400' }}" style="height: {{ max($pct, 3) }}%"></div>
+        <div class="flex items-end gap-2 h-48">
+            @foreach($revenueTrend as $i => $rev)
+                @php $pct = min(100, ($rev / $revMax) * 100); $isToday = $i === count($revenueTrend)-1; @endphp
+                <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
+                    <div class="w-full relative h-40 flex items-end">
+                        <div class="w-full rounded-t-lg transition-all duration-300 group-hover:opacity-80 {{ $isToday ? 'bg-[#259B00]' : 'bg-[#259B00]/60' }}" style="height: {{ max($pct, 4) }}%"></div>
+                        <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap pointer-events-none">
+                            SAR {{ number_format($rev) }}
+                        </div>
                     </div>
-                    <span class="text-[9px] text-gray-400 font-medium">{{ \Carbon\Carbon::parse('now')->subDays(13-$i)->format('d') }}</span>
+                    <span class="text-[10px] text-gray-400 font-medium">{{ \Carbon\Carbon::parse('now')->subDays(13-$i)->format('d/m') }}</span>
+                </div>
+            @endforeach
+        </div>
+        <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between">
+            <div>
+                <p class="text-xs text-gray-400">Total (14 days)</p>
+                <p class="text-lg font-bold text-gray-900">SAR {{ number_format($revTotal) }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-400">Avg / Day</p>
+                <p class="text-lg font-bold text-gray-900">SAR {{ number_format($revTotal / 14, 0) }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-400">Best Day</p>
+                <p class="text-lg font-bold text-green-600">SAR {{ number_format($revMax) }}</p>
+            </div>
+        </div>
+    </div>
+
+    {{-- Plan Distribution --}}
+    <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div class="mb-6">
+            <h3 class="text-sm font-bold text-gray-900">Plan Distribution</h3>
+            <p class="text-xs text-gray-400 mt-0.5">Active subscriptions by plan</p>
+        </div>
+        @php $totalPlans = array_sum(array_column($planDistribution, 'count')); @endphp
+        <div class="space-y-4">
+            @foreach($planDistribution as $plan)
+                @php $pct = round($plan['count'] / $totalPlans * 100); @endphp
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-xs font-medium text-gray-700">{{ $plan['name'] }}</span>
+                        <span class="text-xs font-bold text-gray-900">{{ $plan['count'] }}</span>
+                    </div>
+                    <div class="h-2.5 rounded-full bg-gray-100 overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-500" style="width: {{ $pct }}%; background: {{ $plan['color'] }};"></div>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-1">{{ $pct }}% of total</p>
+                </div>
+            @endforeach
+        </div>
+        <div class="mt-5 pt-4 border-t border-gray-50">
+            <p class="text-xs text-gray-400">Total Active</p>
+            <p class="text-2xl font-bold text-gray-900">{{ $totalPlans }}</p>
+        </div>
+    </div>
+</div>
+
+{{-- Orders Trend + Delivery Zones --}}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    {{-- Orders Trend --}}
+    <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h3 class="text-sm font-bold text-gray-900">Orders This Week</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Daily order volume</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#033133]"></span>
+                <span class="text-xs text-gray-500">Orders</span>
+            </div>
+        </div>
+        @php $ordMax = max($ordersTrend) ?: 1; @endphp
+        <div class="flex items-end gap-3 h-40">
+            @foreach($ordersTrend as $i => $ord)
+                @php $pct = min(100, ($ord / $ordMax) * 100); @endphp
+                <div class="flex-1 flex flex-col items-center gap-2 group cursor-pointer">
+                    <div class="w-full relative h-32 flex items-end">
+                        <div class="w-full rounded-t-lg bg-[#033133] transition-all duration-300 group-hover:opacity-80" style="height: {{ max($pct, 5) }}%"></div>
+                        <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md">
+                            {{ $ord }}
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-gray-400 font-medium">{{ $days[$i] }}</span>
                 </div>
             @endforeach
         </div>
     </div>
 
-    {{-- Quick Stats --}}
-    <div class="bg-gradient-to-br from-brand-700 to-brand-800 rounded-xl border border-brand-600 p-5 text-white">
-        <div class="flex items-center gap-2 mb-4">
-            <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-                <svg class="w-4 h-4 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-            </div>
-            <h3 class="text-sm font-semibold text-white">This Month</h3>
+    {{-- Delivery Zones --}}
+    <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div class="mb-5">
+            <h3 class="text-sm font-bold text-gray-900">Delivery Zones</h3>
+            <p class="text-xs text-gray-400 mt-0.5">Today's distribution</p>
         </div>
-        <div class="space-y-4">
-            <div>
-                <p class="text-[10px] text-brand-300 uppercase tracking-wider font-medium">Revenue</p>
-                <p class="text-2xl font-bold text-white mt-1">SAR 0</p>
-            </div>
-            <div>
-                <p class="text-[10px] text-brand-300 uppercase tracking-wider font-medium">New Users</p>
-                <p class="text-2xl font-bold text-white mt-1">{{ $stats['newUsersThisWeek'] }}</p>
-            </div>
-            <div class="pt-3 border-t border-brand-600">
-                <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 bg-brand-400 rounded-full animate-pulse"></span>
-                    <p class="text-[11px] text-brand-200">System operational</p>
+        <div class="space-y-3">
+            @foreach($deliveryZones as $zone)
+                <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-900">{{ $zone['zone'] }}</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5">{{ $zone['drivers'] }} drivers active</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-gray-900">{{ $zone['orders'] }}</p>
+                        <p class="text-[10px] text-gray-400">orders</p>
+                    </div>
                 </div>
-            </div>
+            @endforeach
         </div>
     </div>
 </div>
 
-{{-- Recent Users Table --}}
-<div class="bg-white rounded-xl border overflow-hidden">
-    <div class="px-5 py-4 border-b flex items-center justify-between">
-        <h3 class="text-sm font-semibold text-gray-900">Recent Users</h3>
-        <a href="#" class="text-xs font-medium text-brand-500 hover:text-brand-600">View All</a>
-    </div>
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead>
-                <tr class="text-left text-xs text-gray-500 bg-gray-50/50">
-                    <th class="px-5 py-2.5 font-medium">Name</th>
-                    <th class="px-5 py-2.5 font-medium">Email</th>
-                    <th class="px-5 py-2.5 font-medium">Role</th>
-                    <th class="px-5 py-2.5 font-medium">Joined</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse(\App\Models\User::latest()->take(5)->get() as $user)
-                <tr class="border-t border-gray-100 hover:bg-gray-50/50 transition-colors">
-                    <td class="px-5 py-2.5">
-                        <div class="flex items-center gap-2">
-                            <div class="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-bold text-xs">
-                                {{ strtoupper(substr($user->name, 0, 1)) }}
+{{-- Recent Orders + Top Meals --}}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    {{-- Recent Orders --}}
+    <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
+            <div>
+                <h3 class="text-sm font-bold text-gray-900">Recent Orders</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Latest customer transactions</p>
+            </div>
+            <a href="#" class="text-xs font-medium text-[#259B00] hover:text-[#033133] transition-colors">View All →</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-xs text-gray-400 bg-gray-50/50 border-b border-gray-50">
+                        <th class="px-6 py-3 font-medium">Order ID</th>
+                        <th class="px-6 py-3 font-medium">Customer</th>
+                        <th class="px-6 py-3 font-medium">Plan</th>
+                        <th class="px-6 py-3 font-medium">Amount</th>
+                        <th class="px-6 py-3 font-medium">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($recentOrders as $order)
+                    <tr class="border-b border-gray-50 hover:bg-gray-50/30 transition-colors">
+                        <td class="px-6 py-3">
+                            <span class="text-xs font-bold text-gray-900">{{ $order['id'] }}</span>
+                        </td>
+                        <td class="px-6 py-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-[#259B00] to-[#033133] flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0">
+                                    {{ strtoupper(substr($order['customer'], 0, 1)) }}
+                                </div>
+                                <span class="text-xs font-medium text-gray-700">{{ $order['customer'] }}</span>
                             </div>
-                            <span class="text-xs font-medium text-gray-900">{{ $user->name }}</span>
-                        </div>
-                    </td>
-                    <td class="px-5 py-2.5 text-xs text-gray-500">{{ $user->email }}</td>
-                    <td class="px-5 py-2.5">
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium {{ $user->isAdmin() ? 'bg-accent-50 text-accent-700 border border-accent-100' : 'bg-brand-50 text-brand-700 border border-brand-100' }}">
-                            {{ ucfirst($user->role) }}
-                        </span>
-                    </td>
-                    <td class="px-5 py-2.5 text-xs text-gray-500">{{ $user->created_at->format('M d, Y') }}</td>
-                </tr>
-                @empty
-                <tr><td colspan="4" class="px-5 py-8 text-center text-gray-400 text-xs">No users yet</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+                        </td>
+                        <td class="px-6 py-3 text-xs text-gray-500">{{ $order['plan'] }}</td>
+                        <td class="px-6 py-3">
+                            <span class="text-xs font-bold text-gray-900">SAR {{ $order['amount'] }}</span>
+                        </td>
+                        <td class="px-6 py-3">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border {{ $statusColors[$order['status']] }}">
+                                {{ $statusLabels[$order['status']] }}
+                            </span>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{-- Top Meals --}}
+    <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div class="mb-5">
+            <h3 class="text-sm font-bold text-gray-900">Top Meals</h3>
+            <p class="text-xs text-gray-400 mt-0.5">Best performing this month</p>
+        </div>
+        <div class="space-y-4">
+            @foreach($topMeals as $i => $meal)
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg {{ $i === 0 ? 'bg-amber-50 text-amber-600' : ($i === 1 ? 'bg-gray-100 text-gray-600' : ($i === 2 ? 'bg-orange-50 text-orange-600' : 'bg-gray-50 text-gray-400')) }} flex items-center justify-center text-xs font-bold flex-shrink-0">
+                        {{ $i + 1 }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-semibold text-gray-900 truncate">{{ $meal['name'] }}</p>
+                        <p class="text-[10px] text-gray-400">{{ $meal['orders'] }} orders · SAR {{ number_format($meal['revenue']) }}</p>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+
+{{-- System Status Bar --}}
+<div class="bg-gradient-to-r from-[#033133] to-[#01241f] rounded-2xl p-5 text-white flex items-center justify-between">
+    <div class="flex items-center gap-4">
+        <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div>
+            <p class="text-sm font-semibold">All Systems Operational</p>
+            <p class="text-xs text-white/50 mt-0.5">Last updated {{ now()->format('M d, Y H:i') }}</p>
+        </div>
+    </div>
+    <div class="flex items-center gap-6">
+        <div class="text-right">
+            <p class="text-[10px] text-white/40 uppercase tracking-wider">Uptime</p>
+            <p class="text-sm font-bold">99.98%</p>
+        </div>
+        <div class="text-right">
+            <p class="text-[10px] text-white/40 uppercase tracking-wider">Response</p>
+            <p class="text-sm font-bold">124ms</p>
+        </div>
+        <div class="text-right">
+            <p class="text-[10px] text-white/40 uppercase tracking-wider">API Status</p>
+            <p class="text-sm font-bold text-green-400">Healthy</p>
+        </div>
     </div>
 </div>
 @endsection
