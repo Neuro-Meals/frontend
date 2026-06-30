@@ -6,19 +6,24 @@ use Illuminate\Http\Request;
 
 class PageController extends Controller
 {
-    private function pages(): array
+    private $pages = [
+        'about-us', 'track-your-order', 'order-history', 'subscription-management',
+        'payment-methods', 'contact-support', 'faqs', 'help-center', 'live-chat',
+        'whatsapp-support', 'partner-with-us', 'become-a-supplier', 'affiliate-program',
+        'collaboration', 'sponsorship', 'my-subscriptions', 'reward-points',
+        'refer-a-friend', 'privacy-policy', 'terms-of-service', 'refund-policy',
+        'cookie-policy', 'food-safety',
+    ];
+
+    public function show($slug)
     {
-        return [
-            // ---- Company ----
-            'about-us' => [
-                'title' => 'About Us',
-                'description' => 'Learn about Nutrio Meals — our mission, our story, and our commitment to healthy eating in Saudi Arabia.',
-                'sections' => [
-                    [
-                        'type' => 'text',
-                        'heading' => 'Our Story',
-                        'body' => 'Nutrio Meals was born from a simple idea: eating healthy should be easy, delicious, and accessible to everyone in Saudi Arabia. We started as a small kitchen with big dreams — to transform how people think about meal subscriptions. Today, we deliver thousands of fresh, nutritionist-approved meals across Riyadh and beyond, helping our customers achieve their fitness and health goals without sacrificing taste or convenience.',
-                    ],
+        if (!in_array($slug, $this->pages)) {
+            abort(404);
+        }
+
+        return view('pages.' . $slug);
+    }
+}
                     [
                         'type' => 'cards',
                         'heading' => 'What Drives Us',
