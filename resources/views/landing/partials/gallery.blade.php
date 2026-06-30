@@ -33,28 +33,9 @@
             @endphp
 
             @foreach ($meals as $meal)
-                <div class="meal-card flex-shrink-0 w-[70%] sm:w-[32%] lg:w-[18%] snap-center">
-                    <div class="relative rounded-2xl overflow-hidden shadow-md bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
-                        {{-- Image --}}
-                        <div class="relative aspect-square overflow-hidden">
-                            <img src="{{ asset('images/' . $meal['img']) }}" alt="{{ $meal['name'] }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                            {{-- Category badge --}}
-                            <div class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm text-[10px] font-bold text-[#033133] dark:text-white shadow">{{ $meal['cat'] }}</div>
-                            {{-- Name overlay --}}
-                            <div class="absolute bottom-0 left-0 right-0 p-2.5">
-                                <h3 class="text-white font-bold text-xs leading-tight">{{ $meal['name'] }}</h3>
-                            </div>
-                        </div>
-                        {{-- Nutrition info --}}
-                        <div class="px-2.5 py-2 flex items-center justify-center gap-2">
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-light/10 text-[10px] font-medium text-brand-light">
-                                {{ $meal['cal'] }}
-                            </span>
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-light/10 text-[10px] font-medium text-brand-light">
-                                {{ $meal['protein'] }}
-                            </span>
-                        </div>
+                <div class="meal-card flex-shrink-0 w-[45%] sm:w-[22%] lg:w-[14%] snap-center">
+                    <div class="relative rounded-2xl overflow-hidden shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group aspect-square">
+                        <img src="{{ asset('images/' . $meal['img']) }}" alt="{{ $meal['name'] }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                     </div>
                 </div>
             @endforeach
