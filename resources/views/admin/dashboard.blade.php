@@ -249,10 +249,15 @@
         </div>
         <div class="space-y-3">
             @foreach($deliveryZones as $zone)
-                <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
-                    <div>
-                        <p class="text-xs font-semibold text-gray-900">{{ $zone['zone'] }}</p>
-                        <p class="text-[10px] text-gray-400 mt-0.5">{{ $zone['drivers'] }} drivers active</p>
+                <div class="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-gray-50 to-white border border-gray-100 hover:shadow-sm transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#033133] to-[#259B00] flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-gray-900">{{ $zone['zone'] }}</p>
+                            <p class="text-[10px] text-gray-400 mt-0.5">{{ $zone['drivers'] }} drivers active</p>
+                        </div>
                     </div>
                     <div class="text-right">
                         <p class="text-sm font-bold text-gray-900">{{ $zone['orders'] }}</p>
@@ -322,10 +327,10 @@
             <h3 class="text-base font-bold text-gray-900">Top <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Meals</span></h3>
             <p class="text-xs text-gray-400 mt-0.5">Best performing this month</p>
         </div>
-        <div class="space-y-4">
+        <div class="space-y-3">
             @foreach($topMeals as $i => $meal)
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg {{ $i === 0 ? 'bg-amber-50 text-amber-600' : ($i === 1 ? 'bg-gray-100 text-gray-600' : ($i === 2 ? 'bg-orange-50 text-orange-600' : 'bg-gray-50 text-gray-400')) }} flex items-center justify-center text-xs font-bold flex-shrink-0">
+                <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors">
+                    <div class="w-9 h-9 rounded-xl {{ $i === 0 ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-white' : ($i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-white' : ($i === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white' : 'bg-gray-50 text-gray-400')) }} flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-sm">
                         {{ $i + 1 }}
                     </div>
                     <div class="flex-1 min-w-0">
