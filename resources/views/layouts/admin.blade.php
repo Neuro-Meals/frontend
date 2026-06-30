@@ -139,7 +139,6 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 <h1 class="text-lg font-bold text-gray-800">@yield('page_title', 'Dashboard')</h1>
-                <span class="hidden sm:inline-block px-2.5 py-1 rounded-full bg-[#259B00]/10 text-[#259B00] text-xs font-bold">Admin</span>
             </div>
             <div class="flex items-center gap-4">
                 {{-- Search --}}
