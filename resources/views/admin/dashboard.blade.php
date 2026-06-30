@@ -197,7 +197,7 @@
                         <span class="text-xs font-bold text-gray-900">{{ $plan['count'] }}</span>
                     </div>
                     <div class="h-2.5 rounded-full bg-gray-100 overflow-hidden">
-                        <div class="h-full rounded-full transition-all duration-500" style="width: {{ $pct }}%; background: {{ $plan['color'] }};"></div>
+                        <div class="h-full rounded-full transition-all duration-500 hover:opacity-80" style="width: {{ $pct }}%; background: {{ $plan['color'] }}; box-shadow: 0 0 8px {{ $plan['color'] }}40;"></div>
                     </div>
                     <p class="text-[10px] text-gray-400 mt-1">{{ $pct }}% of total</p>
                 </div>
