@@ -25,16 +25,6 @@ class PageController extends Controller
     }
 }
 
-                            ['icon' => 'M5 13l4 4L19 7', 'title' => 'Quality First', 'text' => 'Every meal is prepared with premium ingredients and approved by certified nutritionists.'],
-                            ['icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', 'title' => 'Customer Focused', 'text' => 'Our subscribers are at the heart of everything we do. Your goals are our goals.'],
-                            ['icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'title' => 'Trust & Safety', 'text' => 'We maintain the highest food safety standards in every kitchen and delivery.'],
-                        ],
-                    ],
-                    [
-                        'type' => 'text',
-                        'heading' => 'Our Commitment',
-                        'body' => 'We believe that nutrition is the foundation of a healthy lifestyle. That is why every meal we create is carefully balanced — the right calories, the right macros, and the right flavors. Whether you are building muscle, losing weight, or simply eating better, we have a plan designed for you. Our team of chefs and nutritionists work together to ensure that healthy never means boring.',
-                    ],
                     [
                         'type' => 'cta',
                         'heading' => 'Ready to start your journey?',
