@@ -1,4 +1,4 @@
-<section class="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden bg-white dark:bg-gray-900 transition-colors duration-300">
+<section class="relative pt-36 pb-20 lg:pt-44 lg:pb-28 overflow-hidden bg-white dark:bg-gray-900 transition-colors duration-300">
     <div class="absolute inset-0 opacity-5 dark:opacity-10" style="background-image: radial-gradient(rgba(37,155,0,0.3) 1px, transparent 1px); background-size: 32px 32px;"></div>
 
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
