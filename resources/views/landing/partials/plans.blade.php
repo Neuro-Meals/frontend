@@ -1,37 +1,171 @@
-<section id="plans" class="py-20 bg-gray-50 dark:bg-gray-800/50 transition-colors duration-300">
+<section id="plans" class="py-20 lg:py-28 bg-white dark:bg-gray-900 transition-colors duration-300 relative overflow-hidden">
+    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand-light/30 to-transparent"></div>
+
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center max-w-3xl mx-auto mb-16 scroll-reveal">
-            <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">Choose Your Perfect Plan</h2>
-            <p class="text-gray-600 dark:text-gray-300">Nutrition plans tailored to your body and lifestyle.</p>
+        <div class="text-center max-w-3xl mx-auto mb-12 scroll-reveal">
+            <span class="inline-block px-4 py-1.5 rounded-full bg-brand-light/10 text-brand-light text-xs font-bold uppercase tracking-wider mb-4">Pricing Plans</span>
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">Choose Your Perfect Plan</h2>
+            <p class="text-gray-600 dark:text-gray-300 text-lg">Nutrition plans tailored to your body and lifestyle. Cancel anytime.</p>
         </div>
 
-        <div class="grid md:grid-cols-3 gap-8">
-            @php
-                $plans = [
-                    ['name' => 'Weight Loss Plan', 'price' => 'From 299 SAR', 'features' => ['Low calorie meals', 'High protein', 'Fat burning support'], 'popular' => false],
-                    ['name' => 'Muscle Gain Plan', 'price' => 'From 399 SAR', 'features' => ['High protein', 'Higher calories', 'Performance meals'], 'popular' => true],
-                    ['name' => 'Maintenance Plan', 'price' => 'From 349 SAR', 'features' => ['Balanced nutrition', 'Healthy lifestyle', 'Flexible portions'], 'popular' => false],
-                ];
-            @endphp
+        {{-- Carousel --}}
+        <div class="plans-carousel relative scroll-reveal">
+            {{-- Track --}}
+            <div class="plans-track flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 -mx-4 px-4" style="scrollbar-width: none; -ms-overflow-style: none;">
+                <style>.plans-track::-webkit-scrollbar { display: none; }</style>
 
-            @foreach ($plans as $index => $plan)
-                <div class="scroll-reveal scroll-reveal-delay-{{ ($index % 3) + 1 }} relative p-8 rounded-2xl {{ $plan['popular'] ? 'bg-gradient-to-br from-brand-light to-brand-dark text-white shadow-2xl scale-105' : 'bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 shadow-sm' }} transition-all hover:shadow-xl">
-                    @if ($plan['popular'])
-                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-white text-brand-dark text-xs font-bold rounded-full shadow">Most Popular</div>
-                    @endif
-                    <h3 class="text-2xl font-extrabold {{ $plan['popular'] ? 'text-white' : 'text-gray-900 dark:text-white' }} mb-2">{{ $plan['name'] }}</h3>
-                    <p class="text-3xl font-bold {{ $plan['popular'] ? 'text-white/90' : 'text-brand-light' }} mb-6">{{ $plan['price'] }}</p>
-                    <ul class="space-y-3 mb-8">
-                        @foreach ($plan['features'] as $feature)
-                            <li class="flex items-center gap-3 text-sm {{ $plan['popular'] ? 'text-white/90' : 'text-gray-600 dark:text-gray-300' }}">
-                                <svg class="w-5 h-5 flex-shrink-0 {{ $plan['popular'] ? 'text-white' : 'text-brand-light' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                {{ $feature }}
-                            </li>
-                        @endforeach
-                    </ul>
-                    <a href="#" class="block w-full py-3 text-center text-sm font-bold rounded-xl transition-all {{ $plan['popular'] ? 'bg-white text-brand-dark hover:bg-gray-100' : 'text-white bg-gradient-to-r from-brand-light to-brand-dark hover:from-brand-dark hover:to-brand-light' }}">Subscribe Now</a>
-                </div>
-            @endforeach
+                @php
+                    $plans = [
+                        [
+                            'name' => 'Weight Loss', 'price' => '299', 'period' => '/month',
+                            'desc' => 'Perfect for shedding extra kilos while enjoying delicious meals',
+                            'features' => ['Low-calorie meals (1200-1500 kcal)', 'High protein portions', 'Fat-burning ingredients', 'Daily fresh delivery', 'Macro tracking access'],
+                            'popular' => false, 'icon' => 'M13 10V3L4 14h7v7l9-11h-7z', 'color' => 'from-blue-500 to-cyan-500',
+                        ],
+                        [
+                            'name' => 'Muscle Gain', 'price' => '399', 'period' => '/month',
+                            'desc' => 'Built for athletes and gym enthusiasts wanting serious gains',
+                            'features' => ['High-protein meals (2500+ kcal)', 'Performance carbs', 'Pre/post workout meals', 'Daily fresh delivery', 'Macro tracking access', 'Free nutritionist consult'],
+                            'popular' => true, 'icon' => 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => 'from-[#033133] to-[#259B00]',
+                        ],
+                        [
+                            'name' => 'Maintenance', 'price' => '349', 'period' => '/month',
+                            'desc' => 'Stay in shape with balanced, flexible daily nutrition',
+                            'features' => ['Balanced nutrition (1800-2000 kcal)', 'Flexible meal choices', 'Healthy lifestyle support', 'Daily fresh delivery', 'Macro tracking access'],
+                            'popular' => false, 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => 'from-amber-500 to-orange-500',
+                        ],
+                        [
+                            'name' => 'Keto Plan', 'price' => '449', 'period' => '/month',
+                            'desc' => 'Low-carb, high-fat meals designed for ketosis and energy',
+                            'features' => ['Ultra low-carb meals', 'High healthy fats', 'Ketosis support', 'Daily fresh delivery', 'Macro tracking access', 'Weekly progress reports'],
+                            'popular' => false, 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', 'color' => 'from-purple-500 to-pink-500',
+                        ],
+                        [
+                            'name' => 'Athlete Pro', 'price' => '599', 'period' => '/month',
+                            'desc' => 'Premium plan for competitive athletes with custom macros',
+                            'features' => ['Custom macro calculation', 'Performance-optimized meals', 'Pre/post workout nutrition', '2x daily delivery', 'Personal nutritionist', 'Weekly progress reports', 'Priority support'],
+                            'popular' => false, 'icon' => 'M13 10V3L4 14h7v7l9-11h-7z', 'color' => 'from-red-500 to-rose-600',
+                        ],
+                        [
+                            'name' => 'Family Plan', 'price' => '899', 'period' => '/month',
+                            'desc' => 'Healthy meals for the whole family, delivered together',
+                            'features' => ['Meals for 2-4 people', 'Customizable per member', 'Balanced family nutrition', 'Daily fresh delivery', 'Macro tracking for all', 'Free nutritionist consult'],
+                            'popular' => false, 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', 'color' => 'from-teal-500 to-emerald-600',
+                        ],
+                    ];
+                @endphp
+
+                @foreach ($plans as $plan)
+                    <div class="plan-card flex-shrink-0 w-[85%] sm:w-[45%] lg:w-[31.5%] snap-center">
+                        <div class="relative h-full rounded-3xl overflow-hidden {{ $plan['popular'] ? 'shadow-2xl ring-2 ring-[#259B00]' : 'shadow-lg' }} bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            {{-- Popular badge --}}
+                            @if ($plan['popular'])
+                                <div class="absolute top-0 left-0 right-0 bg-gradient-to-r from-[#033133] to-[#259B00] text-white text-center py-2 text-xs font-bold uppercase tracking-wider">Most Popular</div>
+                            @endif
+
+                            <div class="p-8 {{ $plan['popular'] ? 'pt-14' : '' }}">
+                                {{-- Icon --}}
+                                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br {{ $plan['color'] }} text-white flex items-center justify-center shadow-lg mb-5">
+                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $plan['icon'] }}"></path></svg>
+                                </div>
+
+                                {{-- Name --}}
+                                <h3 class="text-2xl font-extrabold text-gray-900 dark:text-white mb-2">{{ $plan['name'] }}</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">{{ $plan['desc'] }}</p>
+
+                                {{-- Price --}}
+                                <div class="flex items-baseline gap-1 mb-6">
+                                    <span class="text-4xl font-extrabold text-gray-900 dark:text-white">{{ $plan['price'] }}</span>
+                                    <span class="text-lg font-medium text-gray-500 dark:text-gray-400">SAR{{ $plan['period'] }}</span>
+                                </div>
+
+                                {{-- Divider --}}
+                                <div class="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent mb-6"></div>
+
+                                {{-- Features --}}
+                                <ul class="space-y-3 mb-8">
+                                    @foreach ($plan['features'] as $feature)
+                                        <li class="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-300">
+                                            <div class="w-5 h-5 rounded-full bg-brand-light/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                <svg class="w-3 h-3 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                            </div>
+                                            {{ $feature }}
+                                        </li>
+                                    @endforeach
+                                </ul>
+
+                                {{-- CTA --}}
+                                <a href="#" class="block w-full py-3.5 text-center text-sm font-bold rounded-xl transition-all duration-300 {{ $plan['popular'] ? 'bg-gradient-to-r from-[#033133] to-[#259B00] text-white hover:shadow-lg hover:shadow-brand-light/30 hover:-translate-y-0.5' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' }}">
+                                    Subscribe Now
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            {{-- Navigation arrows --}}
+            <button class="plans-nav-prev absolute top-1/2 -left-3 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-brand-light hover:border-brand-light/30 transition-all hidden lg:flex">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <button class="plans-nav-next absolute top-1/2 -right-3 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-brand-light hover:border-brand-light/30 transition-all hidden lg:flex">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+
+            {{-- Dot indicators --}}
+            <div class="plans-dots flex justify-center gap-2 mt-6"></div>
         </div>
     </div>
 </section>
+
+<script>
+    (function() {
+        const track = document.querySelector('.plans-track');
+        const prevBtn = document.querySelector('.plans-nav-prev');
+        const nextBtn = document.querySelector('.plans-nav-next');
+        const dotsContainer = document.querySelector('.plans-dots');
+        if (!track) return;
+
+        const cards = track.querySelectorAll('.plan-card');
+        const cardWidth = () => cards[0].offsetWidth + 24;
+
+        function scrollBy(dir) {
+            track.scrollBy({ left: dir * cardWidth(), behavior: 'smooth' });
+        }
+
+        if (prevBtn) prevBtn.addEventListener('click', () => scrollBy(-1));
+        if (nextBtn) nextBtn.addEventListener('click', () => scrollBy(1));
+
+        function updateDots() {
+            const maxScroll = track.scrollWidth - track.clientWidth;
+            if (maxScroll <= 10) {
+                dotsContainer.style.display = 'none';
+                if (prevBtn) prevBtn.style.display = 'none';
+                if (nextBtn) nextBtn.style.display = 'none';
+                return;
+            }
+            const scrollPercent = track.scrollLeft / maxScroll;
+            const totalDots = Math.ceil(maxScroll / cardWidth()) + 1;
+            dotsContainer.innerHTML = '';
+            for (let i = 0; i < totalDots; i++) {
+                const dot = document.createElement('button');
+                dot.className = 'plans-dot w-2 h-2 rounded-full transition-all duration-300';
+                const activeThreshold = i / totalDots;
+                const nextThreshold = (i + 1) / totalDots;
+                if (scrollPercent >= activeThreshold && scrollPercent < nextThreshold) {
+                    dot.classList.add('bg-brand-light', 'w-6');
+                } else {
+                    dot.classList.add('bg-gray-300', 'dark:bg-gray-600');
+                }
+                dot.addEventListener('click', () => {
+                    track.scrollTo({ left: i * cardWidth(), behavior: 'smooth' });
+                });
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        track.addEventListener('scroll', updateDots);
+        window.addEventListener('resize', updateDots);
+        updateDots();
+    })();
+</script>
