@@ -156,7 +156,7 @@
                 @php $pct = min(100, ($rev / $revMax) * 100); $isToday = $i === count($revenueTrend)-1; @endphp
                 <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
                     <div class="w-full relative h-40 flex items-end">
-                        <div class="w-full rounded-t-lg transition-all duration-300 group-hover:opacity-80 {{ $isToday ? 'bg-[#259B00]' : 'bg-[#259B00]/60' }}" style="height: {{ max($pct, 4) }}%"></div>
+                        <div class="w-full rounded-t-lg transition-all duration-300 group-hover:opacity-80 {{ $isToday ? 'bg-gradient-to-t from-[#259B00] to-[#259B00]/70' : 'bg-gradient-to-t from-[#259B00]/60 to-[#259B00]/30' }}" style="height: {{ max($pct, 4) }}%"></div>
                         <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap pointer-events-none">
                             SAR {{ number_format($rev) }}
                         </div>
@@ -230,7 +230,7 @@
                 @php $pct = min(100, ($ord / $ordMax) * 100); @endphp
                 <div class="flex-1 flex flex-col items-center gap-2 group cursor-pointer">
                     <div class="w-full relative h-32 flex items-end">
-                        <div class="w-full rounded-t-lg bg-[#033133] transition-all duration-300 group-hover:opacity-80" style="height: {{ max($pct, 5) }}%"></div>
+                        <div class="w-full rounded-t-lg bg-gradient-to-t from-[#033133] to-[#033133]/70 transition-all duration-300 group-hover:opacity-80" style="height: {{ max($pct, 5) }}%"></div>
                         <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md">
                             {{ $ord }}
                         </div>
