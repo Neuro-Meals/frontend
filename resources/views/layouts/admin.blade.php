@@ -35,8 +35,10 @@
         .animate-fade { animation: fadeIn 0.3s ease-out both; }
         .nav-item { transition: all 0.2s ease; }
         .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
-        .nav-item.active { background: #259B00; color: #fff; box-shadow: 0 4px 14px rgba(37,155,0,0.35); }
+        .nav-item.active { background: linear-gradient(135deg, #033133, #259B00); color: #fff; box-shadow: 0 4px 14px rgba(37,155,0,0.35); }
         .nav-item.active svg { color: #fff; }
+        .kpi-card { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
+        .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px -8px rgba(0,0,0,0.15); }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
@@ -45,7 +47,7 @@
         .card-sm:hover { transform: translateY(-2px); box-shadow: 0 8px 30px -8px rgba(0,0,0,0.1); }
     </style>
 </head>
-<body class="font-['Nunito',sans-serif] antialiased bg-gray-50 text-slate-800">
+<body class="font-['Nunito',sans-serif] antialiased bg-gradient-to-br from-gray-50 via-gray-50 to-[#259B00]/5 text-slate-800 min-h-screen">
 
     {{-- Mobile Overlay --}}
     <div id="mobileOverlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
