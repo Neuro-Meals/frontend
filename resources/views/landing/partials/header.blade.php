@@ -2,11 +2,8 @@
     <div class="max-w-7xl mx-auto bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-gray-200/60 dark:border-gray-700/60 rounded-2xl shadow-lg dark:shadow-gray-900/30 transition-colors duration-300">
         <div class="flex items-center justify-between px-5 py-3">
             {{-- Logo --}}
-            <a href="#" class="flex items-center gap-3">
-                <div class="bg-white dark:bg-gray-800 rounded-xl p-1.5 shadow-sm">
-                    <img src="{{ asset('nitro FULL 3.png') }}" alt="{{ config('app.name', 'Nutrio Meals') }}" class="h-12 w-auto object-contain">
-                </div>
-                <span class="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">{{ config('app.name', 'Nutrio Meals') }}</span>
+            <a href="{{ url('/') }}" class="flex items-center">
+                <img src="{{ asset('nitro FULL 3.png') }}" alt="Nutrio Meals" class="h-16 w-auto object-contain">
             </a>
 
             {{-- Desktop Nav --}}
