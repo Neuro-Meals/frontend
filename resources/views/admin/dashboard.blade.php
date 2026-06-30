@@ -216,7 +216,7 @@
     <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Orders This Week</h3>
+                <h3 class="text-base font-bold text-gray-900">Orders <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">This Week</span></h3>
                 <p class="text-xs text-gray-400 mt-0.5">Daily order volume</p>
             </div>
             <div class="flex items-center gap-2">
@@ -270,10 +270,10 @@
     <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Recent Orders</h3>
+                <h3 class="text-base font-bold text-gray-900">Recent <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Orders</span></h3>
                 <p class="text-xs text-gray-400 mt-0.5">Latest customer transactions</p>
             </div>
-            <a href="#" class="text-xs font-medium text-[#259B00] hover:text-[#033133] transition-colors">View All →</a>
+            <a href="{{ route('admin.orders') }}" class="text-xs font-bold text-white bg-gradient-to-r from-[#033133] to-[#259B00] px-3 py-1.5 rounded-lg hover:shadow-md hover:shadow-[#259B00]/20 transition-all">View All →</a>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -319,7 +319,7 @@
     {{-- Top Meals --}}
     <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div class="mb-5">
-            <h3 class="text-sm font-bold text-gray-900">Top Meals</h3>
+            <h3 class="text-base font-bold text-gray-900">Top <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Meals</span></h3>
             <p class="text-xs text-gray-400 mt-0.5">Best performing this month</p>
         </div>
         <div class="space-y-4">
