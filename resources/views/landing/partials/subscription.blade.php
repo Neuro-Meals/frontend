@@ -6,20 +6,20 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {{-- Header --}}
         <div class="text-center max-w-3xl mx-auto mb-14 scroll-reveal">
-            <span class="inline-block px-4 py-1.5 rounded-full bg-brand-light/10 text-brand-light text-xs font-bold uppercase tracking-wider mb-4">Flexibility</span>
-            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">Flexible Subscription</h2>
-            <p class="text-gray-600 dark:text-gray-300 text-lg">You are in control. Pause, skip, upgrade, or cancel anytime.</p>
+            <span class="inline-block px-4 py-1.5 rounded-full bg-brand-light/10 text-brand-light text-xs font-bold uppercase tracking-wider mb-4">{{ __('Flexibility') }}</span>
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">{{ __('Flexible Subscription') }}</h2>
+            <p class="text-gray-600 dark:text-gray-300 text-lg">{{ __('You are in control. Pause, skip, upgrade, or cancel anytime.') }}</p>
         </div>
 
         {{-- Feature cards --}}
         <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-5">
             @php
                 $features = [
-                    ['title' => 'Pause Anytime', 'desc' => 'Going on a trip? Pause your plan with one click.', 'icon' => 'M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z'],
-                    ['title' => 'Skip Meals', 'desc' => 'Not feeling hungry? Skip a day, no charges.', 'icon' => 'M13 5l7 7-7 7M5 5l7 7-7 7'],
-                    ['title' => 'Upgrade Plan', 'desc' => 'Need more meals? Upgrade your plan instantly.', 'icon' => 'M3 17l6-6 4 4 8-8M14 7h7v7'],
-                    ['title' => 'Cancel Anytime', 'desc' => 'No lock-in contracts. Cancel whenever you want.', 'icon' => 'M6 18L18 6M6 6l12 12'],
-                    ['title' => 'Family Plans', 'desc' => 'Add family members and share your meals.', 'icon' => 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a3 3 0 10-3-3 3 3 0 003 3z'],
+                    ['title' => __('Pause Anytime'), 'desc' => __('Going on a trip? Pause your plan with one click.'), 'icon' => 'M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z'],
+                    ['title' => __('Skip Meals'), 'desc' => __('Not feeling hungry? Skip a day, no charges.'), 'icon' => 'M13 5l7 7-7 7M5 5l7 7-7 7'],
+                    ['title' => __('Upgrade Plan'), 'desc' => __('Need more meals? Upgrade your plan instantly.'), 'icon' => 'M3 17l6-6 4 4 8-8M14 7h7v7'],
+                    ['title' => __('Cancel Anytime'), 'desc' => __('No lock-in contracts. Cancel whenever you want.'), 'icon' => 'M6 18L18 6M6 6l12 12'],
+                    ['title' => __('Family Plans'), 'desc' => __('Add family members and share your meals.'), 'icon' => 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a3 3 0 10-3-3 3 3 0 003 3z'],
                 ];
             @endphp
 
@@ -46,9 +46,9 @@
         {{-- CTA bar --}}
         <div class="mt-12 scroll-reveal text-center">
             <div class="inline-flex flex-col sm:flex-row items-center gap-4 px-8 py-5 rounded-2xl bg-gradient-to-r from-[#173327] to-[#6E7A25] shadow-xl">
-                <p class="text-white font-bold text-sm sm:text-base">Ready to start your flexible meal plan?</p>
+                <p class="text-white font-bold text-sm sm:text-base">{{ __('Ready to start your flexible meal plan?') }}</p>
                 <a href="#plans" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-[#173327] text-sm font-bold hover:bg-gray-100 hover:-translate-y-0.5 transition-all">
-                    Get Started
+                    {{ __('Get Started') }}
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                 </a>
             </div>

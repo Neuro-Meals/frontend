@@ -9,12 +9,12 @@
         <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {{-- Copy --}}
             <div class="scroll-reveal order-1 lg:order-2">
-                <span class="inline-block px-4 py-1.5 rounded-full bg-brand-light/10 text-brand-light text-xs font-bold uppercase tracking-wider mb-4">Delivery</span>
-                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-5">Delivered Fresh To Your Door</h2>
-                <p class="text-gray-600 dark:text-gray-300 text-lg leading-relaxed mb-8">Reliable delivery across Saudi Arabia with real-time tracking and driver updates. Your meals arrive fresh, on time, every time.</p>
+                <span class="inline-block px-4 py-1.5 rounded-full bg-brand-light/10 text-brand-light text-xs font-bold uppercase tracking-wider mb-4">{{ __('Delivery') }}</span>
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-5">{{ __('Delivered Fresh To Your Door') }}</h2>
+                <p class="text-gray-600 dark:text-gray-300 text-lg leading-relaxed mb-8">{{ __('Reliable delivery across Saudi Arabia with real-time tracking and driver updates. Your meals arrive fresh, on time, every time.') }}</p>
 
                 <div class="grid sm:grid-cols-2 gap-4 mb-8">
-                    @foreach (['Delivery scheduling', 'Multiple addresses', 'Real-time tracking', 'Driver updates'] as $feature)
+                    @foreach ([__('Delivery scheduling'), __('Multiple addresses'), __('Real-time tracking'), __('Driver updates')] as $feature)
                         <div class="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-brand-light/30 transition-colors">
                             <div class="w-8 h-8 rounded-full bg-brand-light/10 flex items-center justify-center flex-shrink-0">
                                 <svg class="w-4 h-4 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
@@ -25,7 +25,7 @@
                 </div>
 
                 <a href="#plans" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-sm font-bold hover:shadow-lg hover:shadow-brand-light/30 hover:-translate-y-0.5 transition-all">
-                    Start Your Plan
+                    {{ __('Start Your Plan') }}
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                 </a>
             </div>
@@ -71,11 +71,11 @@
                             {{-- Date & customer --}}
                             <div class="flex justify-between items-center mb-5 pb-4 border-b border-dashed border-gray-200 dark:border-gray-600">
                                 <div>
-                                    <p class="text-xs text-gray-400 dark:text-gray-500">Delivery Date</p>
+                                    <p class="text-xs text-gray-400 dark:text-gray-500">{{ __('Delivery Date') }}</p>
                                     <p class="text-sm font-bold text-gray-900 dark:text-white">Mon, Jun 30</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-xs text-gray-400 dark:text-gray-500">Customer</p>
+                                    <p class="text-xs text-gray-400 dark:text-gray-500">{{ __('Customer') }}</p>
                                     <p class="text-sm font-bold text-gray-900 dark:text-white">Ahmed A.</p>
                                 </div>
                             </div>
@@ -87,7 +87,7 @@
                                         <div class="w-8 h-8 rounded-lg bg-brand-light/10 flex items-center justify-center">
                                             <svg class="w-4 h-4 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z"/></svg>
                                         </div>
-                                        <span class="text-sm text-gray-700 dark:text-gray-300">Grilled Chicken Bowl</span>
+                                        <span class="text-sm text-gray-700 dark:text-gray-300">{{ __('Grilled Chicken Bowl') }}</span>
                                     </div>
                                     <span class="text-sm font-medium text-gray-900 dark:text-white">1x</span>
                                 </div>
@@ -96,7 +96,7 @@
                                         <div class="w-8 h-8 rounded-lg bg-brand-light/10 flex items-center justify-center">
                                             <svg class="w-4 h-4 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z"/></svg>
                                         </div>
-                                        <span class="text-sm text-gray-700 dark:text-gray-300">Protein Smoothie</span>
+                                        <span class="text-sm text-gray-700 dark:text-gray-300">{{ __('Protein Smoothie') }}</span>
                                     </div>
                                     <span class="text-sm font-medium text-gray-900 dark:text-white">2x</span>
                                 </div>
@@ -105,7 +105,7 @@
                                         <div class="w-8 h-8 rounded-lg bg-brand-light/10 flex items-center justify-center">
                                             <svg class="w-4 h-4 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z"/></svg>
                                         </div>
-                                        <span class="text-sm text-gray-700 dark:text-gray-300">Quinoa Salad</span>
+                                        <span class="text-sm text-gray-700 dark:text-gray-300">{{ __('Quinoa Salad') }}</span>
                                     </div>
                                     <span class="text-sm font-medium text-gray-900 dark:text-white">1x</span>
                                 </div>
@@ -113,13 +113,13 @@
 
                             {{-- Total --}}
                             <div class="flex justify-between items-center pt-4 border-t border-dashed border-gray-200 dark:border-gray-600 mb-5">
-                                <span class="text-sm font-bold text-gray-900 dark:text-white">Total</span>
+                                <span class="text-sm font-bold text-gray-900 dark:text-white">{{ __('Total') }}</span>
                                 <span class="text-lg font-extrabold text-[#6E7A25]">149 SAR</span>
                             </div>
 
                             {{-- Tracking timeline --}}
                             <div class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4">
-                                <p class="text-xs font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider">Delivery Tracking</p>
+                                <p class="text-xs font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider">{{ __('Delivery Tracking') }}</p>
 
                                 {{-- Progress line --}}
                                 <div class="relative">
@@ -130,28 +130,28 @@
                                         <div class="flex items-center gap-3">
                                             <div class="w-4 h-4 rounded-full bg-[#6E7A25] border-2 border-white dark:border-gray-800 shadow z-10 flex-shrink-0"></div>
                                             <div class="flex-1 flex justify-between items-center">
-                                                <span class="text-sm font-medium text-gray-900 dark:text-white">Meal Prepared</span>
+                                                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ __('Meal Prepared') }}</span>
                                                 <span class="text-xs text-gray-400 dark:text-gray-500">12:30 PM</span>
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-3">
                                             <div class="w-4 h-4 rounded-full bg-[#6E7A25] border-2 border-white dark:border-gray-800 shadow z-10 flex-shrink-0"></div>
                                             <div class="flex-1 flex justify-between items-center">
-                                                <span class="text-sm font-medium text-gray-900 dark:text-white">Out for Delivery</span>
+                                                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ __('Out for Delivery') }}</span>
                                                 <span class="text-xs text-gray-400 dark:text-gray-500">1:15 PM</span>
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-3">
                                             <div class="w-4 h-4 rounded-full bg-[#6E7A25] border-2 border-white dark:border-gray-800 shadow z-10 flex-shrink-0 animate-pulse"></div>
                                             <div class="flex-1 flex justify-between items-center">
-                                                <span class="text-sm font-medium text-gray-900 dark:text-white">Driver 5 mins away</span>
-                                                <span class="text-xs text-[#6E7A25] font-bold">Now</span>
+                                                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ __('Driver 5 mins away') }}</span>
+                                                <span class="text-xs text-[#6E7A25] font-bold">{{ __('Now') }}</span>
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-3">
                                             <div class="w-4 h-4 rounded-full bg-gray-200 dark:bg-gray-700 border-2 border-white dark:border-gray-800 z-10 flex-shrink-0"></div>
                                             <div class="flex-1 flex justify-between items-center">
-                                                <span class="text-sm text-gray-400 dark:text-gray-500">Delivered</span>
+                                                <span class="text-sm text-gray-400 dark:text-gray-500">{{ __('Delivered') }}</span>
                                                 <span class="text-xs text-gray-400 dark:text-gray-500">Est. 1:45 PM</span>
                                             </div>
                                         </div>
@@ -161,7 +161,7 @@
 
                             {{-- Footer note --}}
                             <div class="mt-5 pt-4 border-t border-dashed border-gray-200 dark:border-gray-600 text-center">
-                                <p class="text-xs text-gray-400 dark:text-gray-500">Thank you for choosing Nutrio Meals!</p>
+                                <p class="text-xs text-gray-400 dark:text-gray-500">{{ __('Thank you for choosing Nutrio Meals!') }}</p>
                                 <div class="flex justify-center gap-1 mt-2">
                                     <span class="w-1.5 h-1.5 rounded-full bg-brand-light/30"></span>
                                     <span class="w-1.5 h-1.5 rounded-full bg-brand-light/40"></span>
