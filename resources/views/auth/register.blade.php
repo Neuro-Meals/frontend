@@ -1,6 +1,6 @@
 @extends('layouts.auth')
 
-@section('title', 'Register - ' . config('app.name', 'Nitromeals'))
+@section('title', __('Register') . ' - ' . __('Nutrio Meals'))
 
 @section('content')
 <div class="w-full max-w-md animate-simple-fade-in">
@@ -10,8 +10,8 @@
             <div class="mx-auto mb-4 flex items-center justify-center">
                 <img src="{{ asset('whitelogo.png') }}" alt="{{ config('app.name', 'Nitromeals') }}" class="h-20 w-auto object-contain">
             </div>
-            <h2 class="text-2xl font-extrabold text-gray-900">Create Account</h2>
-            <p class="text-gray-500 text-sm mt-1">Get started with {{ config('app.name', 'Nitromeals') }}</p>
+            <h2 class="text-2xl font-extrabold text-gray-900">{{ __('Create Account') }}</h2>
+            <p class="text-gray-500 text-sm mt-1">{{ __('Get started with') }} {{ config('app.name', 'Nitromeals') }}</p>
         </div>
 
         {{-- Form --}}
@@ -21,7 +21,7 @@
 
                 {{-- Name --}}
                 <div>
-                    <label for="name" class="block text-sm font-semibold text-gray-700 mb-1.5">Full Name</label>
+                    <label for="name" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Full Name') }}</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,7 +42,7 @@
 
                 {{-- Email --}}
                 <div>
-                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
+                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Email') }}</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,7 +63,7 @@
 
                 {{-- Password --}}
                 <div>
-                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
+                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Password') }}</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,7 +84,7 @@
 
                 {{-- Confirm Password --}}
                 <div>
-                    <label for="password-confirm" class="block text-sm font-semibold text-gray-700 mb-1.5">Confirm password</label>
+                    <label for="password-confirm" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Confirm Password') }}</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,7 +102,7 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                     </svg>
-                    Create Account
+                    {{ __('Create Account') }}
                 </button>
             </form>
 
@@ -114,8 +114,8 @@
 
             {{-- Login link --}}
             <p class="text-center text-sm text-gray-500">
-                Already have an account?
-                <a href="{{ route('login') }}" class="font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">Sign in</a>
+                {{ __('Already have an account?') }}
+                <a href="{{ route('login') }}" class="font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">{{ __('Login') }}</a>
             </p>
         </div>
     </div>
