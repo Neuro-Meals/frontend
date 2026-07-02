@@ -62,7 +62,7 @@
         <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">Renews {{ $stats['planRenewal'] }}</div>
     </div>
 
-    <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#033133] to-[#025C5F] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#025C5F]/20" style="animation-delay: 0.3s;">
+    <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#033133] to-[#025C5F] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#025C5F]/20" style="animation-delay: 0.4s;">
         <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
         <div class="flex items-start justify-between relative z-10">
             <span class="text-[10px] sm:text-xs font-medium text-white/60">Meals This Week</span>
@@ -72,7 +72,7 @@
         <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">{{ $stats['mealsTotal'] - $stats['mealsThisWeek'] }} remaining</div>
     </div>
 
-    <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#6E7A25] to-[#949B50] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#949B50]/20" style="animation-delay: 0.4s;">
+    <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#6E7A25] to-[#949B50] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#949B50]/20" style="animation-delay: 0.5s;">
         <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
         <div class="flex items-start justify-between relative z-10">
             <span class="text-[10px] sm:text-xs font-medium text-white/60">Daily Calories</span>
@@ -82,7 +82,7 @@
         <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">Target: {{ number_format($stats['calorieTarget']) }} kcal</div>
     </div>
 
-    <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#025C5F] to-[#033133] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#025C5F]/20" style="animation-delay: 0.5s;">
+    <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#025C5F] to-[#033133] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#025C5F]/20" style="animation-delay: 0.6s;">
         <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
         <div class="flex items-start justify-between relative z-10">
             <span class="text-[10px] sm:text-xs font-medium text-white/60">Streak Days</span>
@@ -95,7 +95,7 @@
 
 {{-- Charts Row --}}
 <div class="grid grid-cols-1 gap-4 lg:grid-cols-3 mb-6">
-    <div class="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 lg:col-span-2 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.6s;">
+    <div class="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 lg:col-span-2 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.7s;">
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h3 class="text-sm font-bold text-gray-900">Calorie <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Tracking</span></h3>
@@ -123,7 +123,7 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.7s;">
+    <div class="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.8s;">
         <h3 class="text-sm font-bold text-gray-900 mb-4">Nutrition <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Breakdown</span></h3>
         <div class="space-y-4">
             @php
@@ -170,7 +170,7 @@
 
 {{-- Upcoming Meals & Recent Orders --}}
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden animate__animated animate__fadeInUp" style="animation-delay: 0.8s;">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden animate__animated animate__fadeInUp" style="animation-delay: 0.9s;">
         <div class="px-4 sm:px-5 py-4 border-b border-gray-50">
             <h3 class="text-sm font-bold text-gray-900">Upcoming <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Meals</span></h3>
             <p class="text-xs text-gray-400">Your next scheduled meals</p>
@@ -190,7 +190,7 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden animate__animated animate__fadeInUp" style="animation-delay: 0.9s;">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden animate__animated animate__fadeInUp" style="animation-delay: 1.0s;">
         <div class="px-4 sm:px-5 py-4 border-b border-gray-50 flex items-center justify-between">
             <div>
                 <h3 class="text-sm font-bold text-gray-900">Recent <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Orders</span></h3>
@@ -217,7 +217,7 @@
 
 {{-- Weight Progress & Next Delivery --}}
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-    <div class="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 shadow-sm lg:col-span-2 animate__animated animate__fadeInUp" style="animation-delay: 1.0s;">
+    <div class="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 shadow-sm lg:col-span-2 animate__animated animate__fadeInUp" style="animation-delay: 1.1s;">
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h3 class="text-sm font-bold text-gray-900">Weight <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Progress</span></h3>
@@ -238,7 +238,7 @@
         </div>
     </div>
 
-    <div class="bg-gradient-to-br from-[#173327] to-[#122620] rounded-xl p-4 sm:p-5 text-white shadow-lg relative overflow-hidden animate__animated animate__fadeInUp" style="animation-delay: 1.1s;">
+    <div class="bg-gradient-to-br from-[#173327] to-[#122620] rounded-xl p-4 sm:p-5 text-white shadow-lg relative overflow-hidden animate__animated animate__fadeInUp" style="animation-delay: 1.2s;">
         <div class="absolute top-0 right-0 w-24 h-24 bg-[#6E7A25]/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
         <div class="relative z-10">
             <div class="flex items-center gap-2 mb-3">
