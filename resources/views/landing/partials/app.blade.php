@@ -10,7 +10,7 @@
                     {{ __('Your nutrition companion, right in your pocket.') }}
                 </h2>
                 <p class="text-gray-600 dark:text-gray-300 text-lg leading-relaxed mb-8">
-                    {{ __('Track meals, manage subscriptions, and stay on top of your health goals with the Nutrio Meals app. Designed for Saudi Arabia's active lifestyle.') }}
+                    {{ __('Track meals, manage subscriptions, and stay on top of your health goals with the Nutrio Meals app. Designed for Saudi Arabia\'s active lifestyle.') }}
                 </p>
 
                 <div class="space-y-3 mb-8">
