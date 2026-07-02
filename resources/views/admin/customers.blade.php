@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Customers - Nutrio Meals')
-@section('page_title', 'Customers')
+@section('title', __('Customers') . ' - ' . __('Nutrio Meals'))
+@section('page_title', __('Customers'))
 
 @section('content')
 @php
@@ -21,7 +21,7 @@
             </div>
             <span class="text-xs font-bold text-green-600">+{{ $stats['newThisWeek'] }}</span>
         </div>
-        <p class="text-xs text-gray-400 mb-1">Total Customers</p>
+        <p class="text-xs text-gray-400 mb-1">{{ __('Total Customers') }}</p>
         <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['total']) }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
@@ -30,7 +30,7 @@
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
         </div>
-        <p class="text-xs text-gray-400 mb-1">Active</p>
+        <p class="text-xs text-gray-400 mb-1">{{ __('Active') }}</p>
         <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['active']) }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
@@ -39,7 +39,7 @@
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
         </div>
-        <p class="text-xs text-gray-400 mb-1">Paused</p>
+        <p class="text-xs text-gray-400 mb-1">{{ __('Paused') }}</p>
         <p class="text-2xl font-bold text-gray-900">{{ $stats['paused'] }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
@@ -48,7 +48,7 @@
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </div>
         </div>
-        <p class="text-xs text-gray-400 mb-1">Cancelled</p>
+        <p class="text-xs text-gray-400 mb-1">{{ __('Cancelled') }}</p>
         <p class="text-2xl font-bold text-gray-900">{{ $stats['cancelled'] }}</p>
     </div>
 </div>
@@ -57,24 +57,24 @@
 <div class="bg-white rounded-2xl border border-gray-100 p-4 mb-6 shadow-sm flex flex-wrap items-center gap-3">
     <div class="flex items-center bg-gray-50 rounded-lg px-3 py-2 border border-gray-100 flex-1 min-w-[200px]">
         <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        <input type="text" placeholder="Search customers..." class="bg-transparent text-sm outline-none flex-1 text-gray-600 placeholder-gray-400">
+        <input type="text" placeholder="{{ __('Search customers...') }}" class="bg-transparent text-sm outline-none flex-1 text-gray-600 placeholder-gray-400">
     </div>
     <select class="text-sm border border-gray-100 rounded-lg px-3 py-2 bg-gray-50 text-gray-600 outline-none cursor-pointer">
-        <option>All Status</option>
-        <option>Active</option>
-        <option>Paused</option>
-        <option>Cancelled</option>
+        <option>{{ __('All Status') }}</option>
+        <option>{{ __('Active') }}</option>
+        <option>{{ __('Paused') }}</option>
+        <option>{{ __('Cancelled') }}</option>
     </select>
     <select class="text-sm border border-gray-100 rounded-lg px-3 py-2 bg-gray-50 text-gray-600 outline-none cursor-pointer">
-        <option>All Plans</option>
-        <option>Weight Loss Pro</option>
-        <option>Muscle Gain</option>
-        <option>Maintenance</option>
-        <option>Keto Premium</option>
+        <option>{{ __('All Plans') }}</option>
+        <option>{{ __('Weight Loss Pro') }}</option>
+        <option>{{ __('Muscle Gain') }}</option>
+        <option>{{ __('Maintenance') }}</option>
+        <option>{{ __('Keto Premium') }}</option>
     </select>
     <button class="ml-auto px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-2">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-        Add Customer
+        {{ __('Add Customer') }}
     </button>
 </div>
 
@@ -84,14 +84,14 @@
         <table class="w-full text-sm">
             <thead>
                 <tr class="text-left text-xs text-gray-400 bg-gray-50/50 border-b border-gray-100">
-                    <th class="px-6 py-3 font-medium">Customer</th>
-                    <th class="px-6 py-3 font-medium">Contact</th>
-                    <th class="px-6 py-3 font-medium">Plan</th>
-                    <th class="px-6 py-3 font-medium">Orders</th>
-                    <th class="px-6 py-3 font-medium">Total Spent</th>
-                    <th class="px-6 py-3 font-medium">Status</th>
-                    <th class="px-6 py-3 font-medium">Joined</th>
-                    <th class="px-6 py-3 font-medium text-right">Actions</th>
+                    <th class="px-6 py-3 font-medium">{{ __('Customer') }}</th>
+                    <th class="px-6 py-3 font-medium">{{ __('Contact') }}</th>
+                    <th class="px-6 py-3 font-medium">{{ __('Plan') }}</th>
+                    <th class="px-6 py-3 font-medium">{{ __('Orders') }}</th>
+                    <th class="px-6 py-3 font-medium">{{ __('Total Spent') }}</th>
+                    <th class="px-6 py-3 font-medium">{{ __('Status') }}</th>
+                    <th class="px-6 py-3 font-medium">{{ __('Joined') }}</th>
+                    <th class="px-6 py-3 font-medium text-right">{{ __('Actions') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -118,7 +118,7 @@
                     </td>
                     <td class="px-6 py-3.5">
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border {{ $statusColors[$customer['status']] }}">
-                            {{ ucfirst($customer['status']) }}
+                            {{ __(ucfirst($customer['status'])) }}
                         </span>
                     </td>
                     <td class="px-6 py-3.5 text-xs text-gray-400">{{ date('M d, Y', strtotime($customer['joined'])) }}</td>
@@ -134,13 +134,13 @@
     </div>
     {{-- Pagination --}}
     <div class="px-6 py-4 border-t border-gray-50 flex items-center justify-between">
-        <p class="text-xs text-gray-400">Showing 1-8 of {{ number_format($stats['total']) }} customers</p>
+        <p class="text-xs text-gray-400">{{ __('Showing 1-8 of') }} {{ number_format($stats['total']) }} {{ __('customers') }}</p>
         <div class="flex items-center gap-1">
-            <button class="px-3 py-1.5 text-xs font-medium text-gray-400 rounded-lg hover:bg-gray-50 transition-colors">Previous</button>
+            <button class="px-3 py-1.5 text-xs font-medium text-gray-400 rounded-lg hover:bg-gray-50 transition-colors">{{ __('Previous') }}</button>
             <button class="px-3 py-1.5 text-xs font-bold text-white bg-[#6E7A25] rounded-lg">1</button>
             <button class="px-3 py-1.5 text-xs font-medium text-gray-600 rounded-lg hover:bg-gray-50 transition-colors">2</button>
             <button class="px-3 py-1.5 text-xs font-medium text-gray-600 rounded-lg hover:bg-gray-50 transition-colors">3</button>
-            <button class="px-3 py-1.5 text-xs font-medium text-gray-400 rounded-lg hover:bg-gray-50 transition-colors">Next</button>
+            <button class="px-3 py-1.5 text-xs font-medium text-gray-400 rounded-lg hover:bg-gray-50 transition-colors">{{ __('Next') }}</button>
         </div>
     </div>
 </div>
