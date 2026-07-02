@@ -37,7 +37,7 @@
                     <h4 class="text-sm font-bold text-gray-900 mt-1">{{ $delivery['date'] }}</h4>
                     <p class="text-xs text-gray-500">{{ $delivery['time'] }}</p>
                 </div>
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700">Scheduled</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#949B50]/10 text-[#949B50]">Scheduled</span>
             </div>
             <div class="grid grid-cols-2 gap-3 text-xs">
                 <div>
@@ -88,7 +88,7 @@
                     <td class="px-5 py-3 text-xs text-gray-500">{{ $delivery['date'] }}</td>
                     <td class="px-5 py-3 text-xs text-gray-500">{{ $delivery['time'] }}</td>
                     <td class="px-5 py-3 text-xs text-gray-500">{{ $delivery['driver'] }}</td>
-                    <td class="px-5 py-3 text-xs {{ $delivery['eta'] === 'On time' ? 'text-green-600 font-semibold' : 'text-amber-600 font-semibold' }}">{{ $delivery['eta'] }}</td>
+                    <td class="px-5 py-3 text-xs {{ $delivery['eta'] === 'On time' ? 'text-green-600 font-semibold' : 'text-[#949B50] font-semibold' }}">{{ $delivery['eta'] }}</td>
                     <td class="px-5 py-3">
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-50 text-green-700">Delivered</span>
                     </td>

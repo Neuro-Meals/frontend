@@ -27,7 +27,7 @@
         <span class="text-[10px] font-medium text-gray-400">Carbs</span>
         <div class="text-2xl font-bold text-gray-900 mt-1">{{ $todayStats['carbs'] }}g</div>
         <div class="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div class="h-full bg-amber-500 rounded-full" style="width: {{ min(round($todayStats['carbs'] / $todayStats['carbsTarget'] * 100), 100) }}%"></div>
+            <div class="h-full bg-[#949B50] rounded-full" style="width: {{ min(round($todayStats['carbs'] / $todayStats['carbsTarget'] * 100), 100) }}%"></div>
         </div>
         <span class="text-[10px] text-gray-400 mt-1 block">Target: {{ $todayStats['carbsTarget'] }}g</span>
     </div>
@@ -35,7 +35,7 @@
         <span class="text-[10px] font-medium text-gray-400">Fats</span>
         <div class="text-2xl font-bold text-gray-900 mt-1">{{ $todayStats['fat'] }}g</div>
         <div class="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div class="h-full bg-violet-500 rounded-full" style="width: {{ min(round($todayStats['fat'] / $todayStats['fatTarget'] * 100), 100) }}%"></div>
+            <div class="h-full bg-[#025C5F] rounded-full" style="width: {{ min(round($todayStats['fat'] / $todayStats['fatTarget'] * 100), 100) }}%"></div>
         </div>
         <span class="text-[10px] text-gray-400 mt-1 block">Target: {{ $todayStats['fatTarget'] }}g</span>
     </div>
@@ -70,14 +70,14 @@
             <div>
                 <div class="flex items-center justify-between mb-2">
                     <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <svg class="w-4 h-4 text-[#025C5F]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <span class="text-xs font-medium text-gray-700">Water</span>
                     </div>
                     <span class="text-xs font-bold text-gray-900">{{ $todayStats['water'] }}/{{ $todayStats['waterTarget'] }} cups</span>
                 </div>
                 <div class="flex gap-1">
                     @for($i = 0; $i < $todayStats['waterTarget']; $i++)
-                    <div class="flex-1 h-6 rounded {{ $i < $todayStats['water'] ? 'bg-blue-500' : 'bg-gray-100' }}"></div>
+                    <div class="flex-1 h-6 rounded {{ $i < $todayStats['water'] ? 'bg-[#025C5F]' : 'bg-gray-100' }}"></div>
                     @endfor
                 </div>
             </div>

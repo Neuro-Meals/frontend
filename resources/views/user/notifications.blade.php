@@ -25,10 +25,10 @@
             <div class="flex items-start gap-3">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0
                     @switch($notif['type'])
-                        @case('delivery') bg-blue-50 text-blue-600 @break
+                        @case('delivery') bg-[#025C5F]/10 text-[#025C5F] @break
                         @case('subscription') bg-[#6E7A25]/10 text-[#6E7A25] @break
-                        @case('achievement') bg-amber-50 text-amber-600 @break
-                        @case('meal') bg-purple-50 text-purple-600 @break
+                        @case('achievement') bg-[#949B50]/10 text-[#949B50] @break
+                        @case('meal') bg-[#6E7A25]/10 text-[#6E7A25] @break
                         @case('payment') bg-green-50 text-green-600 @break
                         @default bg-gray-100 text-gray-500
                     @endswitch">
