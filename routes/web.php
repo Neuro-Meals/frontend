@@ -3,12 +3,21 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
-
 use App\Http\Controllers\PageController;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\App;
 
 Route::get('/', function () {
     return view('landing');
 });
+
+// Locale switching
+Route::get('/locale/{locale}', function ($locale) {
+    if (in_array($locale, ['en', 'ar'])) {
+        Session::put('locale', $locale);
+    }
+    return redirect()->back();
+})->name('locale.switch');
 
 // Static pages
 Route::get('/page/{slug}', [PageController::class, 'show'])->name('page.show');
