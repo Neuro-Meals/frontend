@@ -1,10 +1,10 @@
 @extends('layouts.admin')
 
-@section('title', 'Revenue & Finance Report - Nutrio Meals')
-@section('page_title', 'Revenue & Finance Report')
+@section('title', __('Revenue & Finance') . ' - Nutrio Meals')
+@section('page_title', __('Revenue & Finance'))
 
 @section('content')
-@php $reportName = 'Revenue & Finance'; @endphp
+@php $reportName = __('Revenue & Finance'); @endphp
 @include('admin.reports._filter_bar')
 
 <div class="hidden print:block mb-6">

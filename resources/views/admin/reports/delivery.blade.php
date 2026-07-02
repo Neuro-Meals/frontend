@@ -1,10 +1,10 @@
 @extends('layouts.admin')
 
-@section('title', 'Delivery Operations Report - Nutrio Meals')
-@section('page_title', 'Delivery Operations Report')
+@section('title', __('Delivery Operations') . ' - Nutrio Meals')
+@section('page_title', __('Delivery Operations'))
 
 @section('content')
-@php $reportName = 'Delivery Operations'; @endphp
+@php $reportName = __('Delivery Operations'); @endphp
 @include('admin.reports._filter_bar')
 
 <div class="hidden print:block mb-6">

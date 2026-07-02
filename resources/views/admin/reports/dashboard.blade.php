@@ -1,15 +1,15 @@
 @extends('layouts.admin')
 
-@section('title', 'Reports Dashboard - Nutrio Meals')
-@section('page_title', 'Reports Dashboard Overview')
+@section('title', __('Report Overview') . ' - Nutrio Meals')
+@section('page_title', __('Report Overview'))
 
 @section('content')
-@php $reportName = 'Dashboard Overview'; @endphp
+@php $reportName = __('Report Overview'); @endphp
 @include('admin.reports._filter_bar')
 
 {{-- Print Header (only visible when printing) --}}
 <div class="hidden print:block mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">Nutrio Meals - Dashboard Overview Report</h1>
+    <h1 class="text-2xl font-bold text-gray-900">Nutrio Meals - {{ __('Report Overview') }} Report</h1>
     <p class="text-sm text-gray-500">Generated: {{ $lastUpdated }} | Timezone: {{ $timezone }}</p>
 </div>
 
