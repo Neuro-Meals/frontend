@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', __('Delivery Operations') . ' - Nutrio Meals')
+@section('title', __('Delivery Operations') . ' - ' . __('Nutrio Meals'))
 @section('page_title', __('Delivery Operations'))
 
 @section('content')
@@ -8,8 +8,8 @@
 @include('admin.reports._filter_bar')
 
 <div class="hidden print:block mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">Nutrio Meals - Delivery Operations Report</h1>
-    <p class="text-sm text-gray-500">Generated: {{ $lastUpdated }} | Timezone: {{ $timezone }}</p>
+    <h1 class="text-2xl font-bold text-gray-900">{{ __('Nutrio Meals') }} - {{ __('Delivery Operations') }} {{ __('Report') }}</h1>
+    <p class="text-sm text-gray-500">{{ __('Generated') }}: {{ $lastUpdated }} | {{ __('Timezone') }}: {{ $timezone }}</p>
 </div>
 
 {{-- KPI Row --}}
@@ -37,12 +37,12 @@
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">On-Time Delivery <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Trend</span></h3>
-                <span class="text-[10px] text-gray-400">Percentage | Target: 92%</span>
+                <h3 class="text-sm font-bold text-gray-900">{{ __('On-Time Delivery') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Trend') }}</span></h3>
+                <span class="text-[10px] text-gray-400">{{ __('Percentage') }} | {{ __('Target') }}: 92%</span>
             </div>
             <div class="flex items-center gap-3 text-[10px]">
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#6E7A25]"></span> Actual</span>
-                <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 bg-red-400"></span> Target</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#6E7A25]"></span> {{ __('Actual') }}</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 bg-red-400"></span> {{ __('Target') }}</span>
             </div>
         </div>
         @php $slaMax = 100; @endphp
@@ -65,8 +65,8 @@
 
     {{-- Zone Performance Bars --}}
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-        <h3 class="text-sm font-bold text-gray-900 mb-1">Zone <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Performance</span></h3>
-        <span class="text-[10px] text-gray-400 block mb-4">On-time % by delivery zone</span>
+        <h3 class="text-sm font-bold text-gray-900 mb-1">{{ __('Zone') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Performance') }}</span></h3>
+        <span class="text-[10px] text-gray-400 block mb-4">{{ __('On-time % by delivery zone') }}</span>
         <div class="space-y-4">
             @foreach($zonePerformance as $zone)
             <div>
@@ -74,15 +74,15 @@
                     <span class="text-xs font-semibold text-gray-700">{{ $zone['zone'] }}</span>
                     <div class="flex items-center gap-2">
                         <span class="text-xs font-bold {{ $zone['onTime'] >= 92 ? 'text-green-600' : 'text-amber-600' }}">{{ $zone['onTime'] }}%</span>
-                        <span class="text-[10px] text-gray-400">{{ $zone['total'] }} total</span>
+                        <span class="text-[10px] text-gray-400">{{ $zone['total'] }} {{ __('total') }}</span>
                     </div>
                 </div>
                 <div class="h-6 bg-gray-50 rounded-lg overflow-hidden">
                     <div class="h-full rounded-lg transition-all duration-500 {{ $zone['onTime'] >= 92 ? 'bg-gradient-to-r from-[#6E7A25] to-[#6E7A25]/70' : 'bg-gradient-to-r from-amber-500 to-amber-400' }}" style="width: {{ $zone['onTime'] }}%"></div>
                 </div>
                 <div class="flex items-center gap-3 mt-1 text-[10px] text-gray-400">
-                    <span>Avg: {{ $zone['avgTime'] }}</span>
-                    <span>Failed: {{ $zone['failed'] }}</span>
+                    <span>{{ __('Avg') }}: {{ $zone['avgTime'] }}</span>
+                    <span>{{ __('Failed') }}: {{ $zone['failed'] }}</span>
                 </div>
             </div>
             @endforeach
@@ -94,8 +94,8 @@
 <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm mb-6">
     <div class="flex items-center justify-between mb-4">
         <div>
-            <h3 class="text-sm font-bold text-gray-900">Delivery Load <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Heatmap</span></h3>
-            <span class="text-[10px] text-gray-400">Deliveries by weekday and hour</span>
+            <h3 class="text-sm font-bold text-gray-900">{{ __('Delivery Load') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Heatmap') }}</span></h3>
+            <span class="text-[10px] text-gray-400">{{ __('Deliveries by weekday and hour') }}</span>
         </div>
     </div>
     @php $heatMax = 0; foreach($deliveryHeatmap as $row) { $heatMax = max($heatMax, max($row['hours'])); } @endphp
@@ -103,7 +103,7 @@
         <table class="w-full text-xs">
             <thead>
                 <tr>
-                    <th class="px-2 py-1.5 text-left text-[10px] text-gray-400 font-medium">Day</th>
+                    <th class="px-2 py-1.5 text-left text-[10px] text-gray-400 font-medium">{{ __('Day') }}</th>
                     @foreach($heatmapHours as $hr)
                     <th class="px-2 py-1.5 text-center text-[10px] text-gray-400 font-medium">{{ $hr }}</th>
                     @endforeach
@@ -128,7 +128,7 @@
         </table>
     </div>
     <div class="flex items-center justify-end gap-2 mt-3 text-[10px] text-gray-400">
-        <span>Low</span>
+        <span>{{ __('Low') }}</span>
         <div class="flex gap-0.5">
             <div class="w-4 h-3 rounded-sm" style="background: rgba(110,122,37,0.1)"></div>
             <div class="w-4 h-3 rounded-sm" style="background: rgba(110,122,37,0.3)"></div>
@@ -136,7 +136,7 @@
             <div class="w-4 h-3 rounded-sm" style="background: rgba(110,122,37,0.7)"></div>
             <div class="w-4 h-3 rounded-sm" style="background: rgba(110,122,37,0.9)"></div>
         </div>
-        <span>High</span>
+        <span>{{ __('High') }}</span>
     </div>
 </div>
 
@@ -145,7 +145,7 @@
     {{-- Exception Reasons --}}
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-50">
-            <h3 class="text-sm font-bold text-gray-900">Exception <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Reasons</span></h3>
+            <h3 class="text-sm font-bold text-gray-900">{{ __('Exception') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Reasons') }}</span></h3>
         </div>
         <div class="p-5 space-y-3">
             @foreach($exceptionReasons as $reason)
@@ -168,17 +168,17 @@
     {{-- Driver Productivity --}}
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-50">
-            <h3 class="text-sm font-bold text-gray-900">Driver <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Productivity</span></h3>
+            <h3 class="text-sm font-bold text-gray-900">{{ __('Driver') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Productivity') }}</span></h3>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="text-left text-xs text-gray-500 border-b border-gray-50">
-                        <th class="px-4 py-3 font-medium">Driver</th>
-                        <th class="px-4 py-3 font-medium">Deliveries</th>
-                        <th class="px-4 py-3 font-medium">On-Time</th>
-                        <th class="px-4 py-3 font-medium">Avg Time</th>
-                        <th class="px-4 py-3 font-medium">Rating</th>
+                        <th class="px-4 py-3 font-medium">{{ __('Driver') }}</th>
+                        <th class="px-4 py-3 font-medium">{{ __('Deliveries') }}</th>
+                        <th class="px-4 py-3 font-medium">{{ __('On-Time') }}</th>
+                        <th class="px-4 py-3 font-medium">{{ __('Avg Time') }}</th>
+                        <th class="px-4 py-3 font-medium">{{ __('Rating') }}</th>
                     </tr>
                 </thead>
                 <tbody>

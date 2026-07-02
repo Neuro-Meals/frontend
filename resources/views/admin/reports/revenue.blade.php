@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', __('Revenue & Finance') . ' - Nutrio Meals')
+@section('title', __('Revenue & Finance') . ' - ' . __('Nutrio Meals'))
 @section('page_title', __('Revenue & Finance'))
 
 @section('content')
@@ -8,8 +8,8 @@
 @include('admin.reports._filter_bar')
 
 <div class="hidden print:block mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">Nutrio Meals - Revenue & Finance Report</h1>
-    <p class="text-sm text-gray-500">Generated: {{ $lastUpdated }} | Timezone: {{ $timezone }}</p>
+    <h1 class="text-2xl font-bold text-gray-900">{{ __('Nutrio Meals') }} - {{ __('Revenue & Finance') }} {{ __('Report') }}</h1>
+    <p class="text-sm text-gray-500">{{ __('Generated') }}: {{ $lastUpdated }} | {{ __('Timezone') }}: {{ $timezone }}</p>
 </div>
 
 {{-- KPI Row --}}
@@ -37,12 +37,12 @@
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Revenue <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Trend</span></h3>
-                <span class="text-[10px] text-gray-400">SAR | Current vs Previous Period</span>
+                <h3 class="text-sm font-bold text-gray-900">{{ __('Revenue') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Trend') }}</span></h3>
+                <span class="text-[10px] text-gray-400">SAR | {{ __('Current vs Previous Period') }}</span>
             </div>
             <div class="flex items-center gap-3 text-[10px]">
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#6E7A25]"></span> Current</span>
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-gray-300"></span> Previous</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#6E7A25]"></span> {{ __('Current') }}</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-gray-300"></span> {{ __('Previous') }}</span>
             </div>
         </div>
         @php $revMax = max(array_merge($revenueTrend['current'], $revenueTrend['previous'])) ?: 500000; @endphp
@@ -66,12 +66,12 @@
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Payment <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Success & Failure</span></h3>
-                <span class="text-[10px] text-gray-400">Percentage | Monthly Trend</span>
+                <h3 class="text-sm font-bold text-gray-900">{{ __('Payment') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Success & Failure') }}</span></h3>
+                <span class="text-[10px] text-gray-400">{{ __('Percentage') }} | {{ __('Monthly Trend') }}</span>
             </div>
             <div class="flex items-center gap-3 text-[10px]">
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#6E7A25]"></span> Success</span>
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-red-400"></span> Failure</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#6E7A25]"></span> {{ __('Success') }}</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-red-400"></span> {{ __('Failure') }}</span>
             </div>
         </div>
         @php $payMax = 100; @endphp
@@ -81,7 +81,7 @@
             <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
                 <div class="w-full bg-gray-50 rounded-t-md relative h-40 overflow-hidden flex items-end justify-center gap-0.5">
                     <div class="w-1/2 rounded-t-md transition-all duration-300 bg-gradient-to-t from-[#6E7A25] to-[#6E7A25]/70 group-hover:opacity-80" style="height: {{ $succPct }}%">
-                        <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap z-10">{{ $succPct }}% success</div>
+                        <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap z-10">{{ $succPct }}% {{ __('success') }}</div>
                     </div>
                     <div class="w-1/2 rounded-t-md transition-all duration-300 bg-gradient-to-t from-red-400 to-red-300 group-hover:opacity-80" style="height: {{ max($failPct * 10, 4) }}%"></div>
                 </div>
@@ -98,8 +98,8 @@
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Refund <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Volume</span></h3>
-                <span class="text-[10px] text-gray-400">SAR | Monthly | Refund Ratio: 1.4%</span>
+                <h3 class="text-sm font-bold text-gray-900">{{ __('Refund') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Volume') }}</span></h3>
+                <span class="text-[10px] text-gray-400">SAR | {{ __('Monthly') }} | {{ __('Refund Ratio') }}: 1.4%</span>
             </div>
         </div>
         @php $refMax = max($refundVolume['amount']) ?: 7000; @endphp
@@ -120,8 +120,8 @@
 
     {{-- Revenue by Plan - Donut style --}}
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-        <h3 class="text-sm font-bold text-gray-900 mb-1">Revenue by <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Plan</span></h3>
-        <span class="text-[10px] text-gray-400 block mb-4">Distribution | SAR</span>
+        <h3 class="text-sm font-bold text-gray-900 mb-1">{{ __('Revenue by') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Plan') }}</span></h3>
+        <span class="text-[10px] text-gray-400 block mb-4">{{ __('Distribution') }} | SAR</span>
         <div class="space-y-3">
             @php $totalRev = array_sum(array_column($revenueByPlan, 'revenue')); @endphp
             @foreach($revenueByPlan as $plan)
@@ -148,17 +148,17 @@
 {{-- Payment Methods Table --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-5 py-4 border-b border-gray-50">
-        <h3 class="text-sm font-bold text-gray-900">Payment <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Methods Breakdown</span></h3>
+        <h3 class="text-sm font-bold text-gray-900">{{ __('Payment') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Methods Breakdown') }}</span></h3>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="text-left text-xs text-gray-500 border-b border-gray-50">
-                    <th class="px-5 py-3 font-medium">Method</th>
-                    <th class="px-5 py-3 font-medium">Transactions</th>
-                    <th class="px-5 py-3 font-medium">Volume (SAR)</th>
-                    <th class="px-5 py-3 font-medium">Share</th>
-                    <th class="px-5 py-3 font-medium">Success Rate</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Method') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Transactions') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Volume') }} (SAR)</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Share') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Success Rate') }}</th>
                 </tr>
             </thead>
             <tbody>
