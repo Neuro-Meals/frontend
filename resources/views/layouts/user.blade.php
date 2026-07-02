@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" href="{{ asset('whitelogo.png') }}">
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito:400,500,600,700,800,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -53,6 +54,8 @@
         html.rtl .translate-x-full { transform: translateX(-100%); }
         html.rtl .-translate-x-full { transform: translateX(100%); }
         html.rtl .lg\:translate-x-0 { transform: translateX(0); }
+        html.rtl body { font-family: 'Cairo', sans-serif; }
+        html.rtl .font-['Nunito',sans-serif] { font-family: 'Cairo', sans-serif; }
     </style>
 </head>
 <body class="font-['Nunito',sans-serif] antialiased bg-gray-50 text-slate-800">
