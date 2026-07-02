@@ -3,9 +3,9 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
         <div class="text-center max-w-3xl mx-auto scroll-reveal">
-            <span class="inline-block px-4 py-1.5 rounded-full bg-brand-light/10 text-brand-light text-xs font-bold uppercase tracking-wider mb-4">Our Menu</span>
-            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">Fresh Meals Every Day</h2>
-            <p class="text-gray-600 dark:text-gray-300 text-lg">Breakfast, lunch, dinner, and snacks prepared by expert chefs with the finest ingredients.</p>
+            <span class="inline-block px-4 py-1.5 rounded-full bg-brand-light/10 text-brand-light text-xs font-bold uppercase tracking-wider mb-4">{{ __('Our Menu') }}</span>
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">{{ __('Fresh Meals Every Day') }}</h2>
+            <p class="text-gray-600 dark:text-gray-300 text-lg">{{ __('Breakfast, lunch, dinner, and snacks prepared by expert chefs with the finest ingredients.') }}</p>
         </div>
     </div>
 
