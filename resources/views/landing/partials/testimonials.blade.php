@@ -11,8 +11,8 @@
                 $testimonials = [
                     [
                         'title' => __('Best decision for my fitness journey'),
-                        'text' => __('I've been using Nutrio Meals for 3 months now and the results are incredible. The macro tracking is spot on, and every meal is fresh, delicious, and perfectly portioned. It's like having a personal nutritionist and chef combined.'),
-                        'text2' => __('The delivery is always on time, and the variety keeps me from getting bored. I've lost 8kg while still enjoying my food. Highly recommend to anyone serious about their health.'),
+                        'text' => __('I\'ve been using Nutrio Meals for 3 months now and the results are incredible. The macro tracking is spot on, and every meal is fresh, delicious, and perfectly portioned. It\'s like having a personal nutritionist and chef combined.'),
+                        'text2' => __('The delivery is always on time, and the variety keeps me from getting bored. I\'ve lost 8kg while still enjoying my food. Highly recommend to anyone serious about their health.'),
                         'name' => 'Ahmed Al-Farsi',
                         'role' => 'Fitness Coach, Riyadh',
                         'initials' => 'AA',
@@ -20,23 +20,23 @@
                     [
                         'title' => __('Saved me hours every single week'),
                         'text' => __('As a busy professional working 10+ hour days, cooking was always a struggle. Nutrio Meals completely changed that. I come home to fresh, healthy meals every day without lifting a finger.'),
-                        'text2' => __('The subscription is flexible and the quality is consistently excellent. It's been a game-changer for my work-life balance and my health.'),
+                        'text2' => __('The subscription is flexible and the quality is consistently excellent. It\'s been a game-changer for my work-life balance and my health.'),
                         'name' => 'Sara Mohammed',
                         'role' => 'Marketing Manager, Jeddah',
                         'initials' => 'SM',
                     ],
                     [
                         'title' => __('Perfect for muscle gain goals'),
-                        'text' => __('I've tried multiple meal plans but none matched my protein needs like Nutrio Meals. The fitness plan gives me exactly the macros I need for building muscle, and the food actually tastes great.'),
+                        'text' => __('I\'ve tried multiple meal plans but none matched my protein needs like Nutrio Meals. The fitness plan gives me exactly the macros I need for building muscle, and the food actually tastes great.'),
                         'text2' => __('The dashboard makes it so easy to track my progress. I can see my calorie intake, macro breakdown, and even adjust my plan based on my workout schedule.'),
-                        'text3' => __('This is the best investment I've made for my fitness journey.'),
+                        'text3' => __('This is the best investment I\'ve made for my fitness journey.'),
                         'name' => 'Khalid Nasser',
                         'role' => 'Gym Enthusiast, Dammam',
                         'initials' => 'KN',
                     ],
                     [
                         'title' => __('Quality that you can taste'),
-                        'text' => __('What impressed me most is the quality of ingredients. Everything is fresh, locally sourced, and you can taste the difference. The meals feel like they're from a premium restaurant.'),
+                        'text' => __('What impressed me most is the quality of ingredients. Everything is fresh, locally sourced, and you can taste the difference. The meals feel like they\'re from a premium restaurant.'),
                         'text2' => __('Their customer service is outstanding too. Any questions about my plan or delivery are answered immediately. Truly a five-star experience from start to finish.'),
                         'name' => 'Noura Abdullah',
                         'role' => 'Health Blogger, Riyadh',
