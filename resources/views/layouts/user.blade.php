@@ -46,6 +46,13 @@
         .card-sm:hover { transform: translateY(-2px); box-shadow: 0 8px 30px -8px rgba(0,0,0,0.1); }
         .skeleton { background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%); background-size: 200% 100%; animation: skeleton-shimmer 1.5s infinite; }
         @keyframes skeleton-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        html.rtl body { direction: rtl; }
+        html.rtl .sidebar-link { text-align: right; }
+        html.rtl aside { left: auto; right: 0; }
+        html.rtl .lg\:ml-64 { margin-left: 0; margin-right: 16rem; }
+        html.rtl .translate-x-full { transform: translateX(-100%); }
+        html.rtl .-translate-x-full { transform: translateX(100%); }
+        html.rtl .lg\:translate-x-0 { transform: translateX(0); }
     </style>
 </head>
 <body class="font-['Nunito',sans-serif] antialiased bg-gray-50 text-slate-800">

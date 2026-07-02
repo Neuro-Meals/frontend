@@ -66,6 +66,14 @@
             .print\:block { display: block !important; }
             @page { margin: 1.5cm; size: A4; }
         }
+        html.rtl body { direction: rtl; }
+        html.rtl .nav-item { text-align: right; }
+        html.rtl .nav-item svg { margin-left: 0; margin-right: 0; }
+        html.rtl aside { left: auto; right: 0; }
+        html.rtl .lg\:ml-64 { margin-left: 0; margin-right: 16rem; }
+        html.rtl .translate-x-full { transform: translateX(-100%); }
+        html.rtl .-translate-x-full { transform: translateX(100%); }
+        html.rtl .lg\:translate-x-0 { transform: translateX(0); }
     </style>
 </head>
 <body class="font-['Nunito',sans-serif] antialiased bg-gradient-to-br from-[#F6F3E9] via-gray-50 to-[#949B50]/5 text-slate-800 min-h-screen">

@@ -14,7 +14,7 @@
         </div>
 
         {{-- Loading text --}}
-        <p class="text-xs font-semibold text-gray-400 tracking-widest uppercase animate-text-fade">Loading...</p>
+        <p class="text-xs font-semibold text-gray-400 tracking-widest uppercase animate-text-fade">{{ __('Loading...') }}</p>
     </div>
 </div>
 

@@ -1,6 +1,6 @@
 @extends('layouts.auth')
 
-@section('title', 'New Password - ' . config('app.name', 'Nitromeals'))
+@section('title', __('New Password') . ' - ' . __('Nutrio Meals'))
 
 @section('content')
 <div class="w-full max-w-md animate-simple-fade-in">
@@ -10,8 +10,8 @@
             <div class="mx-auto mb-4 flex items-center justify-center">
                 <img src="{{ asset('whitelogo.png') }}" alt="{{ config('app.name', 'Nitromeals') }}" class="h-20 w-auto object-contain">
             </div>
-            <h2 class="text-2xl font-extrabold text-gray-900">New Password</h2>
-            <p class="text-gray-500 text-sm mt-1">Create a new secure password</p>
+            <h2 class="text-2xl font-extrabold text-gray-900">{{ __('New Password') }}</h2>
+            <p class="text-gray-500 text-sm mt-1">{{ __('Create a new secure password') }}</p>
         </div>
 
         {{-- Form --}}
