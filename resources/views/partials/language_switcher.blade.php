@@ -14,8 +14,9 @@
         <svg class="w-3 h-3 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
     </button>
 
-    <div x-show="open" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-         class="absolute {{ $isAr ? 'left-0' : 'right-0' }} top-full mt-1 w-32 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50" style="display: none;">
+    <div x-show="open" x-cloak
+         x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+         class="absolute {{ $isAr ? 'left-0' : 'right-0' }} top-full mt-1 w-32 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
         <a href="{{ route('locale.switch', 'en') }}"
            class="flex items-center gap-2 px-3 py-2 text-xs font-medium transition-colors {{ $currentLocale === 'en' ? 'text-[#6E7A25] bg-[#949B50]/10' : 'text-gray-600 hover:bg-gray-50' }}">
             <span class="text-base">🇬🇧</span>

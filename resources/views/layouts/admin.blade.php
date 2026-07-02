@@ -78,6 +78,7 @@
         html.rtl .lg\:translate-x-0 { transform: translateX(0); }
         html.rtl body { font-family: 'Cairo', sans-serif; }
         html.rtl .font-['Nunito',sans-serif] { font-family: 'Cairo', sans-serif; }
+        [x-cloak] { display: none !important; }
     </style>
 </head>
 <body class="font-['Nunito',sans-serif] antialiased bg-gradient-to-br from-[#F6F3E9] via-gray-50 to-[#949B50]/5 text-slate-800 min-h-screen">
