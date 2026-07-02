@@ -119,7 +119,7 @@
                     <span class="text-xs font-semibold text-gray-900">{{ $stats['carbsToday'] }}g / {{ $stats['carbsTarget'] }}g</span>
                 </div>
                 <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                    <div class="bg-amber-500 h-2.5 rounded-full transition-all duration-500" style="width: {{ min($carbsPct, 100) }}%"></div>
+                    <div class="bg-[#949B50] h-2.5 rounded-full transition-all duration-500" style="width: {{ min($carbsPct, 100) }}%"></div>
                 </div>
             </div>
             <div>
@@ -128,7 +128,7 @@
                     <span class="text-xs font-semibold text-gray-900">{{ $stats['fatToday'] }}g / {{ $stats['fatTarget'] }}g</span>
                 </div>
                 <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                    <div class="bg-violet-500 h-2.5 rounded-full transition-all duration-500" style="width: {{ min($fatPct, 100) }}%"></div>
+                    <div class="bg-[#025C5F] h-2.5 rounded-full transition-all duration-500" style="width: {{ min($fatPct, 100) }}%"></div>
                 </div>
             </div>
         </div>
