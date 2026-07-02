@@ -46,7 +46,7 @@ class AdminController extends Controller
 
         // Demo plan distribution
         $planDistribution = [
-            ['name' => 'Weight Loss', 'count' => 128, 'color' => '#259B00'],
+            ['name' => 'Weight Loss', 'count' => 128, 'color' => '#173327'],
             ['name' => 'Muscle Gain', 'count' => 94, 'color' => '#033133'],
             ['name' => 'Maintenance', 'count' => 76, 'color' => '#f9ac00'],
             ['name' => 'Keto', 'count' => 44, 'color' => '#3b82f6'],
@@ -109,7 +109,7 @@ class AdminController extends Controller
     public function subscriptions()
     {
         $plans = [
-            ['id' => 1, 'name' => 'Weight Loss Pro', 'price' => 420, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 128, 'status' => 'active', 'calories' => '1500-1800', 'color' => '#259B00'],
+            ['id' => 1, 'name' => 'Weight Loss Pro', 'price' => 420, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 128, 'status' => 'active', 'calories' => '1500-1800', 'color' => '#173327'],
             ['id' => 2, 'name' => 'Muscle Gain', 'price' => 380, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 94, 'status' => 'active', 'calories' => '2500-3000', 'color' => '#033133'],
             ['id' => 3, 'name' => 'Maintenance', 'price' => 295, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 76, 'status' => 'active', 'calories' => '2000-2200', 'color' => '#f9ac00'],
             ['id' => 4, 'name' => 'Keto Premium', 'price' => 510, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 44, 'status' => 'active', 'calories' => '1800-2000', 'color' => '#3b82f6'],
@@ -143,7 +143,7 @@ class AdminController extends Controller
         ];
 
         $categories = [
-            ['name' => 'High Protein', 'count' => 24, 'color' => '#259B00'],
+            ['name' => 'High Protein', 'count' => 24, 'color' => '#173327'],
             ['name' => 'Vegan', 'count' => 18, 'color' => '#8b5cf6'],
             ['name' => 'Keto', 'count' => 12, 'color' => '#3b82f6'],
             ['name' => 'Breakfast', 'count' => 16, 'color' => '#f9ac00'],
@@ -409,11 +409,11 @@ class AdminController extends Controller
     public function reportRevenue()
     {
         $kpis = [
-            ['label' => 'Total Revenue', 'value' => 'SAR 487,320', 'delta' => '+15.4%', 'trend' => 'up', 'color' => '#259B00'],
+            ['label' => 'Total Revenue', 'value' => 'SAR 487,320', 'delta' => '+15.4%', 'trend' => 'up', 'color' => '#173327'],
             ['label' => 'Captured Payments', 'value' => 'SAR 480,560', 'delta' => '+14.8%', 'trend' => 'up', 'color' => '#033133'],
             ['label' => 'Refund Volume', 'value' => 'SAR 6,760', 'delta' => '-2.1%', 'trend' => 'down', 'color' => '#ef4444'],
             ['label' => 'Refund Ratio', 'value' => '1.4%', 'delta' => '-0.3%', 'trend' => 'down', 'color' => '#f9ac00'],
-            ['label' => 'Payment Success Rate', 'value' => '98.6%', 'delta' => '+0.2%', 'trend' => 'up', 'color' => '#259B00'],
+            ['label' => 'Payment Success Rate', 'value' => '98.6%', 'delta' => '+0.2%', 'trend' => 'up', 'color' => '#173327'],
             ['label' => 'Payment Failure Rate', 'value' => '1.4%', 'delta' => '-0.2%', 'trend' => 'down', 'color' => '#ef4444'],
         ];
 
@@ -443,7 +443,7 @@ class AdminController extends Controller
         ];
 
         $revenueByPlan = [
-            ['plan' => 'Weight Loss Pro', 'revenue' => 161280, 'pct' => 33.1, 'color' => '#259B00'],
+            ['plan' => 'Weight Loss Pro', 'revenue' => 161280, 'pct' => 33.1, 'color' => '#173327'],
             ['plan' => 'Muscle Gain', 'revenue' => 118560, 'pct' => 24.3, 'color' => '#033133'],
             ['plan' => 'Keto Premium', 'revenue' => 89460, 'pct' => 18.4, 'color' => '#3b82f6'],
             ['plan' => 'Maintenance', 'revenue' => 74220, 'pct' => 15.2, 'color' => '#f9ac00'],
@@ -459,7 +459,7 @@ class AdminController extends Controller
     public function reportDelivery()
     {
         $kpis = [
-            ['label' => 'On-Time Rate', 'value' => '94.2%', 'delta' => '+1.8%', 'trend' => 'up', 'color' => '#259B00'],
+            ['label' => 'On-Time Rate', 'value' => '94.2%', 'delta' => '+1.8%', 'trend' => 'up', 'color' => '#173327'],
             ['label' => 'Total Deliveries', 'value' => '1,039', 'delta' => '+87', 'trend' => 'up', 'color' => '#033133'],
             ['label' => 'Failed Deliveries', 'value' => '12', 'delta' => '-3', 'trend' => 'down', 'color' => '#ef4444'],
             ['label' => 'Avg Delivery Time', 'value' => '34 min', 'delta' => '-2 min', 'trend' => 'down', 'color' => '#f9ac00'],
@@ -514,7 +514,7 @@ class AdminController extends Controller
     public function reportSubscriptions()
     {
         $kpis = [
-            ['label' => 'Active Subscriptions', 'value' => '342', 'delta' => '+12', 'trend' => 'up', 'color' => '#259B00'],
+            ['label' => 'Active Subscriptions', 'value' => '342', 'delta' => '+12', 'trend' => 'up', 'color' => '#173327'],
             ['label' => 'New Subscribers', 'value' => '48', 'delta' => '+8.2%', 'trend' => 'up', 'color' => '#3b82f6'],
             ['label' => 'Churned', 'value' => '8', 'delta' => '-2', 'trend' => 'down', 'color' => '#ef4444'],
             ['label' => 'Renewal Rate', 'value' => '87.1%', 'delta' => '+2.4%', 'trend' => 'up', 'color' => '#f9ac00'],
@@ -534,14 +534,14 @@ class AdminController extends Controller
         ];
 
         $planRanking = [
-            ['plan' => 'Weight Loss Pro', 'subscribers' => 128, 'revenue' => 53760, 'retention' => 91.4, 'churn' => 1.8, 'color' => '#259B00'],
+            ['plan' => 'Weight Loss Pro', 'subscribers' => 128, 'revenue' => 53760, 'retention' => 91.4, 'churn' => 1.8, 'color' => '#173327'],
             ['plan' => 'Muscle Gain', 'subscribers' => 94, 'revenue' => 35720, 'retention' => 88.2, 'churn' => 2.5, 'color' => '#033133'],
             ['plan' => 'Maintenance', 'subscribers' => 76, 'revenue' => 22420, 'retention' => 85.5, 'churn' => 3.1, 'color' => '#f9ac00'],
             ['plan' => 'Keto Premium', 'subscribers' => 44, 'revenue' => 22440, 'retention' => 82.1, 'churn' => 3.8, 'color' => '#3b82f6'],
         ];
 
         $goalDistribution = [
-            ['goal' => 'Weight Loss', 'count' => 128, 'pct' => 37.4, 'color' => '#259B00'],
+            ['goal' => 'Weight Loss', 'count' => 128, 'pct' => 37.4, 'color' => '#173327'],
             ['goal' => 'Muscle Gain', 'count' => 94, 'pct' => 27.5, 'color' => '#033133'],
             ['goal' => 'Maintenance', 'count' => 76, 'pct' => 22.2, 'color' => '#f9ac00'],
             ['goal' => 'Keto', 'count' => 44, 'pct' => 12.9, 'color' => '#3b82f6'],
@@ -549,7 +549,7 @@ class AdminController extends Controller
 
         $corporateMetrics = [
             ['label' => 'Active Corporate Accounts', 'value' => 12, 'color' => '#033133'],
-            ['label' => 'Employee Enrollments', 'value' => 186, 'color' => '#259B00'],
+            ['label' => 'Employee Enrollments', 'value' => 186, 'color' => '#173327'],
             ['label' => 'Corporate Utilization', 'value' => '72.4%', 'color' => '#f9ac00'],
             ['label' => 'Corporate Revenue Share', 'value' => '9.0%', 'color' => '#8b5cf6'],
         ];
@@ -564,7 +564,7 @@ class AdminController extends Controller
     {
         $kpis = [
             ['label' => 'Total Sent', 'value' => '18,420', 'delta' => '+1,240', 'trend' => 'up', 'color' => '#033133'],
-            ['label' => 'Delivery Rate', 'value' => '98.4%', 'delta' => '+0.5%', 'trend' => 'up', 'color' => '#259B00'],
+            ['label' => 'Delivery Rate', 'value' => '98.4%', 'delta' => '+0.5%', 'trend' => 'up', 'color' => '#173327'],
             ['label' => 'Open Rate', 'value' => '67.2%', 'delta' => '+2.1%', 'trend' => 'up', 'color' => '#3b82f6'],
             ['label' => 'Failed Sends', 'value' => '12', 'delta' => '-4', 'trend' => 'down', 'color' => '#ef4444'],
             ['label' => 'Campaign CTR', 'value' => '12.8%', 'delta' => '+1.4%', 'trend' => 'up', 'color' => '#f9ac00'],
@@ -581,7 +581,7 @@ class AdminController extends Controller
 
         $channelMix = [
             ['channel' => 'Email', 'count' => 14260, 'pct' => 51.6, 'color' => '#033133'],
-            ['channel' => 'SMS', 'count' => 6320, 'pct' => 22.9, 'color' => '#259B00'],
+            ['channel' => 'SMS', 'count' => 6320, 'pct' => 22.9, 'color' => '#173327'],
             ['channel' => 'Push', 'count' => 4280, 'pct' => 15.5, 'color' => '#f9ac00'],
             ['channel' => 'WhatsApp', 'count' => 2680, 'pct' => 9.7, 'color' => '#8b5cf6'],
         ];
@@ -613,13 +613,13 @@ class AdminController extends Controller
     {
         $kpis = [
             ['label' => 'Privileged Actions', 'value' => '1,248', 'delta' => '+82', 'trend' => 'up', 'color' => '#033133'],
-            ['label' => 'Export Requests', 'value' => '47', 'delta' => '+12', 'trend' => 'up', 'color' => '#259B00'],
+            ['label' => 'Export Requests', 'value' => '47', 'delta' => '+12', 'trend' => 'up', 'color' => '#173327'],
             ['label' => 'Failed Access Attempts', 'value' => '3', 'delta' => '-1', 'trend' => 'down', 'color' => '#ef4444'],
             ['label' => 'Compliance Score', 'value' => '98.2%', 'delta' => '+0.4%', 'trend' => 'up', 'color' => '#f9ac00'],
         ];
 
         $changeHotspots = [
-            ['module' => 'Subscriptions', 'changes' => 342, 'pct' => 27.4, 'color' => '#259B00'],
+            ['module' => 'Subscriptions', 'changes' => 342, 'pct' => 27.4, 'color' => '#173327'],
             ['module' => 'Orders', 'changes' => 287, 'pct' => 23.0, 'color' => '#033133'],
             ['module' => 'Customers', 'changes' => 218, 'pct' => 17.5, 'color' => '#3b82f6'],
             ['module' => 'Payments', 'changes' => 156, 'pct' => 12.5, 'color' => '#f9ac00'],
