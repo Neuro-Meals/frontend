@@ -179,7 +179,7 @@
                                     <div class="w-3 h-3 bg-white dark:bg-gray-800 rounded-full"></div>
                                 @endfor
                             </div>
-                            <p class="text-center text-white/80 text-xs font-medium tracking-wider">FRESH • HEALTHY • ON TIME</p>
+                            <p class="text-center text-white/80 text-xs font-medium tracking-wider">{{ __('FRESH • HEALTHY • ON TIME') }}</p>
                         </div>
                     </div>
                 </div>
