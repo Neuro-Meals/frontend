@@ -1,16 +1,16 @@
 @extends('layouts.admin')
 
-@section('title', 'Settings - Nutrio Meals')
-@section('page_title', 'Settings')
+@section('title', __('Settings') . ' - ' . __('Nutrio Meals'))
+@section('page_title', __('Settings'))
 
 @section('content')
 <div class="max-w-4xl">
     {{-- Tabs --}}
     <div class="flex items-center gap-1 mb-6 bg-white rounded-2xl border border-gray-100 p-1.5 shadow-sm w-fit">
-        <button class="px-4 py-2 text-sm font-bold text-white bg-[#6E7A25] rounded-xl transition-all">Company</button>
-        <button class="px-4 py-2 text-sm font-medium text-gray-500 rounded-xl hover:bg-gray-50 transition-colors">Delivery</button>
-        <button class="px-4 py-2 text-sm font-medium text-gray-500 rounded-xl hover:bg-gray-50 transition-colors">Payment</button>
-        <button class="px-4 py-2 text-sm font-medium text-gray-500 rounded-xl hover:bg-gray-50 transition-colors">Notifications</button>
+        <button class="px-4 py-2 text-sm font-bold text-white bg-[#6E7A25] rounded-xl transition-all">{{ __('Company') }}</button>
+        <button class="px-4 py-2 text-sm font-medium text-gray-500 rounded-xl hover:bg-gray-50 transition-colors">{{ __('Delivery') }}</button>
+        <button class="px-4 py-2 text-sm font-medium text-gray-500 rounded-xl hover:bg-gray-50 transition-colors">{{ __('Payment') }}</button>
+        <button class="px-4 py-2 text-sm font-medium text-gray-500 rounded-xl hover:bg-gray-50 transition-colors">{{ __('Notifications') }}</button>
     </div>
 
     {{-- Company Settings --}}
@@ -20,25 +20,25 @@
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
             </div>
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Company Information</h3>
-                <p class="text-xs text-gray-400 mt-0.5">Basic business details</p>
+                <h3 class="text-sm font-bold text-gray-900">{{ __('Company Information') }}</h3>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Basic business details') }}</p>
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-                <label class="text-xs font-medium text-gray-500 mb-1.5 block">Company Name</label>
+                <label class="text-xs font-medium text-gray-500 mb-1.5 block">{{ __('Company Name') }}</label>
                 <input type="text" value="{{ $settings['company']['name'] }}" class="w-full px-4 py-2.5 text-sm border border-gray-100 rounded-xl bg-gray-50 text-gray-700 outline-none focus:border-[#6E7A25] focus:bg-white transition-colors">
             </div>
             <div>
-                <label class="text-xs font-medium text-gray-500 mb-1.5 block">Email</label>
+                <label class="text-xs font-medium text-gray-500 mb-1.5 block">{{ __('Email') }}</label>
                 <input type="email" value="{{ $settings['company']['email'] }}" class="w-full px-4 py-2.5 text-sm border border-gray-100 rounded-xl bg-gray-50 text-gray-700 outline-none focus:border-[#6E7A25] focus:bg-white transition-colors">
             </div>
             <div>
-                <label class="text-xs font-medium text-gray-500 mb-1.5 block">Phone</label>
+                <label class="text-xs font-medium text-gray-500 mb-1.5 block">{{ __('Phone') }}</label>
                 <input type="text" value="{{ $settings['company']['phone'] }}" class="w-full px-4 py-2.5 text-sm border border-gray-100 rounded-xl bg-gray-50 text-gray-700 outline-none focus:border-[#6E7A25] focus:bg-white transition-colors">
             </div>
             <div>
-                <label class="text-xs font-medium text-gray-500 mb-1.5 block">Currency</label>
+                <label class="text-xs font-medium text-gray-500 mb-1.5 block">{{ __('Currency') }}</label>
                 <select class="w-full px-4 py-2.5 text-sm border border-gray-100 rounded-xl bg-gray-50 text-gray-700 outline-none focus:border-[#6E7A25] focus:bg-white transition-colors cursor-pointer">
                     <option selected>{{ $settings['company']['currency'] }}</option>
                     <option>USD</option>
@@ -47,11 +47,11 @@
                 </select>
             </div>
             <div class="md:col-span-2">
-                <label class="text-xs font-medium text-gray-500 mb-1.5 block">Address</label>
+                <label class="text-xs font-medium text-gray-500 mb-1.5 block">{{ __('Address') }}</label>
                 <input type="text" value="{{ $settings['company']['address'] }}" class="w-full px-4 py-2.5 text-sm border border-gray-100 rounded-xl bg-gray-50 text-gray-700 outline-none focus:border-[#6E7A25] focus:bg-white transition-colors">
             </div>
             <div>
-                <label class="text-xs font-medium text-gray-500 mb-1.5 block">Timezone</label>
+                <label class="text-xs font-medium text-gray-500 mb-1.5 block">{{ __('Timezone') }}</label>
                 <select class="w-full px-4 py-2.5 text-sm border border-gray-100 rounded-xl bg-gray-50 text-gray-700 outline-none focus:border-[#6E7A25] focus:bg-white transition-colors cursor-pointer">
                     <option selected>{{ $settings['company']['timezone'] }}</option>
                     <option>Asia/Dubai</option>
@@ -69,25 +69,25 @@
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
             </div>
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Delivery Configuration</h3>
-                <p class="text-xs text-gray-400 mt-0.5">Delivery windows and thresholds</p>
+                <h3 class="text-sm font-bold text-gray-900">{{ __('Delivery Configuration') }}</h3>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Delivery windows and thresholds') }}</p>
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-                <label class="text-xs font-medium text-gray-500 mb-1.5 block">Order Cutoff Time</label>
+                <label class="text-xs font-medium text-gray-500 mb-1.5 block">{{ __('Order Cutoff Time') }}</label>
                 <input type="text" value="{{ $settings['delivery']['cutoff_time'] }}" class="w-full px-4 py-2.5 text-sm border border-gray-100 rounded-xl bg-gray-50 text-gray-700 outline-none focus:border-[#6E7A25] focus:bg-white transition-colors">
             </div>
             <div>
-                <label class="text-xs font-medium text-gray-500 mb-1.5 block">Delivery Hours</label>
+                <label class="text-xs font-medium text-gray-500 mb-1.5 block">{{ __('Delivery Hours') }}</label>
                 <input type="text" value="{{ $settings['delivery']['delivery_hours'] }}" class="w-full px-4 py-2.5 text-sm border border-gray-100 rounded-xl bg-gray-50 text-gray-700 outline-none focus:border-[#6E7A25] focus:bg-white transition-colors">
             </div>
             <div>
-                <label class="text-xs font-medium text-gray-500 mb-1.5 block">Minimum Order (SAR)</label>
+                <label class="text-xs font-medium text-gray-500 mb-1.5 block">{{ __('Minimum Order') }} (SAR)</label>
                 <input type="number" value="{{ $settings['delivery']['min_order'] }}" class="w-full px-4 py-2.5 text-sm border border-gray-100 rounded-xl bg-gray-50 text-gray-700 outline-none focus:border-[#6E7A25] focus:bg-white transition-colors">
             </div>
             <div>
-                <label class="text-xs font-medium text-gray-500 mb-1.5 block">Free Delivery Threshold (SAR)</label>
+                <label class="text-xs font-medium text-gray-500 mb-1.5 block">{{ __('Free Delivery Threshold') }} (SAR)</label>
                 <input type="number" value="{{ $settings['delivery']['free_delivery_threshold'] }}" class="w-full px-4 py-2.5 text-sm border border-gray-100 rounded-xl bg-gray-50 text-gray-700 outline-none focus:border-[#6E7A25] focus:bg-white transition-colors">
             </div>
         </div>
@@ -100,8 +100,8 @@
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
             </div>
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Payment Methods</h3>
-                <p class="text-xs text-gray-400 mt-0.5">Accepted payment options</p>
+                <h3 class="text-sm font-bold text-gray-900">{{ __('Payment Methods') }}</h3>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Accepted payment options') }}</p>
             </div>
         </div>
         <div class="space-y-3">
@@ -124,8 +124,8 @@
 
     {{-- Save Button --}}
     <div class="flex items-center justify-end gap-3">
-        <button class="px-5 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors shadow-sm">Cancel</button>
-        <button class="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-xl shadow-md hover:shadow-lg transition-all">Save Changes</button>
+        <button class="px-5 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors shadow-sm">{{ __('Cancel') }}</button>
+        <button class="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-xl shadow-md hover:shadow-lg transition-all">{{ __('Save Changes') }}</button>
     </div>
 </div>
 @endsection
