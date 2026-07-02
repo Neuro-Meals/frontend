@@ -168,15 +168,15 @@
             if (goal === 'loss') {
                 calories = Math.round(bmr * 1.3 * 0.8);
                 protein = Math.round(weight * 2.0);
-                plan = 'Weight Loss';
+                plan = '{{ __('Weight Loss') }}';
             } else if (goal === 'gain') {
                 calories = Math.round(bmr * 1.5 * 1.1);
                 protein = Math.round(weight * 2.2);
-                plan = 'Muscle Gain';
+                plan = '{{ __('Muscle Gain') }}';
             } else {
                 calories = Math.round(bmr * 1.4);
                 protein = Math.round(weight * 1.6);
-                plan = 'Maintenance';
+                plan = '{{ __('Maintenance') }}';
             }
 
             document.getElementById('calc-placeholder').style.display = 'none';
