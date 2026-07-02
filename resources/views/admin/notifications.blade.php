@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Notifications - Nutrio Meals')
-@section('page_title', 'Notifications')
+@section('title', __('Notifications') . ' - ' . __('Nutrio Meals'))
+@section('page_title', __('Notifications'))
 
 @section('content')
 @php
@@ -39,29 +39,29 @@
     <div class="kpi-card bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
         <div class="relative z-10">
-            <p class="text-xs text-white/60 font-medium mb-1">Total Sent</p>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Total Sent') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ number_format($stats['totalSent']) }}</p>
-            <p class="text-xs text-white/50 mt-1">{{ $stats['todaySent'] }} today</p>
+            <p class="text-xs text-white/50 mt-1">{{ $stats['todaySent'] }} {{ __('today') }}</p>
         </div>
     </div>
     <div class="kpi-card bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-blue-500/20">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
         <div class="relative z-10">
-            <p class="text-xs text-white/60 font-medium mb-1">Delivery Rate</p>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Delivery Rate') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ $stats['deliveryRate'] }}%</p>
         </div>
     </div>
     <div class="kpi-card bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-amber-500/20">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
         <div class="relative z-10">
-            <p class="text-xs text-white/60 font-medium mb-1">Open Rate</p>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Open Rate') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ $stats['openRate'] }}%</p>
         </div>
     </div>
     <div class="kpi-card bg-gradient-to-br from-violet-500 to-purple-700 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-violet-500/20">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
         <div class="relative z-10">
-            <p class="text-xs text-white/60 font-medium mb-1">Failed / Pending</p>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Failed / Pending') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ $stats['failed'] }} / {{ $stats['pending'] }}</p>
         </div>
     </div>
@@ -72,8 +72,8 @@
     <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
             <div>
-                <h3 class="text-base font-bold text-gray-900">Recent <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Notifications</span></h3>
-                <p class="text-xs text-gray-400 mt-0.5">Latest notification activity</p>
+                <h3 class="text-base font-bold text-gray-900">{{ __('Recent') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Notifications') }}</span></h3>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Latest notification activity') }}</p>
             </div>
         </div>
         <div class="divide-y divide-gray-50">
@@ -86,13 +86,13 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between gap-2">
                             <p class="text-sm font-semibold text-gray-900 truncate">{{ $notif['title'] }}</p>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border {{ $statusColors[$notif['status']] }} flex-shrink-0">{{ ucfirst($notif['status']) }}</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border {{ $statusColors[$notif['status']] }} flex-shrink-0">{{ __(ucfirst($notif['status'])) }}</span>
                         </div>
                         <p class="text-xs text-gray-500 mt-0.5">{{ $notif['message'] }}</p>
                         <div class="flex items-center gap-3 mt-2">
                             <span class="flex items-center gap-1 text-[10px] text-gray-400">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $channelIcons[$notif['channel']] ?? $channelIcons['email'] }}"/></svg>
-                                {{ ucfirst($notif['channel']) }}
+                                {{ __(ucfirst($notif['channel'])) }}
                             </span>
                             <span class="text-[10px] text-gray-400">{{ $notif['recipient'] }}</span>
                             <span class="text-[10px] text-gray-400">·</span>
@@ -108,8 +108,8 @@
     {{-- Templates --}}
     <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div class="mb-5">
-            <h3 class="text-base font-bold text-gray-900">Notification <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Templates</span></h3>
-            <p class="text-xs text-gray-400 mt-0.5">Active message templates</p>
+            <h3 class="text-base font-bold text-gray-900">{{ __('Notification') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Templates') }}</span></h3>
+            <p class="text-xs text-gray-400 mt-0.5">{{ __('Active message templates') }}</p>
         </div>
         <div class="space-y-3">
             @foreach($templates as $template)
@@ -119,13 +119,13 @@
                     <span class="text-[10px] font-bold text-[#6E7A25] uppercase">{{ $template['type'] }}</span>
                 </div>
                 <p class="text-[10px] text-gray-400">{{ $template['trigger'] }}</p>
-                <p class="text-[10px] text-gray-500 mt-1">{{ number_format($template['sends']) }} sends</p>
+                <p class="text-[10px] text-gray-500 mt-1">{{ number_format($template['sends']) }} {{ __('sends') }}</p>
             </div>
             @endforeach
         </div>
         <button class="w-full mt-4 px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-lg shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            New Template
+            {{ __('New Template') }}
         </button>
     </div>
 </div>
