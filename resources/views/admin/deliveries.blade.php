@@ -42,8 +42,8 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
     {{-- Zones Summary --}}
     <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-        <h3 class="text-sm font-bold text-gray-900 mb-1">Delivery Zones</h3>
-        <p class="text-xs text-gray-400 mb-5">Today's performance by zone</p>
+        <h3 class="text-sm font-bold text-gray-900 mb-1">{{ __('Delivery Zones') }}</h3>
+        <p class="text-xs text-gray-400 mb-5">{{ __("Today's performance by zone") }}</p>
         <div class="space-y-4">
             @foreach($zones as $zone)
             @php $pct = round($zone['completed'] / $zone['orders'] * 100); @endphp
