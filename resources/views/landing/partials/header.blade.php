@@ -3,7 +3,8 @@
         <div class="flex items-center justify-between px-5 py-3">
             {{-- Logo --}}
             <a href="{{ url('/') }}" class="flex items-center">
-                <img src="{{ asset('nitro FULL 3.png') }}" alt="Nutrio Meals" class="h-16 w-auto object-contain">
+                <img src="{{ asset('whitelogo.png') }}" alt="Nutrio Meals" class="h-16 w-auto object-contain dark:hidden">
+                <img src="{{ asset('blackmodelogo.png') }}" alt="Nutrio Meals" class="h-16 w-auto object-contain hidden dark:block">
             </a>
 
             {{-- Desktop Nav --}}

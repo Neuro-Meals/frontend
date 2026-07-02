@@ -8,7 +8,7 @@
         {{-- Header --}}
         <div class="bg-white px-8 py-8 text-center border-b border-gray-100">
             <div class="mx-auto mb-4 flex items-center justify-center">
-                <img src="{{ asset('nitro FULL 3.png') }}" alt="{{ config('app.name', 'Nitromeals') }}" class="h-20 w-auto object-contain">
+                <img src="{{ asset('whitelogo.png') }}" alt="{{ config('app.name', 'Nitromeals') }}" class="h-20 w-auto object-contain">
             </div>
             <h2 class="text-2xl font-extrabold text-gray-900">Verify Email</h2>
             <p class="text-gray-500 text-sm mt-1">One more step to get started</p>

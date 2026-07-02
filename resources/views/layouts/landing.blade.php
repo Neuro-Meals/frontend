@@ -25,6 +25,8 @@
 </head>
 <body class="font-sans antialiased bg-white text-gray-900 dark:bg-gray-900 dark:text-white transition-colors duration-300">
 
+    @include('partials.loading')
+
     @yield('content')
 
     {{-- Dark Mode Toggle Script --}}

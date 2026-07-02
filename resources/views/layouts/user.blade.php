@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard - Nutrio Meals')</title>
-    <link rel="icon" type="image/png" href="{{ asset('nitro FULL 3.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('whitelogo.png') }}">
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito:400,500,600,700,800,900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -50,6 +50,8 @@
 </head>
 <body class="font-['Nunito',sans-serif] antialiased bg-gray-50 text-slate-800">
 
+    @include('partials.loading')
+
     {{-- Mobile Overlay --}}
     <div id="mobileOverlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
 
@@ -57,8 +59,7 @@
     <aside id="userSidebar" class="fixed top-0 left-0 z-50 w-64 h-screen bg-brand-700 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 flex flex-col">
         {{-- Brand --}}
         <div class="h-16 flex items-center px-6 border-b border-brand-800/50 flex-shrink-0">
-            <img src="{{ asset('nitro FULL 3.png') }}" alt="Nutrio Meals" class="h-8 w-auto brightness-0 invert">
-            <span class="ml-2 text-white font-bold text-sm tracking-wide">NUTRIO</span>
+            <img src="{{ asset('blackmodelogo.png') }}" alt="Nutrio Meals" class="h-9 w-auto">
         </div>
 
         {{-- Menu --}}

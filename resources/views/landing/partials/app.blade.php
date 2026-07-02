@@ -65,7 +65,7 @@
 
                             {{-- Logo at bottom --}}
                             <div class="absolute bottom-6 left-0 right-0 flex justify-center">
-                                <img src="{{ asset('nitro FULL 3.png') }}" alt="Nutrio Meals" class="h-12 w-auto object-contain opacity-80">
+                                <img src="{{ asset('whitelogo.png') }}" alt="Nutrio Meals" class="h-12 w-auto object-contain opacity-80">
                             </div>
                         </div>
                     </div>
