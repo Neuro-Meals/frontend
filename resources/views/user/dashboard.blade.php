@@ -85,7 +85,7 @@
                 @php $pct = ($day['calories'] / $calMax) * 100; $isOver = $day['calories'] > $day['target']; @endphp
                 <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
                     <div class="w-full bg-gray-50 rounded-t-md relative h-40 overflow-hidden">
-                        <div class="absolute bottom-0 left-0 right-0 rounded-t-md transition-all duration-300 {{ $isOver ? 'bg-gradient-to-t from-amber-500 to-amber-400' : 'bg-gradient-to-t from-[#6E7A25] to-[#6E7A25]/70' }} group-hover:opacity-80" style="height: {{ max($pct, 4) }}%"></div>
+                        <div class="absolute bottom-0 left-0 right-0 rounded-t-md transition-all duration-300 {{ $isOver ? 'bg-gradient-to-t from-[#949B50] to-[#6E7A25]' : 'bg-gradient-to-t from-[#6E7A25] to-[#6E7A25]/70' }} group-hover:opacity-80" style="height: {{ max($pct, 4) }}%"></div>
                         <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap">
                             {{ number_format($day['calories']) }} kcal
                         </div>
