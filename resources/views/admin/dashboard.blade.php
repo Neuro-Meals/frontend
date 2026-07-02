@@ -108,13 +108,17 @@
             <p class="text-2xl font-bold tracking-tight">{{ number_format($stats['totalCustomers']) }}</p>
         </div>
     </div>
-    <div class="kpi-card bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3 shadow-sm">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#025C5F] to-[#033133] flex items-center justify-center flex-shrink-0">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
-        </div>
-        <div>
-            <p class="text-xs text-gray-400">Deliveries Today</p>
-            <p class="text-lg font-bold text-gray-900">{{ $stats['deliveriesToday'] }}</p>
+    <div class="kpi-card bg-gradient-to-br from-[#025C5F] to-[#033133] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#025C5F]/20">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="relative z-10">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
+                </div>
+            </div>
+            <p class="text-xs text-white/60 font-medium mb-1">Deliveries Today</p>
+            <p class="text-2xl font-bold tracking-tight">{{ $stats['deliveriesToday'] }}</p>
         </div>
     </div>
     <div class="kpi-card bg-gradient-to-br from-[#6E7A25] to-[#949B50] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20">
