@@ -23,13 +23,13 @@
             <div class="flex items-center justify-between relative z-10">
                 <span class="text-[10px] font-medium text-gray-400">{{ $kpi['label'] }}</span>
                 @if($kpi['trend'] === 'up')
-                <svg class="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                <svg class="w-3.5 h-3.5 text-[#259B00]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                 @else
-                <svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+                <svg class="w-3.5 h-3.5 text-[#173327]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
                 @endif
             </div>
             <div class="text-xl font-bold text-gray-900 mt-2 relative z-10">{{ $kpi['value'] }}</div>
-            <span class="text-[10px] font-semibold mt-1 block relative z-10 {{ $kpi['trend'] === 'up' ? 'text-green-600' : 'text-red-500' }}">{{ $kpi['delta'] }} vs prev period</span>
+            <span class="text-[10px] font-semibold mt-1 block relative z-10 {{ $kpi['trend'] === 'up' ? 'text-[#259B00]' : 'text-[#173327]' }}">{{ $kpi['delta'] }} vs prev period</span>
         </div>
         @endforeach
     </div>
