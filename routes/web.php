@@ -27,16 +27,35 @@ Route::get('/home', function () {
 Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/customers', [AdminController::class, 'customers'])->name('customers');
-    Route::get('/plans', [AdminController::class, 'plans'])->name('plans');
+    Route::get('/subscriptions', [AdminController::class, 'subscriptions'])->name('subscriptions');
+    Route::get('/meals', [AdminController::class, 'meals'])->name('meals');
     Route::get('/orders', [AdminController::class, 'orders'])->name('orders');
     Route::get('/deliveries', [AdminController::class, 'deliveries'])->name('deliveries');
     Route::get('/payments', [AdminController::class, 'payments'])->name('payments');
-    Route::get('/reports', [AdminController::class, 'reports'])->name('reports');
+    Route::get('/notifications', [AdminController::class, 'notifications'])->name('notifications');
+    Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
     Route::get('/content', [AdminController::class, 'content'])->name('content');
     Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
+
+    // Reports - Phase 11
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/dashboard', [AdminController::class, 'reportDashboard'])->name('dashboard');
+        Route::get('/revenue', [AdminController::class, 'reportRevenue'])->name('revenue');
+        Route::get('/delivery', [AdminController::class, 'reportDelivery'])->name('delivery');
+        Route::get('/subscriptions', [AdminController::class, 'reportSubscriptions'])->name('subscriptions');
+        Route::get('/notifications', [AdminController::class, 'reportNotifications'])->name('notifications');
+        Route::get('/audit', [AdminController::class, 'reportAudit'])->name('audit');
+    });
 });
 
 // User routes
 Route::prefix('user')->name('user.')->middleware('auth')->group(function () {
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('dashboard');
+    Route::get('/subscriptions', [UserController::class, 'subscriptions'])->name('subscriptions');
+    Route::get('/meals', [UserController::class, 'meals'])->name('meals');
+    Route::get('/nutrition', [UserController::class, 'nutrition'])->name('nutrition');
+    Route::get('/orders', [UserController::class, 'orders'])->name('orders');
+    Route::get('/delivery', [UserController::class, 'delivery'])->name('delivery');
+    Route::get('/notifications', [UserController::class, 'notifications'])->name('notifications');
+    Route::get('/settings', [UserController::class, 'settings'])->name('settings');
 });
