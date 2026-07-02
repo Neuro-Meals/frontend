@@ -42,7 +42,7 @@
     </div>
 
     {{-- Active Subscriptions --}}
-    <div class="kpi-card bg-gradient-to-br from-[#025C5F] to-[#033133] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#025C5F]/20">
+    <div class="kpi-card bg-gradient-to-br from-[#025C5F] to-[#173327] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#025C5F]/20">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
         <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
         <div class="relative z-10">
@@ -76,7 +76,7 @@
     </div>
 
     {{-- Payment Success --}}
-    <div class="kpi-card bg-gradient-to-br from-[#1E8A00] to-[#259B00] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#1E8A00]/20">
+    <div class="kpi-card bg-gradient-to-br from-[#033133] to-[#025C5F] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#033133]/20">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
         <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
         <div class="relative z-10">
@@ -121,7 +121,7 @@
             <p class="text-2xl font-bold tracking-tight">{{ $stats['deliveriesToday'] }}</p>
         </div>
     </div>
-    <div class="kpi-card bg-gradient-to-br from-[#6E7A25] to-[#949B50] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20">
+    <div class="kpi-card bg-gradient-to-br from-[#949B50] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#949B50]/20">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
         <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
         <div class="relative z-10">
