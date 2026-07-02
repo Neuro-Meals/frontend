@@ -51,10 +51,10 @@
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-white/70 text-xs">Status</p>
+                                    <p class="text-white/70 text-xs">{{ __('Status') }}</p>
                                     <p class="text-white font-bold text-xs flex items-center gap-1.5">
                                         <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-                                        En Route
+                                        {{ __('En Route') }}
                                     </p>
                                 </div>
                             </div>
