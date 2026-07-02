@@ -8,9 +8,9 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div class="text-center max-w-3xl mx-auto mb-16 scroll-reveal">
-            <span class="inline-block px-4 py-1.5 rounded-full bg-brand-light/10 text-brand-light text-xs font-bold uppercase tracking-wider mb-4">Why Choose Us</span>
-            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">Why Choose Nutrio Meals?</h2>
-            <p class="text-gray-600 dark:text-gray-300 text-lg">We combine nutrition science with chef-crafted meals to help you reach your fitness goals.</p>
+            <span class="inline-block px-4 py-1.5 rounded-full bg-brand-light/10 text-brand-light text-xs font-bold uppercase tracking-wider mb-4">{{ __('Why Choose Us') }}</span>
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">{{ __('Why Choose Nutrio Meals?') }}</h2>
+            <p class="text-gray-600 dark:text-gray-300 text-lg">{{ __('We combine nutrition science with chef-crafted meals to help you reach your fitness goals.') }}</p>
         </div>
 
         @php
@@ -18,32 +18,32 @@
                 [
                     'img' => '236.jpg',
                     'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
-                    'title' => 'Personalized Nutrition',
-                    'text' => 'Every meal is crafted based on your fitness goals, dietary preferences, and body composition. Our system calculates your exact needs and builds a plan just for you.',
+                    'title' => __('Personalized Nutrition'),
+                    'text' => __('Every meal is crafted based on your fitness goals, dietary preferences, and body composition. Our system calculates your exact needs and builds a plan just for you.'),
                     'stage' => '01',
                     'is_fi' => false,
                 ],
                 [
                     'img' => '2147782465.jpg',
                     'icon' => 'M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z',
-                    'title' => 'Macro Tracking',
-                    'text' => 'Track calories, proteins, carbs, and fats with precision. Our dashboard gives you real-time insights into your daily nutrition intake and progress.',
+                    'title' => __('Macro Tracking'),
+                    'text' => __('Track calories, proteins, carbs, and fats with precision. Our dashboard gives you real-time insights into your daily nutrition intake and progress.'),
                     'stage' => '02',
                     'is_fi' => false,
                 ],
                 [
                     'img' => '2149722284.jpg',
                     'icon' => 'M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0',
-                    'title' => 'Fresh Daily Delivery',
-                    'text' => 'Meals prepared fresh every morning and delivered to your doorstep on schedule. Never worry about meal prep again — we handle everything.',
+                    'title' => __('Fresh Daily Delivery'),
+                    'text' => __('Meals prepared fresh every morning and delivered to your doorstep on schedule. Never worry about meal prep again — we handle everything.'),
                     'stage' => '03',
                     'is_fi' => false,
                 ],
                 [
                     'img' => '236.jpg',
                     'icon' => 'fi fi-sr-diamond',
-                    'title' => 'Premium Quality',
-                    'text' => 'Chef-prepared meals using only the finest ingredients. Locally sourced produce, premium proteins, and no artificial additives ever.',
+                    'title' => __('Premium Quality'),
+                    'text' => __('Chef-prepared meals using only the finest ingredients. Locally sourced produce, premium proteins, and no artificial additives ever.'),
                     'stage' => '04',
                     'is_fi' => true,
                 ],
@@ -88,7 +88,7 @@
 
                             {{-- Learn more link --}}
                             <a href="#plans" class="inline-flex items-center gap-2 mt-5 text-brand-light font-bold text-sm hover:gap-3 transition-all {{ $index % 2 === 1 ? 'lg:flex-row-reverse' : '' }}">
-                                Learn more
+                                {{ __('Learn more') }}
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                             </a>
                         </div>
