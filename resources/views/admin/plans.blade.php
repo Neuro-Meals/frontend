@@ -1,25 +1,25 @@
 @extends('layouts.admin')
 
-@section('title', 'Plans - Nutrio Meals')
-@section('page_title', 'Meal Plans')
+@section('title', __('Plans') . ' - ' . __('Nutrio Meals'))
+@section('page_title', __('Meal Plans'))
 
 @section('content')
 {{-- Stats Row --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-        <p class="text-xs text-gray-400 mb-1">Total Plans</p>
+        <p class="text-xs text-gray-400 mb-1">{{ __('Total Plans') }}</p>
         <p class="text-2xl font-bold text-gray-900">{{ $stats['total'] }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-        <p class="text-xs text-gray-400 mb-1">Active Plans</p>
+        <p class="text-xs text-gray-400 mb-1">{{ __('Active Plans') }}</p>
         <p class="text-2xl font-bold text-green-600">{{ $stats['active'] }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-        <p class="text-xs text-gray-400 mb-1">Total Subscribers</p>
+        <p class="text-xs text-gray-400 mb-1">{{ __('Total Subscribers') }}</p>
         <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['totalSubscribers']) }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-        <p class="text-xs text-gray-400 mb-1">Avg Revenue / Plan</p>
+        <p class="text-xs text-gray-400 mb-1">{{ __('Avg Revenue / Plan') }}</p>
         <p class="text-2xl font-bold text-gray-900">SAR {{ $stats['avgRevenue'] }}</p>
     </div>
 </div>
@@ -28,11 +28,11 @@
 <div class="flex items-center justify-between mb-6">
     <div class="flex items-center bg-white rounded-lg px-3 py-2 border border-gray-100 shadow-sm flex-1 max-w-xs">
         <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        <input type="text" placeholder="Search plans..." class="bg-transparent text-sm outline-none flex-1 text-gray-600 placeholder-gray-400">
+        <input type="text" placeholder="{{ __('Search plans...') }}" class="bg-transparent text-sm outline-none flex-1 text-gray-600 placeholder-gray-400">
     </div>
     <button class="px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-2">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-        Create Plan
+        {{ __('Create Plan') }}
     </button>
 </div>
 
@@ -47,11 +47,11 @@
                     <svg class="w-6 h-6" style="color: {{ $plan['color'] }};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </div>
                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border {{ $plan['status'] === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200' }}">
-                    {{ ucfirst($plan['status']) }}
+                    {{ __(ucfirst($plan['status'])) }}
                 </span>
             </div>
             <h3 class="text-base font-bold text-gray-900">{{ $plan['name'] }}</h3>
-            <p class="text-xs text-gray-400 mt-1">{{ $plan['calories'] }} kcal/day</p>
+            <p class="text-xs text-gray-400 mt-1">{{ $plan['calories'] }} {{ __('kcal/day') }}</p>
         </div>
         {{-- Body --}}
         <div class="p-5">
@@ -61,20 +61,20 @@
             </div>
             <div class="grid grid-cols-2 gap-3 mb-4">
                 <div class="bg-gray-50 rounded-lg p-3">
-                    <p class="text-[10px] text-gray-400 uppercase tracking-wider">Meals</p>
+                    <p class="text-[10px] text-gray-400 uppercase tracking-wider">{{ __('Meals') }}</p>
                     <p class="text-sm font-bold text-gray-900">{{ $plan['meals'] }}</p>
                 </div>
                 <div class="bg-gray-50 rounded-lg p-3">
-                    <p class="text-[10px] text-gray-400 uppercase tracking-wider">Subscribers</p>
+                    <p class="text-[10px] text-gray-400 uppercase tracking-wider">{{ __('Subscribers') }}</p>
                     <p class="text-sm font-bold text-gray-900">{{ $plan['subscribers'] }}</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
                 <button class="flex-1 px-3 py-2 text-xs font-bold text-white rounded-lg transition-all" style="background: {{ $plan['color'] }};">
-                    Edit Plan
+                    {{ __('Edit Plan') }}
                 </button>
                 <button class="px-3 py-2 text-xs font-medium text-gray-500 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    View
+                    {{ __('View') }}
                 </button>
             </div>
         </div>
