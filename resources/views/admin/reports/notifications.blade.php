@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', __('Notifications & Campaign') . ' - Nutrio Meals')
+@section('title', __('Notifications & Campaign') . ' - ' . __('Nutrio Meals'))
 @section('page_title', __('Notifications & Campaign'))
 
 @section('content')
@@ -8,8 +8,8 @@
 @include('admin.reports._filter_bar')
 
 <div class="hidden print:block mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">Nutrio Meals - Notifications & Campaign Report</h1>
-    <p class="text-sm text-gray-500">Generated: {{ $lastUpdated }} | Timezone: {{ $timezone }}</p>
+    <h1 class="text-2xl font-bold text-gray-900">{{ __('Nutrio Meals') }} - {{ __('Notifications & Campaign') }} {{ __('Report') }}</h1>
+    <p class="text-sm text-gray-500">{{ __('Generated') }}: {{ $lastUpdated }} | {{ __('Timezone') }}: {{ $timezone }}</p>
 </div>
 
 {{-- KPI Row --}}
@@ -37,14 +37,14 @@
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm lg:col-span-2">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Send Volume by <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Channel</span></h3>
-                <span class="text-[10px] text-gray-400">Notification count | Monthly | Stacked</span>
+                <h3 class="text-sm font-bold text-gray-900">{{ __('Send Volume by') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Channel') }}</span></h3>
+                <span class="text-[10px] text-gray-400">{{ __('Notification count') }} | {{ __('Monthly') }} | {{ __('Stacked') }}</span>
             </div>
             <div class="flex items-center gap-2 text-[10px] flex-wrap">
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#173327]"></span> Email</span>
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#6E7A25]"></span> SMS</span>
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#949B50]"></span> Push</span>
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#8b5cf6]"></span> WhatsApp</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#173327]"></span> {{ __('Email') }}</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#6E7A25]"></span> {{ __('SMS') }}</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#949B50]"></span> {{ __('Push') }}</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#8b5cf6]"></span> {{ __('WhatsApp') }}</span>
             </div>
         </div>
         @php $volMax = 0; for($i = 0; $i < count($sendVolumeByChannel['labels']); $i++) { $volMax = max($volMax, $sendVolumeByChannel['email'][$i] + $sendVolumeByChannel['sms'][$i] + $sendVolumeByChannel['push'][$i] + $sendVolumeByChannel['whatsapp'][$i]); } @endphp
@@ -63,7 +63,7 @@
                     <div class="w-full transition-all duration-300 bg-[#949B50] group-hover:opacity-80" style="height: {{ max($pushPct, 1) }}%"></div>
                     <div class="w-full transition-all duration-300 bg-[#6E7A25] group-hover:opacity-80" style="height: {{ max($smsPct, 1) }}%"></div>
                     <div class="w-full rounded-t-md transition-all duration-300 bg-[#173327] group-hover:opacity-80" style="height: {{ max($emailPct, 1) }}%">
-                        <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap z-10">{{ number_format($total) }} total</div>
+                        <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap z-10">{{ number_format($total) }} {{ __('total') }}</div>
                     </div>
                 </div>
                 <span class="text-[10px] text-gray-400 font-medium">{{ $label }}</span>
@@ -74,8 +74,8 @@
 
     {{-- Channel Mix Donut --}}
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-        <h3 class="text-sm font-bold text-gray-900 mb-1">Channel <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Mix</span></h3>
-        <span class="text-[10px] text-gray-400 block mb-4">Distribution by channel</span>
+        <h3 class="text-sm font-bold text-gray-900 mb-1">{{ __('Channel') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Mix') }}</span></h3>
+        <span class="text-[10px] text-gray-400 block mb-4">{{ __('Distribution by channel') }}</span>
         {{-- CSS Donut --}}
         @php
         $totalMix = array_sum(array_column($channelMix, 'count'));
@@ -92,7 +92,7 @@
                 <div class="w-full h-full rounded-full" style="background: conic-gradient({{ $channelMix[0]['color'] }} 0 {{ ($channelMix[0]['count']/$totalMix*100) }}%, {{ $channelMix[1]['color'] }} 0 {{ (($channelMix[0]['count']+$channelMix[1]['count'])/$totalMix*100) }}%, {{ $channelMix[2]['color'] }} 0 {{ (($channelMix[0]['count']+$channelMix[1]['count']+$channelMix[2]['count'])/$totalMix*100) }}%, {{ $channelMix[3]['color'] }} 0 100%)"></div>
                 <div class="absolute inset-4 bg-white rounded-full flex flex-col items-center justify-center">
                     <span class="text-lg font-bold text-gray-900">{{ number_format($totalMix) }}</span>
-                    <span class="text-[10px] text-gray-400">Total</span>
+                    <span class="text-[10px] text-gray-400">{{ __('Total') }}</span>
                 </div>
             </div>
             <div class="space-y-2 w-full">
@@ -113,19 +113,19 @@
 {{-- Campaign Performance Table --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-6">
     <div class="px-5 py-4 border-b border-gray-50">
-        <h3 class="text-sm font-bold text-gray-900">Campaign <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Performance</span></h3>
+        <h3 class="text-sm font-bold text-gray-900">{{ __('Campaign') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Performance') }}</span></h3>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="text-left text-xs text-gray-500 border-b border-gray-50">
-                    <th class="px-5 py-3 font-medium">Campaign</th>
-                    <th class="px-5 py-3 font-medium">Channel</th>
-                    <th class="px-5 py-3 font-medium">Sent</th>
-                    <th class="px-5 py-3 font-medium">Opened</th>
-                    <th class="px-5 py-3 font-medium">Clicked</th>
-                    <th class="px-5 py-3 font-medium">CTR</th>
-                    <th class="px-5 py-3 font-medium">Converted</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Campaign') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Channel') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Sent') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Opened') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Clicked') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('CTR') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Converted') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -157,20 +157,20 @@
 {{-- Failed Send Diagnostics --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-        <h3 class="text-sm font-bold text-gray-900">Failed Send <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Diagnostics</span></h3>
-        <span class="text-[10px] text-gray-400">{{ count($failedDiagnostics) }} failures</span>
+        <h3 class="text-sm font-bold text-gray-900">{{ __('Failed Send') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Diagnostics') }}</span></h3>
+        <span class="text-[10px] text-gray-400">{{ count($failedDiagnostics) }} {{ __('failures') }}</span>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="text-left text-xs text-gray-500 border-b border-gray-50">
-                    <th class="px-5 py-3 font-medium">ID</th>
-                    <th class="px-5 py-3 font-medium">Channel</th>
-                    <th class="px-5 py-3 font-medium">Recipient</th>
-                    <th class="px-5 py-3 font-medium">Reason</th>
-                    <th class="px-5 py-3 font-medium">Campaign</th>
-                    <th class="px-5 py-3 font-medium">Time</th>
-                    <th class="px-5 py-3 font-medium">Action</th>
+                    <th class="px-5 py-3 font-medium">{{ __('ID') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Channel') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Recipient') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Reason') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Campaign') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Time') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Action') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -185,7 +185,7 @@
                     <td class="px-5 py-3 text-xs text-gray-500">{{ $fail['campaign'] }}</td>
                     <td class="px-5 py-3 text-xs text-gray-400">{{ $fail['time'] }}</td>
                     <td class="px-5 py-3">
-                        <button class="text-[10px] font-bold text-[#6E7A25] hover:underline">Retry</button>
+                        <button class="text-[10px] font-bold text-[#6E7A25] hover:underline">{{ __('Retry') }}</button>
                     </td>
                 </tr>
                 @endforeach
