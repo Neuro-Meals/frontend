@@ -3,9 +3,9 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-12 scroll-reveal">
-            <span class="inline-block px-4 py-1.5 rounded-full bg-brand-light/10 text-brand-light text-xs font-bold uppercase tracking-wider mb-4">Pricing Plans</span>
-            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">Choose Your Perfect Plan</h2>
-            <p class="text-gray-600 dark:text-gray-300 text-lg">Nutrition plans tailored to your body and lifestyle. Cancel anytime.</p>
+            <span class="inline-block px-4 py-1.5 rounded-full bg-brand-light/10 text-brand-light text-xs font-bold uppercase tracking-wider mb-4">{{ __('Pricing Plans') }}</span>
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">{{ __('Choose Your Perfect Plan') }}</h2>
+            <p class="text-gray-600 dark:text-gray-300 text-lg">{{ __('Nutrition plans tailored to your body and lifestyle. Cancel anytime.') }}</p>
         </div>
 
         {{-- Carousel --}}
@@ -17,39 +17,39 @@
                 @php
                     $plans = [
                         [
-                            'name' => 'Weight Loss', 'price' => '299', 'period' => '/month',
-                            'desc' => 'Perfect for shedding extra kilos while enjoying delicious meals',
-                            'features' => ['Low-calorie meals (1200-1500 kcal)', 'High protein portions', 'Fat-burning ingredients', 'Daily fresh delivery', 'Macro tracking access'],
+                            'name' => __('Weight Loss'), 'price' => '299', 'period' => '/month',
+                            'desc' => __('Perfect for shedding extra kilos while enjoying delicious meals'),
+                            'features' => [__('Low-calorie meals (1200-1500 kcal)'), __('High protein portions'), __('Fat-burning ingredients'), __('Daily fresh delivery'), __('Macro tracking access')],
                             'popular' => false,
                         ],
                         [
-                            'name' => 'Muscle Gain', 'price' => '399', 'period' => '/month',
-                            'desc' => 'Built for athletes and gym enthusiasts wanting serious gains',
-                            'features' => ['High-protein meals (2500+ kcal)', 'Performance carbs', 'Pre/post workout meals', 'Daily fresh delivery', 'Macro tracking access', 'Free nutritionist consult'],
+                            'name' => __('Muscle Gain'), 'price' => '399', 'period' => '/month',
+                            'desc' => __('Built for athletes and gym enthusiasts wanting serious gains'),
+                            'features' => [__('High-protein meals (2500+ kcal)'), __('Performance carbs'), __('Pre/post workout meals'), __('Daily fresh delivery'), __('Macro tracking access'), __('Free nutritionist consult')],
                             'popular' => true,
                         ],
                         [
-                            'name' => 'Maintenance', 'price' => '349', 'period' => '/month',
-                            'desc' => 'Stay in shape with balanced, flexible daily nutrition',
-                            'features' => ['Balanced nutrition (1800-2000 kcal)', 'Flexible meal choices', 'Healthy lifestyle support', 'Daily fresh delivery', 'Macro tracking access'],
+                            'name' => __('Maintenance'), 'price' => '349', 'period' => '/month',
+                            'desc' => __('Stay in shape with balanced, flexible daily nutrition'),
+                            'features' => [__('Balanced nutrition (1800-2000 kcal)'), __('Flexible meal choices'), __('Healthy lifestyle support'), __('Daily fresh delivery'), __('Macro tracking access')],
                             'popular' => false,
                         ],
                         [
-                            'name' => 'Keto Plan', 'price' => '449', 'period' => '/month',
-                            'desc' => 'Low-carb, high-fat meals designed for ketosis and energy',
-                            'features' => ['Ultra low-carb meals', 'High healthy fats', 'Ketosis support', 'Daily fresh delivery', 'Macro tracking access', 'Weekly progress reports'],
+                            'name' => __('Keto Plan'), 'price' => '449', 'period' => '/month',
+                            'desc' => __('Low-carb, high-fat meals designed for ketosis and energy'),
+                            'features' => [__('Ultra low-carb meals'), __('High healthy fats'), __('Ketosis support'), __('Daily fresh delivery'), __('Macro tracking access'), __('Weekly progress reports')],
                             'popular' => false,
                         ],
                         [
-                            'name' => 'Athlete Pro', 'price' => '599', 'period' => '/month',
-                            'desc' => 'Premium plan for competitive athletes with custom macros',
-                            'features' => ['Custom macro calculation', 'Performance-optimized meals', 'Pre/post workout nutrition', '2x daily delivery', 'Personal nutritionist', 'Weekly progress reports', 'Priority support'],
+                            'name' => __('Athlete Pro'), 'price' => '599', 'period' => '/month',
+                            'desc' => __('Premium plan for competitive athletes with custom macros'),
+                            'features' => [__('Custom macro calculation'), __('Performance-optimized meals'), __('Pre/post workout nutrition'), __('2x daily delivery'), __('Personal nutritionist'), __('Weekly progress reports'), __('Priority support')],
                             'popular' => false,
                         ],
                         [
-                            'name' => 'Family Plan', 'price' => '899', 'period' => '/month',
-                            'desc' => 'Healthy meals for the whole family, delivered together',
-                            'features' => ['Meals for 2-4 people', 'Customizable per member', 'Balanced family nutrition', 'Daily fresh delivery', 'Macro tracking for all', 'Free nutritionist consult'],
+                            'name' => __('Family Plan'), 'price' => '899', 'period' => '/month',
+                            'desc' => __('Healthy meals for the whole family, delivered together'),
+                            'features' => [__('Meals for 2-4 people'), __('Customizable per member'), __('Balanced family nutrition'), __('Daily fresh delivery'), __('Macro tracking for all'), __('Free nutritionist consult')],
                             'popular' => false,
                         ],
                     ];
@@ -60,7 +60,7 @@
                         <div class="relative h-full rounded-3xl overflow-hidden {{ $plan['popular'] ? 'shadow-2xl ring-2 ring-[#6E7A25]' : 'shadow-lg' }} bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                             {{-- Popular badge --}}
                             @if ($plan['popular'])
-                                <div class="absolute top-0 left-0 right-0 bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-center py-2 text-xs font-bold uppercase tracking-wider">Most Popular</div>
+                                <div class="absolute top-0 left-0 right-0 bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-center py-2 text-xs font-bold uppercase tracking-wider">{{ __('Most Popular') }}</div>
                             @endif
 
                             <div class="p-8 {{ $plan['popular'] ? 'pt-14' : '' }}">
@@ -91,7 +91,7 @@
 
                                 {{-- CTA --}}
                                 <a href="#" class="block w-full py-3.5 text-center text-sm font-bold rounded-xl transition-all duration-300 {{ $plan['popular'] ? 'bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-lg hover:shadow-brand-light/30 hover:-translate-y-0.5' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' }}">
-                                    Subscribe Now
+                                    {{ __('Subscribe Now') }}
                                 </a>
                             </div>
                         </div>
