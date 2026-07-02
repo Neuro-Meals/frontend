@@ -6,7 +6,7 @@
 @section('content')
 
 {{-- Welcome --}}
-<div class="mb-6 flex flex-row items-start sm:items-center justify-between gap-3 flex-wrap">
+<div class="mb-6 flex flex-row items-start sm:items-center justify-between gap-3 flex-wrap animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
     <div class="min-w-0">
         <h1 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 tracking-tight">Hello {{ Auth::user()->name }} 👋</h1>
         <p class="text-xs sm:text-sm text-gray-500 mt-0.5">Here's your nutrition journey today.</p>
@@ -25,7 +25,7 @@
 
 {{-- Stats Cards --}}
 <div class="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4 mb-6">
-    <div class="card-sm bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20">
+    <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20" style="animation-delay: 0.2s;">
         <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
         <div class="flex items-start justify-between relative z-10">
             <span class="text-[10px] sm:text-xs font-medium text-white/60">Active Plan</span>
@@ -35,7 +35,7 @@
         <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">Renews {{ $stats['planRenewal'] }}</div>
     </div>
 
-    <div class="card-sm bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-blue-500/20">
+    <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#033133] to-[#025C5F] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#025C5F]/20" style="animation-delay: 0.3s;">
         <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
         <div class="flex items-start justify-between relative z-10">
             <span class="text-[10px] sm:text-xs font-medium text-white/60">Meals This Week</span>
@@ -45,7 +45,7 @@
         <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">{{ $stats['mealsTotal'] - $stats['mealsThisWeek'] }} remaining</div>
     </div>
 
-    <div class="card-sm bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-amber-500/20">
+    <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#6E7A25] to-[#949B50] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#949B50]/20" style="animation-delay: 0.4s;">
         <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
         <div class="flex items-start justify-between relative z-10">
             <span class="text-[10px] sm:text-xs font-medium text-white/60">Daily Calories</span>
@@ -55,7 +55,7 @@
         <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">Target: {{ number_format($stats['calorieTarget']) }} kcal</div>
     </div>
 
-    <div class="card-sm bg-gradient-to-br from-violet-500 to-purple-700 rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-violet-500/20">
+    <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#025C5F] to-[#033133] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#025C5F]/20" style="animation-delay: 0.5s;">
         <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
         <div class="flex items-start justify-between relative z-10">
             <span class="text-[10px] sm:text-xs font-medium text-white/60">Streak Days</span>
@@ -68,7 +68,7 @@
 
 {{-- Charts Row --}}
 <div class="grid grid-cols-1 gap-4 lg:grid-cols-3 mb-6">
-    <div class="bg-white rounded-xl border border-gray-100 p-5 lg:col-span-2 shadow-sm">
+    <div class="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 lg:col-span-2 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.6s;">
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h3 class="text-sm font-bold text-gray-900">Calorie <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Tracking</span></h3>
@@ -96,7 +96,7 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+    <div class="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.7s;">
         <h3 class="text-sm font-bold text-gray-900 mb-4">Nutrition <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Breakdown</span></h3>
         <div class="space-y-4">
             @php
@@ -143,8 +143,8 @@
 
 {{-- Upcoming Meals & Recent Orders --}}
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-50">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden animate__animated animate__fadeInUp" style="animation-delay: 0.8s;">
+        <div class="px-4 sm:px-5 py-4 border-b border-gray-50">
             <h3 class="text-sm font-bold text-gray-900">Upcoming <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Meals</span></h3>
             <p class="text-xs text-gray-400">Your next scheduled meals</p>
         </div>
@@ -163,8 +163,8 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden animate__animated animate__fadeInUp" style="animation-delay: 0.9s;">
+        <div class="px-4 sm:px-5 py-4 border-b border-gray-50 flex items-center justify-between">
             <div>
                 <h3 class="text-sm font-bold text-gray-900">Recent <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Orders</span></h3>
                 <p class="text-xs text-gray-400">Your latest meal orders</p>
@@ -190,7 +190,7 @@
 
 {{-- Weight Progress & Next Delivery --}}
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-    <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm lg:col-span-2">
+    <div class="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 shadow-sm lg:col-span-2 animate__animated animate__fadeInUp" style="animation-delay: 1.0s;">
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h3 class="text-sm font-bold text-gray-900">Weight <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Progress</span></h3>
@@ -211,7 +211,7 @@
         </div>
     </div>
 
-    <div class="bg-gradient-to-br from-[#173327] to-[#122620] rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
+    <div class="bg-gradient-to-br from-[#173327] to-[#122620] rounded-xl p-4 sm:p-5 text-white shadow-lg relative overflow-hidden animate__animated animate__fadeInUp" style="animation-delay: 1.1s;">
         <div class="absolute top-0 right-0 w-24 h-24 bg-[#6E7A25]/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
         <div class="relative z-10">
             <div class="flex items-center gap-2 mb-3">
@@ -229,36 +229,4 @@
     </div>
 </div>
 
-{{-- Mobile Bottom Nav --}}
-<div class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-lg border-t border-gray-200/80 lg:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-    <div class="flex items-center justify-around py-2 px-2 max-w-lg mx-auto">
-        <a href="{{ route('user.dashboard') }}" class="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-xl active:scale-95 transition-all hover:bg-brand-50 group">
-            <div class="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center group-hover:bg-brand-500 transition-colors">
-                <svg class="w-4 h-4 text-brand-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-            </div>
-            <span class="text-[9px] font-semibold text-gray-600 group-hover:text-brand-700 transition-colors">Home</span>
-        </a>
-        <a href="{{ route('user.meals') }}" class="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-xl active:scale-95 transition-all hover:bg-brand-50 group">
-            <div class="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center group-hover:bg-brand-500 transition-colors">
-                <svg class="w-4 h-4 text-brand-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-            </div>
-            <span class="text-[9px] font-semibold text-gray-600 group-hover:text-brand-700 transition-colors">Meals</span>
-        </a>
-        <a href="{{ route('user.nutrition') }}" class="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-xl active:scale-95 transition-all hover:bg-brand-50 group">
-            <div class="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center group-hover:bg-brand-500 transition-colors">
-                <svg class="w-4 h-4 text-brand-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-            </div>
-            <span class="text-[9px] font-semibold text-gray-600 group-hover:text-brand-700 transition-colors">Nutrition</span>
-        </a>
-        <a href="{{ route('user.settings') }}" class="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-xl active:scale-95 transition-all hover:bg-brand-50 group">
-            <div class="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center group-hover:bg-brand-500 transition-colors">
-                <svg class="w-4 h-4 text-brand-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            </div>
-            <span class="text-[9px] font-semibold text-gray-600 group-hover:text-brand-700 transition-colors">Settings</span>
-        </a>
-    </div>
-</div>
-
-<div class="h-16 lg:hidden"></div>
-
-@endsection
+{@endsection
