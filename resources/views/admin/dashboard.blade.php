@@ -134,7 +134,7 @@
             <p class="text-2xl font-bold tracking-tight">{{ $stats['totalMeals'] }}</p>
         </div>
     </div>
-    <div class="kpi-card bg-gradient-to-br from-[#1E8A00] to-[#259B00] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#1E8A00]/20">
+    <div class="kpi-card bg-gradient-to-br from-[#6E7A25] to-[#173327] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
         <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
         <div class="relative z-10">

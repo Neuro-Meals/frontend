@@ -355,13 +355,13 @@ class AdminController extends Controller
     public function reportDashboard()
     {
         $kpis = [
-            ['label' => 'Total Revenue', 'value' => 'SAR 487,320', 'delta' => '+15.4%', 'trend' => 'up', 'icon' => 'currency', 'color' => '#259B00'],
+            ['label' => 'Total Revenue', 'value' => 'SAR 487,320', 'delta' => '+15.4%', 'trend' => 'up', 'icon' => 'currency', 'color' => '#173327'],
             ['label' => 'Active Subscriptions', 'value' => '342', 'delta' => '+12', 'trend' => 'up', 'icon' => 'subscription', 'color' => '#033133'],
             ['label' => 'New Subscribers', 'value' => '48', 'delta' => '+8.2%', 'trend' => 'up', 'icon' => 'user-plus', 'color' => '#025C5F'],
             ['label' => 'Churn Rate', 'value' => '2.4%', 'delta' => '-0.3%', 'trend' => 'down', 'icon' => 'trending-down', 'color' => '#173327'],
             ['label' => 'Avg Order Value', 'value' => 'SAR 342', 'delta' => '+4.1%', 'trend' => 'up', 'icon' => 'shopping-cart', 'color' => '#6E7A25'],
             ['label' => 'Delivery On-Time', 'value' => '94.2%', 'delta' => '+1.8%', 'trend' => 'up', 'icon' => 'truck', 'color' => '#949B50'],
-            ['label' => 'Payment Success', 'value' => '98.6%', 'delta' => '+0.2%', 'trend' => 'up', 'icon' => 'check-circle', 'color' => '#259B00'],
+            ['label' => 'Payment Success', 'value' => '98.6%', 'delta' => '+0.2%', 'trend' => 'up', 'icon' => 'check-circle', 'color' => '#033133'],
             ['label' => 'Notification Delivery', 'value' => '98.4%', 'delta' => '+0.5%', 'trend' => 'up', 'icon' => 'bell', 'color' => '#033133'],
         ];
 
@@ -397,7 +397,7 @@ class AdminController extends Controller
             ['label' => 'Failed Deliveries', 'value' => 3, 'color' => '#173327'],
             ['label' => 'Refund Requests Pending', 'value' => 5, 'color' => '#025C5F'],
             ['label' => 'Queue Lag', 'value' => '2.1s', 'color' => '#949B50'],
-            ['label' => 'Campaign Throughput', 'value' => '420/min', 'color' => '#259B00'],
+            ['label' => 'Campaign Throughput', 'value' => '420/min', 'color' => '#025C5F'],
         ];
 
         $lastUpdated = '2025-06-30 14:32 UTC+3';
