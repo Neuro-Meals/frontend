@@ -136,7 +136,7 @@
 {{-- Charts Row --}}
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
     {{-- Revenue Chart --}}
-    <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+    <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.9s;">
         <div class="flex items-center justify-between mb-6">
             <div>
                 <h3 class="text-base font-bold text-gray-900">Revenue <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Trend</span></h3>
@@ -182,7 +182,7 @@
     </div>
 
     {{-- Plan Distribution --}}
-    <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+    <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 1.0s;">
         <div class="mb-6">
             <h3 class="text-base font-bold text-gray-900">Plan <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Distribution</span></h3>
             <p class="text-xs text-gray-400 mt-0.5">Active subscriptions by plan</p>
@@ -213,7 +213,7 @@
 {{-- Orders Trend + Delivery Zones --}}
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
     {{-- Orders Trend --}}
-    <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+    <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 1.1s;">
         <div class="flex items-center justify-between mb-6">
             <div>
                 <h3 class="text-base font-bold text-gray-900">Orders <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">This Week</span></h3>
@@ -242,7 +242,7 @@
     </div>
 
     {{-- Delivery Zones --}}
-    <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+    <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 1.2s;">
         <div class="mb-5">
             <h3 class="text-base font-bold text-gray-900">Delivery <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Zones</span></h3>
             <p class="text-xs text-gray-400 mt-0.5">Today's distribution</p>
@@ -272,7 +272,7 @@
 {{-- Recent Orders + Top Meals --}}
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
     {{-- Recent Orders --}}
-    <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate__animated animate__fadeInUp" style="animation-delay: 1.3s;">
         <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
             <div>
                 <h3 class="text-base font-bold text-gray-900">Recent <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Orders</span></h3>
@@ -322,7 +322,7 @@
     </div>
 
     {{-- Top Meals --}}
-    <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+    <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 1.4s;">
         <div class="mb-5">
             <h3 class="text-base font-bold text-gray-900">Top <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Meals</span></h3>
             <p class="text-xs text-gray-400 mt-0.5">Best performing this month</p>
@@ -344,7 +344,7 @@
 </div>
 
 {{-- System Status Bar --}}
-<div class="bg-gradient-to-r from-[#173327] via-[#122620] to-[#173327] rounded-2xl p-5 text-white relative overflow-hidden shadow-xl">
+<div class="bg-gradient-to-r from-[#173327] via-[#122620] to-[#173327] rounded-2xl p-5 text-white relative overflow-hidden shadow-xl animate__animated animate__fadeInUp" style="animation-delay: 1.5s;">
     <div class="absolute top-0 right-0 w-40 h-40 bg-[#6E7A25]/10 rounded-full -mr-20 -mt-20 blur-2xl"></div>
     <div class="absolute bottom-0 left-1/3 w-32 h-32 bg-[#6E7A25]/5 rounded-full blur-2xl"></div>
     <div class="relative z-10 flex items-center justify-between flex-wrap gap-4">
