@@ -73,7 +73,7 @@
     <div id="mobileOverlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
 
     {{-- Sidebar --}}
-    <aside id="userSidebar" class="fixed top-0 left-0 rtl:left-auto rtl:right-0 z-50 w-64 h-screen bg-brand-700 transform -translate-x-full rtl:translate-x-full rtl:-translate-x-full lg:translate-x-0 rtl:lg:translate-x-0 transition-transform duration-300 flex flex-col">
+    <aside id="userSidebar" class="fixed top-0 left-0 rtl:left-auto rtl:right-0 z-50 w-64 h-screen bg-brand-700 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 flex flex-col">
         {{-- Brand --}}
         <div class="h-16 flex items-center px-6 border-b border-brand-800/50 flex-shrink-0">
             <img src="{{ asset('blackmodelogo.png') }}" alt="Nutrio Meals" class="h-9 w-auto">
@@ -84,7 +84,7 @@
 
             {{-- Dashboard --}}
             <div class="sidebar-group">
-                <a href="{{ route('user.dashboard') }}" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.dashboard') ? 'active' : '' }}">
+                <a href="{{ route('user.dashboard') }}" onclick="closeSidebar()" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.dashboard') ? 'active' : '' }}">
                     <svg class="w-5 h-5 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
                     <span>{{ __('Dashboard') }}</span>
                 </a>
@@ -92,7 +92,7 @@
 
             {{-- Subscriptions --}}
             <div class="sidebar-group">
-                <a href="{{ route('user.subscriptions') }}" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.subscriptions*') ? 'active' : '' }}">
+                <a href="{{ route('user.subscriptions') }}" onclick="closeSidebar()" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.subscriptions*') ? 'active' : '' }}">
                     <svg class="w-5 h-5 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     <span>{{ __('Subscriptions') }}</span>
                 </a>
@@ -100,7 +100,7 @@
 
             {{-- My Meals --}}
             <div class="sidebar-group">
-                <a href="{{ route('user.meals') }}" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.meals*') ? 'active' : '' }}">
+                <a href="{{ route('user.meals') }}" onclick="closeSidebar()" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.meals*') ? 'active' : '' }}">
                     <svg class="w-5 h-5 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     <span>{{ __('Meals') }}</span>
                 </a>
@@ -108,7 +108,7 @@
 
             {{-- Nutrition Tracker --}}
             <div class="sidebar-group">
-                <a href="{{ route('user.nutrition') }}" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.nutrition*') ? 'active' : '' }}">
+                <a href="{{ route('user.nutrition') }}" onclick="closeSidebar()" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.nutrition*') ? 'active' : '' }}">
                     <svg class="w-5 h-5 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                     <span>{{ __('Nutrition') }}</span>
                 </a>
@@ -116,7 +116,7 @@
 
             {{-- Orders --}}
             <div class="sidebar-group">
-                <a href="{{ route('user.orders') }}" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.orders*') ? 'active' : '' }}">
+                <a href="{{ route('user.orders') }}" onclick="closeSidebar()" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.orders*') ? 'active' : '' }}">
                     <svg class="w-5 h-5 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                     <span>{{ __('Orders') }}</span>
                 </a>
@@ -124,7 +124,7 @@
 
             {{-- Delivery --}}
             <div class="sidebar-group">
-                <a href="{{ route('user.delivery') }}" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.delivery*') ? 'active' : '' }}">
+                <a href="{{ route('user.delivery') }}" onclick="closeSidebar()" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.delivery*') ? 'active' : '' }}">
                     <svg class="w-5 h-5 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                     <span>{{ __('Deliveries') }}</span>
                 </a>
@@ -132,7 +132,7 @@
 
             {{-- Notifications --}}
             <div class="sidebar-group">
-                <a href="{{ route('user.notifications') }}" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.notifications*') ? 'active' : '' }}">
+                <a href="{{ route('user.notifications') }}" onclick="closeSidebar()" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.notifications*') ? 'active' : '' }}">
                     <svg class="w-5 h-5 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                     <span>{{ __('Notifications') }}</span>
                 </a>
@@ -140,7 +140,7 @@
 
             {{-- Settings --}}
             <div class="sidebar-group">
-                <a href="{{ route('user.settings') }}" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.settings*') ? 'active' : '' }}">
+                <a href="{{ route('user.settings') }}" onclick="closeSidebar()" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.settings*') ? 'active' : '' }}">
                     <svg class="w-5 h-5 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     <span>{{ __('Settings') }}</span>
                 </a>
@@ -243,12 +243,22 @@
             sidebar.classList.toggle('-translate-x-full');
             overlay.classList.toggle('hidden');
         }
+        function closeSidebar() {
+            const sidebar = document.getElementById('userSidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
         function toggleMenu(id) {
             const menu = document.getElementById(id);
             const arrow = document.getElementById('arrow-' + id.replace('menu-', ''));
             menu.classList.toggle('open');
             if (arrow) arrow.classList.toggle('rotate-180');
         }
+        // Close sidebar on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeSidebar();
+        });
     </script>
     @stack('scripts')
 </body>
