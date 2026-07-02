@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Meals & Nutrition - Nutrio Meals')
-@section('page_title', 'Meals & Nutrition')
+@section('title', __('Meals & Nutrition') . ' - ' . __('Nutrio Meals'))
+@section('page_title', __('Meals & Nutrition'))
 
 @section('content')
 @php
@@ -23,29 +23,29 @@
     <div class="kpi-card bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
         <div class="relative z-10">
-            <p class="text-xs text-white/60 font-medium mb-1">Total Meals</p>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Total Meals') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ $stats['total'] }}</p>
-            <p class="text-xs text-white/50 mt-1">{{ $stats['active'] }} active · {{ $stats['draft'] }} draft</p>
+            <p class="text-xs text-white/50 mt-1">{{ $stats['active'] }} {{ __('active') }} · {{ $stats['draft'] }} {{ __('draft') }}</p>
         </div>
     </div>
     <div class="kpi-card bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-blue-500/20">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
         <div class="relative z-10">
-            <p class="text-xs text-white/60 font-medium mb-1">Categories</p>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Categories') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ $stats['categories'] }}</p>
         </div>
     </div>
     <div class="kpi-card bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-amber-500/20">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
         <div class="relative z-10">
-            <p class="text-xs text-white/60 font-medium mb-1">Total Orders</p>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Total Orders') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ number_format($stats['totalOrders']) }}</p>
         </div>
     </div>
     <div class="kpi-card bg-gradient-to-br from-violet-500 to-purple-700 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-violet-500/20">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
         <div class="relative z-10">
-            <p class="text-xs text-white/60 font-medium mb-1">Avg Rating</p>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Avg Rating') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ $stats['avgRating'] }}<span class="text-lg">/5</span></p>
         </div>
     </div>
@@ -53,7 +53,7 @@
 
 {{-- Category Distribution --}}
 <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-6">
-    <h3 class="text-base font-bold text-gray-900 mb-4">Category <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Distribution</span></h3>
+    <h3 class="text-base font-bold text-gray-900 mb-4">{{ __('Category') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Distribution') }}</span></h3>
     <div class="flex flex-wrap gap-3">
         @foreach($categories as $cat)
         <div class="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-100 hover:shadow-sm transition-all">
@@ -69,11 +69,11 @@
 <div class="flex items-center justify-between mb-6">
     <div class="flex items-center bg-white rounded-lg px-3 py-2 border border-gray-100 shadow-sm flex-1 max-w-xs">
         <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        <input type="text" placeholder="Search meals..." class="bg-transparent text-sm outline-none flex-1 text-gray-600 placeholder-gray-400">
+        <input type="text" placeholder="{{ __('Search meals...') }}" class="bg-transparent text-sm outline-none flex-1 text-gray-600 placeholder-gray-400">
     </div>
     <button class="px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-2">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-        Add Meal
+        {{ __('Add Meal') }}
     </button>
 </div>
 
@@ -99,25 +99,25 @@
                     <span class="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $catColors[$meal['category']] ?? 'bg-gray-50 text-gray-600' }}">{{ $meal['category'] }}</span>
                 </div>
                 <span class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-semibold border {{ $statusColors[$meal['status']] }}">
-                    {{ ucfirst($meal['status']) }}
+                    {{ __(ucfirst($meal['status'])) }}
                 </span>
             </div>
             {{-- Macros --}}
             <div class="grid grid-cols-4 gap-2 mt-4">
                 <div class="text-center bg-gray-50 rounded-lg py-2">
-                    <p class="text-[10px] text-gray-400">Kcal</p>
+                    <p class="text-[10px] text-gray-400">{{ __('Kcal') }}</p>
                     <p class="text-xs font-bold text-gray-900">{{ $meal['calories'] }}</p>
                 </div>
                 <div class="text-center bg-green-50 rounded-lg py-2">
-                    <p class="text-[10px] text-green-400">Protein</p>
+                    <p class="text-[10px] text-green-400">{{ __('Protein') }}</p>
                     <p class="text-xs font-bold text-green-700">{{ $meal['protein'] }}g</p>
                 </div>
                 <div class="text-center bg-amber-50 rounded-lg py-2">
-                    <p class="text-[10px] text-amber-400">Carbs</p>
+                    <p class="text-[10px] text-amber-400">{{ __('Carbs') }}</p>
                     <p class="text-xs font-bold text-amber-700">{{ $meal['carbs'] }}g</p>
                 </div>
                 <div class="text-center bg-blue-50 rounded-lg py-2">
-                    <p class="text-[10px] text-blue-400">Fat</p>
+                    <p class="text-[10px] text-blue-400">{{ __('Fat') }}</p>
                     <p class="text-xs font-bold text-blue-700">{{ $meal['fat'] }}g</p>
                 </div>
             </div>
@@ -128,9 +128,9 @@
                         <svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                         <span class="text-xs font-bold text-gray-700">{{ $meal['rating'] > 0 ? $meal['rating'] : '—' }}</span>
                     </div>
-                    <span class="text-xs text-gray-400">{{ $meal['orders'] }} orders</span>
+                    <span class="text-xs text-gray-400">{{ $meal['orders'] }} {{ __('orders') }}</span>
                 </div>
-                <button class="text-xs font-bold text-[#6E7A25] hover:text-[#173327] transition-colors">Edit →</button>
+                <button class="text-xs font-bold text-[#6E7A25] hover:text-[#173327] transition-colors">{{ __('Edit') }} →</button>
             </div>
         </div>
     </div>
