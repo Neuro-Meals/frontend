@@ -47,7 +47,18 @@
 
 <script>
     (function() {
+        var MIN_DISPLAY_MS = 2500;
+        var startTime = Date.now();
+
         function hideLoader() {
+            var elapsed = Date.now() - startTime;
+            var remaining = MIN_DISPLAY_MS - elapsed;
+
+            if (remaining > 0) {
+                setTimeout(hideLoader, remaining);
+                return;
+            }
+
             var loader = document.getElementById('globalLoader');
             if (loader) {
                 loader.classList.add('loader-hidden');
