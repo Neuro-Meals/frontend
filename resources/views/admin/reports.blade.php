@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Reports - Nutrio Meals')
-@section('page_title', 'Reports & Analytics')
+@section('title', __('Reports') . ' - ' . __('Nutrio Meals'))
+@section('page_title', __('Reports & Analytics'))
 
 @section('content')
 @php
@@ -16,19 +16,19 @@
 {{-- Stats Row --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-        <p class="text-xs text-gray-400 mb-1">Total Reports</p>
+        <p class="text-xs text-gray-400 mb-1">{{ __('Total Reports') }}</p>
         <p class="text-2xl font-bold text-gray-900">{{ $stats['totalReports'] }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-        <p class="text-xs text-gray-400 mb-1">Generated This Month</p>
+        <p class="text-xs text-gray-400 mb-1">{{ __('Generated This Month') }}</p>
         <p class="text-2xl font-bold text-[#6E7A25]">{{ $stats['generatedThisMonth'] }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-        <p class="text-xs text-gray-400 mb-1">Scheduled</p>
+        <p class="text-xs text-gray-400 mb-1">{{ __('Scheduled') }}</p>
         <p class="text-2xl font-bold text-blue-600">{{ $stats['scheduled'] }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-        <p class="text-xs text-gray-400 mb-1">Avg Generation Time</p>
+        <p class="text-xs text-gray-400 mb-1">{{ __('Avg Generation Time') }}</p>
         <p class="text-2xl font-bold text-gray-900">{{ $stats['avgGenTime'] }}</p>
     </div>
 </div>
@@ -39,8 +39,8 @@
     <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Revenue Growth</h3>
-                <p class="text-xs text-gray-400 mt-0.5">Last 6 months</p>
+                <h3 class="text-sm font-bold text-gray-900">{{ __('Revenue Growth') }}</h3>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Last 6 months') }}</p>
             </div>
             <span class="w-2.5 h-2.5 rounded-full bg-[#6E7A25]"></span>
         </div>
@@ -65,8 +65,8 @@
     <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Customer Growth</h3>
-                <p class="text-xs text-gray-400 mt-0.5">Last 6 months</p>
+                <h3 class="text-sm font-bold text-gray-900">{{ __('Customer Growth') }}</h3>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Last 6 months') }}</p>
             </div>
             <span class="w-2.5 h-2.5 rounded-full bg-[#173327]"></span>
         </div>
@@ -92,24 +92,24 @@
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
         <div>
-            <h3 class="text-sm font-bold text-gray-900">Generated Reports</h3>
-            <p class="text-xs text-gray-400 mt-0.5">Download and manage reports</p>
+            <h3 class="text-sm font-bold text-gray-900">{{ __('Generated Reports') }}</h3>
+            <p class="text-xs text-gray-400 mt-0.5">{{ __('Download and manage reports') }}</p>
         </div>
         <button class="px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            Generate Report
+            {{ __('Generate Report') }}
         </button>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="text-left text-xs text-gray-400 bg-gray-50/50 border-b border-gray-100">
-                    <th class="px-6 py-3 font-medium">Report Name</th>
-                    <th class="px-6 py-3 font-medium">Type</th>
-                    <th class="px-6 py-3 font-medium">Period</th>
-                    <th class="px-6 py-3 font-medium">Format</th>
-                    <th class="px-6 py-3 font-medium">Generated</th>
-                    <th class="px-6 py-3 font-medium text-right">Actions</th>
+                    <th class="px-6 py-3 font-medium">{{ __('Report Name') }}</th>
+                    <th class="px-6 py-3 font-medium">{{ __('Type') }}</th>
+                    <th class="px-6 py-3 font-medium">{{ __('Period') }}</th>
+                    <th class="px-6 py-3 font-medium">{{ __('Format') }}</th>
+                    <th class="px-6 py-3 font-medium">{{ __('Generated') }}</th>
+                    <th class="px-6 py-3 font-medium text-right">{{ __('Actions') }}</th>
                 </tr>
             </thead>
             <tbody>
