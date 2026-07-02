@@ -1,6 +1,6 @@
 @extends('layouts.auth')
 
-@section('title', 'Login - ' . config('app.name', 'Nitromeals'))
+@section('title', __('Login') . ' - ' . __('Nutrio Meals'))
 
 @section('content')
 <div class="w-full max-w-md animate-simple-fade-in">
@@ -10,8 +10,8 @@
             <div class="mx-auto mb-4 flex items-center justify-center">
                 <img src="{{ asset('whitelogo.png') }}" alt="{{ config('app.name', 'Nitromeals') }}" class="h-20 w-auto object-contain">
             </div>
-            <h2 class="text-2xl font-extrabold text-gray-900">Welcome Back</h2>
-            <p class="text-gray-500 text-sm mt-1">Sign in to your account</p>
+            <h2 class="text-2xl font-extrabold text-gray-900">{{ __('Welcome Back') }}</h2>
+            <p class="text-gray-500 text-sm mt-1">{{ __('Sign in to your account') }}</p>
         </div>
 
         {{-- Form --}}
@@ -21,7 +21,7 @@
 
                 {{-- Email --}}
                 <div>
-                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
+                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Email') }}</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,7 +42,7 @@
 
                 {{-- Password --}}
                 <div>
-                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
+                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Password') }}</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,10 +66,10 @@
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}
                             class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
-                        <span class="text-sm text-gray-600">Remember me</span>
+                        <span class="text-sm text-gray-600">{{ __('Remember Me') }}</span>
                     </label>
                     @if (Route::has('password.request'))
-                        <a href="{{ route('password.request') }}" class="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors">Forgot password?</a>
+                        <a href="{{ route('password.request') }}" class="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors">{{ __('Forgot Your Password?') }}</a>
                     @endif
                 </div>
 
@@ -78,7 +78,7 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
                     </svg>
-                    Sign In
+                    {{ __('Login') }}
                 </button>
             </form>
 
@@ -90,8 +90,8 @@
 
             {{-- Register link --}}
             <p class="text-center text-sm text-gray-500">
-                Don't have an account?
-                <a href="{{ route('register') }}" class="font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">Create account</a>
+                {{ __('Don\'t have an account?') }}
+                <a href="{{ route('register') }}" class="font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">{{ __('Create Account') }}</a>
             </p>
         </div>
     </div>
