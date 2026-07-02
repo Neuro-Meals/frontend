@@ -9,7 +9,7 @@
                         <img src="{{ asset('whitelogo.png') }}" alt="Nutrio Meals" class="h-20 w-auto object-contain dark:hidden">
                         <img src="{{ asset('blackmodelogo.png') }}" alt="Nutrio Meals" class="h-20 w-auto object-contain hidden dark:block">
                     </a>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Premium healthy meal subscriptions designed for your fitness goals in Saudi Arabia.</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{{ __('Premium healthy meal subscriptions designed for your fitness goals in Saudi Arabia.') }}</p>
                     {{-- Social icons --}}
                     <div class="mt-5 flex space-x-3">
                         <a href="#" class="text-gray-400 hover:text-[#6E7A25] dark:text-gray-500 dark:hover:text-white transition-colors">
@@ -29,34 +29,34 @@
 
                 {{-- Quick Links --}}
                 <div>
-                    <h6 class="mb-4 text-sm font-semibold uppercase text-gray-900 dark:text-white">Quick Links</h6>
+                    <h6 class="mb-4 text-sm font-semibold uppercase text-gray-900 dark:text-white">{{ __('Quick Links') }}</h6>
                     <ul class="space-y-3">
-                        <li><a href="{{ route('page.show', 'about-us') }}" class="text-gray-500 hover:text-[#6E7A25] dark:text-gray-400 dark:hover:text-white transition-colors">About Us</a></li>
-                        <li><a href="/#plans" class="text-gray-500 hover:text-[#6E7A25] dark:text-gray-400 dark:hover:text-white transition-colors">Meal Plans</a></li>
-                        <li><a href="/#gallery" class="text-gray-500 hover:text-[#6E7A25] dark:text-gray-400 dark:hover:text-white transition-colors">Our Menu</a></li>
-                        <li><a href="/#calculator" class="text-gray-500 hover:text-[#6E7A25] dark:text-gray-400 dark:hover:text-white transition-colors">Nutrition Calculator</a></li>
-                        <li><a href="/#delivery" class="text-gray-500 hover:text-[#6E7A25] dark:text-gray-400 dark:hover:text-white transition-colors">Delivery Info</a></li>
+                        <li><a href="{{ route('page.show', 'about-us') }}" class="text-gray-500 hover:text-[#6E7A25] dark:text-gray-400 dark:hover:text-white transition-colors">{{ __('About Us') }}</a></li>
+                        <li><a href="/#plans" class="text-gray-500 hover:text-[#6E7A25] dark:text-gray-400 dark:hover:text-white transition-colors">{{ __('Meal Plans') }}</a></li>
+                        <li><a href="/#gallery" class="text-gray-500 hover:text-[#6E7A25] dark:text-gray-400 dark:hover:text-white transition-colors">{{ __('Our Menu') }}</a></li>
+                        <li><a href="/#calculator" class="text-gray-500 hover:text-[#6E7A25] dark:text-gray-400 dark:hover:text-white transition-colors">{{ __('Nutrition Calculator') }}</a></li>
+                        <li><a href="/#delivery" class="text-gray-500 hover:text-[#6E7A25] dark:text-gray-400 dark:hover:text-white transition-colors">{{ __('Delivery Info') }}</a></li>
                     </ul>
                 </div>
 
                 {{-- Support --}}
                 <div>
-                    <h6 class="mb-4 text-sm font-semibold uppercase text-gray-900 dark:text-white">Support</h6>
+                    <h6 class="mb-4 text-sm font-semibold uppercase text-gray-900 dark:text-white">{{ __('Support') }}</h6>
                     <ul class="space-y-3">
-                        <li><a href="{{ route('page.show', 'contact-support') }}" class="text-gray-500 hover:text-[#6E7A25] dark:text-gray-400 dark:hover:text-white transition-colors">Contact Support</a></li>
-                        <li><a href="{{ route('page.show', 'faqs') }}" class="text-gray-500 hover:text-[#6E7A25] dark:text-gray-400 dark:hover:text-white transition-colors">FAQs</a></li>
-                        <li><a href="{{ route('page.show', 'track-your-order') }}" class="text-gray-500 hover:text-[#6E7A25] dark:text-gray-400 dark:hover:text-white transition-colors">Track Your Order</a></li>
-                        <li><a href="{{ route('page.show', 'partner-with-us') }}" class="text-gray-500 hover:text-[#6E7A25] dark:text-gray-400 dark:hover:text-white transition-colors">Partner With Us</a></li>
+                        <li><a href="{{ route('page.show', 'contact-support') }}" class="text-gray-500 hover:text-[#6E7A25] dark:text-gray-400 dark:hover:text-white transition-colors">{{ __('Contact Support') }}</a></li>
+                        <li><a href="{{ route('page.show', 'faqs') }}" class="text-gray-500 hover:text-[#6E7A25] dark:text-gray-400 dark:hover:text-white transition-colors">{{ __('FAQs') }}</a></li>
+                        <li><a href="{{ route('page.show', 'track-your-order') }}" class="text-gray-500 hover:text-[#6E7A25] dark:text-gray-400 dark:hover:text-white transition-colors">{{ __('Track Your Order') }}</a></li>
+                        <li><a href="{{ route('page.show', 'partner-with-us') }}" class="text-gray-500 hover:text-[#6E7A25] dark:text-gray-400 dark:hover:text-white transition-colors">{{ __('Partner With Us') }}</a></li>
                     </ul>
                 </div>
 
                 {{-- Newsletter --}}
                 <div>
-                    <h6 class="mb-4 text-sm font-semibold uppercase text-gray-900 dark:text-white">Newsletter</h6>
-                    <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">Get the latest deals and nutrition tips.</p>
+                    <h6 class="mb-4 text-sm font-semibold uppercase text-gray-900 dark:text-white">{{ __('Newsletter') }}</h6>
+                    <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">{{ __('Get the latest deals and nutrition tips.') }}</p>
                     <form action="#" class="space-y-3">
-                        <input class="block w-full rounded-lg border border-gray-300 bg-white p-3 text-sm text-gray-900 focus:border-[#6E7A25] focus:ring-[#6E7A25] dark:border-gray-500 dark:bg-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:border-[#6E7A25] dark:focus:ring-[#6E7A25]" placeholder="Enter your email" type="email" required="">
-                        <button type="submit" class="w-full cursor-pointer rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] px-5 py-3 text-center text-sm font-medium text-white hover:shadow-lg hover:shadow-[#6E7A25]/30 focus:ring-4 focus:ring-[#6E7A25]/20 transition-all">Subscribe</button>
+                        <input class="block w-full rounded-lg border border-gray-300 bg-white p-3 text-sm text-gray-900 focus:border-[#6E7A25] focus:ring-[#6E7A25] dark:border-gray-500 dark:bg-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:border-[#6E7A25] dark:focus:ring-[#6E7A25]" placeholder="{{ __('Enter your email') }}" type="email" required="">
+                        <button type="submit" class="w-full cursor-pointer rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] px-5 py-3 text-center text-sm font-medium text-white hover:shadow-lg hover:shadow-[#6E7A25]/30 focus:ring-4 focus:ring-[#6E7A25]/20 transition-all">{{ __('Subscribe') }}</button>
                     </form>
                 </div>
             </div>
@@ -65,12 +65,12 @@
         {{-- Bottom bar --}}
         <div class="py-6">
             <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
-                <p class="text-sm text-gray-500 dark:text-gray-400">&copy; {{ date('Y') }} Nutrio Meals. All rights reserved.</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">&copy; {{ date('Y') }} Nutrio Meals. {{ __('All rights reserved.') }}</p>
                 <ul class="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                    <li><a href="{{ route('page.show', 'privacy-policy') }}" class="hover:text-[#6E7A25] dark:hover:text-white transition-colors">Privacy</a></li>
-                    <li><a href="{{ route('page.show', 'terms-of-service') }}" class="hover:text-[#6E7A25] dark:hover:text-white transition-colors">Terms</a></li>
-                    <li><a href="{{ route('page.show', 'refund-policy') }}" class="hover:text-[#6E7A25] dark:hover:text-white transition-colors">Refunds</a></li>
-                    <li><a href="{{ route('page.show', 'food-safety') }}" class="hover:text-[#6E7A25] dark:hover:text-white transition-colors">Food Safety</a></li>
+                    <li><a href="{{ route('page.show', 'privacy-policy') }}" class="hover:text-[#6E7A25] dark:hover:text-white transition-colors">{{ __('Privacy') }}</a></li>
+                    <li><a href="{{ route('page.show', 'terms-of-service') }}" class="hover:text-[#6E7A25] dark:hover:text-white transition-colors">{{ __('Terms') }}</a></li>
+                    <li><a href="{{ route('page.show', 'refund-policy') }}" class="hover:text-[#6E7A25] dark:hover:text-white transition-colors">{{ __('Refunds') }}</a></li>
+                    <li><a href="{{ route('page.show', 'food-safety') }}" class="hover:text-[#6E7A25] dark:hover:text-white transition-colors">{{ __('Food Safety') }}</a></li>
                 </ul>
             </div>
         </div>
