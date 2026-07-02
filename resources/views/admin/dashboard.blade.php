@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Admin Dashboard - Nutrio Meals')
-@section('page_title', 'Dashboard Overview')
+@section('title', __('Admin Dashboard') . ' - ' . __('Nutrio Meals'))
+@section('page_title', __('Dashboard Overview'))
 
 @section('content')
 @php
@@ -14,10 +14,10 @@
         'pending' => 'bg-gray-50 text-gray-600 border-gray-200',
     ];
     $statusLabels = [
-        'delivered' => 'Delivered',
-        'en_route' => 'En Route',
-        'preparing' => 'Preparing',
-        'pending' => 'Pending',
+        'delivered' => __('Delivered'),
+        'en_route' => __('En Route'),
+        'preparing' => __('Preparing'),
+        'pending' => __('Pending'),
     ];
     $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 @endphp
@@ -35,9 +35,9 @@
                 </div>
                 <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">{{ $revGrowth >= 0 ? '+' : '' }}{{ $revGrowth }}%</span>
             </div>
-            <p class="text-xs text-white/60 font-medium mb-1">Monthly Revenue</p>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Monthly Revenue') }}</p>
             <p class="text-2xl font-bold tracking-tight">SAR {{ $fmt($stats['monthlyRevenue']) }}</p>
-            <p class="text-xs text-white/50 mt-1">vs SAR {{ $fmt($stats['lastMonthRevenue']) }} last mo.</p>
+            <p class="text-xs text-white/50 mt-1">{{ __('vs') }} SAR {{ $fmt($stats['lastMonthRevenue']) }} {{ __('last mo.') }}</p>
         </div>
     </div>
 
@@ -52,9 +52,9 @@
                 </div>
                 <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">+12.4%</span>
             </div>
-            <p class="text-xs text-white/60 font-medium mb-1">Active Subscriptions</p>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Active Subscriptions') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ number_format($stats['activeSubscriptions']) }}</p>
-            <p class="text-xs text-white/50 mt-1">{{ $stats['retentionRate'] }}% retention rate</p>
+            <p class="text-xs text-white/50 mt-1">{{ $stats['retentionRate'] }}% {{ __('retention rate') }}</p>
         </div>
     </div>
 
@@ -69,9 +69,9 @@
                 </div>
                 <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">+8.2%</span>
             </div>
-            <p class="text-xs text-white/60 font-medium mb-1">Orders Today</p>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Orders Today') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ $stats['ordersToday'] }}</p>
-            <p class="text-xs text-white/50 mt-1">Avg. SAR {{ $stats['avgOrderValue'] }} / order</p>
+            <p class="text-xs text-white/50 mt-1">{{ __('Avg.') }} SAR {{ $stats['avgOrderValue'] }} / {{ __('order') }}</p>
         </div>
     </div>
 
@@ -86,9 +86,9 @@
                 </div>
                 <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">{{ $stats['successRate'] }}%</span>
             </div>
-            <p class="text-xs text-white/60 font-medium mb-1">Payment Success</p>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Payment Success') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ $stats['successRate'] }}%</p>
-            <p class="text-xs text-white/50 mt-1">{{ $stats['pendingPayments'] }} pending payments</p>
+            <p class="text-xs text-white/50 mt-1">{{ $stats['pendingPayments'] }} {{ __('pending payments') }}</p>
         </div>
     </div>
 </div>
@@ -100,7 +100,7 @@
             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         </div>
         <div>
-            <p class="text-[10px] text-gray-400 font-medium">Total Customers</p>
+            <p class="text-[10px] text-gray-400 font-medium">{{ __('Total Customers') }}</p>
             <p class="text-base font-bold tracking-tight text-[#173327]">{{ number_format($stats['totalCustomers']) }}</p>
         </div>
     </div>
@@ -109,7 +109,7 @@
             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
         </div>
         <div>
-            <p class="text-[10px] text-gray-400 font-medium">Deliveries Today</p>
+            <p class="text-[10px] text-gray-400 font-medium">{{ __('Deliveries Today') }}</p>
             <p class="text-base font-bold tracking-tight text-[#173327]">{{ $stats['deliveriesToday'] }}</p>
         </div>
     </div>
@@ -118,7 +118,7 @@
             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
         </div>
         <div>
-            <p class="text-[10px] text-gray-400 font-medium">Total Meals</p>
+            <p class="text-[10px] text-gray-400 font-medium">{{ __('Total Meals') }}</p>
             <p class="text-base font-bold tracking-tight text-[#173327]">{{ $stats['totalMeals'] }}</p>
         </div>
     </div>
@@ -127,7 +127,7 @@
             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
         </div>
         <div>
-            <p class="text-[10px] text-gray-400 font-medium">Churn Rate</p>
+            <p class="text-[10px] text-gray-400 font-medium">{{ __('Churn Rate') }}</p>
             <p class="text-base font-bold tracking-tight text-[#173327]">{{ $stats['churnRate'] }}%</p>
         </div>
     </div>
@@ -139,12 +139,12 @@
     <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.9s;">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h3 class="text-base font-bold text-gray-900">Revenue <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Trend</span></h3>
-                <p class="text-xs text-gray-400 mt-0.5">Last 14 days performance</p>
+                <h3 class="text-base font-bold text-gray-900">{{ __('Revenue') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Trend') }}</span></h3>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Last 14 days performance') }}</p>
             </div>
             <div class="flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-[#6E7A25]"></span>
-                <span class="text-xs text-gray-500">Daily Revenue</span>
+                <span class="text-xs text-gray-500">{{ __('Daily Revenue') }}</span>
             </div>
         </div>
         @php
@@ -167,15 +167,15 @@
         </div>
         <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between">
             <div>
-                <p class="text-xs text-gray-400">Total (14 days)</p>
+                <p class="text-xs text-gray-400">{{ __('Total (14 days)') }}</p>
                 <p class="text-lg font-bold text-gray-900">SAR {{ number_format($revTotal) }}</p>
             </div>
             <div>
-                <p class="text-xs text-gray-400">Avg / Day</p>
+                <p class="text-xs text-gray-400">{{ __('Avg / Day') }}</p>
                 <p class="text-lg font-bold text-gray-900">SAR {{ number_format($revTotal / 14, 0) }}</p>
             </div>
             <div>
-                <p class="text-xs text-gray-400">Best Day</p>
+                <p class="text-xs text-gray-400">{{ __('Best Day') }}</p>
                 <p class="text-lg font-bold text-green-600">SAR {{ number_format($revMax) }}</p>
             </div>
         </div>
@@ -184,8 +184,8 @@
     {{-- Plan Distribution --}}
     <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 1.0s;">
         <div class="mb-6">
-            <h3 class="text-base font-bold text-gray-900">Plan <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Distribution</span></h3>
-            <p class="text-xs text-gray-400 mt-0.5">Active subscriptions by plan</p>
+            <h3 class="text-base font-bold text-gray-900">{{ __('Plan') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Distribution') }}</span></h3>
+            <p class="text-xs text-gray-400 mt-0.5">{{ __('Active subscriptions by plan') }}</p>
         </div>
         @php $totalPlans = array_sum(array_column($planDistribution, 'count')); @endphp
         <div class="space-y-4">
@@ -199,12 +199,12 @@
                     <div class="h-2.5 rounded-full bg-gray-100 overflow-hidden">
                         <div class="h-full rounded-full transition-all duration-500 hover:opacity-80" style="width: {{ $pct }}%; background: {{ $plan['color'] }}; box-shadow: 0 0 8px {{ $plan['color'] }}40;"></div>
                     </div>
-                    <p class="text-[10px] text-gray-400 mt-1">{{ $pct }}% of total</p>
+                    <p class="text-[10px] text-gray-400 mt-1">{{ $pct }}% {{ __('of total') }}</p>
                 </div>
             @endforeach
         </div>
         <div class="mt-5 pt-4 border-t border-gray-50">
-            <p class="text-xs text-gray-400">Total Active</p>
+            <p class="text-xs text-gray-400">{{ __('Total Active') }}</p>
             <p class="text-2xl font-bold text-gray-900">{{ $totalPlans }}</p>
         </div>
     </div>
@@ -216,12 +216,12 @@
     <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 1.1s;">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h3 class="text-base font-bold text-gray-900">Orders <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">This Week</span></h3>
-                <p class="text-xs text-gray-400 mt-0.5">Daily order volume</p>
+                <h3 class="text-base font-bold text-gray-900">{{ __('Orders') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('This Week') }}</span></h3>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Daily order volume') }}</p>
             </div>
             <div class="flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-[#173327]"></span>
-                <span class="text-xs text-gray-500">Orders</span>
+                <span class="text-xs text-gray-500">{{ __('Orders') }}</span>
             </div>
         </div>
         @php $ordMax = max($ordersTrend) ?: 1; @endphp
@@ -244,8 +244,8 @@
     {{-- Delivery Zones --}}
     <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 1.2s;">
         <div class="mb-5">
-            <h3 class="text-base font-bold text-gray-900">Delivery <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Zones</span></h3>
-            <p class="text-xs text-gray-400 mt-0.5">Today's distribution</p>
+            <h3 class="text-base font-bold text-gray-900">{{ __('Delivery') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Zones') }}</span></h3>
+            <p class="text-xs text-gray-400 mt-0.5">{{ __("Today's distribution") }}</p>
         </div>
         <div class="space-y-3">
             @foreach($deliveryZones as $zone)
@@ -256,12 +256,12 @@
                         </div>
                         <div>
                             <p class="text-xs font-semibold text-gray-900">{{ $zone['zone'] }}</p>
-                            <p class="text-[10px] text-gray-400 mt-0.5">{{ $zone['drivers'] }} drivers active</p>
+                            <p class="text-[10px] text-gray-400 mt-0.5">{{ $zone['drivers'] }} {{ __('drivers active') }}</p>
                         </div>
                     </div>
                     <div class="text-right">
                         <p class="text-sm font-bold text-gray-900">{{ $zone['orders'] }}</p>
-                        <p class="text-[10px] text-gray-400">orders</p>
+                        <p class="text-[10px] text-gray-400">{{ __('orders') }}</p>
                     </div>
                 </div>
             @endforeach
@@ -275,20 +275,20 @@
     <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate__animated animate__fadeInUp" style="animation-delay: 1.3s;">
         <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
             <div>
-                <h3 class="text-base font-bold text-gray-900">Recent <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Orders</span></h3>
-                <p class="text-xs text-gray-400 mt-0.5">Latest customer transactions</p>
+                <h3 class="text-base font-bold text-gray-900">{{ __('Recent') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Orders') }}</span></h3>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Latest customer transactions') }}</p>
             </div>
-            <a href="{{ route('admin.orders') }}" class="text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] px-3 py-1.5 rounded-lg hover:shadow-md hover:shadow-[#6E7A25]/20 transition-all">View All →</a>
+            <a href="{{ route('admin.orders') }}" class="text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] px-3 py-1.5 rounded-lg hover:shadow-md hover:shadow-[#6E7A25]/20 transition-all">{{ __('View All') }} →</a>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="text-left text-xs text-gray-400 bg-gray-50/50 border-b border-gray-50">
-                        <th class="px-6 py-3 font-medium">Order ID</th>
-                        <th class="px-6 py-3 font-medium">Customer</th>
-                        <th class="px-6 py-3 font-medium">Plan</th>
-                        <th class="px-6 py-3 font-medium">Amount</th>
-                        <th class="px-6 py-3 font-medium">Status</th>
+                        <th class="px-6 py-3 font-medium">{{ __('Order ID') }}</th>
+                        <th class="px-6 py-3 font-medium">{{ __('Customer') }}</th>
+                        <th class="px-6 py-3 font-medium">{{ __('Plan') }}</th>
+                        <th class="px-6 py-3 font-medium">{{ __('Amount') }}</th>
+                        <th class="px-6 py-3 font-medium">{{ __('Status') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -324,8 +324,8 @@
     {{-- Top Meals --}}
     <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 1.4s;">
         <div class="mb-5">
-            <h3 class="text-base font-bold text-gray-900">Top <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Meals</span></h3>
-            <p class="text-xs text-gray-400 mt-0.5">Best performing this month</p>
+            <h3 class="text-base font-bold text-gray-900">{{ __('Top') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Meals') }}</span></h3>
+            <p class="text-xs text-gray-400 mt-0.5">{{ __('Best performing this month') }}</p>
         </div>
         <div class="space-y-3">
             @foreach($topMeals as $i => $meal)
@@ -335,7 +335,7 @@
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-xs font-semibold text-gray-900 truncate">{{ $meal['name'] }}</p>
-                        <p class="text-[10px] text-gray-400">{{ $meal['orders'] }} orders · SAR {{ number_format($meal['revenue']) }}</p>
+                        <p class="text-[10px] text-gray-400">{{ $meal['orders'] }} {{ __('orders') }} · SAR {{ number_format($meal['revenue']) }}</p>
                     </div>
                 </div>
             @endforeach
@@ -355,25 +355,25 @@
             <div>
                 <div class="flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                    <p class="text-sm font-bold">All Systems Operational</p>
+                    <p class="text-sm font-bold">{{ __('All Systems Operational') }}</p>
                 </div>
-                <p class="text-xs text-white/50 mt-0.5">Last updated {{ now()->format('M d, Y H:i') }}</p>
+                <p class="text-xs text-white/50 mt-0.5">{{ __('Last updated') }} {{ now()->format('M d, Y H:i') }}</p>
             </div>
         </div>
         <div class="flex items-center gap-6">
             <div class="text-right">
-                <p class="text-[10px] text-white/40 uppercase tracking-wider">Uptime</p>
+                <p class="text-[10px] text-white/40 uppercase tracking-wider">{{ __('Uptime') }}</p>
                 <p class="text-sm font-bold">99.98%</p>
             </div>
             <div class="w-px h-8 bg-white/10"></div>
             <div class="text-right">
-                <p class="text-[10px] text-white/40 uppercase tracking-wider">Response</p>
+                <p class="text-[10px] text-white/40 uppercase tracking-wider">{{ __('Response') }}</p>
                 <p class="text-sm font-bold">124ms</p>
             </div>
             <div class="w-px h-8 bg-white/10"></div>
             <div class="text-right">
-                <p class="text-[10px] text-white/40 uppercase tracking-wider">API Status</p>
-                <p class="text-sm font-bold text-green-400">Healthy</p>
+                <p class="text-[10px] text-white/40 uppercase tracking-wider">{{ __('API Status') }}</p>
+                <p class="text-sm font-bold text-green-400">{{ __('Healthy') }}</p>
             </div>
         </div>
     </div>
