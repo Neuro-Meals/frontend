@@ -37,11 +37,11 @@
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">On-Time Delivery <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Trend</span></h3>
+                <h3 class="text-sm font-bold text-gray-900">On-Time Delivery <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Trend</span></h3>
                 <span class="text-[10px] text-gray-400">Percentage | Target: 92%</span>
             </div>
             <div class="flex items-center gap-3 text-[10px]">
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#259B00]"></span> Actual</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#6E7A25]"></span> Actual</span>
                 <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 bg-red-400"></span> Target</span>
             </div>
         </div>
@@ -53,7 +53,7 @@
             @php $ratePct = $onTimeTrend['rate'][$i]; @endphp
             <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
                 <div class="w-full bg-gray-50 rounded-t-md relative h-40 overflow-hidden">
-                    <div class="absolute bottom-0 left-0 right-0 rounded-t-md transition-all duration-300 {{ $ratePct >= 92 ? 'bg-gradient-to-t from-[#259B00] to-[#259B00]/70' : 'bg-gradient-to-t from-amber-500 to-amber-400' }} group-hover:opacity-80" style="height: {{ $ratePct }}%">
+                    <div class="absolute bottom-0 left-0 right-0 rounded-t-md transition-all duration-300 {{ $ratePct >= 92 ? 'bg-gradient-to-t from-[#6E7A25] to-[#6E7A25]/70' : 'bg-gradient-to-t from-amber-500 to-amber-400' }} group-hover:opacity-80" style="height: {{ $ratePct }}%">
                         <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap z-10">{{ $ratePct }}%</div>
                     </div>
                 </div>
@@ -65,7 +65,7 @@
 
     {{-- Zone Performance Bars --}}
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-        <h3 class="text-sm font-bold text-gray-900 mb-1">Zone <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Performance</span></h3>
+        <h3 class="text-sm font-bold text-gray-900 mb-1">Zone <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Performance</span></h3>
         <span class="text-[10px] text-gray-400 block mb-4">On-time % by delivery zone</span>
         <div class="space-y-4">
             @foreach($zonePerformance as $zone)
@@ -78,7 +78,7 @@
                     </div>
                 </div>
                 <div class="h-6 bg-gray-50 rounded-lg overflow-hidden">
-                    <div class="h-full rounded-lg transition-all duration-500 {{ $zone['onTime'] >= 92 ? 'bg-gradient-to-r from-[#259B00] to-[#259B00]/70' : 'bg-gradient-to-r from-amber-500 to-amber-400' }}" style="width: {{ $zone['onTime'] }}%"></div>
+                    <div class="h-full rounded-lg transition-all duration-500 {{ $zone['onTime'] >= 92 ? 'bg-gradient-to-r from-[#6E7A25] to-[#6E7A25]/70' : 'bg-gradient-to-r from-amber-500 to-amber-400' }}" style="width: {{ $zone['onTime'] }}%"></div>
                 </div>
                 <div class="flex items-center gap-3 mt-1 text-[10px] text-gray-400">
                     <span>Avg: {{ $zone['avgTime'] }}</span>
@@ -94,7 +94,7 @@
 <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm mb-6">
     <div class="flex items-center justify-between mb-4">
         <div>
-            <h3 class="text-sm font-bold text-gray-900">Delivery Load <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Heatmap</span></h3>
+            <h3 class="text-sm font-bold text-gray-900">Delivery Load <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Heatmap</span></h3>
             <span class="text-[10px] text-gray-400">Deliveries by weekday and hour</span>
         </div>
     </div>
@@ -116,8 +116,8 @@
                     @foreach($row['hours'] as $val)
                     @php $intensity = $heatMax > 0 ? round($val / $heatMax * 100) : 0; @endphp
                     <td class="px-1 py-1">
-                        <div class="h-8 rounded-md flex items-center justify-center text-[10px] font-bold transition-all cursor-pointer hover:ring-2 hover:ring-[#259B00]/30"
-                             style="background: rgba(37,155,0,{{ max($intensity / 100, 0.05) }}); color: {{ $intensity > 50 ? '#fff' : '#666' }}">
+                        <div class="h-8 rounded-md flex items-center justify-center text-[10px] font-bold transition-all cursor-pointer hover:ring-2 hover:ring-[#6E7A25]/30"
+                             style="background: rgba(110,122,37,{{ max($intensity / 100, 0.05) }}); color: {{ $intensity > 50 ? '#fff' : '#666' }}">
                             {{ $val }}
                         </div>
                     </td>
@@ -130,11 +130,11 @@
     <div class="flex items-center justify-end gap-2 mt-3 text-[10px] text-gray-400">
         <span>Low</span>
         <div class="flex gap-0.5">
-            <div class="w-4 h-3 rounded-sm" style="background: rgba(37,155,0,0.1)"></div>
-            <div class="w-4 h-3 rounded-sm" style="background: rgba(37,155,0,0.3)"></div>
-            <div class="w-4 h-3 rounded-sm" style="background: rgba(37,155,0,0.5)"></div>
-            <div class="w-4 h-3 rounded-sm" style="background: rgba(37,155,0,0.7)"></div>
-            <div class="w-4 h-3 rounded-sm" style="background: rgba(37,155,0,0.9)"></div>
+            <div class="w-4 h-3 rounded-sm" style="background: rgba(110,122,37,0.1)"></div>
+            <div class="w-4 h-3 rounded-sm" style="background: rgba(110,122,37,0.3)"></div>
+            <div class="w-4 h-3 rounded-sm" style="background: rgba(110,122,37,0.5)"></div>
+            <div class="w-4 h-3 rounded-sm" style="background: rgba(110,122,37,0.7)"></div>
+            <div class="w-4 h-3 rounded-sm" style="background: rgba(110,122,37,0.9)"></div>
         </div>
         <span>High</span>
     </div>
@@ -145,7 +145,7 @@
     {{-- Exception Reasons --}}
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-50">
-            <h3 class="text-sm font-bold text-gray-900">Exception <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Reasons</span></h3>
+            <h3 class="text-sm font-bold text-gray-900">Exception <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Reasons</span></h3>
         </div>
         <div class="p-5 space-y-3">
             @foreach($exceptionReasons as $reason)
@@ -168,7 +168,7 @@
     {{-- Driver Productivity --}}
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-50">
-            <h3 class="text-sm font-bold text-gray-900">Driver <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Productivity</span></h3>
+            <h3 class="text-sm font-bold text-gray-900">Driver <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Productivity</span></h3>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">

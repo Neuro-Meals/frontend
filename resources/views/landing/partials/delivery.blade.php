@@ -24,7 +24,7 @@
                     @endforeach
                 </div>
 
-                <a href="#plans" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#033133] to-[#259B00] text-white text-sm font-bold hover:shadow-lg hover:shadow-brand-light/30 hover:-translate-y-0.5 transition-all">
+                <a href="#plans" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-sm font-bold hover:shadow-lg hover:shadow-brand-light/30 hover:-translate-y-0.5 transition-all">
                     Start Your Plan
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                 </a>
@@ -39,7 +39,7 @@
                     {{-- Receipt body --}}
                     <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
                         {{-- Receipt header with zigzag bottom --}}
-                        <div class="bg-gradient-to-r from-[#033133] to-[#259B00] px-6 py-5 relative">
+                        <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] px-6 py-5 relative">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center">
@@ -114,7 +114,7 @@
                             {{-- Total --}}
                             <div class="flex justify-between items-center pt-4 border-t border-dashed border-gray-200 dark:border-gray-600 mb-5">
                                 <span class="text-sm font-bold text-gray-900 dark:text-white">Total</span>
-                                <span class="text-lg font-extrabold text-[#259B00]">149 SAR</span>
+                                <span class="text-lg font-extrabold text-[#6E7A25]">149 SAR</span>
                             </div>
 
                             {{-- Tracking timeline --}}
@@ -124,28 +124,28 @@
                                 {{-- Progress line --}}
                                 <div class="relative">
                                     <div class="absolute left-[7px] top-2 bottom-2 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
-                                    <div class="absolute left-[7px] top-2 w-0.5 bg-gradient-to-b from-[#259B00] to-[#033133]" style="height: 65%;"></div>
+                                    <div class="absolute left-[7px] top-2 w-0.5 bg-gradient-to-b from-[#6E7A25] to-[#173327]" style="height: 65%;"></div>
 
                                     <div class="space-y-4 relative">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-4 h-4 rounded-full bg-[#259B00] border-2 border-white dark:border-gray-800 shadow z-10 flex-shrink-0"></div>
+                                            <div class="w-4 h-4 rounded-full bg-[#6E7A25] border-2 border-white dark:border-gray-800 shadow z-10 flex-shrink-0"></div>
                                             <div class="flex-1 flex justify-between items-center">
                                                 <span class="text-sm font-medium text-gray-900 dark:text-white">Meal Prepared</span>
                                                 <span class="text-xs text-gray-400 dark:text-gray-500">12:30 PM</span>
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-3">
-                                            <div class="w-4 h-4 rounded-full bg-[#259B00] border-2 border-white dark:border-gray-800 shadow z-10 flex-shrink-0"></div>
+                                            <div class="w-4 h-4 rounded-full bg-[#6E7A25] border-2 border-white dark:border-gray-800 shadow z-10 flex-shrink-0"></div>
                                             <div class="flex-1 flex justify-between items-center">
                                                 <span class="text-sm font-medium text-gray-900 dark:text-white">Out for Delivery</span>
                                                 <span class="text-xs text-gray-400 dark:text-gray-500">1:15 PM</span>
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-3">
-                                            <div class="w-4 h-4 rounded-full bg-[#259B00] border-2 border-white dark:border-gray-800 shadow z-10 flex-shrink-0 animate-pulse"></div>
+                                            <div class="w-4 h-4 rounded-full bg-[#6E7A25] border-2 border-white dark:border-gray-800 shadow z-10 flex-shrink-0 animate-pulse"></div>
                                             <div class="flex-1 flex justify-between items-center">
                                                 <span class="text-sm font-medium text-gray-900 dark:text-white">Driver 5 mins away</span>
-                                                <span class="text-xs text-[#259B00] font-bold">Now</span>
+                                                <span class="text-xs text-[#6E7A25] font-bold">Now</span>
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-3">
@@ -173,7 +173,7 @@
                         </div>
 
                         {{-- Bottom zigzag --}}
-                        <div class="bg-gradient-to-r from-[#033133] to-[#259B00] py-2 relative">
+                        <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] py-2 relative">
                             <div class="absolute -top-2 left-0 right-0 flex justify-around">
                                 @for ($i = 0; $i < 20; $i++)
                                     <div class="w-3 h-3 bg-white dark:bg-gray-800 rounded-full"></div>

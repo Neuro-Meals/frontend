@@ -7,7 +7,7 @@
 
 {{-- Stats --}}
 <div class="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
-    <div class="bg-gradient-to-br from-[#033133] to-[#259B00] rounded-xl p-4 text-white shadow-lg shadow-[#259B00]/20">
+    <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-4 text-white shadow-lg shadow-[#6E7A25]/20">
         <span class="text-[10px] font-medium text-white/60">Unread</span>
         <div class="text-2xl font-bold mt-1">{{ $stats['unread'] }}</div>
     </div>
@@ -21,12 +21,12 @@
     {{-- Notifications List --}}
     <div class="lg:col-span-2 space-y-3">
         @foreach($notifications as $notif)
-        <div class="bg-white rounded-xl border {{ $notif['read'] ? 'border-gray-100' : 'border-[#259B00]/30 ring-1 ring-[#259B00]/10' }} shadow-sm p-4 hover:shadow-md transition-all">
+        <div class="bg-white rounded-xl border {{ $notif['read'] ? 'border-gray-100' : 'border-[#6E7A25]/30 ring-1 ring-[#6E7A25]/10' }} shadow-sm p-4 hover:shadow-md transition-all">
             <div class="flex items-start gap-3">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0
                     @switch($notif['type'])
                         @case('delivery') bg-blue-50 text-blue-600 @break
-                        @case('subscription') bg-[#259B00]/10 text-[#259B00] @break
+                        @case('subscription') bg-[#6E7A25]/10 text-[#6E7A25] @break
                         @case('achievement') bg-amber-50 text-amber-600 @break
                         @case('meal') bg-purple-50 text-purple-600 @break
                         @case('payment') bg-green-50 text-green-600 @break
@@ -56,7 +56,7 @@
                     <div class="flex items-center justify-between gap-2">
                         <h4 class="text-xs font-bold text-gray-900">{{ $notif['title'] }}</h4>
                         @if(!$notif['read'])
-                        <span class="w-2 h-2 bg-[#259B00] rounded-full flex-shrink-0"></span>
+                        <span class="w-2 h-2 bg-[#6E7A25] rounded-full flex-shrink-0"></span>
                         @endif
                     </div>
                     <p class="text-xs text-gray-500 mt-1">{{ $notif['message'] }}</p>
@@ -69,7 +69,7 @@
 
     {{-- Preferences --}}
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-        <h3 class="text-sm font-bold text-gray-900 mb-4">Notification <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Preferences</span></h3>
+        <h3 class="text-sm font-bold text-gray-900 mb-4">Notification <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Preferences</span></h3>
         <div class="space-y-3">
             @foreach($preferences as $pref)
             <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
@@ -79,7 +79,7 @@
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" class="sr-only peer" {{ $pref['enabled'] ? 'checked' : '' }}>
-                    <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-[#259B00] transition-colors"></div>
+                    <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-[#6E7A25] transition-colors"></div>
                     <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4"></div>
                 </label>
             </div>

@@ -30,7 +30,7 @@
         <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         <input type="text" placeholder="Search plans..." class="bg-transparent text-sm outline-none flex-1 text-gray-600 placeholder-gray-400">
     </div>
-    <button class="px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#033133] to-[#259B00] rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-2">
+    <button class="px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-2">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         Create Plan
     </button>

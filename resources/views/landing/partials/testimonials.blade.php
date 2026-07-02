@@ -58,7 +58,7 @@
                         @endif
                     </blockquote>
                     <figcaption class="flex justify-center items-center space-x-3">
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#033133] to-[#259B00] text-white flex items-center justify-center text-sm font-bold shadow-md">{{ $t['initials'] }}</div>
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white flex items-center justify-center text-sm font-bold shadow-md">{{ $t['initials'] }}</div>
                         <div class="space-y-0.5 font-medium dark:text-white text-left">
                             <div>{{ $t['name'] }}</div>
                             <div class="text-sm font-light text-gray-500 dark:text-gray-400">{{ $t['role'] }}</div>

@@ -57,10 +57,10 @@
 
                 @foreach ($plans as $plan)
                     <div class="plan-card flex-shrink-0 w-[85%] sm:w-[45%] lg:w-[31.5%] snap-center">
-                        <div class="relative h-full rounded-3xl overflow-hidden {{ $plan['popular'] ? 'shadow-2xl ring-2 ring-[#259B00]' : 'shadow-lg' }} bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                        <div class="relative h-full rounded-3xl overflow-hidden {{ $plan['popular'] ? 'shadow-2xl ring-2 ring-[#6E7A25]' : 'shadow-lg' }} bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                             {{-- Popular badge --}}
                             @if ($plan['popular'])
-                                <div class="absolute top-0 left-0 right-0 bg-gradient-to-r from-[#033133] to-[#259B00] text-white text-center py-2 text-xs font-bold uppercase tracking-wider">Most Popular</div>
+                                <div class="absolute top-0 left-0 right-0 bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-center py-2 text-xs font-bold uppercase tracking-wider">Most Popular</div>
                             @endif
 
                             <div class="p-8 {{ $plan['popular'] ? 'pt-14' : '' }}">
@@ -70,7 +70,7 @@
 
                                 {{-- Price --}}
                                 <div class="flex items-baseline gap-1 mb-6">
-                                    <span class="text-4xl font-extrabold {{ $plan['popular'] ? 'text-[#259B00]' : 'text-gray-900 dark:text-white' }}">{{ $plan['price'] }}</span>
+                                    <span class="text-4xl font-extrabold {{ $plan['popular'] ? 'text-[#6E7A25]' : 'text-gray-900 dark:text-white' }}">{{ $plan['price'] }}</span>
                                     <span class="text-lg font-medium text-gray-500 dark:text-gray-400">SAR{{ $plan['period'] }}</span>
                                 </div>
 
@@ -90,7 +90,7 @@
                                 </ul>
 
                                 {{-- CTA --}}
-                                <a href="#" class="block w-full py-3.5 text-center text-sm font-bold rounded-xl transition-all duration-300 {{ $plan['popular'] ? 'bg-gradient-to-r from-[#033133] to-[#259B00] text-white hover:shadow-lg hover:shadow-brand-light/30 hover:-translate-y-0.5' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' }}">
+                                <a href="#" class="block w-full py-3.5 text-center text-sm font-bold rounded-xl transition-all duration-300 {{ $plan['popular'] ? 'bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-lg hover:shadow-brand-light/30 hover:-translate-y-0.5' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' }}">
                                     Subscribe Now
                                 </a>
                             </div>

@@ -25,7 +25,7 @@
 
 {{-- Stats Cards --}}
 <div class="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4 mb-6">
-    <div class="card-sm bg-gradient-to-br from-[#033133] to-[#259B00] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#259B00]/20">
+    <div class="card-sm bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20">
         <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
         <div class="flex items-start justify-between relative z-10">
             <span class="text-[10px] sm:text-xs font-medium text-white/60">Active Plan</span>
@@ -71,12 +71,12 @@
     <div class="bg-white rounded-xl border border-gray-100 p-5 lg:col-span-2 shadow-sm">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Calorie <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Tracking</span></h3>
+                <h3 class="text-sm font-bold text-gray-900">Calorie <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Tracking</span></h3>
                 <p class="text-xs text-gray-400">Last 7 days</p>
             </div>
             <div class="text-right">
                 <div class="text-lg font-bold text-gray-900">{{ number_format($stats['dailyCalories']) }} kcal</div>
-                <div class="text-xs text-[#259B00] font-medium">On track</div>
+                <div class="text-xs text-[#6E7A25] font-medium">On track</div>
             </div>
         </div>
         @php $calMax = max(array_column($weeklyProgress, 'calories')) ?: 2000; @endphp
@@ -85,7 +85,7 @@
                 @php $pct = ($day['calories'] / $calMax) * 100; $isOver = $day['calories'] > $day['target']; @endphp
                 <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
                     <div class="w-full bg-gray-50 rounded-t-md relative h-40 overflow-hidden">
-                        <div class="absolute bottom-0 left-0 right-0 rounded-t-md transition-all duration-300 {{ $isOver ? 'bg-gradient-to-t from-amber-500 to-amber-400' : 'bg-gradient-to-t from-[#259B00] to-[#259B00]/70' }} group-hover:opacity-80" style="height: {{ max($pct, 4) }}%"></div>
+                        <div class="absolute bottom-0 left-0 right-0 rounded-t-md transition-all duration-300 {{ $isOver ? 'bg-gradient-to-t from-amber-500 to-amber-400' : 'bg-gradient-to-t from-[#6E7A25] to-[#6E7A25]/70' }} group-hover:opacity-80" style="height: {{ max($pct, 4) }}%"></div>
                         <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap">
                             {{ number_format($day['calories']) }} kcal
                         </div>
@@ -97,7 +97,7 @@
     </div>
 
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-        <h3 class="text-sm font-bold text-gray-900 mb-4">Nutrition <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Breakdown</span></h3>
+        <h3 class="text-sm font-bold text-gray-900 mb-4">Nutrition <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Breakdown</span></h3>
         <div class="space-y-4">
             @php
                 $proteinPct = round($stats['proteinToday'] / $stats['proteinTarget'] * 100);
@@ -110,7 +110,7 @@
                     <span class="text-xs font-semibold text-gray-900">{{ $stats['proteinToday'] }}g / {{ $stats['proteinTarget'] }}g</span>
                 </div>
                 <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                    <div class="bg-[#259B00] h-2.5 rounded-full transition-all duration-500" style="width: {{ min($proteinPct, 100) }}%"></div>
+                    <div class="bg-[#6E7A25] h-2.5 rounded-full transition-all duration-500" style="width: {{ min($proteinPct, 100) }}%"></div>
                 </div>
             </div>
             <div>
@@ -134,7 +134,7 @@
         </div>
         <div class="mt-5 pt-4 border-t border-gray-50">
             <div class="flex items-center gap-2">
-                <span class="w-2 h-2 bg-[#259B00] rounded-full animate-pulse"></span>
+                <span class="w-2 h-2 bg-[#6E7A25] rounded-full animate-pulse"></span>
                 <p class="text-[11px] text-gray-400">Tracking in real-time</p>
             </div>
         </div>
@@ -145,14 +145,14 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-50">
-            <h3 class="text-sm font-bold text-gray-900">Upcoming <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Meals</span></h3>
+            <h3 class="text-sm font-bold text-gray-900">Upcoming <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Meals</span></h3>
             <p class="text-xs text-gray-400">Your next scheduled meals</p>
         </div>
         <div class="divide-y divide-gray-50">
             @foreach($upcomingMeals as $meal)
             <div class="px-5 py-3 flex items-center gap-3 hover:bg-gray-50/30 transition-colors">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#259B00]/20 to-[#033133]/20 flex items-center justify-center flex-shrink-0">
-                    <svg class="w-5 h-5 text-[#259B00]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6E7A25]/20 to-[#173327]/20 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-xs font-semibold text-gray-900 truncate">{{ $meal['name'] }}</p>
@@ -166,10 +166,10 @@
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Recent <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Orders</span></h3>
+                <h3 class="text-sm font-bold text-gray-900">Recent <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Orders</span></h3>
                 <p class="text-xs text-gray-400">Your latest meal orders</p>
             </div>
-            <a href="{{ route('user.orders') }}" class="text-xs font-bold text-[#259B00] hover:text-[#033133] transition-colors">View all →</a>
+            <a href="{{ route('user.orders') }}" class="text-xs font-bold text-[#6E7A25] hover:text-[#173327] transition-colors">View all →</a>
         </div>
         <div class="divide-y divide-gray-50">
             @foreach($recentOrders as $order)
@@ -193,17 +193,17 @@
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm lg:col-span-2">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Weight <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Progress</span></h3>
+                <h3 class="text-sm font-bold text-gray-900">Weight <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Progress</span></h3>
                 <p class="text-xs text-gray-400">From {{ $stats['weightStart'] }}kg to goal {{ $stats['weightGoal'] }}kg</p>
             </div>
             <div class="text-right">
-                <div class="text-lg font-bold text-[#259B00]">-{{ number_format($stats['weightStart'] - $stats['weightCurrent'], 1) }}kg</div>
+                <div class="text-lg font-bold text-[#6E7A25]">-{{ number_format($stats['weightStart'] - $stats['weightCurrent'], 1) }}kg</div>
                 <div class="text-xs text-gray-400">Current: {{ $stats['weightCurrent'] }}kg</div>
             </div>
         </div>
         @php $weightRange = $stats['weightStart'] - $stats['weightGoal']; $currentProgress = ($stats['weightStart'] - $stats['weightCurrent']) / $weightRange * 100; @endphp
         <div class="relative h-4 bg-gray-100 rounded-full overflow-hidden">
-            <div class="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-[#033133] to-[#259B00] rounded-full transition-all duration-1000" style="width: {{ min($currentProgress, 100) }}%"></div>
+            <div class="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-full transition-all duration-1000" style="width: {{ min($currentProgress, 100) }}%"></div>
         </div>
         <div class="flex items-center justify-between mt-2">
             <span class="text-[10px] text-gray-400 font-medium">Start: {{ $stats['weightStart'] }}kg</span>
@@ -211,18 +211,18 @@
         </div>
     </div>
 
-    <div class="bg-gradient-to-br from-[#033133] to-[#01241f] rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-24 h-24 bg-[#259B00]/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+    <div class="bg-gradient-to-br from-[#173327] to-[#122620] rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-[#6E7A25]/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
         <div class="relative z-10">
             <div class="flex items-center gap-2 mb-3">
-                <div class="w-9 h-9 rounded-xl bg-[#259B00]/20 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-[#259B00]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
+                <div class="w-9 h-9 rounded-xl bg-[#6E7A25]/20 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
                 </div>
                 <span class="text-xs font-bold">Next Delivery</span>
             </div>
             <p class="text-sm font-bold">{{ $stats['nextDelivery'] }}</p>
             <p class="text-xs text-white/50 mt-1">{{ $stats['nextMeal'] }}</p>
-            <a href="{{ route('user.delivery') }}" class="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#259B00] hover:text-white transition-colors">
+            <a href="{{ route('user.delivery') }}" class="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#6E7A25] hover:text-white transition-colors">
                 Track delivery →
             </a>
         </div>

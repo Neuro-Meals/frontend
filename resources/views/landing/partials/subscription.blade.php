@@ -1,7 +1,7 @@
 <section class="py-20 lg:py-28 bg-white dark:bg-gray-900 transition-colors duration-300 relative overflow-hidden">
     {{-- Decorative glows --}}
     <div class="absolute top-0 left-1/4 w-96 h-96 rounded-full bg-brand-light/5 blur-3xl"></div>
-    <div class="absolute bottom-0 right-1/4 w-96 h-96 rounded-full bg-[#033133]/5 blur-3xl"></div>
+    <div class="absolute bottom-0 right-1/4 w-96 h-96 rounded-full bg-[#173327]/5 blur-3xl"></div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {{-- Header --}}
@@ -30,7 +30,7 @@
 
                     <div class="relative">
                         {{-- Icon --}}
-                        <div class="sub-icon-wrap w-14 h-14 mx-auto rounded-full bg-gradient-to-br from-[#033133] to-[#259B00] flex items-center justify-center shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <div class="sub-icon-wrap w-14 h-14 mx-auto rounded-full bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300">
                             <div class="sub-icon-inner w-11 h-11 rounded-full bg-white/10 flex items-center justify-center">
                                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $feature['icon'] }}"></path></svg>
                             </div>
@@ -45,9 +45,9 @@
 
         {{-- CTA bar --}}
         <div class="mt-12 scroll-reveal text-center">
-            <div class="inline-flex flex-col sm:flex-row items-center gap-4 px-8 py-5 rounded-2xl bg-gradient-to-r from-[#033133] to-[#259B00] shadow-xl">
+            <div class="inline-flex flex-col sm:flex-row items-center gap-4 px-8 py-5 rounded-2xl bg-gradient-to-r from-[#173327] to-[#6E7A25] shadow-xl">
                 <p class="text-white font-bold text-sm sm:text-base">Ready to start your flexible meal plan?</p>
-                <a href="#plans" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-[#033133] text-sm font-bold hover:bg-gray-100 hover:-translate-y-0.5 transition-all">
+                <a href="#plans" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-[#173327] text-sm font-bold hover:bg-gray-100 hover:-translate-y-0.5 transition-all">
                     Get Started
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                 </a>
@@ -58,8 +58,8 @@
 
 <style>
     @keyframes subIconPulse {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(37, 155, 0, 0.3); }
-        50% { box-shadow: 0 0 0 10px rgba(37, 155, 0, 0); }
+        0%, 100% { box-shadow: 0 0 0 0 rgba(110,122,37, 0.3); }
+        50% { box-shadow: 0 0 0 10px rgba(110,122,37, 0); }
     }
     .sub-card.is-visible .sub-icon-wrap {
         animation: subIconPulse 2s ease-in-out;

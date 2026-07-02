@@ -26,7 +26,7 @@
                 ['icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'title' => 'Community Causes', 'text' => 'Charity runs, food drives, and community health programs.'],
             ] as $card)
             <div class="bg-white dark:bg-gray-700 rounded-xl border border-gray-100 dark:border-gray-600 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#033133] to-[#259B00] flex items-center justify-center mb-4">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center mb-4">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $card['icon'] }}"/></svg>
                 </div>
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">{{ $card['title'] }}</h3>
@@ -45,26 +45,26 @@
             <div class="grid sm:grid-cols-2 gap-5">
                 <div>
                     <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Organization Name</label>
-                    <input type="text" name="organization" required class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#259B00] focus:ring-[#259B00] outline-none transition-colors" placeholder="Organization name">
+                    <input type="text" name="organization" required class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#6E7A25] focus:ring-[#6E7A25] outline-none transition-colors" placeholder="Organization name">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Contact Person</label>
-                    <input type="text" name="contact" required class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#259B00] focus:ring-[#259B00] outline-none transition-colors" placeholder="Your name">
+                    <input type="text" name="contact" required class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#6E7A25] focus:ring-[#6E7A25] outline-none transition-colors" placeholder="Your name">
                 </div>
             </div>
             <div class="grid sm:grid-cols-2 gap-5">
                 <div>
                     <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Email</label>
-                    <input type="email" name="email" required class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#259B00] focus:ring-[#259B00] outline-none transition-colors" placeholder="you@org.com">
+                    <input type="email" name="email" required class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#6E7A25] focus:ring-[#6E7A25] outline-none transition-colors" placeholder="you@org.com">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Event Date</label>
-                    <input type="date" name="event_date" class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#259B00] focus:ring-[#259B00] outline-none transition-colors">
+                    <input type="date" name="event_date" class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#6E7A25] focus:ring-[#6E7A25] outline-none transition-colors">
                 </div>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Event Type</label>
-                <select name="event_type" class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#259B00] focus:ring-[#259B00] outline-none transition-colors">
+                <select name="event_type" class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#6E7A25] focus:ring-[#6E7A25] outline-none transition-colors">
                     <option>Sports Events</option>
                     <option>Fitness Challenges</option>
                     <option>Health Conferences</option>
@@ -73,9 +73,9 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Tell us about your event</label>
-                <textarea name="message" rows="4" class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#259B00] focus:ring-[#259B00] outline-none transition-colors resize-none" placeholder="Describe your event, audience size, and sponsorship needs..."></textarea>
+                <textarea name="message" rows="4" class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#6E7A25] focus:ring-[#6E7A25] outline-none transition-colors resize-none" placeholder="Describe your event, audience size, and sponsorship needs..."></textarea>
             </div>
-            <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-[#033133] to-[#259B00] rounded-lg hover:shadow-lg hover:shadow-[#259B00]/30 focus:ring-4 focus:ring-[#259B00]/20 transition-all">
+            <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-lg hover:shadow-lg hover:shadow-[#6E7A25]/30 focus:ring-4 focus:ring-[#6E7A25]/20 transition-all">
                 Submit Sponsorship Request
             </button>
         </form>

@@ -3,14 +3,14 @@
     <div class="flex flex-col items-center gap-6">
         {{-- Logo with pulse-blink animation --}}
         <div class="loader-logo-wrap relative">
-            <div class="absolute inset-0 rounded-2xl bg-[#259B00]/20 blur-xl animate-ping-slow"></div>
+            <div class="absolute inset-0 rounded-2xl bg-[#6E7A25]/20 blur-xl animate-ping-slow"></div>
             <img src="{{ asset('whitelogo.png') }}" alt="Nutrio Meals" class="relative h-20 w-auto object-contain animate-logo-blink">
         </div>
 
         {{-- Spinner ring --}}
         <div class="relative w-10 h-10">
             <div class="absolute inset-0 rounded-full border-2 border-gray-100"></div>
-            <div class="absolute inset-0 rounded-full border-2 border-transparent border-t-[#259B00] animate-spin-fast"></div>
+            <div class="absolute inset-0 rounded-full border-2 border-transparent border-t-[#6E7A25] animate-spin-fast"></div>
         </div>
 
         {{-- Loading text --}}

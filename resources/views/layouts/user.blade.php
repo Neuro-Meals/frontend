@@ -16,14 +16,14 @@
                 extend: {
                     colors: {
                         brand: {
-                            50: '#e6f5f1', 100: '#b3e0d4', 200: '#80cbc0', 300: '#4db5a8',
-                            400: '#1a9f8e', 500: '#259B00', 600: '#033133', 700: '#023d30',
-                            800: '#01241f', 900: '#001816'
+                            50: '#F6F3E9', 100: '#e8e4d0', 200: '#d1cb9f', 300: '#babd7a',
+                            400: '#a3a85f', 500: '#949B50', 600: '#6E7A25', 700: '#173327',
+                            800: '#122620', 900: '#0d1916'
                         },
                         accent: {
-                            50: '#fff5e0', 100: '#ffe6b3', 200: '#ffd680', 300: '#ffc64d',
-                            400: '#ffb71a', 500: '#f9ac00', 600: '#d49700', 700: '#b07c00',
-                            800: '#8c6100', 900: '#684600'
+                            50: '#f5f4ec', 100: '#e8e6d0', 200: '#d1cc9f', 300: '#babd7a',
+                            400: '#a3a85f', 500: '#949B50', 600: '#7d8442', 700: '#6E7A25',
+                            800: '#5a631d', 900: '#474d18'
                         }
                     }
                 }
@@ -35,13 +35,13 @@
         .animate-fade { animation: fadeIn 0.3s ease-out both; }
         .sidebar-link { transition: all 0.2s ease; }
         .sidebar-link:hover { background: rgba(255,255,255,0.06); }
-        .sidebar-link.active { background: rgba(37,155,0,0.15); color: #fff; border-left: 3px solid #259B00; }
+        .sidebar-link.active { background: rgba(110,122,37,0.15); color: #fff; border-left: 3px solid #6E7A25; }
         .sidebar-submenu { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
         .sidebar-submenu.open { max-height: 500px; }
         ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: #01241f; }
-        ::-webkit-scrollbar-thumb { background: #259B00; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #f9ac00; }
+        ::-webkit-scrollbar-track { background: #122620; }
+        ::-webkit-scrollbar-thumb { background: #6E7A25; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #949B50; }
         .card-sm { transition: all 0.2s cubic-bezier(0.4,0,0.2,1); }
         .card-sm:hover { transform: translateY(-2px); box-shadow: 0 8px 30px -8px rgba(0,0,0,0.1); }
         .skeleton { background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%); background-size: 200% 100%; animation: skeleton-shimmer 1.5s infinite; }

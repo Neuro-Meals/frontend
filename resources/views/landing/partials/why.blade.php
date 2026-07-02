@@ -62,7 +62,7 @@
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
                                 {{-- Stage number badge --}}
                                 <div class="absolute top-4 {{ $index % 2 === 0 ? 'right-4' : 'left-4' }} w-14 h-14 rounded-2xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                                    <span class="text-2xl font-extrabold bg-gradient-to-br from-[#033133] to-[#259B00] bg-clip-text text-transparent">{{ $card['stage'] }}</span>
+                                    <span class="text-2xl font-extrabold bg-gradient-to-br from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ $card['stage'] }}</span>
                                 </div>
                             </div>
                         </div>
@@ -70,7 +70,7 @@
                         {{-- Content --}}
                         <div class="w-full lg:w-1/2 {{ $index % 2 === 0 ? 'lg:pl-4' : 'lg:pr-4 lg:text-right' }}">
                             {{-- Icon --}}
-                            <div class="why-icon-wrap w-20 h-20 rounded-full bg-gradient-to-br from-[#033133] to-[#259B00] text-white flex items-center justify-center shadow-xl mb-5 {{ $index % 2 === 1 ? 'lg:ml-auto' : '' }}">
+                            <div class="why-icon-wrap w-20 h-20 rounded-full bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white flex items-center justify-center shadow-xl mb-5 {{ $index % 2 === 1 ? 'lg:ml-auto' : '' }}">
                                 <div class="why-icon-inner w-16 h-16 rounded-full bg-white/10 flex items-center justify-center">
                                     @if ($card['is_fi'])
                                         <i class="{{ $card['icon'] }} text-3xl text-white"></i>
@@ -115,8 +115,8 @@
         100% { transform: rotate(720deg) scale(1); }
     }
     @keyframes iconPulse {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(37, 155, 0, 0.4); }
-        50% { box-shadow: 0 0 0 12px rgba(37, 155, 0, 0); }
+        0%, 100% { box-shadow: 0 0 0 0 rgba(110,122,37, 0.4); }
+        50% { box-shadow: 0 0 0 12px rgba(110,122,37, 0); }
     }
     .why-card.is-visible .why-icon-wrap {
         animation: iconRoll 1.5s ease-in-out, iconPulse 2s ease-in-out 1.5s;

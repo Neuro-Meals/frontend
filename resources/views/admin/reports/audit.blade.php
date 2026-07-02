@@ -39,7 +39,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
     {{-- Change Hotspots --}}
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm lg:col-span-2">
-        <h3 class="text-sm font-bold text-gray-900 mb-1">Change <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Hotspots by Module</span></h3>
+        <h3 class="text-sm font-bold text-gray-900 mb-1">Change <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Hotspots by Module</span></h3>
         <span class="text-[10px] text-gray-400 block mb-4">Privileged action volume | Last 30 days</span>
         <div class="space-y-3">
             @foreach($changeHotspots as $spot)
@@ -63,21 +63,21 @@
     </div>
 
     {{-- Access Control --}}
-    <div class="bg-gradient-to-br from-[#033133] to-[#01241f] rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-24 h-24 bg-[#259B00]/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
-        <h3 class="text-sm font-bold mb-4 relative z-10">Access <span class="text-[#259B00]">Control</span></h3>
+    <div class="bg-gradient-to-br from-[#173327] to-[#122620] rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-[#6E7A25]/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+        <h3 class="text-sm font-bold mb-4 relative z-10">Access <span class="text-[#6E7A25]">Control</span></h3>
         <div class="space-y-3 relative z-10">
             <div class="flex items-center justify-between py-2 border-b border-white/5">
                 <span class="text-xs text-white/60">reports.read</span>
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#259B00]/20 text-[#259B00]">Granted</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#6E7A25]/20 text-[#6E7A25]">Granted</span>
             </div>
             <div class="flex items-center justify-between py-2 border-b border-white/5">
                 <span class="text-xs text-white/60">reports.export</span>
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#259B00]/20 text-[#259B00]">Granted</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#6E7A25]/20 text-[#6E7A25]">Granted</span>
             </div>
             <div class="flex items-center justify-between py-2 border-b border-white/5">
                 <span class="text-xs text-white/60">audit.read</span>
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#259B00]/20 text-[#259B00]">Granted</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#6E7A25]/20 text-[#6E7A25]">Granted</span>
             </div>
             <div class="flex items-center justify-between py-2 border-b border-white/5">
                 <span class="text-xs text-white/60">Export Actions Audited</span>
@@ -85,7 +85,7 @@
             </div>
             <div class="flex items-center justify-between py-2">
                 <span class="text-xs text-white/60">Sensitive Fields Masked</span>
-                <span class="text-xs font-bold text-[#259B00]">Yes</span>
+                <span class="text-xs font-bold text-[#6E7A25]">Yes</span>
             </div>
         </div>
     </div>
@@ -94,7 +94,7 @@
 {{-- Audit Events Table --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-6">
     <div class="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-        <h3 class="text-sm font-bold text-gray-900">Audit <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Event Log</span></h3>
+        <h3 class="text-sm font-bold text-gray-900">Audit <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Event Log</span></h3>
         <span class="text-[10px] text-gray-400">{{ count($auditEvents) }} events shown | Exportable</span>
     </div>
     <div class="overflow-x-auto">
@@ -142,7 +142,7 @@
 {{-- Export History --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-5 py-4 border-b border-gray-50">
-        <h3 class="text-sm font-bold text-gray-900">Export <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Job History</span></h3>
+        <h3 class="text-sm font-bold text-gray-900">Export <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Job History</span></h3>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -178,7 +178,7 @@
                     <td class="px-5 py-3 text-xs text-gray-400">{{ $exp['time'] }}</td>
                     <td class="px-5 py-3">
                         @if($exp['status'] === 'completed')
-                        <button class="text-[10px] font-bold text-[#259B00] hover:underline">Download</button>
+                        <button class="text-[10px] font-bold text-[#6E7A25] hover:underline">Download</button>
                         @else
                         <button class="text-[10px] font-bold text-amber-600 hover:underline">Retry</button>
                         @endif

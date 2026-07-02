@@ -26,7 +26,7 @@
                 ['icon' => 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9', 'title' => 'Local Sourcing', 'text' => 'We prioritize locally-sourced ingredients to support the Saudi economy.'],
             ] as $card)
             <div class="bg-white dark:bg-gray-700 rounded-xl border border-gray-100 dark:border-gray-600 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#033133] to-[#259B00] flex items-center justify-center mb-4">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center mb-4">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $card['icon'] }}"/></svg>
                 </div>
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">{{ $card['title'] }}</h3>
@@ -45,26 +45,26 @@
             <div class="grid sm:grid-cols-2 gap-5">
                 <div>
                     <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Business Name</label>
-                    <input type="text" name="business" required class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#259B00] focus:ring-[#259B00] outline-none transition-colors" placeholder="Your business name">
+                    <input type="text" name="business" required class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#6E7A25] focus:ring-[#6E7A25] outline-none transition-colors" placeholder="Your business name">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Contact Person</label>
-                    <input type="text" name="contact" required class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#259B00] focus:ring-[#259B00] outline-none transition-colors" placeholder="Your name">
+                    <input type="text" name="contact" required class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#6E7A25] focus:ring-[#6E7A25] outline-none transition-colors" placeholder="Your name">
                 </div>
             </div>
             <div class="grid sm:grid-cols-2 gap-5">
                 <div>
                     <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Email</label>
-                    <input type="email" name="email" required class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#259B00] focus:ring-[#259B00] outline-none transition-colors" placeholder="you@business.com">
+                    <input type="email" name="email" required class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#6E7A25] focus:ring-[#6E7A25] outline-none transition-colors" placeholder="you@business.com">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Phone</label>
-                    <input type="tel" name="phone" required class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#259B00] focus:ring-[#259B00] outline-none transition-colors" placeholder="+966...">
+                    <input type="tel" name="phone" required class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#6E7A25] focus:ring-[#6E7A25] outline-none transition-colors" placeholder="+966...">
                 </div>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Product Type</label>
-                <select name="product_type" class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#259B00] focus:ring-[#259B00] outline-none transition-colors">
+                <select name="product_type" class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#6E7A25] focus:ring-[#6E7A25] outline-none transition-colors">
                     <option>Fresh Produce</option>
                     <option>Protein Sources</option>
                     <option>Dairy & Eggs</option>
@@ -74,9 +74,9 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">Tell us about your products</label>
-                <textarea name="message" rows="4" class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#259B00] focus:ring-[#259B00] outline-none transition-colors resize-none" placeholder="Describe your products, capacity, and certifications..."></textarea>
+                <textarea name="message" rows="4" class="w-full rounded-lg border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-white p-3 text-sm focus:border-[#6E7A25] focus:ring-[#6E7A25] outline-none transition-colors resize-none" placeholder="Describe your products, capacity, and certifications..."></textarea>
             </div>
-            <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-[#033133] to-[#259B00] rounded-lg hover:shadow-lg hover:shadow-[#259B00]/30 focus:ring-4 focus:ring-[#259B00]/20 transition-all">
+            <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-lg hover:shadow-lg hover:shadow-[#6E7A25]/30 focus:ring-4 focus:ring-[#6E7A25]/20 transition-all">
                 Submit Application
             </button>
         </form>

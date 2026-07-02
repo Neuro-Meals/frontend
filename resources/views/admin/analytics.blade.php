@@ -15,7 +15,7 @@
 
 {{-- Stats Row --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div class="kpi-card bg-gradient-to-br from-[#033133] to-[#259B00] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#259B00]/20">
+    <div class="kpi-card bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
         <div class="relative z-10">
             <p class="text-xs text-white/60 font-medium mb-1">Total Reports</p>
@@ -51,10 +51,10 @@
     <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h3 class="text-base font-bold text-gray-900">Revenue <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Growth</span></h3>
+                <h3 class="text-base font-bold text-gray-900">Revenue <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Growth</span></h3>
                 <p class="text-xs text-gray-400 mt-0.5">Last 6 months</p>
             </div>
-            <span class="w-2.5 h-2.5 rounded-full bg-[#259B00]"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#6E7A25]"></span>
         </div>
         @php $revMax = max($chartData['revenue']) ?: 1; @endphp
         <div class="flex items-end gap-4 h-44">
@@ -62,7 +62,7 @@
                 @php $pct = min(100, ($rev / $revMax) * 100); @endphp
                 <div class="flex-1 flex flex-col items-center gap-2 group cursor-pointer">
                     <div class="w-full relative h-36 flex items-end">
-                        <div class="w-full rounded-t-lg bg-gradient-to-t from-[#259B00] to-[#259B00]/60 transition-all duration-300 group-hover:opacity-80" style="height: {{ max($pct, 5) }}%"></div>
+                        <div class="w-full rounded-t-lg bg-gradient-to-t from-[#6E7A25] to-[#6E7A25]/60 transition-all duration-300 group-hover:opacity-80" style="height: {{ max($pct, 5) }}%"></div>
                         <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap">
                             SAR {{ $fmt($rev) }}
                         </div>
@@ -77,10 +77,10 @@
     <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h3 class="text-base font-bold text-gray-900">Customer <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Growth</span></h3>
+                <h3 class="text-base font-bold text-gray-900">Customer <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Growth</span></h3>
                 <p class="text-xs text-gray-400 mt-0.5">Last 6 months</p>
             </div>
-            <span class="w-2.5 h-2.5 rounded-full bg-[#033133]"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#173327]"></span>
         </div>
         @php $custMax = max($chartData['customers']) ?: 1; @endphp
         <div class="flex items-end gap-4 h-44">
@@ -88,7 +88,7 @@
                 @php $pct = min(100, ($cust / $custMax) * 100); @endphp
                 <div class="flex-1 flex flex-col items-center gap-2 group cursor-pointer">
                     <div class="w-full relative h-36 flex items-end">
-                        <div class="w-full rounded-t-lg bg-gradient-to-t from-[#033133] to-[#033133]/70 transition-all duration-300 group-hover:opacity-80" style="height: {{ max($pct, 5) }}%"></div>
+                        <div class="w-full rounded-t-lg bg-gradient-to-t from-[#173327] to-[#173327]/70 transition-all duration-300 group-hover:opacity-80" style="height: {{ max($pct, 5) }}%"></div>
                         <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md">
                             {{ $cust }}
                         </div>
@@ -104,10 +104,10 @@
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
         <div>
-            <h3 class="text-base font-bold text-gray-900">Generated <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Reports</span></h3>
+            <h3 class="text-base font-bold text-gray-900">Generated <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Reports</span></h3>
             <p class="text-xs text-gray-400 mt-0.5">Download and manage reports</p>
         </div>
-        <button class="px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#033133] to-[#259B00] rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-2">
+        <button class="px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Generate Report
         </button>
@@ -144,7 +144,7 @@
                     </td>
                     <td class="px-6 py-3.5 text-xs text-gray-400">{{ date('M d, Y', strtotime($report['date'])) }}</td>
                     <td class="px-6 py-3.5 text-right">
-                        <button class="text-gray-400 hover:text-[#259B00] transition-colors">
+                        <button class="text-gray-400 hover:text-[#6E7A25] transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         </button>
                     </td>

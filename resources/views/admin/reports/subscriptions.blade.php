@@ -37,11 +37,11 @@
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">New vs <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Churn</span></h3>
+                <h3 class="text-sm font-bold text-gray-900">New vs <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Churn</span></h3>
                 <span class="text-[10px] text-gray-400">Subscriber count | Monthly</span>
             </div>
             <div class="flex items-center gap-3 text-[10px]">
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#259B00]"></span> New</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#6E7A25]"></span> New</span>
                 <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-red-400"></span> Churned</span>
             </div>
         </div>
@@ -52,7 +52,7 @@
             <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
                 <div class="w-full bg-gray-50 rounded-t-md relative h-40 overflow-hidden flex flex-col-reverse items-center">
                     <div class="w-full rounded-t-md transition-all duration-300 bg-gradient-to-t from-red-400 to-red-300 group-hover:opacity-80" style="height: {{ max($churnPct, 3) }}%"></div>
-                    <div class="w-full transition-all duration-300 bg-gradient-to-t from-[#259B00] to-[#259B00]/70 group-hover:opacity-80" style="height: {{ max($newPct, 3) }}%">
+                    <div class="w-full transition-all duration-300 bg-gradient-to-t from-[#6E7A25] to-[#6E7A25]/70 group-hover:opacity-80" style="height: {{ max($newPct, 3) }}%">
                         <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap z-10">+{{ $newVsChurn['new'][$i] }} / -{{ $newVsChurn['churn'][$i] }}</div>
                     </div>
                 </div>
@@ -66,7 +66,7 @@
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Renewal Rate <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Trend</span></h3>
+                <h3 class="text-sm font-bold text-gray-900">Renewal Rate <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Trend</span></h3>
                 <span class="text-[10px] text-gray-400">Percentage | Monthly</span>
             </div>
         </div>
@@ -76,7 +76,7 @@
             @php $renPct = $renewalTrend['rate'][$i]; @endphp
             <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
                 <div class="w-full bg-gray-50 rounded-t-md relative h-40 overflow-hidden">
-                    <div class="absolute bottom-0 left-0 right-0 rounded-t-md transition-all duration-300 bg-gradient-to-t from-[#f9ac00] to-[#f9ac00]/70 group-hover:opacity-80" style="height: {{ $renPct }}%">
+                    <div class="absolute bottom-0 left-0 right-0 rounded-t-md transition-all duration-300 bg-gradient-to-t from-[#949B50] to-[#949B50]/70 group-hover:opacity-80" style="height: {{ $renPct }}%">
                         <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap z-10">{{ $renPct }}%</div>
                     </div>
                 </div>
@@ -91,7 +91,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
     {{-- Goal Type Distribution --}}
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-        <h3 class="text-sm font-bold text-gray-900 mb-1">Goal Type <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Distribution</span></h3>
+        <h3 class="text-sm font-bold text-gray-900 mb-1">Goal Type <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Distribution</span></h3>
         <span class="text-[10px] text-gray-400 block mb-4">Subscriber goals breakdown</span>
         <div class="space-y-3">
             @php $totalGoals = array_sum(array_column($goalDistribution, 'count')); @endphp
@@ -116,9 +116,9 @@
     </div>
 
     {{-- Corporate Metrics --}}
-    <div class="bg-gradient-to-br from-[#033133] to-[#01241f] rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-24 h-24 bg-[#259B00]/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
-        <h3 class="text-sm font-bold mb-4 relative z-10">Corporate <span class="text-[#259B00]">Metrics</span></h3>
+    <div class="bg-gradient-to-br from-[#173327] to-[#122620] rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-[#6E7A25]/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+        <h3 class="text-sm font-bold mb-4 relative z-10">Corporate <span class="text-[#6E7A25]">Metrics</span></h3>
         <div class="grid grid-cols-2 gap-4 relative z-10">
             @foreach($corporateMetrics as $cm)
             <div class="border border-white/5 rounded-xl p-3">
@@ -133,7 +133,7 @@
 {{-- Plan Performance Ranking --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-5 py-4 border-b border-gray-50">
-        <h3 class="text-sm font-bold text-gray-900">Plan Performance <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Ranking</span></h3>
+        <h3 class="text-sm font-bold text-gray-900">Plan Performance <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Ranking</span></h3>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">

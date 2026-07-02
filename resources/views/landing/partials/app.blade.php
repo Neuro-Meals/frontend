@@ -57,9 +57,9 @@
                                 <p class="text-gray-400 text-xs font-medium uppercase tracking-[3px] mb-2">Nutrio Meals</p>
                                 <p class="text-gray-900 text-2xl font-extrabold tracking-tight mb-4">Coming Soon</p>
                                 <div class="flex justify-center gap-1.5 mb-8">
-                                    <span class="w-2 h-2 rounded-full bg-[#259B00] animate-pulse"></span>
-                                    <span class="w-2 h-2 rounded-full bg-[#259B00]/60 animate-pulse" style="animation-delay: 0.2s;"></span>
-                                    <span class="w-2 h-2 rounded-full bg-[#259B00]/30 animate-pulse" style="animation-delay: 0.4s;"></span>
+                                    <span class="w-2 h-2 rounded-full bg-[#6E7A25] animate-pulse"></span>
+                                    <span class="w-2 h-2 rounded-full bg-[#6E7A25]/60 animate-pulse" style="animation-delay: 0.2s;"></span>
+                                    <span class="w-2 h-2 rounded-full bg-[#6E7A25]/30 animate-pulse" style="animation-delay: 0.4s;"></span>
                                 </div>
                             </div>
 

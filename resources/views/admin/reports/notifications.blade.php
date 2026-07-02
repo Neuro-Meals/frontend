@@ -37,13 +37,13 @@
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm lg:col-span-2">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Send Volume by <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Channel</span></h3>
+                <h3 class="text-sm font-bold text-gray-900">Send Volume by <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Channel</span></h3>
                 <span class="text-[10px] text-gray-400">Notification count | Monthly | Stacked</span>
             </div>
             <div class="flex items-center gap-2 text-[10px] flex-wrap">
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#033133]"></span> Email</span>
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#259B00]"></span> SMS</span>
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#f9ac00]"></span> Push</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#173327]"></span> Email</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#6E7A25]"></span> SMS</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#949B50]"></span> Push</span>
                 <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#8b5cf6]"></span> WhatsApp</span>
             </div>
         </div>
@@ -60,9 +60,9 @@
             <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
                 <div class="w-full bg-gray-50 rounded-t-md relative h-40 overflow-hidden flex flex-col-reverse items-center">
                     <div class="w-full transition-all duration-300 bg-[#8b5cf6] group-hover:opacity-80" style="height: {{ max($waPct, 1) }}%"></div>
-                    <div class="w-full transition-all duration-300 bg-[#f9ac00] group-hover:opacity-80" style="height: {{ max($pushPct, 1) }}%"></div>
-                    <div class="w-full transition-all duration-300 bg-[#259B00] group-hover:opacity-80" style="height: {{ max($smsPct, 1) }}%"></div>
-                    <div class="w-full rounded-t-md transition-all duration-300 bg-[#033133] group-hover:opacity-80" style="height: {{ max($emailPct, 1) }}%">
+                    <div class="w-full transition-all duration-300 bg-[#949B50] group-hover:opacity-80" style="height: {{ max($pushPct, 1) }}%"></div>
+                    <div class="w-full transition-all duration-300 bg-[#6E7A25] group-hover:opacity-80" style="height: {{ max($smsPct, 1) }}%"></div>
+                    <div class="w-full rounded-t-md transition-all duration-300 bg-[#173327] group-hover:opacity-80" style="height: {{ max($emailPct, 1) }}%">
                         <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap z-10">{{ number_format($total) }} total</div>
                     </div>
                 </div>
@@ -74,7 +74,7 @@
 
     {{-- Channel Mix Donut --}}
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-        <h3 class="text-sm font-bold text-gray-900 mb-1">Channel <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Mix</span></h3>
+        <h3 class="text-sm font-bold text-gray-900 mb-1">Channel <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Mix</span></h3>
         <span class="text-[10px] text-gray-400 block mb-4">Distribution by channel</span>
         {{-- CSS Donut --}}
         @php
@@ -113,7 +113,7 @@
 {{-- Campaign Performance Table --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-6">
     <div class="px-5 py-4 border-b border-gray-50">
-        <h3 class="text-sm font-bold text-gray-900">Campaign <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Performance</span></h3>
+        <h3 class="text-sm font-bold text-gray-900">Campaign <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Performance</span></h3>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -141,12 +141,12 @@
                     <td class="px-5 py-3">
                         <div class="flex items-center gap-2">
                             <div class="w-12 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                <div class="h-full bg-[#259B00] rounded-full" style="width: {{ min($campaign['ctr'] * 3, 100) }}%"></div>
+                                <div class="h-full bg-[#6E7A25] rounded-full" style="width: {{ min($campaign['ctr'] * 3, 100) }}%"></div>
                             </div>
                             <span class="text-xs font-bold text-gray-900">{{ $campaign['ctr'] }}%</span>
                         </div>
                     </td>
-                    <td class="px-5 py-3 text-xs font-bold text-[#259B00]">{{ $campaign['converted'] }}</td>
+                    <td class="px-5 py-3 text-xs font-bold text-[#6E7A25]">{{ $campaign['converted'] }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -157,7 +157,7 @@
 {{-- Failed Send Diagnostics --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-        <h3 class="text-sm font-bold text-gray-900">Failed Send <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Diagnostics</span></h3>
+        <h3 class="text-sm font-bold text-gray-900">Failed Send <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Diagnostics</span></h3>
         <span class="text-[10px] text-gray-400">{{ count($failedDiagnostics) }} failures</span>
     </div>
     <div class="overflow-x-auto">
@@ -185,7 +185,7 @@
                     <td class="px-5 py-3 text-xs text-gray-500">{{ $fail['campaign'] }}</td>
                     <td class="px-5 py-3 text-xs text-gray-400">{{ $fail['time'] }}</td>
                     <td class="px-5 py-3">
-                        <button class="text-[10px] font-bold text-[#259B00] hover:underline">Retry</button>
+                        <button class="text-[10px] font-bold text-[#6E7A25] hover:underline">Retry</button>
                     </td>
                 </tr>
                 @endforeach

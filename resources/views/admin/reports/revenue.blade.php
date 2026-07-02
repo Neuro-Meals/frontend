@@ -37,11 +37,11 @@
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Revenue <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Trend</span></h3>
+                <h3 class="text-sm font-bold text-gray-900">Revenue <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Trend</span></h3>
                 <span class="text-[10px] text-gray-400">SAR | Current vs Previous Period</span>
             </div>
             <div class="flex items-center gap-3 text-[10px]">
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#259B00]"></span> Current</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#6E7A25]"></span> Current</span>
                 <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-gray-300"></span> Previous</span>
             </div>
         </div>
@@ -51,7 +51,7 @@
             @php $currPct = ($revenueTrend['current'][$i] / $revMax) * 100; $prevPct = ($revenueTrend['previous'][$i] / $revMax) * 100; @endphp
             <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
                 <div class="w-full bg-gray-50 rounded-t-md relative h-40 overflow-hidden flex items-end justify-center gap-1">
-                    <div class="w-1/2 rounded-t-md transition-all duration-300 bg-gradient-to-t from-[#259B00] to-[#259B00]/70 group-hover:opacity-80" style="height: {{ max($currPct, 4) }}%">
+                    <div class="w-1/2 rounded-t-md transition-all duration-300 bg-gradient-to-t from-[#6E7A25] to-[#6E7A25]/70 group-hover:opacity-80" style="height: {{ max($currPct, 4) }}%">
                         <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap z-10">SAR {{ number_format($revenueTrend['current'][$i]) }}</div>
                     </div>
                     <div class="w-1/2 rounded-t-md transition-all duration-300 bg-gray-300 group-hover:opacity-70" style="height: {{ max($prevPct, 4) }}%"></div>
@@ -66,11 +66,11 @@
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Payment <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Success & Failure</span></h3>
+                <h3 class="text-sm font-bold text-gray-900">Payment <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Success & Failure</span></h3>
                 <span class="text-[10px] text-gray-400">Percentage | Monthly Trend</span>
             </div>
             <div class="flex items-center gap-3 text-[10px]">
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#259B00]"></span> Success</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#6E7A25]"></span> Success</span>
                 <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-red-400"></span> Failure</span>
             </div>
         </div>
@@ -80,7 +80,7 @@
             @php $succPct = $paymentTrends['success'][$i]; $failPct = $paymentTrends['failure'][$i]; @endphp
             <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
                 <div class="w-full bg-gray-50 rounded-t-md relative h-40 overflow-hidden flex items-end justify-center gap-0.5">
-                    <div class="w-1/2 rounded-t-md transition-all duration-300 bg-gradient-to-t from-[#259B00] to-[#259B00]/70 group-hover:opacity-80" style="height: {{ $succPct }}%">
+                    <div class="w-1/2 rounded-t-md transition-all duration-300 bg-gradient-to-t from-[#6E7A25] to-[#6E7A25]/70 group-hover:opacity-80" style="height: {{ $succPct }}%">
                         <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap z-10">{{ $succPct }}% success</div>
                     </div>
                     <div class="w-1/2 rounded-t-md transition-all duration-300 bg-gradient-to-t from-red-400 to-red-300 group-hover:opacity-80" style="height: {{ max($failPct * 10, 4) }}%"></div>
@@ -98,7 +98,7 @@
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Refund <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Volume</span></h3>
+                <h3 class="text-sm font-bold text-gray-900">Refund <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Volume</span></h3>
                 <span class="text-[10px] text-gray-400">SAR | Monthly | Refund Ratio: 1.4%</span>
             </div>
         </div>
@@ -120,7 +120,7 @@
 
     {{-- Revenue by Plan - Donut style --}}
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-        <h3 class="text-sm font-bold text-gray-900 mb-1">Revenue by <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Plan</span></h3>
+        <h3 class="text-sm font-bold text-gray-900 mb-1">Revenue by <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Plan</span></h3>
         <span class="text-[10px] text-gray-400 block mb-4">Distribution | SAR</span>
         <div class="space-y-3">
             @php $totalRev = array_sum(array_column($revenueByPlan, 'revenue')); @endphp
@@ -148,7 +148,7 @@
 {{-- Payment Methods Table --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-5 py-4 border-b border-gray-50">
-        <h3 class="text-sm font-bold text-gray-900">Payment <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Methods Breakdown</span></h3>
+        <h3 class="text-sm font-bold text-gray-900">Payment <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Methods Breakdown</span></h3>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -170,7 +170,7 @@
                     <td class="px-5 py-3">
                         <div class="flex items-center gap-2">
                             <div class="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                <div class="h-full bg-[#259B00] rounded-full" style="width: {{ $pm['pct'] }}%"></div>
+                                <div class="h-full bg-[#6E7A25] rounded-full" style="width: {{ $pm['pct'] }}%"></div>
                             </div>
                             <span class="text-xs text-gray-500">{{ $pm['pct'] }}%</span>
                         </div>

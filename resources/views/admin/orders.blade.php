@@ -29,7 +29,7 @@
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
         <p class="text-xs text-gray-400 mb-1">Today's Orders</p>
-        <p class="text-2xl font-bold text-[#259B00]">{{ $stats['today'] }}</p>
+        <p class="text-2xl font-bold text-[#6E7A25]">{{ $stats['today'] }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
         <p class="text-xs text-gray-400 mb-1">Pending</p>
@@ -56,7 +56,7 @@
         <option>Cancelled</option>
     </select>
     <input type="date" class="text-sm border border-gray-100 rounded-lg px-3 py-2 bg-gray-50 text-gray-600 outline-none cursor-pointer">
-    <button class="ml-auto px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#033133] to-[#259B00] rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-2">
+    <button class="ml-auto px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-2">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         Create Order
     </button>
@@ -86,7 +86,7 @@
                     </td>
                     <td class="px-6 py-3.5">
                         <div class="flex items-center gap-2">
-                            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-[#259B00] to-[#033133] flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0">
+                            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0">
                                 {{ strtoupper(substr($order['customer'], 0, 1)) }}
                             </div>
                             <span class="text-xs font-medium text-gray-700">{{ $order['customer'] }}</span>
@@ -117,7 +117,7 @@
         <p class="text-xs text-gray-400">Showing 1-8 of {{ number_format($stats['total']) }} orders</p>
         <div class="flex items-center gap-1">
             <button class="px-3 py-1.5 text-xs font-medium text-gray-400 rounded-lg hover:bg-gray-50 transition-colors">Previous</button>
-            <button class="px-3 py-1.5 text-xs font-bold text-white bg-[#259B00] rounded-lg">1</button>
+            <button class="px-3 py-1.5 text-xs font-bold text-white bg-[#6E7A25] rounded-lg">1</button>
             <button class="px-3 py-1.5 text-xs font-medium text-gray-600 rounded-lg hover:bg-gray-50 transition-colors">2</button>
             <button class="px-3 py-1.5 text-xs font-medium text-gray-600 rounded-lg hover:bg-gray-50 transition-colors">3</button>
             <button class="px-3 py-1.5 text-xs font-medium text-gray-400 rounded-lg hover:bg-gray-50 transition-colors">Next</button>

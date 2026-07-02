@@ -128,8 +128,8 @@
             function draw() {
                 ctx.clearRect(0, 0, width, height);
                 const dark = isDark();
-                const dotColor = dark ? 'rgba(37, 155, 0, 0.6)' : 'rgba(37, 155, 0, 0.5)';
-                const lineColor = dark ? 'rgba(37, 155, 0, 0.15)' : 'rgba(3, 49, 51, 0.12)';
+                const dotColor = dark ? 'rgba(110,122,37, 0.6)' : 'rgba(110,122,37, 0.5)';
+                const lineColor = dark ? 'rgba(110,122,37, 0.15)' : 'rgba(3, 49, 51, 0.12)';
 
                 for (let i = 0; i < particles.length; i++) {
                     const p = particles[i];

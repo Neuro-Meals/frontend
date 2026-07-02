@@ -1,5 +1,5 @@
 {{-- Shared page hero --}}
-<section class="bg-gradient-to-br from-[#033133] via-[#0a4a3a] to-[#259B00] py-16 lg:py-24 relative overflow-hidden">
+<section class="bg-gradient-to-br from-[#173327] via-[#0a4a3a] to-[#6E7A25] py-16 lg:py-24 relative overflow-hidden">
     <div class="absolute top-0 right-0 w-96 h-96 rounded-full bg-white/5 blur-3xl"></div>
     <div class="absolute bottom-0 left-0 w-96 h-96 rounded-full bg-white/5 blur-3xl"></div>
     <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 relative">

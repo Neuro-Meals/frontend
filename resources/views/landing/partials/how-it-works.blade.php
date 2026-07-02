@@ -35,7 +35,7 @@
                         <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:border-brand-light/30 dark:hover:border-brand-light/30 hover:-translate-y-1 transition-all duration-300 h-full">
                             <div class="flex items-center gap-4 mb-4">
                                 <div class="relative flex-shrink-0">
-                                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#033133] to-[#259B00] text-white flex items-center justify-center shadow-lg">
+                                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white flex items-center justify-center shadow-lg">
                                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $step['icon'] }}"></path></svg>
                                     </div>
                                     <div class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-white dark:bg-gray-900 border-2 border-brand-light text-brand-light flex items-center justify-center text-xs font-extrabold shadow-md">{{ $step['num'] }}</div>
@@ -73,7 +73,7 @@
                         <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:border-brand-light/30 dark:hover:border-brand-light/30 hover:-translate-y-1 transition-all duration-300 h-full">
                             <div class="flex items-center gap-4 mb-4">
                                 <div class="relative flex-shrink-0">
-                                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#033133] to-[#259B00] text-white flex items-center justify-center shadow-lg">
+                                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white flex items-center justify-center shadow-lg">
                                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $step['icon'] }}"></path></svg>
                                     </div>
                                     <div class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-white dark:bg-gray-900 border-2 border-brand-light text-brand-light flex items-center justify-center text-xs font-extrabold shadow-md">{{ $step['num'] }}</div>
@@ -106,10 +106,10 @@
                 const target = this.dataset.target;
 
                 btns.forEach(b => {
-                    b.classList.remove('active', 'bg-gradient-to-r', 'from-[#033133]', 'to-[#259B00]', 'text-white', 'shadow-md');
+                    b.classList.remove('active', 'bg-gradient-to-r', 'from-[#173327]', 'to-[#6E7A25]', 'text-white', 'shadow-md');
                     b.classList.add('text-gray-600', 'dark:text-gray-300');
                 });
-                this.classList.add('active', 'bg-gradient-to-r', 'from-[#033133]', 'to-[#259B00]', 'text-white', 'shadow-md');
+                this.classList.add('active', 'bg-gradient-to-r', 'from-[#173327]', 'to-[#6E7A25]', 'text-white', 'shadow-md');
                 this.classList.remove('text-gray-600', 'dark:text-gray-300');
 
                 workflows.forEach(w => {
@@ -131,7 +131,7 @@
         {{-- Set initial active button style --}}
         const firstBtn = document.querySelector('.hiw-role-btn.active');
         if (firstBtn) {
-            firstBtn.classList.add('bg-gradient-to-r', 'from-[#033133]', 'to-[#259B00]', 'text-white', 'shadow-md');
+            firstBtn.classList.add('bg-gradient-to-r', 'from-[#173327]', 'to-[#6E7A25]', 'text-white', 'shadow-md');
             firstBtn.classList.remove('text-gray-600', 'dark:text-gray-300');
         }
     })();

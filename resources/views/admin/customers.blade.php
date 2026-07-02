@@ -16,7 +16,7 @@
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
         <div class="flex items-center justify-between mb-2">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#259B00] to-[#033133] flex items-center justify-center">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             </div>
             <span class="text-xs font-bold text-green-600">+{{ $stats['newThisWeek'] }}</span>
@@ -72,7 +72,7 @@
         <option>Maintenance</option>
         <option>Keto Premium</option>
     </select>
-    <button class="ml-auto px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#033133] to-[#259B00] rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-2">
+    <button class="ml-auto px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-2">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         Add Customer
     </button>
@@ -99,7 +99,7 @@
                 <tr class="border-b border-gray-50 hover:bg-gray-50/30 transition-colors">
                     <td class="px-6 py-3.5">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#259B00] to-[#033133] flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
                                 {{ strtoupper(substr($customer['name'], 0, 1)) }}
                             </div>
                             <span class="text-xs font-semibold text-gray-900">{{ $customer['name'] }}</span>
@@ -137,7 +137,7 @@
         <p class="text-xs text-gray-400">Showing 1-8 of {{ number_format($stats['total']) }} customers</p>
         <div class="flex items-center gap-1">
             <button class="px-3 py-1.5 text-xs font-medium text-gray-400 rounded-lg hover:bg-gray-50 transition-colors">Previous</button>
-            <button class="px-3 py-1.5 text-xs font-bold text-white bg-[#259B00] rounded-lg">1</button>
+            <button class="px-3 py-1.5 text-xs font-bold text-white bg-[#6E7A25] rounded-lg">1</button>
             <button class="px-3 py-1.5 text-xs font-medium text-gray-600 rounded-lg hover:bg-gray-50 transition-colors">2</button>
             <button class="px-3 py-1.5 text-xs font-medium text-gray-600 rounded-lg hover:bg-gray-50 transition-colors">3</button>
             <button class="px-3 py-1.5 text-xs font-medium text-gray-400 rounded-lg hover:bg-gray-50 transition-colors">Next</button>

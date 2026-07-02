@@ -1,7 +1,7 @@
 <section id="calculator" class="py-20 lg:py-28 bg-gray-50 dark:bg-gray-950 transition-colors duration-300 relative overflow-hidden">
     {{-- Decorative --}}
     <div class="absolute top-1/4 -left-32 w-80 h-80 rounded-full bg-brand-light/5 blur-3xl"></div>
-    <div class="absolute bottom-1/4 -right-32 w-80 h-80 rounded-full bg-[#033133]/5 blur-3xl"></div>
+    <div class="absolute bottom-1/4 -right-32 w-80 h-80 rounded-full bg-[#173327]/5 blur-3xl"></div>
 
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {{-- Header --}}
@@ -14,7 +14,7 @@
         {{-- Calculator card --}}
         <div class="calc-card scroll-reveal relative rounded-3xl bg-white dark:bg-gray-800 shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
             {{-- Top gradient bar --}}
-            <div class="h-1.5 bg-gradient-to-r from-[#033133] to-[#259B00]"></div>
+            <div class="h-1.5 bg-gradient-to-r from-[#173327] to-[#6E7A25]"></div>
 
             <div class="p-6 sm:p-8 lg:p-10">
                 {{-- Inputs --}}
@@ -60,7 +60,7 @@
                 </div>
 
                 {{-- Calculate button --}}
-                <button id="calc-btn" class="w-full py-3.5 text-sm font-bold text-white bg-gradient-to-r from-[#033133] to-[#259B00] hover:shadow-lg hover:shadow-brand-light/30 hover:-translate-y-0.5 rounded-xl transition-all flex items-center justify-center gap-2">
+                <button id="calc-btn" class="w-full py-3.5 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] hover:shadow-lg hover:shadow-brand-light/30 hover:-translate-y-0.5 rounded-xl transition-all flex items-center justify-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                     Calculate My Plan
                 </button>
@@ -75,12 +75,12 @@
                         <p id="result-calories" class="text-3xl font-extrabold text-brand-light">0</p>
                         <p class="text-xs text-gray-400 mt-1">kcal / day</p>
                     </div>
-                    <div class="calc-result p-5 rounded-2xl bg-gradient-to-br from-[#033133]/10 to-[#033133]/5 border border-[#033133]/20 text-center">
-                        <div class="w-10 h-10 mx-auto rounded-full bg-[#033133]/15 flex items-center justify-center mb-3">
-                            <svg class="w-5 h-5 text-[#033133] dark:text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 11h.01M12 11h.01M16 11h.01M21 16v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2a4 4 0 004 4h10a4 4 0 004-4z"/></svg>
+                    <div class="calc-result p-5 rounded-2xl bg-gradient-to-br from-[#173327]/10 to-[#173327]/5 border border-[#173327]/20 text-center">
+                        <div class="w-10 h-10 mx-auto rounded-full bg-[#173327]/15 flex items-center justify-center mb-3">
+                            <svg class="w-5 h-5 text-[#173327] dark:text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 11h.01M12 11h.01M16 11h.01M21 16v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2a4 4 0 004 4h10a4 4 0 004-4z"/></svg>
                         </div>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">Protein Target</p>
-                        <p id="result-protein" class="text-3xl font-extrabold text-[#033133] dark:text-brand-light">0</p>
+                        <p id="result-protein" class="text-3xl font-extrabold text-[#173327] dark:text-brand-light">0</p>
                         <p class="text-xs text-gray-400 mt-1">grams / day</p>
                     </div>
                     <div class="calc-result p-5 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-700 dark:to-gray-800 border border-gray-200 dark:border-gray-600 text-center">

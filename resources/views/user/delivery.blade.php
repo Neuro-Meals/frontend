@@ -7,7 +7,7 @@
 
 {{-- Stats --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-    <div class="bg-gradient-to-br from-[#033133] to-[#259B00] rounded-xl p-4 text-white shadow-lg shadow-[#259B00]/20">
+    <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-4 text-white shadow-lg shadow-[#6E7A25]/20">
         <span class="text-[10px] font-medium text-white/60">Total Deliveries</span>
         <div class="text-2xl font-bold mt-1">{{ $stats['totalDeliveries'] }}</div>
     </div>
@@ -27,7 +27,7 @@
 
 {{-- Upcoming Deliveries --}}
 <div class="mb-6">
-    <h3 class="text-sm font-bold text-gray-900 mb-4">Upcoming <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Deliveries</span></h3>
+    <h3 class="text-sm font-bold text-gray-900 mb-4">Upcoming <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Deliveries</span></h3>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         @foreach($upcoming as $delivery)
         <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-all">
@@ -65,7 +65,7 @@
 {{-- Delivery History --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-5 py-4 border-b border-gray-50">
-        <h3 class="text-sm font-bold text-gray-900">Delivery <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">History</span></h3>
+        <h3 class="text-sm font-bold text-gray-900">Delivery <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">History</span></h3>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">

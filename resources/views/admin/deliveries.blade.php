@@ -35,7 +35,7 @@
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
         <p class="text-xs text-gray-400 mb-1">On-Time Rate</p>
-        <p class="text-2xl font-bold text-[#259B00]">{{ $stats['onTimeRate'] }}%</p>
+        <p class="text-2xl font-bold text-[#6E7A25]">{{ $stats['onTimeRate'] }}%</p>
     </div>
 </div>
 

@@ -25,7 +25,7 @@
 {{-- KPI Cards Row --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     {{-- Revenue --}}
-    <div class="kpi-card bg-gradient-to-br from-[#033133] to-[#259B00] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#259B00]/20">
+    <div class="kpi-card bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
         <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
         <div class="relative z-10">
@@ -96,7 +96,7 @@
 {{-- Secondary KPI Row --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <div class="kpi-card bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3 shadow-sm">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#259B00] to-[#033133] flex items-center justify-center flex-shrink-0">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center flex-shrink-0">
             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         </div>
         <div>
@@ -139,11 +139,11 @@
     <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h3 class="text-base font-bold text-gray-900">Revenue <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Trend</span></h3>
+                <h3 class="text-base font-bold text-gray-900">Revenue <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Trend</span></h3>
                 <p class="text-xs text-gray-400 mt-0.5">Last 14 days performance</p>
             </div>
             <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-[#259B00]"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-[#6E7A25]"></span>
                 <span class="text-xs text-gray-500">Daily Revenue</span>
             </div>
         </div>
@@ -156,7 +156,7 @@
                 @php $pct = min(100, ($rev / $revMax) * 100); $isToday = $i === count($revenueTrend)-1; @endphp
                 <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
                     <div class="w-full relative h-40 flex items-end">
-                        <div class="w-full rounded-t-lg transition-all duration-300 group-hover:opacity-80 {{ $isToday ? 'bg-gradient-to-t from-[#259B00] to-[#259B00]/70' : 'bg-gradient-to-t from-[#259B00]/60 to-[#259B00]/30' }}" style="height: {{ max($pct, 4) }}%"></div>
+                        <div class="w-full rounded-t-lg transition-all duration-300 group-hover:opacity-80 {{ $isToday ? 'bg-gradient-to-t from-[#6E7A25] to-[#6E7A25]/70' : 'bg-gradient-to-t from-[#6E7A25]/60 to-[#6E7A25]/30' }}" style="height: {{ max($pct, 4) }}%"></div>
                         <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap pointer-events-none">
                             SAR {{ number_format($rev) }}
                         </div>
@@ -184,7 +184,7 @@
     {{-- Plan Distribution --}}
     <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div class="mb-6">
-            <h3 class="text-base font-bold text-gray-900">Plan <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Distribution</span></h3>
+            <h3 class="text-base font-bold text-gray-900">Plan <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Distribution</span></h3>
             <p class="text-xs text-gray-400 mt-0.5">Active subscriptions by plan</p>
         </div>
         @php $totalPlans = array_sum(array_column($planDistribution, 'count')); @endphp
@@ -216,11 +216,11 @@
     <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h3 class="text-base font-bold text-gray-900">Orders <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">This Week</span></h3>
+                <h3 class="text-base font-bold text-gray-900">Orders <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">This Week</span></h3>
                 <p class="text-xs text-gray-400 mt-0.5">Daily order volume</p>
             </div>
             <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-[#033133]"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-[#173327]"></span>
                 <span class="text-xs text-gray-500">Orders</span>
             </div>
         </div>
@@ -230,7 +230,7 @@
                 @php $pct = min(100, ($ord / $ordMax) * 100); @endphp
                 <div class="flex-1 flex flex-col items-center gap-2 group cursor-pointer">
                     <div class="w-full relative h-32 flex items-end">
-                        <div class="w-full rounded-t-lg bg-gradient-to-t from-[#033133] to-[#033133]/70 transition-all duration-300 group-hover:opacity-80" style="height: {{ max($pct, 5) }}%"></div>
+                        <div class="w-full rounded-t-lg bg-gradient-to-t from-[#173327] to-[#173327]/70 transition-all duration-300 group-hover:opacity-80" style="height: {{ max($pct, 5) }}%"></div>
                         <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md">
                             {{ $ord }}
                         </div>
@@ -244,14 +244,14 @@
     {{-- Delivery Zones --}}
     <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div class="mb-5">
-            <h3 class="text-base font-bold text-gray-900">Delivery <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Zones</span></h3>
+            <h3 class="text-base font-bold text-gray-900">Delivery <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Zones</span></h3>
             <p class="text-xs text-gray-400 mt-0.5">Today's distribution</p>
         </div>
         <div class="space-y-3">
             @foreach($deliveryZones as $zone)
                 <div class="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-gray-50 to-white border border-gray-100 hover:shadow-sm transition-all">
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#033133] to-[#259B00] flex items-center justify-center flex-shrink-0">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center flex-shrink-0">
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         </div>
                         <div>
@@ -275,10 +275,10 @@
     <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
             <div>
-                <h3 class="text-base font-bold text-gray-900">Recent <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Orders</span></h3>
+                <h3 class="text-base font-bold text-gray-900">Recent <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Orders</span></h3>
                 <p class="text-xs text-gray-400 mt-0.5">Latest customer transactions</p>
             </div>
-            <a href="{{ route('admin.orders') }}" class="text-xs font-bold text-white bg-gradient-to-r from-[#033133] to-[#259B00] px-3 py-1.5 rounded-lg hover:shadow-md hover:shadow-[#259B00]/20 transition-all">View All →</a>
+            <a href="{{ route('admin.orders') }}" class="text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] px-3 py-1.5 rounded-lg hover:shadow-md hover:shadow-[#6E7A25]/20 transition-all">View All →</a>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -299,7 +299,7 @@
                         </td>
                         <td class="px-6 py-3">
                             <div class="flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-[#259B00] to-[#033133] flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0">
+                                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0">
                                     {{ strtoupper(substr($order['customer'], 0, 1)) }}
                                 </div>
                                 <span class="text-xs font-medium text-gray-700">{{ $order['customer'] }}</span>
@@ -324,7 +324,7 @@
     {{-- Top Meals --}}
     <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div class="mb-5">
-            <h3 class="text-base font-bold text-gray-900">Top <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Meals</span></h3>
+            <h3 class="text-base font-bold text-gray-900">Top <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Meals</span></h3>
             <p class="text-xs text-gray-400 mt-0.5">Best performing this month</p>
         </div>
         <div class="space-y-3">
@@ -344,12 +344,12 @@
 </div>
 
 {{-- System Status Bar --}}
-<div class="bg-gradient-to-r from-[#033133] via-[#01241f] to-[#033133] rounded-2xl p-5 text-white relative overflow-hidden shadow-xl">
-    <div class="absolute top-0 right-0 w-40 h-40 bg-[#259B00]/10 rounded-full -mr-20 -mt-20 blur-2xl"></div>
-    <div class="absolute bottom-0 left-1/3 w-32 h-32 bg-[#259B00]/5 rounded-full blur-2xl"></div>
+<div class="bg-gradient-to-r from-[#173327] via-[#122620] to-[#173327] rounded-2xl p-5 text-white relative overflow-hidden shadow-xl">
+    <div class="absolute top-0 right-0 w-40 h-40 bg-[#6E7A25]/10 rounded-full -mr-20 -mt-20 blur-2xl"></div>
+    <div class="absolute bottom-0 left-1/3 w-32 h-32 bg-[#6E7A25]/5 rounded-full blur-2xl"></div>
     <div class="relative z-10 flex items-center justify-between flex-wrap gap-4">
         <div class="flex items-center gap-4">
-            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-[#259B00] to-[#033133] flex items-center justify-center shadow-lg shadow-[#259B00]/30">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center shadow-lg shadow-[#6E7A25]/30">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <div>

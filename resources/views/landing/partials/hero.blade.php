@@ -11,7 +11,7 @@
     <div class="absolute inset-0 bg-gradient-to-t from-white/60 via-transparent to-transparent dark:from-gray-900/60 dark:via-transparent dark:to-transparent"></div>
 
     {{-- Subtle dot pattern --}}
-    <div class="absolute inset-0 opacity-5 dark:opacity-10" style="background-image: radial-gradient(rgba(37,155,0,0.3) 1px, transparent 1px); background-size: 32px 32px;"></div>
+    <div class="absolute inset-0 opacity-5 dark:opacity-10" style="background-image: radial-gradient(rgba(110,122,37,0.3) 1px, transparent 1px); background-size: 32px 32px;"></div>
     <canvas id="hero-particles" class="absolute inset-0 w-full h-full opacity-40 dark:opacity-25 pointer-events-none"></canvas>
 
     {{-- Content - text on left with backdrop --}}
@@ -37,7 +37,7 @@
                     </p>
 
                     <div class="flex flex-col sm:flex-row gap-4 mb-10">
-                        <a href="#plans" class="inline-flex justify-center items-center py-4 px-8 text-lg font-bold text-center text-white rounded-xl bg-gradient-to-r from-[#033133] to-[#259B00] hover:from-[#025C5F] hover:to-[#1E8A00] focus:ring-4 focus:ring-[#259B00]/40 dark:focus:ring-[#259B00]/60 shadow-lg shadow-brand-light/30 hover:shadow-xl hover:shadow-brand-light/40 hover:-translate-y-0.5 transition-all duration-300">
+                        <a href="#plans" class="inline-flex justify-center items-center py-4 px-8 text-lg font-bold text-center text-white rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] hover:from-[#025C5F] hover:to-[#1E8A00] focus:ring-4 focus:ring-[#6E7A25]/40 dark:focus:ring-[#6E7A25]/60 shadow-lg shadow-brand-light/30 hover:shadow-xl hover:shadow-brand-light/40 hover:-translate-y-0.5 transition-all duration-300">
                             Start Your Plan
                             <svg class="ml-2 -mr-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                         </a>

@@ -15,7 +15,7 @@
 
 {{-- Executive KPI Row --}}
 <div class="mb-6">
-    <h3 class="text-sm font-bold text-gray-900 mb-3">Executive <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">KPIs</span></h3>
+    <h3 class="text-sm font-bold text-gray-900 mb-3">Executive <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">KPIs</span></h3>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         @foreach($kpis as $kpi)
         <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm kpi-card relative overflow-hidden">
@@ -41,11 +41,11 @@
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm lg:col-span-2">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Revenue <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Trend</span></h3>
+                <h3 class="text-sm font-bold text-gray-900">Revenue <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Trend</span></h3>
                 <span class="text-[10px] text-gray-400">SAR | Last 6 months | Comparison: Current vs Previous</span>
             </div>
             <div class="flex items-center gap-3 text-[10px]">
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#259B00]"></span> Current</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#6E7A25]"></span> Current</span>
                 <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-gray-300"></span> Previous</span>
             </div>
         </div>
@@ -55,7 +55,7 @@
             @php $currPct = ($revenueTrend['current'][$i] / $revMax) * 100; $prevPct = ($revenueTrend['previous'][$i] / $revMax) * 100; @endphp
             <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
                 <div class="w-full bg-gray-50 rounded-t-md relative h-44 overflow-hidden flex items-end justify-center gap-1">
-                    <div class="w-1/2 rounded-t-md transition-all duration-300 bg-gradient-to-t from-[#259B00] to-[#259B00]/70 group-hover:opacity-80" style="height: {{ max($currPct, 4) }}%">
+                    <div class="w-1/2 rounded-t-md transition-all duration-300 bg-gradient-to-t from-[#6E7A25] to-[#6E7A25]/70 group-hover:opacity-80" style="height: {{ max($currPct, 4) }}%">
                         <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap z-10">SAR {{ number_format($revenueTrend['current'][$i]) }}</div>
                     </div>
                     <div class="w-1/2 rounded-t-md transition-all duration-300 bg-gray-300 group-hover:opacity-70" style="height: {{ max($prevPct, 4) }}%"></div>
@@ -68,11 +68,11 @@
 
     {{-- Subscription Funnel --}}
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-        <h3 class="text-sm font-bold text-gray-900 mb-1">Subscription <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Funnel</span></h3>
+        <h3 class="text-sm font-bold text-gray-900 mb-1">Subscription <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Funnel</span></h3>
         <span class="text-[10px] text-gray-400 block mb-4">Visit → Trial → Subscribe → Renew</span>
         <div class="space-y-3">
             @foreach($subscriptionFunnel as $i => $stage)
-            @php $widthPct = $stage['pct']; $colors = ['#259B00', '#3b82f6', '#f9ac00', '#033133']; $color = $colors[$i] ?? '#259B00'; @endphp
+            @php $widthPct = $stage['pct']; $colors = ['#6E7A25', '#3b82f6', '#949B50', '#173327']; $color = $colors[$i] ?? '#6E7A25'; @endphp
             <div>
                 <div class="flex items-center justify-between mb-1">
                     <span class="text-xs font-semibold text-gray-700">{{ $stage['stage'] }}</span>
@@ -95,7 +95,7 @@
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm lg:col-span-2">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Delivery <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">SLA by Zone</span></h3>
+                <h3 class="text-sm font-bold text-gray-900">Delivery <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">SLA by Zone</span></h3>
                 <span class="text-[10px] text-gray-400">On-time % | Target: 92%</span>
             </div>
         </div>
@@ -110,7 +110,7 @@
                     </div>
                 </div>
                 <div class="h-6 bg-gray-50 rounded-lg overflow-hidden relative">
-                    <div class="h-full rounded-lg transition-all duration-500 {{ $zone['onTime'] >= 92 ? 'bg-gradient-to-r from-[#259B00] to-[#259B00]/70' : 'bg-gradient-to-r from-amber-500 to-amber-400' }}" style="width: {{ $zone['onTime'] }}%"></div>
+                    <div class="h-full rounded-lg transition-all duration-500 {{ $zone['onTime'] >= 92 ? 'bg-gradient-to-r from-[#6E7A25] to-[#6E7A25]/70' : 'bg-gradient-to-r from-amber-500 to-amber-400' }}" style="width: {{ $zone['onTime'] }}%"></div>
                     <div class="absolute top-0 right-[8%] h-full w-0.5 bg-red-400/50"></div>
                 </div>
             </div>
@@ -119,9 +119,9 @@
     </div>
 
     {{-- Operational Metrics --}}
-    <div class="bg-gradient-to-br from-[#033133] to-[#01241f] rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-24 h-24 bg-[#259B00]/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
-        <h3 class="text-sm font-bold mb-4 relative z-10">Operational <span class="text-[#259B00]">Metrics</span></h3>
+    <div class="bg-gradient-to-br from-[#173327] to-[#122620] rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-[#6E7A25]/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+        <h3 class="text-sm font-bold mb-4 relative z-10">Operational <span class="text-[#6E7A25]">Metrics</span></h3>
         <div class="space-y-3 relative z-10">
             @foreach($operationalMetrics as $metric)
             <div class="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
@@ -136,7 +136,7 @@
 {{-- Exceptions Table --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-        <h3 class="text-sm font-bold text-gray-900">Exceptions <span class="bg-gradient-to-r from-[#033133] to-[#259B00] bg-clip-text text-transparent">Log</span></h3>
+        <h3 class="text-sm font-bold text-gray-900">Exceptions <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Log</span></h3>
         <span class="text-[10px] text-gray-400">{{ count($exceptions) }} active exceptions</span>
     </div>
     <div class="overflow-x-auto">
