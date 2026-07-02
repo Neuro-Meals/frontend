@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', __('Audit & Compliance') . ' - Nutrio Meals')
+@section('title', __('Audit & Compliance') . ' - ' . __('Nutrio Meals'))
 @section('page_title', __('Audit & Compliance'))
 
 @section('content')
@@ -8,11 +8,11 @@
 @include('admin.reports._filter_bar')
 
 <div class="hidden print:block mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">Nutrio Meals - Audit & Compliance Report</h1>
-    <p class="text-sm text-gray-500">Generated: {{ $lastUpdated }} | Timezone: {{ $timezone }}</p>
+    <h1 class="text-2xl font-bold text-gray-900">{{ __('Nutrio Meals') }} - {{ __('Audit & Compliance') }} {{ __('Report') }}</h1>
+    <p class="text-sm text-gray-500">{{ __('Generated') }}: {{ $lastUpdated }} | {{ __('Timezone') }}: {{ $timezone }}</p>
     <div class="mt-4 border-2 border-gray-200 rounded-lg p-4">
-        <p class="text-xs text-gray-500">This document contains privileged audit information. Distribution is restricted to authorized personnel only.</p>
-        <p class="text-xs text-gray-500 mt-2">Trace ID: trc_{{ substr(md5($reportName), 0, 12) }} | Classification: CONFIDENTIAL</p>
+        <p class="text-xs text-gray-500">{{ __('This document contains privileged audit information. Distribution is restricted to authorized personnel only.') }}</p>
+        <p class="text-xs text-gray-500 mt-2">{{ __('Trace ID') }}: trc_{{ substr(md5($reportName), 0, 12) }} | {{ __('Classification') }}: {{ __('CONFIDENTIAL') }}</p>
     </div>
 </div>
 
@@ -39,8 +39,8 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
     {{-- Change Hotspots --}}
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm lg:col-span-2">
-        <h3 class="text-sm font-bold text-gray-900 mb-1">Change <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Hotspots by Module</span></h3>
-        <span class="text-[10px] text-gray-400 block mb-4">Privileged action volume | Last 30 days</span>
+        <h3 class="text-sm font-bold text-gray-900 mb-1">{{ __('Change') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Hotspots by Module') }}</span></h3>
+        <span class="text-[10px] text-gray-400 block mb-4">{{ __('Privileged action volume') }} | {{ __('Last 30 days') }}</span>
         <div class="space-y-3">
             @foreach($changeHotspots as $spot)
             <div>
@@ -65,27 +65,27 @@
     {{-- Access Control --}}
     <div class="bg-gradient-to-br from-[#173327] to-[#122620] rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
         <div class="absolute top-0 right-0 w-24 h-24 bg-[#6E7A25]/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
-        <h3 class="text-sm font-bold mb-4 relative z-10">Access <span class="text-[#6E7A25]">Control</span></h3>
+        <h3 class="text-sm font-bold mb-4 relative z-10">{{ __('Access') }} <span class="text-[#6E7A25]">{{ __('Control') }}</span></h3>
         <div class="space-y-3 relative z-10">
             <div class="flex items-center justify-between py-2 border-b border-white/5">
                 <span class="text-xs text-white/60">reports.read</span>
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#6E7A25]/20 text-[#6E7A25]">Granted</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#6E7A25]/20 text-[#6E7A25]">{{ __('Granted') }}</span>
             </div>
             <div class="flex items-center justify-between py-2 border-b border-white/5">
                 <span class="text-xs text-white/60">reports.export</span>
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#6E7A25]/20 text-[#6E7A25]">Granted</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#6E7A25]/20 text-[#6E7A25]">{{ __('Granted') }}</span>
             </div>
             <div class="flex items-center justify-between py-2 border-b border-white/5">
                 <span class="text-xs text-white/60">audit.read</span>
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#6E7A25]/20 text-[#6E7A25]">Granted</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#6E7A25]/20 text-[#6E7A25]">{{ __('Granted') }}</span>
             </div>
             <div class="flex items-center justify-between py-2 border-b border-white/5">
-                <span class="text-xs text-white/60">Export Actions Audited</span>
+                <span class="text-xs text-white/60">{{ __('Export Actions Audited') }}</span>
                 <span class="text-xs font-bold text-white">100%</span>
             </div>
             <div class="flex items-center justify-between py-2">
-                <span class="text-xs text-white/60">Sensitive Fields Masked</span>
-                <span class="text-xs font-bold text-[#6E7A25]">Yes</span>
+                <span class="text-xs text-white/60">{{ __('Sensitive Fields Masked') }}</span>
+                <span class="text-xs font-bold text-[#6E7A25]">{{ __('Yes') }}</span>
             </div>
         </div>
     </div>
@@ -94,20 +94,20 @@
 {{-- Audit Events Table --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-6">
     <div class="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-        <h3 class="text-sm font-bold text-gray-900">Audit <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Event Log</span></h3>
-        <span class="text-[10px] text-gray-400">{{ count($auditEvents) }} events shown | Exportable</span>
+        <h3 class="text-sm font-bold text-gray-900">{{ __('Audit') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Event Log') }}</span></h3>
+        <span class="text-[10px] text-gray-400">{{ count($auditEvents) }} {{ __('events shown') }} | {{ __('Exportable') }}</span>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="text-left text-xs text-gray-500 border-b border-gray-50">
-                    <th class="px-5 py-3 font-medium">Event ID</th>
-                    <th class="px-5 py-3 font-medium">Actor</th>
-                    <th class="px-5 py-3 font-medium">Action</th>
-                    <th class="px-5 py-3 font-medium">Module</th>
-                    <th class="px-5 py-3 font-medium">Detail</th>
-                    <th class="px-5 py-3 font-medium">IP</th>
-                    <th class="px-5 py-3 font-medium">Timestamp</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Event ID') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Actor') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Action') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Module') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Detail') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('IP') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Timestamp') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -142,20 +142,20 @@
 {{-- Export History --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-5 py-4 border-b border-gray-50">
-        <h3 class="text-sm font-bold text-gray-900">Export <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Job History</span></h3>
+        <h3 class="text-sm font-bold text-gray-900">{{ __('Export') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Job History') }}</span></h3>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="text-left text-xs text-gray-500 border-b border-gray-50">
-                    <th class="px-5 py-3 font-medium">Job ID</th>
-                    <th class="px-5 py-3 font-medium">Report Type</th>
-                    <th class="px-5 py-3 font-medium">Format</th>
-                    <th class="px-5 py-3 font-medium">Requested By</th>
-                    <th class="px-5 py-3 font-medium">Status</th>
-                    <th class="px-5 py-3 font-medium">Size</th>
-                    <th class="px-5 py-3 font-medium">Time</th>
-                    <th class="px-5 py-3 font-medium">Action</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Job ID') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Report Type') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Format') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Requested By') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Status') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Size') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Time') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Action') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -169,18 +169,18 @@
                     <td class="px-5 py-3 text-xs text-gray-500">{{ $exp['requested_by'] }}</td>
                     <td class="px-5 py-3">
                         @if($exp['status'] === 'completed')
-                        <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-green-700"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Completed</span>
+                        <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-green-700"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> {{ __('Completed') }}</span>
                         @else
-                        <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-red-700"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg> Failed</span>
+                        <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-red-700"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg> {{ __('Failed') }}</span>
                         @endif
                     </td>
                     <td class="px-5 py-3 text-xs text-gray-500">{{ $exp['size'] }}</td>
                     <td class="px-5 py-3 text-xs text-gray-400">{{ $exp['time'] }}</td>
                     <td class="px-5 py-3">
                         @if($exp['status'] === 'completed')
-                        <button class="text-[10px] font-bold text-[#6E7A25] hover:underline">Download</button>
+                        <button class="text-[10px] font-bold text-[#6E7A25] hover:underline">{{ __('Download') }}</button>
                         @else
-                        <button class="text-[10px] font-bold text-amber-600 hover:underline">Retry</button>
+                        <button class="text-[10px] font-bold text-amber-600 hover:underline">{{ __('Retry') }}</button>
                         @endif
                     </td>
                 </tr>
