@@ -94,57 +94,41 @@
 </div>
 
 {{-- Secondary KPI Row --}}
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div class="kpi-card bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20">
-        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
-        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+    <div class="kpi-card bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-3 text-white relative overflow-hidden shadow-md shadow-[#6E7A25]/20 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-white/15 backdrop-blur flex items-center justify-center flex-shrink-0">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
         <div class="relative z-10">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                </div>
-            </div>
-            <p class="text-xs text-white/60 font-medium mb-1">Total Customers</p>
-            <p class="text-2xl font-bold tracking-tight">{{ number_format($stats['totalCustomers']) }}</p>
+            <p class="text-[10px] text-white/60 font-medium">Total Customers</p>
+            <p class="text-base font-bold tracking-tight">{{ number_format($stats['totalCustomers']) }}</p>
         </div>
     </div>
-    <div class="kpi-card bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20">
-        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
-        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+    <div class="kpi-card bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-3 text-white relative overflow-hidden shadow-md shadow-[#6E7A25]/20 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-white/15 backdrop-blur flex items-center justify-center flex-shrink-0">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
+        </div>
         <div class="relative z-10">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
-                </div>
-            </div>
-            <p class="text-xs text-white/60 font-medium mb-1">Deliveries Today</p>
-            <p class="text-2xl font-bold tracking-tight">{{ $stats['deliveriesToday'] }}</p>
+            <p class="text-[10px] text-white/60 font-medium">Deliveries Today</p>
+            <p class="text-base font-bold tracking-tight">{{ $stats['deliveriesToday'] }}</p>
         </div>
     </div>
-    <div class="kpi-card bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20">
-        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
-        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+    <div class="kpi-card bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-3 text-white relative overflow-hidden shadow-md shadow-[#6E7A25]/20 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-white/15 backdrop-blur flex items-center justify-center flex-shrink-0">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        </div>
         <div class="relative z-10">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                </div>
-            </div>
-            <p class="text-xs text-white/60 font-medium mb-1">Total Meals</p>
-            <p class="text-2xl font-bold tracking-tight">{{ $stats['totalMeals'] }}</p>
+            <p class="text-[10px] text-white/60 font-medium">Total Meals</p>
+            <p class="text-base font-bold tracking-tight">{{ $stats['totalMeals'] }}</p>
         </div>
     </div>
-    <div class="kpi-card bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20">
-        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
-        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+    <div class="kpi-card bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-3 text-white relative overflow-hidden shadow-md shadow-[#6E7A25]/20 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-white/15 backdrop-blur flex items-center justify-center flex-shrink-0">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
         <div class="relative z-10">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                </div>
-            </div>
-            <p class="text-xs text-white/60 font-medium mb-1">Churn Rate</p>
-            <p class="text-2xl font-bold tracking-tight">{{ $stats['churnRate'] }}%</p>
+            <p class="text-[10px] text-white/60 font-medium">Churn Rate</p>
+            <p class="text-base font-bold tracking-tight">{{ $stats['churnRate'] }}%</p>
         </div>
     </div>
 </div>
