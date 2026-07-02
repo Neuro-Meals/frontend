@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', __('Subscription & Retention') . ' - Nutrio Meals')
+@section('title', __('Subscription & Retention') . ' - ' . __('Nutrio Meals'))
 @section('page_title', __('Subscription & Retention'))
 
 @section('content')
@@ -8,8 +8,8 @@
 @include('admin.reports._filter_bar')
 
 <div class="hidden print:block mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">Nutrio Meals - Subscriptions & Retention Report</h1>
-    <p class="text-sm text-gray-500">Generated: {{ $lastUpdated }} | Timezone: {{ $timezone }}</p>
+    <h1 class="text-2xl font-bold text-gray-900">{{ __('Nutrio Meals') }} - {{ __('Subscriptions & Retention') }} {{ __('Report') }}</h1>
+    <p class="text-sm text-gray-500">{{ __('Generated') }}: {{ $lastUpdated }} | {{ __('Timezone') }}: {{ $timezone }}</p>
 </div>
 
 {{-- KPI Row --}}
@@ -37,12 +37,12 @@
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">New vs <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Churn</span></h3>
-                <span class="text-[10px] text-gray-400">Subscriber count | Monthly</span>
+                <h3 class="text-sm font-bold text-gray-900">{{ __('New vs') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Churn') }}</span></h3>
+                <span class="text-[10px] text-gray-400">{{ __('Subscriber count') }} | {{ __('Monthly') }}</span>
             </div>
             <div class="flex items-center gap-3 text-[10px]">
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#6E7A25]"></span> New</span>
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-red-400"></span> Churned</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#6E7A25]"></span> {{ __('New') }}</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-red-400"></span> {{ __('Churned') }}</span>
             </div>
         </div>
         @php $ncMax = max(array_merge($newVsChurn['new'], $newVsChurn['churn'])) ?: 50; @endphp
@@ -66,8 +66,8 @@
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h3 class="text-sm font-bold text-gray-900">Renewal Rate <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Trend</span></h3>
-                <span class="text-[10px] text-gray-400">Percentage | Monthly</span>
+                <h3 class="text-sm font-bold text-gray-900">{{ __('Renewal Rate') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Trend') }}</span></h3>
+                <span class="text-[10px] text-gray-400">{{ __('Percentage') }} | {{ __('Monthly') }}</span>
             </div>
         </div>
         @php $renMax = 100; @endphp
@@ -91,8 +91,8 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
     {{-- Goal Type Distribution --}}
     <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-        <h3 class="text-sm font-bold text-gray-900 mb-1">Goal Type <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Distribution</span></h3>
-        <span class="text-[10px] text-gray-400 block mb-4">Subscriber goals breakdown</span>
+        <h3 class="text-sm font-bold text-gray-900 mb-1">{{ __('Goal Type') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Distribution') }}</span></h3>
+        <span class="text-[10px] text-gray-400 block mb-4">{{ __('Subscriber goals breakdown') }}</span>
         <div class="space-y-3">
             @php $totalGoals = array_sum(array_column($goalDistribution, 'count')); @endphp
             @foreach($goalDistribution as $goal)
@@ -118,7 +118,7 @@
     {{-- Corporate Metrics --}}
     <div class="bg-gradient-to-br from-[#173327] to-[#122620] rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
         <div class="absolute top-0 right-0 w-24 h-24 bg-[#6E7A25]/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
-        <h3 class="text-sm font-bold mb-4 relative z-10">Corporate <span class="text-[#6E7A25]">Metrics</span></h3>
+        <h3 class="text-sm font-bold mb-4 relative z-10">{{ __('Corporate') }} <span class="text-[#6E7A25]">{{ __('Metrics') }}</span></h3>
         <div class="grid grid-cols-2 gap-4 relative z-10">
             @foreach($corporateMetrics as $cm)
             <div class="border border-white/5 rounded-xl p-3">
@@ -133,18 +133,18 @@
 {{-- Plan Performance Ranking --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-5 py-4 border-b border-gray-50">
-        <h3 class="text-sm font-bold text-gray-900">Plan Performance <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Ranking</span></h3>
+        <h3 class="text-sm font-bold text-gray-900">{{ __('Plan Performance') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Ranking') }}</span></h3>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="text-left text-xs text-gray-500 border-b border-gray-50">
-                    <th class="px-5 py-3 font-medium">Rank</th>
-                    <th class="px-5 py-3 font-medium">Plan</th>
-                    <th class="px-5 py-3 font-medium">Subscribers</th>
-                    <th class="px-5 py-3 font-medium">Revenue (SAR)</th>
-                    <th class="px-5 py-3 font-medium">Retention</th>
-                    <th class="px-5 py-3 font-medium">Churn</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Rank') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Plan') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Subscribers') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Revenue') }} (SAR)</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Retention') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Churn') }}</th>
                 </tr>
             </thead>
             <tbody>
