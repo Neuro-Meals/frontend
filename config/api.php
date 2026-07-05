@@ -10,7 +10,7 @@ return [
     | an external API. Configure the base URL and timeout here.
     */
 
-    'base_url' => env('API_BASE_URL', 'http://localhost:8000/api'),
+    'base_url' => env('API_BASE_URL', 'http://185.237.97.69:8080'),
 
     'timeout' => env('API_TIMEOUT', 30),
 
@@ -33,119 +33,75 @@ return [
 
         // ─── Auth ───
         'auth' => [
-            'login'    => '/auth/login',
-            'register' => '/auth/register',
-            'logout'   => '/auth/logout',
-            'profile'  => '/auth/profile',
-            'refresh'  => '/auth/refresh',
+            'login'                   => '/auth/login',
+            'register'                => '/auth/register',
+            'verify_email'            => '/auth/verify-email',
+            'resend_verification_otp' => '/auth/resend-verification-otp',
+            'me'                      => '/auth/me',
+            'forgot_password'         => '/auth/forgot-password',
+            'reset_password'          => '/auth/reset-password',
+            'change_password'         => '/auth/change-password',
         ],
 
-        // ─── Admin: Dashboard ───
-        'admin' => [
-            'dashboard' => [
-                'stats'           => '/admin/dashboard/stats',
-                'revenue_trend'   => '/admin/dashboard/revenue-trend',
-                'orders_trend'    => '/admin/dashboard/orders-trend',
-                'plan_distribution' => '/admin/dashboard/plan-distribution',
-                'recent_orders'   => '/admin/dashboard/recent-orders',
-                'top_meals'       => '/admin/dashboard/top-meals',
-                'delivery_zones'  => '/admin/dashboard/delivery-zones',
-                'system_status'   => '/admin/dashboard/system-status',
-            ],
-
-            // ─── Admin: Customers ───
-            'customers' => [
-                'list'    => '/admin/customers',
-                'show'    => '/admin/customers/{id}',
-                'create'  => '/admin/customers',
-                'update'  => '/admin/customers/{id}',
-                'delete'  => '/admin/customers/{id}',
-                'stats'   => '/admin/customers/stats',
-            ],
-
-            // ─── Admin: Subscriptions ───
-            'subscriptions' => [
-                'list'    => '/admin/subscriptions',
-                'show'    => '/admin/subscriptions/{id}',
-                'create'  => '/admin/subscriptions',
-                'update'  => '/admin/subscriptions/{id}',
-                'delete'  => '/admin/subscriptions/{id}',
-                'stats'   => '/admin/subscriptions/stats',
-            ],
-
-            // ─── Admin: Meals ───
-            'meals' => [
-                'list'       => '/admin/meals',
-                'show'       => '/admin/meals/{id}',
-                'create'     => '/admin/meals',
-                'update'     => '/admin/meals/{id}',
-                'delete'     => '/admin/meals/{id}',
-                'categories' => '/admin/meals/categories',
-                'stats'      => '/admin/meals/stats',
-            ],
-
-            // ─── Admin: Orders ───
-            'orders' => [
-                'list'   => '/admin/orders',
-                'show'   => '/admin/orders/{id}',
-                'create' => '/admin/orders',
-                'update' => '/admin/orders/{id}',
-                'cancel' => '/admin/orders/{id}/cancel',
-                'stats'  => '/admin/orders/stats',
-            ],
-
-            // ─── Admin: Deliveries ───
-            'deliveries' => [
-                'list'   => '/admin/deliveries',
-                'show'   => '/admin/deliveries/{id}',
-                'update' => '/admin/deliveries/{id}',
-                'assign' => '/admin/deliveries/{id}/assign',
-                'zones'  => '/admin/deliveries/zones',
-                'stats'  => '/admin/deliveries/stats',
-            ],
-
-            // ─── Admin: Payments ───
-            'payments' => [
-                'list'    => '/admin/payments',
-                'show'    => '/admin/payments/{id}',
-                'refund'  => '/admin/payments/{id}/refund',
-                'stats'   => '/admin/payments/stats',
-            ],
-
-            // ─── Admin: Notifications ───
-            'notifications' => [
-                'list'      => '/admin/notifications',
-                'send'      => '/admin/notifications/send',
-                'templates' => '/admin/notifications/templates',
-                'stats'     => '/admin/notifications/stats',
-            ],
-
-            // ─── Admin: Analytics ───
-            'analytics' => [
-                'reports'    => '/admin/analytics/reports',
-                'chart_data' => '/admin/analytics/chart-data',
-                'export'     => '/admin/analytics/export',
-                'stats'      => '/admin/analytics/stats',
-            ],
-
-            // ─── Admin: Content ───
-            'content' => [
-                'list'   => '/admin/content/pages',
-                'show'   => '/admin/content/pages/{id}',
-                'create' => '/admin/content/pages',
-                'update' => '/admin/content/pages/{id}',
-                'delete' => '/admin/content/pages/{id}',
-                'stats'  => '/admin/content/stats',
-            ],
-
-            // ─── Admin: Settings ───
-            'settings' => [
-                'get'    => '/admin/settings',
-                'update' => '/admin/settings',
-            ],
+        // ─── Users ───
+        'users' => [
+            'me'         => '/users/me',
+            'list'       => '/users/',
+            'update_role' => '/users/{user_id}/role',
         ],
 
-        // ─── Reports ───
+        // ─── RBAC ───
+        'rbac' => [
+            'roles'              => '/rbac/roles',
+            'permissions'        => '/rbac/permissions',
+            'assign_role'        => '/rbac/assign-role',
+            'assign_permission'  => '/rbac/assign-permission',
+        ],
+
+        // ─── Profile ───
+        'profile' => [
+            'get'    => '/profile/',
+            'update' => '/profile/',
+        ],
+
+        // ─── Meal Categories ───
+        'meal_categories' => [
+            'list'   => '/meal-categories/',
+            'create' => '/meal-categories/',
+            'show'   => '/meal-categories/{category_id}',
+            'update' => '/meal-categories/{category_id}',
+            'delete' => '/meal-categories/{category_id}',
+        ],
+
+        // ─── Meals ───
+        'meals' => [
+            'list'   => '/meals/',
+            'create' => '/meals/',
+            'show'   => '/meals/{meal_id}',
+            'update' => '/meals/{meal_id}',
+            'delete' => '/meals/{meal_id}',
+        ],
+
+        // ─── Meal Plans ───
+        'plans' => [
+            'list'   => '/plans/',
+            'create' => '/plans/',
+            'show'   => '/plans/{plan_id}',
+            'update' => '/plans/{plan_id}',
+            'delete' => '/plans/{plan_id}',
+        ],
+
+        // ─── Subscriptions ───
+        'subscriptions' => [
+            'list'   => '/subscriptions/',
+            'create' => '/subscriptions/',
+            'my'     => '/subscriptions/my',
+            'show'   => '/subscriptions/{subscription_id}',
+            'update' => '/subscriptions/{subscription_id}',
+            'cancel' => '/subscriptions/{subscription_id}/cancel',
+        ],
+
+        // ─── Reports (not in OpenAPI spec — used with mock fallback) ───
         'reports' => [
             'dashboard' => [
                 'kpis'               => '/reports/dashboard/kpis',
@@ -191,48 +147,6 @@ return [
                 'change_hotspots' => '/reports/audit/change-hotspots',
                 'events'          => '/reports/audit/events',
                 'export_history'  => '/reports/audit/export-history',
-            ],
-        ],
-
-        // ─── User ───
-        'user' => [
-            'dashboard' => [
-                'stats'           => '/user/dashboard/stats',
-                'weekly_progress' => '/user/dashboard/weekly-progress',
-                'next_delivery'   => '/user/dashboard/next-delivery',
-                'weight_tracking' => '/user/dashboard/weight-tracking',
-            ],
-            'subscriptions' => [
-                'list'    => '/user/subscriptions',
-                'active'  => '/user/subscriptions/active',
-                'history' => '/user/subscriptions/history',
-            ],
-            'meals' => [
-                'list'     => '/user/meals',
-                'today'    => '/user/meals/today',
-                'favorite' => '/user/meals/favorites',
-            ],
-            'nutrition' => [
-                'summary' => '/user/nutrition/summary',
-                'log'     => '/user/nutrition/log',
-                'targets' => '/user/nutrition/targets',
-            ],
-            'orders' => [
-                'list' => '/user/orders',
-                'show' => '/user/orders/{id}',
-            ],
-            'delivery' => [
-                'current' => '/user/delivery/current',
-                'history' => '/user/delivery/history',
-                'track'   => '/user/delivery/track/{id}',
-            ],
-            'notifications' => [
-                'list' => '/user/notifications',
-                'read' => '/user/notifications/{id}/read',
-            ],
-            'settings' => [
-                'get'    => '/user/settings',
-                'update' => '/user/settings',
             ],
         ],
     ],

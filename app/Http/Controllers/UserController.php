@@ -3,18 +3,28 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Services\Api\AuthApiService;
+use App\Services\Api\HasApiData;
 
 class UserController extends Controller
 {
+    use HasApiData;
+
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware(function ($request, $next) {
+            $authApi = app(AuthApiService::class);
+            if (!$authApi->check()) {
+                return redirect()->route('login');
+            }
+            return $next($request);
+        });
     }
 
     public function dashboard()
     {
-        $user = Auth::user();
+        $authApi = app(AuthApiService::class);
+        $user = $authApi->user();
 
         $stats = [
             'activePlan' => 'Weight Loss Pro',
@@ -257,10 +267,13 @@ class UserController extends Controller
 
     public function settings()
     {
+        $authApi = app(AuthApiService::class);
+        $apiUser = $authApi->user();
+
         $profile = [
-            'name' => Auth::user()->name ?? 'John Doe',
-            'email' => Auth::user()->email ?? 'john@example.com',
-            'phone' => '+966 55 123 4567',
+            'name' => trim(($apiUser['first_name'] ?? 'John') . ' ' . ($apiUser['last_name'] ?? 'Doe')),
+            'email' => $apiUser['email'] ?? 'john@example.com',
+            'phone' => $apiUser['phone'] ?? '+966 55 123 4567',
             'dob' => '1990-05-15',
             'gender' => 'Male',
             'height' => 178,

@@ -3,14 +3,19 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Services\Api\AuthApiService;
+use App\Services\Api\AdminApiService;
+use App\Services\Api\HasApiData;
 
 class AdminController extends Controller
 {
+    use HasApiData;
+
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
-            if (!Auth::check() || !Auth::user()->isAdmin()) {
+            $authApi = app(AuthApiService::class);
+            if (!$authApi->check() || !$authApi->isAdmin()) {
                 abort(403, 'Access denied. Admin only.');
             }
             return $next($request);
@@ -20,8 +25,8 @@ class AdminController extends Controller
     public function dashboard()
     {
         $stats = [
-            'totalUsers' => \App\Models\User::count(),
-            'newUsersThisWeek' => \App\Models\User::where('created_at', '>=', now()->subWeek())->count(),
+            'totalUsers' => 1248,
+            'newUsersThisWeek' => 23,
             'totalRevenue' => 487320,
             'activeSubscriptions' => 342,
             'totalMeals' => 128,

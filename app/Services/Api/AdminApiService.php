@@ -4,320 +4,157 @@ namespace App\Services\Api;
 
 class AdminApiService extends BaseApiService
 {
-    // ─── Dashboard ───
+    // ─── Users (Admin manages users via /users endpoints) ───
 
-    public function dashboardStats(): array
+    public function usersList(array $query = []): array
     {
-        return $this->get('admin.dashboard.stats');
+        return $this->get('users.list', [], $query);
     }
 
-    public function dashboardRevenueTrend(): array
+    public function userShow(int $userId): array
     {
-        return $this->get('admin.dashboard.revenue_trend');
+        return $this->get('users.list', [], ['user_id' => $userId]);
     }
 
-    public function dashboardOrdersTrend(): array
+    public function updateUserRole(int $userId, string $role): array
     {
-        return $this->get('admin.dashboard.orders_trend');
-    }
-
-    public function dashboardPlanDistribution(): array
-    {
-        return $this->get('admin.dashboard.plan_distribution');
-    }
-
-    public function dashboardRecentOrders(): array
-    {
-        return $this->get('admin.dashboard.recent_orders');
-    }
-
-    public function dashboardTopMeals(): array
-    {
-        return $this->get('admin.dashboard.top_meals');
-    }
-
-    public function dashboardDeliveryZones(): array
-    {
-        return $this->get('admin.dashboard.delivery_zones');
-    }
-
-    public function dashboardSystemStatus(): array
-    {
-        return $this->get('admin.dashboard.system_status');
-    }
-
-    // ─── Customers ───
-
-    public function customersList(array $query = []): array
-    {
-        return $this->get('admin.customers.list', [], $query);
-    }
-
-    public function customerShow(int $id): array
-    {
-        return $this->get('admin.customers.show', ['id' => $id]);
-    }
-
-    public function customerCreate(array $data): array
-    {
-        return $this->post('admin.customers.create', [], $data);
-    }
-
-    public function customerUpdate(int $id, array $data): array
-    {
-        return $this->put('admin.customers.update', ['id' => $id], $data);
-    }
-
-    public function customerDelete(int $id): array
-    {
-        return $this->delete('admin.customers.delete', ['id' => $id]);
-    }
-
-    public function customersStats(): array
-    {
-        return $this->get('admin.customers.stats');
-    }
-
-    // ─── Subscriptions ───
-
-    public function subscriptionsList(array $query = []): array
-    {
-        return $this->get('admin.subscriptions.list', [], $query);
-    }
-
-    public function subscriptionShow(int $id): array
-    {
-        return $this->get('admin.subscriptions.show', ['id' => $id]);
-    }
-
-    public function subscriptionCreate(array $data): array
-    {
-        return $this->post('admin.subscriptions.create', [], $data);
-    }
-
-    public function subscriptionUpdate(int $id, array $data): array
-    {
-        return $this->put('admin.subscriptions.update', ['id' => $id], $data);
-    }
-
-    public function subscriptionDelete(int $id): array
-    {
-        return $this->delete('admin.subscriptions.delete', ['id' => $id]);
-    }
-
-    public function subscriptionsStats(): array
-    {
-        return $this->get('admin.subscriptions.stats');
+        return $this->patch('users.update_role', ['user_id' => $userId], [
+            'role' => $role,
+        ]);
     }
 
     // ─── Meals ───
 
     public function mealsList(array $query = []): array
     {
-        return $this->get('admin.meals.list', [], $query);
+        return $this->get('meals.list', [], $query);
     }
 
-    public function mealShow(int $id): array
+    public function mealShow(int $mealId): array
     {
-        return $this->get('admin.meals.show', ['id' => $id]);
+        return $this->get('meals.show', ['meal_id' => $mealId]);
     }
 
     public function mealCreate(array $data): array
     {
-        return $this->post('admin.meals.create', [], $data);
+        return $this->post('meals.create', [], $data);
     }
 
-    public function mealUpdate(int $id, array $data): array
+    public function mealUpdate(int $mealId, array $data): array
     {
-        return $this->put('admin.meals.update', ['id' => $id], $data);
+        return $this->put('meals.update', ['meal_id' => $mealId], $data);
     }
 
-    public function mealDelete(int $id): array
+    public function mealDelete(int $mealId): array
     {
-        return $this->delete('admin.meals.delete', ['id' => $id]);
+        return $this->delete('meals.delete', ['meal_id' => $mealId]);
     }
 
-    public function mealCategories(): array
+    // ─── Meal Categories ───
+
+    public function mealCategories(array $query = []): array
     {
-        return $this->get('admin.meals.categories');
+        return $this->get('meal_categories.list', [], $query);
     }
 
-    public function mealsStats(): array
+    public function mealCategoryCreate(array $data): array
     {
-        return $this->get('admin.meals.stats');
+        return $this->post('meal_categories.create', [], $data);
     }
 
-    // ─── Orders ───
-
-    public function ordersList(array $query = []): array
+    public function mealCategoryUpdate(int $categoryId, array $data): array
     {
-        return $this->get('admin.orders.list', [], $query);
+        return $this->put('meal_categories.update', ['category_id' => $categoryId], $data);
     }
 
-    public function orderShow(int $id): array
+    public function mealCategoryDelete(int $categoryId): array
     {
-        return $this->get('admin.orders.show', ['id' => $id]);
+        return $this->delete('meal_categories.delete', ['category_id' => $categoryId]);
     }
 
-    public function orderCreate(array $data): array
+    // ─── Meal Plans ───
+
+    public function plansList(array $query = []): array
     {
-        return $this->post('admin.orders.create', [], $data);
+        return $this->get('plans.list', [], $query);
     }
 
-    public function orderUpdate(int $id, array $data): array
+    public function planShow(int $planId): array
     {
-        return $this->put('admin.orders.update', ['id' => $id], $data);
+        return $this->get('plans.show', ['plan_id' => $planId]);
     }
 
-    public function orderCancel(int $id): array
+    public function planCreate(array $data): array
     {
-        return $this->post('admin.orders.cancel', ['id' => $id]);
+        return $this->post('plans.create', [], $data);
     }
 
-    public function ordersStats(): array
+    public function planUpdate(int $planId, array $data): array
     {
-        return $this->get('admin.orders.stats');
+        return $this->put('plans.update', ['plan_id' => $planId], $data);
     }
 
-    // ─── Deliveries ───
-
-    public function deliveriesList(array $query = []): array
+    public function planDelete(int $planId): array
     {
-        return $this->get('admin.deliveries.list', [], $query);
+        return $this->delete('plans.delete', ['plan_id' => $planId]);
     }
 
-    public function deliveryShow(int $id): array
+    // ─── Subscriptions ───
+
+    public function subscriptionsList(array $query = []): array
     {
-        return $this->get('admin.deliveries.show', ['id' => $id]);
+        return $this->get('subscriptions.list', [], $query);
     }
 
-    public function deliveryUpdate(int $id, array $data): array
+    public function subscriptionShow(int $subscriptionId): array
     {
-        return $this->put('admin.deliveries.update', ['id' => $id], $data);
+        return $this->get('subscriptions.show', ['subscription_id' => $subscriptionId]);
     }
 
-    public function deliveryAssign(int $id, array $data): array
+    public function subscriptionCreate(array $data): array
     {
-        return $this->post('admin.deliveries.assign', ['id' => $id], $data);
+        return $this->post('subscriptions.create', [], $data);
     }
 
-    public function deliveryZones(): array
+    public function subscriptionUpdate(int $subscriptionId, array $data): array
     {
-        return $this->get('admin.deliveries.zones');
+        return $this->patch('subscriptions.update', ['subscription_id' => $subscriptionId], $data);
     }
 
-    public function deliveriesStats(): array
+    public function subscriptionCancel(int $subscriptionId): array
     {
-        return $this->get('admin.deliveries.stats');
+        return $this->post('subscriptions.cancel', ['subscription_id' => $subscriptionId]);
     }
 
-    // ─── Payments ───
+    // ─── RBAC ───
 
-    public function paymentsList(array $query = []): array
+    public function rolesList(): array
     {
-        return $this->get('admin.payments.list', [], $query);
+        return $this->get('rbac.roles');
     }
 
-    public function paymentShow(int $id): array
+    public function roleCreate(array $data): array
     {
-        return $this->get('admin.payments.show', ['id' => $id]);
+        return $this->post('rbac.roles', [], $data);
     }
 
-    public function paymentRefund(int $id, array $data = []): array
+    public function permissionsList(): array
     {
-        return $this->post('admin.payments.refund', ['id' => $id], $data);
+        return $this->get('rbac.permissions');
     }
 
-    public function paymentsStats(): array
+    public function permissionCreate(array $data): array
     {
-        return $this->get('admin.payments.stats');
+        return $this->post('rbac.permissions', [], $data);
     }
 
-    // ─── Notifications ───
-
-    public function notificationsList(array $query = []): array
+    public function assignRole(array $data): array
     {
-        return $this->get('admin.notifications.list', [], $query);
+        return $this->post('rbac.assign_role', [], $data);
     }
 
-    public function notificationSend(array $data): array
+    public function assignPermission(array $data): array
     {
-        return $this->post('admin.notifications.send', [], $data);
-    }
-
-    public function notificationTemplates(): array
-    {
-        return $this->get('admin.notifications.templates');
-    }
-
-    public function notificationsStats(): array
-    {
-        return $this->get('admin.notifications.stats');
-    }
-
-    // ─── Analytics ───
-
-    public function analyticsReports(array $query = []): array
-    {
-        return $this->get('admin.analytics.reports', [], $query);
-    }
-
-    public function analyticsChartData(array $query = []): array
-    {
-        return $this->get('admin.analytics.chart_data', [], $query);
-    }
-
-    public function analyticsExport(array $data): array
-    {
-        return $this->post('admin.analytics.export', [], $data);
-    }
-
-    public function analyticsStats(): array
-    {
-        return $this->get('admin.analytics.stats');
-    }
-
-    // ─── Content ───
-
-    public function contentPagesList(array $query = []): array
-    {
-        return $this->get('admin.content.list', [], $query);
-    }
-
-    public function contentPageShow(int $id): array
-    {
-        return $this->get('admin.content.show', ['id' => $id]);
-    }
-
-    public function contentPageCreate(array $data): array
-    {
-        return $this->post('admin.content.create', [], $data);
-    }
-
-    public function contentPageUpdate(int $id, array $data): array
-    {
-        return $this->put('admin.content.update', ['id' => $id], $data);
-    }
-
-    public function contentPageDelete(int $id): array
-    {
-        return $this->delete('admin.content.delete', ['id' => $id]);
-    }
-
-    public function contentStats(): array
-    {
-        return $this->get('admin.content.stats');
-    }
-
-    // ─── Settings ───
-
-    public function settingsGet(): array
-    {
-        return $this->get('admin.settings.get');
-    }
-
-    public function settingsUpdate(array $data): array
-    {
-        return $this->put('admin.settings.update', [], $data);
+        return $this->post('rbac.assign_permission', [], $data);
     }
 }

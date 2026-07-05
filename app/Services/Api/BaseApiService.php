@@ -76,7 +76,7 @@ class BaseApiService
     {
         $url = $this->buildUrl($key, $params);
 
-        return $this->request('get', $url, $query);
+        return $this->request('get', $url, $query, true);
     }
 
     /**
@@ -100,6 +100,16 @@ class BaseApiService
     }
 
     /**
+     * PATCH request.
+     */
+    protected function patch(string $key, array $params = [], array $data = []): array
+    {
+        $url = $this->buildUrl($key, $params);
+
+        return $this->request('patch', $url, $data);
+    }
+
+    /**
      * DELETE request.
      */
     protected function delete(string $key, array $params = []): array
@@ -111,8 +121,9 @@ class BaseApiService
 
     /**
      * Core HTTP request with retry logic.
+     * For GET requests, $data is treated as query parameters.
      */
-    protected function request(string $method, string $url, array $data = []): array
+    protected function request(string $method, string $url, array $data = [], bool $isQuery = false): array
     {
         $attempt = 0;
         $lastError = null;
@@ -121,12 +132,17 @@ class BaseApiService
             $attempt++;
 
             try {
-                $response = Http::withHeaders($this->headers())
-                    ->timeout($this->timeout)
-                    ->{$method}($url, $data);
+                $http = Http::withHeaders($this->headers())
+                    ->timeout($this->timeout);
+
+                if ($isQuery && !empty($data)) {
+                    $response = $http->{$method}($url, $data);
+                } else {
+                    $response = $http->{$method}($url, $data);
+                }
 
                 if ($response->successful()) {
-                    return $response->json();
+                    return $response->json() ?? ['success' => true];
                 }
 
                 if ($response->status() === 401) {
@@ -139,11 +155,26 @@ class BaseApiService
                 }
 
                 if ($response->status() >= 400 && $response->status() < 500) {
+                    $json = $response->json() ?? [];
+                    // FastAPI validation errors come as {detail: [{loc, msg, type}]}
+                    if (isset($json['detail']) && is_array($json['detail'])) {
+                        $errors = [];
+                        foreach ($json['detail'] as $err) {
+                            $field = is_array($err['loc'] ?? []) ? implode('.', array_slice($err['loc'], 1)) : ($err['loc'][0] ?? 'error');
+                            $errors[$field] = $err['msg'] ?? 'Validation error';
+                        }
+                        return [
+                            'success' => false,
+                            'status' => $response->status(),
+                            'message' => 'Validation failed',
+                            'errors' => $errors,
+                        ];
+                    }
                     return [
                         'success' => false,
                         'status' => $response->status(),
-                        'message' => $response->json('message', 'Request failed'),
-                        'errors' => $response->json('errors'),
+                        'message' => $json['message'] ?? $json['detail'] ?? 'Request failed',
+                        'errors' => $json['errors'] ?? null,
                     ];
                 }
 

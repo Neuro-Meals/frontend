@@ -15,11 +15,11 @@
         </div>
 
         {{-- Content --}}
-        <div class="p-8 text-center">
-            @if (session('resent'))
+        <div class="p-8">
+            @if (session('status'))
                 <div class="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm flex items-center gap-2">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    A fresh verification link has been sent to your email address.
+                    {{ session('status') }}
                 </div>
             @endif
 
@@ -29,16 +29,38 @@
                 </svg>
             </div>
 
-            <p class="text-gray-600 mb-2">Before proceeding, please check your email for a verification link.</p>
-            <p class="text-gray-500 text-sm mb-6">If you did not receive the email, click the button below to request another.</p>
+            <p class="text-gray-600 text-center mb-2">Enter the 6-digit code sent to your email.</p>
+            <p class="text-gray-500 text-sm text-center mb-6">{{ $email ?? '' }}</p>
 
-            <form method="POST" action="{{ route('verification.resend') }}">
+            <form method="POST" action="{{ route('verify.email.verify') }}" class="space-y-5">
                 @csrf
+                <input type="hidden" name="email" value="{{ $email ?? old('email') }}">
+
+                <div>
+                    <label for="otp" class="block text-sm font-semibold text-gray-700 mb-1.5">Verification Code</label>
+                    <input id="otp" type="text" name="otp" required maxlength="6" pattern="[0-9]{6}" autofocus
+                        class="w-full px-4 py-2.5 rounded-lg border @error('otp') border-red-300 ring-2 ring-red-100 @else border-gray-200 @enderror focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm text-center tracking-[0.5em] text-lg font-bold"
+                        placeholder="000000">
+                    @error('otp')
+                        <p class="mt-1.5 text-sm text-red-600 flex items-center gap-1">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            {{ $message }}
+                        </p>
+                    @enderror
+                </div>
+
                 <button type="submit" class="w-full py-3 text-sm font-bold text-white bg-gradient-to-r from-brand-light to-brand-dark hover:from-brand-dark hover:to-brand-light rounded-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                    </svg>
-                    Resend Verification Link
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    Verify Email
+                </button>
+            </form>
+
+            <form method="POST" action="{{ route('verification.resend') }}" class="mt-4">
+                @csrf
+                <input type="hidden" name="email" value="{{ $email ?? old('email') }}">
+                <button type="submit" class="w-full py-2.5 text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Resend OTP
                 </button>
             </form>
         </div>

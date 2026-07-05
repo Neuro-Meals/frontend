@@ -19,7 +19,24 @@
             <form method="POST" action="{{ route('password.update') }}" class="space-y-5">
                 @csrf
 
-                <input type="hidden" name="token" value="{{ $token }}">
+                {{-- OTP Code --}}
+                <div>
+                    <label for="token" class="block text-sm font-semibold text-gray-700 mb-1.5">Reset Code</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        </div>
+                        <input id="token" type="text" name="token" value="{{ $token }}" required maxlength="6" pattern="[0-9]{6}"
+                            class="w-full pl-11 pr-4 py-2.5 rounded-lg border @error('token') border-red-300 ring-2 ring-red-100 @else border-gray-200 @enderror focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm"
+                            placeholder="Enter the 6-digit code">
+                    </div>
+                    @error('token')
+                        <p class="mt-1.5 text-sm text-red-600 flex items-center gap-1">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            {{ $message }}
+                        </p>
+                    @enderror
+                </div>
 
                 {{-- Email --}}
                 <div>

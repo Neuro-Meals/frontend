@@ -4,6 +4,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\VerificationController;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\App;
 
@@ -22,18 +27,42 @@ Route::get('/locale/{locale}', function ($locale) {
 // Static pages
 Route::get('/page/{slug}', [PageController::class, 'show'])->name('page.show');
 
-Auth::routes();
+// ─── Auth Routes (API-based) ───
+// Login
+Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('login', [LoginController::class, 'login']);
+
+// Register
+Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('register', [RegisterController::class, 'register']);
+
+// Forgot Password
+Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+
+// Reset Password
+Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
+
+// Email Verification (OTP-based)
+Route::get('verify-email', [VerificationController::class, 'show'])->name('verify.email');
+Route::post('verify-email/verify', [VerificationController::class, 'verify'])->name('verify.email.verify');
+Route::post('verify-email/resend', [VerificationController::class, 'resend'])->name('verification.resend');
+
+// Logout
+Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
 // Role-based redirect after login
 Route::get('/home', function () {
-    if (auth()->user() && auth()->user()->isAdmin()) {
+    $authApi = app(\App\Services\Api\AuthApiService::class);
+    if ($authApi->check() && $authApi->isAdmin()) {
         return redirect()->route('admin.dashboard');
     }
     return redirect()->route('user.dashboard');
 })->name('home');
 
 // Admin routes
-Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/customers', [AdminController::class, 'customers'])->name('customers');
     Route::get('/subscriptions', [AdminController::class, 'subscriptions'])->name('subscriptions');
@@ -58,7 +87,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
 });
 
 // User routes
-Route::prefix('user')->name('user.')->middleware('auth')->group(function () {
+Route::prefix('user')->name('user.')->middleware('api.auth')->group(function () {
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('dashboard');
     Route::get('/subscriptions', [UserController::class, 'subscriptions'])->name('subscriptions');
     Route::get('/meals', [UserController::class, 'meals'])->name('meals');

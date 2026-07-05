@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use Illuminate\Foundation\Auth\RegistersUsers;
-use Illuminate\Support\Facades\Hash;
+use App\Services\Api\AuthApiService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class RegisterController extends Controller
@@ -21,14 +20,7 @@ class RegisterController extends Controller
     |
     */
 
-    use RegistersUsers;
-
-    /**
-     * Where to redirect users after registration.
-     *
-     * @var string
-     */
-    protected $redirectTo = '/home';
+    // API-based registration — no trait needed
 
     /**
      * Create a new controller instance.
@@ -37,34 +29,50 @@ class RegisterController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('guest');
+        $this->middleware(function ($request, $next) {
+            $authApi = app(AuthApiService::class);
+            if ($authApi->check()) {
+                return redirect()->route('home');
+            }
+            return $next($request);
+        });
     }
 
-    /**
-     * Get a validator for an incoming registration request.
-     *
-     * @return \Illuminate\Contracts\Validation\Validator
-     */
-    protected function validator(array $data)
+    public function showRegistrationForm()
     {
-        return Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
+        return view('auth.register');
     }
 
-    /**
-     * Create a new user instance after a valid registration.
-     *
-     * @return User
-     */
-    protected function create(array $data)
+    public function register(Request $request, AuthApiService $authApi)
     {
-        return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
+        $validator = Validator::make($request->all(), [
+            'first_name' => ['required', 'string', 'max:100', 'min:2'],
+            'last_name'  => ['required', 'string', 'max:100', 'min:2'],
+            'email'      => ['required', 'string', 'email', 'max:255'],
+            'phone'      => ['required', 'string', 'min:8'],
+            'password'   => ['required', 'string', 'min:6', 'confirmed'],
         ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput($request->only('first_name', 'last_name', 'email', 'phone'));
+        }
+
+        $response = $authApi->register([
+            'first_name' => $request->first_name,
+            'last_name'  => $request->last_name,
+            'email'      => $request->email,
+            'phone'      => $request->phone,
+            'password'   => $request->password,
+        ]);
+
+        if (isset($response['success']) && $response['success'] === false) {
+            $message = $response['message'] ?? 'Registration failed.';
+            $errors = $response['errors'] ?? [];
+            return back()->withErrors(is_array($errors) && !empty($errors) ? $errors : ['email' => $message])
+                ->withInput($request->only('first_name', 'last_name', 'email', 'phone'));
+        }
+
+        return redirect()->route('verify.email', ['email' => urlencode($request->email)])
+            ->with('status', 'Account created! Please check your email for the verification OTP.');
     }
 }

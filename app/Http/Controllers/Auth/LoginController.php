@@ -3,38 +3,56 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use App\Services\Api\AuthApiService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class LoginController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Login Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles authenticating users for the application and
-    | redirecting them to your home screen. The controller uses a trait
-    | to conveniently provide its functionality to your applications.
-    |
-    */
-
-    use AuthenticatesUsers;
-
-    /**
-     * Where to redirect users after login.
-     *
-     * @var string
-     */
-    protected $redirectTo = '/home';
-
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
-        $this->middleware('guest')->except('logout');
-        $this->middleware('auth')->only('logout');
+        $this->middleware(function ($request, $next) {
+            $authApi = app(AuthApiService::class);
+            if ($authApi->check()) {
+                return redirect()->route('home');
+            }
+            return $next($request);
+        })->except('logout');
+    }
+
+    public function showLoginForm()
+    {
+        return view('auth.login');
+    }
+
+    public function login(Request $request, AuthApiService $authApi)
+    {
+        $validator = Validator::make($request->all(), [
+            'email'    => ['required', 'string', 'email'],
+            'password' => ['required', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput($request->only('email'));
+        }
+
+        $response = $authApi->login($request->email, $request->password);
+
+        if (isset($response['access_token'])) {
+            $user = $response['user'] ?? [];
+            if (in_array($user['role'] ?? null, ['admin', 'super_admin'])) {
+                return redirect()->route('admin.dashboard');
+            }
+            return redirect()->route('user.dashboard');
+        }
+
+        $message = $response['message'] ?? 'Invalid credentials. Please try again.';
+        return back()->withErrors(['email' => $message])->withInput($request->only('email'));
+    }
+
+    public function logout(AuthApiService $authApi)
+    {
+        $authApi->logout();
+        return redirect()->route('login');
     }
 }
