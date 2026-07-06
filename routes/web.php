@@ -27,6 +27,37 @@ Route::get('/locale/{locale}', function ($locale) {
 // Static pages
 Route::get('/page/{slug}', [PageController::class, 'show'])->name('page.show');
 
+// Test API connection
+Route::get('/test', function () {
+    return view('test-connection');
+})->name('test.connection');
+
+Route::get('/test-api', function () {
+    $baseUrl = config('api.base_url');
+    $start = microtime(true);
+
+    try {
+        $response = \Illuminate\Support\Facades\Http::timeout(10)->get($baseUrl);
+        $duration = round((microtime(true) - $start) * 1000, 2);
+        return response()->json([
+            'success' => true,
+            'base_url' => $baseUrl,
+            'status' => $response->status(),
+            'duration_ms' => $duration,
+            'body' => $response->body(),
+        ]);
+    } catch (\Exception $e) {
+        $duration = round((microtime(true) - $start) * 1000, 2);
+        return response()->json([
+            'success' => false,
+            'base_url' => $baseUrl,
+            'status' => 500,
+            'duration_ms' => $duration,
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+})->name('test.api');
+
 // ─── Auth Routes (API-based) ───
 // Login
 Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
