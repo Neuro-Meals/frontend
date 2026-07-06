@@ -37,7 +37,13 @@ Route::get('/test-api', function () {
     $start = microtime(true);
 
     try {
-        $response = \Illuminate\Support\Facades\Http::timeout(10)->get($baseUrl);
+        $response = \Illuminate\Support\Facades\Http::withOptions([
+            'curl' => [
+                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                CURLOPT_CONNECTTIMEOUT => 10,
+            ],
+        ])->timeout(15)->get($baseUrl);
+
         $duration = round((microtime(true) - $start) * 1000, 2);
         return response()->json([
             'success' => true,
