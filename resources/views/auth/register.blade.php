@@ -36,7 +36,7 @@
                 </div>
             </div>
 
-            <form class="space-y-5" @submit.prevent="submit">
+            <form class="space-y-5" method="POST" action="{{ route('register') }}" @submit.prevent="submit">
 
                 {{-- First Name --}}
                 <div>
@@ -347,6 +347,8 @@
                 this.errors = {};
                 this.toast.show = false;
 
+                console.log('Register form data:', JSON.parse(JSON.stringify(this.form)));
+
                 try {
                     const response = await fetch(this.registerUrl, {
                         method: 'POST',
@@ -361,6 +363,7 @@
 
                     const data = await response.json();
                     this.loading = false;
+                    console.log('Register response:', data);
 
                     if (data.success) {
                         this.showToast(data.message, 'success');
