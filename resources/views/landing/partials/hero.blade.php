@@ -36,18 +36,18 @@
                         {{ __('Premium Saudi meal subscriptions with perfectly calculated macros delivered to your door.') }}
                     </p>
 
-                    <div class="flex flex-col sm:flex-row gap-4 mb-10">
-                        <a href="#plans" class="inline-flex justify-center items-center py-4 px-8 text-lg font-bold text-center text-white rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] hover:from-[#025C5F] hover:to-[#1E8A00] focus:ring-4 focus:ring-[#6E7A25]/40 dark:focus:ring-[#6E7A25]/60 shadow-lg shadow-brand-light/30 hover:shadow-xl hover:shadow-brand-light/40 hover:-translate-y-0.5 transition-all duration-300">
+                    <div class="flex flex-row gap-3 sm:gap-4 mb-10">
+                        <a href="#plans" class="inline-flex justify-center items-center py-3 px-4 sm:py-4 sm:px-8 text-sm sm:text-lg font-bold text-center text-white rounded-xl bg-gradient-to-r from-brand-light to-emerald-500 hover:from-emerald-500 hover:to-brand-light focus:ring-4 focus:ring-brand-light/40 dark:focus:ring-brand-light/60 shadow-lg shadow-brand-light/40 hover:shadow-xl hover:shadow-brand-light/50 hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300">
                             {{ __('Start Your Plan') }}
-                            <svg class="ml-2 -mr-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                            <svg class="ml-2 -mr-1 w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                         </a>
-                        <a href="#gallery" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-gray-900 rounded-lg border border-gray-300 bg-white/80 backdrop-blur-sm hover:bg-white focus:ring-4 focus:ring-gray-200 dark:text-white dark:border-gray-700 dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:focus:ring-gray-800 transition-colors">
-                            <svg class="mr-2 -ml-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"></path></svg>
+                        <a href="#gallery" class="inline-flex justify-center items-center py-3 px-4 sm:px-5 text-sm sm:text-base font-medium text-center text-gray-900 rounded-lg border border-gray-300 bg-white/80 backdrop-blur-sm hover:bg-white focus:ring-4 focus:ring-gray-200 dark:text-white dark:border-gray-700 dark:bg-gray-800/80 dark:hover:bg-gray-700 dark:focus:ring-gray-800 transition-colors">
+                            <svg class="mr-2 -ml-1 w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"></path></svg>
                             {{ __('View Meals') }}
                         </a>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-6 text-gray-600 dark:text-gray-300">
+                    <div class="flex flex-row flex-nowrap items-center gap-4 sm:gap-6 text-gray-600 dark:text-gray-300 overflow-x-auto pb-1">
                         <span class="font-semibold uppercase tracking-wider text-xs">{{ __('Trusted Partners') }}</span>
                         @foreach (['MacroFit', 'FitFuel', 'DailyFresh'] as $partner)
                             <span class="flex items-center gap-1.5 text-sm font-semibold hover:text-brand-light dark:hover:text-brand-light transition-colors">

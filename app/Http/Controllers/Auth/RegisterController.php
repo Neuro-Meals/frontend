@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\RegistrationWelcomeMail;
 use App\Services\Api\AuthApiService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class RegisterController extends Controller
@@ -70,6 +73,19 @@ class RegisterController extends Controller
             $errors = $response['errors'] ?? [];
             return back()->withErrors(is_array($errors) && !empty($errors) ? $errors : ['email' => $message])
                 ->withInput($request->only('first_name', 'last_name', 'email', 'phone'));
+        }
+
+        try {
+            Mail::to($request->email)->send(new RegistrationWelcomeMail(
+                fullName: trim($request->first_name . ' ' . $request->last_name),
+                email: $request->email,
+                verificationUrl: route('verify.email', ['email' => urlencode($request->email)]),
+            ));
+        } catch (\Exception $e) {
+            Log::warning('Failed to send registration welcome email', [
+                'email' => $request->email,
+                'error' => $e->getMessage(),
+            ]);
         }
 
         return redirect()->route('verify.email', ['email' => urlencode($request->email)])

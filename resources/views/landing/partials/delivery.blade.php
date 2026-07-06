@@ -24,7 +24,7 @@
                     @endforeach
                 </div>
 
-                <a href="#plans" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-sm font-bold hover:shadow-lg hover:shadow-brand-light/30 hover:-translate-y-0.5 transition-all">
+                <a href="#plans" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-brand-light to-emerald-500 hover:from-emerald-500 hover:to-brand-light text-white text-sm font-bold shadow-lg shadow-brand-light/40 hover:shadow-xl hover:shadow-brand-light/50 hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300">
                     {{ __('Start Your Plan') }}
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                 </a>
