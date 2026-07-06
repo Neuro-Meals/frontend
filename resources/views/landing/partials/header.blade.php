@@ -1,4 +1,4 @@
-<header class="fixed top-3 left-0 right-0 z-50 px-4">
+<header class="fixed top-3 left-0 right-0 z-50 px-4" x-data="{ mobileOpen: false }">
     <div class="max-w-7xl mx-auto bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-gray-200/60 dark:border-gray-700/60 rounded-2xl shadow-lg dark:shadow-gray-900/30 transition-colors duration-300">
         <div class="flex items-center justify-between px-5 py-3">
             {{-- Logo --}}
@@ -30,7 +30,30 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                     </a>
                 @endif
+
+                {{-- Mobile Menu Toggle --}}
+                <button @click="mobileOpen = !mobileOpen" class="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label="Toggle menu" :aria-expanded="mobileOpen">
+                    <svg x-show="!mobileOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    <svg x-show="mobileOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-cloak><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
             </div>
+        </div>
+
+        {{-- Mobile Nav Menu --}}
+        <div x-show="mobileOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="md:hidden border-t border-gray-200/60 dark:border-gray-700/60" x-cloak>
+            <nav class="flex flex-col px-5 py-4 gap-3">
+                <a href="#" @click="mobileOpen = false" class="text-base font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">{{ __('Home') }}</a>
+                <a href="#plans" @click="mobileOpen = false" class="text-base font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">{{ __('Plans') }}</a>
+                <a href="#how-it-works" @click="mobileOpen = false" class="text-base font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">{{ __('How It Works') }}</a>
+                <a href="#gallery" @click="mobileOpen = false" class="text-base font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">{{ __('Meals') }}</a>
+                <a href="#calculator" @click="mobileOpen = false" class="text-base font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">{{ __('Calculator') }}</a>
+                @if (Route::has('login'))
+                    <a href="{{ route('login') }}" @click="mobileOpen = false" class="mt-2 inline-flex items-center justify-center gap-1.5 px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] hover:from-[#025C5F] hover:to-[#1E8A00] rounded-xl shadow-md transition-all duration-300">
+                        {{ __('Get Started') }}
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                    </a>
+                @endif
+            </nav>
         </div>
     </div>
 </header>
