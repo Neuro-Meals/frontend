@@ -80,6 +80,7 @@
             </form>
 
             <form class="mt-4" method="POST" action="{{ route('verification.resend') }}" @submit.prevent="resend">
+                @csrf
                 <input type="hidden" name="email" x-model="email" value="{{ $email ?? old('email') ?? '' }}">
                 <button type="submit" :disabled="loadingResend"
                     class="w-full py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
@@ -129,6 +130,8 @@
                 this.loadingVerify = true;
                 this.error = '';
                 this.toast.show = false;
+
+                console.log('Verify data:', { email: this.email, otp: this.otp });
 
                 try {
                     const response = await fetch(this.verifyUrl, {
