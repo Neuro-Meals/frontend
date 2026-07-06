@@ -133,6 +133,12 @@ class BaseApiService
 
             try {
                 $http = Http::withHeaders($this->headers())
+                    ->withOptions([
+                        'curl' => [
+                            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                            CURLOPT_CONNECTTIMEOUT => 10,
+                        ],
+                    ])
                     ->timeout($this->timeout);
 
                 if ($isQuery && !empty($data)) {
