@@ -57,6 +57,13 @@ class RegisterController extends Controller
         ]);
 
         if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('Please fix the errors in the form.'),
+                    'errors' => $validator->errors()->toArray(),
+                ], 422);
+            }
             return back()->withErrors($validator)->withInput($request->only('first_name', 'last_name', 'email', 'phone'));
         }
 
@@ -71,6 +78,15 @@ class RegisterController extends Controller
         if (isset($response['success']) && $response['success'] === false) {
             $message = $response['message'] ?? 'Registration failed.';
             $errors = $response['errors'] ?? [];
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                    'errors' => is_array($errors) ? $errors : ['general' => [$message]],
+                ], 422);
+            }
+
             return back()->withErrors(is_array($errors) && !empty($errors) ? $errors : ['email' => $message])
                 ->withInput($request->only('first_name', 'last_name', 'email', 'phone'));
         }
@@ -88,7 +104,16 @@ class RegisterController extends Controller
             ]);
         }
 
-        return redirect()->route('verify.email', ['email' => urlencode($request->email)])
-            ->with('status', 'Account created! Please check your email for the verification OTP.');
+        $redirect = route('verify.email', ['email' => urlencode($request->email)]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Account created! Please check your email for the verification OTP.',
+                'redirect' => $redirect,
+            ]);
+        }
+
+        return redirect($redirect)->with('status', 'Account created! Please check your email for the verification OTP.');
     }
 }
