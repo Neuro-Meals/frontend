@@ -47,7 +47,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                             </svg>
                         </div>
-                        <input id="first_name" type="text" x-model="form.first_name" required autocomplete="given-name" autofocus
+                        <input id="first_name" type="text" name="first_name" x-model="form.first_name" required autocomplete="given-name" autofocus
                             class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                             :class="errors.first_name ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
                             placeholder="John">
@@ -63,7 +63,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                             </svg>
                         </div>
-                        <input id="last_name" type="text" x-model="form.last_name" required autocomplete="family-name"
+                        <input id="last_name" type="text" name="last_name" x-model="form.last_name" required autocomplete="family-name"
                             class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                             :class="errors.last_name ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
                             placeholder="Doe">
@@ -79,7 +79,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                             </svg>
                         </div>
-                        <input id="phone" type="tel" x-model="form.phone" required autocomplete="tel" minlength="8"
+                        <input id="phone" type="tel" name="phone" x-model="form.phone" required autocomplete="tel" minlength="8"
                             class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                             :class="errors.phone ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
                             placeholder="+966 55 123 4567">
@@ -95,7 +95,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
                             </svg>
                         </div>
-                        <input id="email" type="email" x-model="form.email" required autocomplete="email"
+                        <input id="email" type="email" name="email" x-model="form.email" required autocomplete="email"
                             class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                             :class="errors.email || errors.general ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
                             placeholder="name@example.com">
@@ -111,7 +111,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                             </svg>
                         </div>
-                        <input id="password" type="password" x-model="form.password" required autocomplete="new-password" minlength="6"
+                        <input id="password" type="password" name="password" x-model="form.password" required autocomplete="new-password" minlength="6"
                             class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                             :class="errors.password ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
                             placeholder="Min. 6 characters">
@@ -127,7 +127,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </div>
-                        <input id="password-confirm" type="password" x-model="form.password_confirmation" required autocomplete="new-password"
+                        <input id="password-confirm" type="password" name="password_confirmation" x-model="form.password_confirmation" required autocomplete="new-password"
                             class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                             :class="errors.password_confirmation ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
                             placeholder="Re-enter your password">
@@ -144,7 +144,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                             </svg>
                         </div>
-                        <input id="location" type="text" x-model="form.location" required
+                        <input id="location" type="text" name="location" x-model="form.location" required
                             class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                             :class="errors.location ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
                             placeholder="e.g. Riyadh">
@@ -160,7 +160,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                             </svg>
                         </div>
-                        <input id="address" type="text" x-model="form.address" required
+                        <input id="address" type="text" name="address" x-model="form.address" required
                             class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                             :class="errors.address ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
                             placeholder="e.g. King Fahd Road">
@@ -176,7 +176,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                             </svg>
                         </div>
-                        <select id="gender" x-model="form.gender" required
+                        <select id="gender" name="gender" x-model="form.gender" required
                             class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 appearance-none bg-white"
                             :class="errors.gender ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'">
                             <option value="">{{ __('Select gender') }}</option>
@@ -194,21 +194,21 @@
                 <div class="grid grid-cols-3 gap-3">
                     <div>
                         <label for="age" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Age') }}</label>
-                        <input id="age" type="number" x-model="form.age" required min="10" max="120"
+                        <input id="age" type="number" name="age" x-model="form.age" required min="10" max="120"
                             class="w-full px-3 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                             :class="errors.age ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
                             placeholder="30">
                     </div>
                     <div>
                         <label for="height_cm" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Height') }} (cm)</label>
-                        <input id="height_cm" type="number" x-model="form.height_cm" required min="50" max="300"
+                        <input id="height_cm" type="number" name="height_cm" x-model="form.height_cm" required min="50" max="300"
                             class="w-full px-3 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                             :class="errors.height_cm ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
                             placeholder="175">
                     </div>
                     <div>
                         <label for="weight_kg" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Weight') }} (kg)</label>
-                        <input id="weight_kg" type="number" x-model="form.weight_kg" required min="20" max="500" step="0.1"
+                        <input id="weight_kg" type="number" name="weight_kg" x-model="form.weight_kg" required min="20" max="500" step="0.1"
                             class="w-full px-3 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                             :class="errors.weight_kg ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
                             placeholder="70">
@@ -220,7 +220,7 @@
                     <div>
                         <label for="fitness_goal" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Fitness Goal') }}</label>
                         <div class="relative">
-                            <select id="fitness_goal" x-model="form.fitness_goal" required
+                            <select id="fitness_goal" name="fitness_goal" x-model="form.fitness_goal" required
                                 class="w-full px-3 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 appearance-none bg-white"
                                 :class="errors.fitness_goal ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'">
                                 <option value="">{{ __('Select goal') }}</option>
@@ -237,7 +237,7 @@
                     <div>
                         <label for="dietary_preference" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Dietary Preference') }}</label>
                         <div class="relative">
-                            <select id="dietary_preference" x-model="form.dietary_preference" required
+                            <select id="dietary_preference" name="dietary_preference" x-model="form.dietary_preference" required
                                 class="w-full px-3 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 appearance-none bg-white"
                                 :class="errors.dietary_preference ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'">
                                 <option value="">{{ __('Select preference') }}</option>
@@ -264,7 +264,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                             </svg>
                         </div>
-                        <input id="allergies" type="text" x-model="form.allergies"
+                        <input id="allergies" type="text" name="allergies" x-model="form.allergies"
                             class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                             :class="errors.allergies ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
                             placeholder="e.g. nuts, shellfish">
