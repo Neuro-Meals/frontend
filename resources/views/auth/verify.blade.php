@@ -52,12 +52,13 @@
             <p class="text-gray-600 text-center mb-2">{{ __('Enter the 6-digit code sent to your email.') }}</p>
             <p class="text-gray-500 text-sm text-center mb-6" x-text="email"></p>
 
-            <form class="space-y-5" @submit.prevent="verify">
-                <input type="hidden" x-model="email">
+            <form class="space-y-5" method="POST" action="{{ route('verify.email.verify') }}" @submit.prevent="verify">
+                @csrf
+                <input type="hidden" name="email" x-model="email" value="{{ $email ?? old('email') ?? '' }}">
 
                 <div>
                     <label for="otp" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Verification Code') }}</label>
-                    <input id="otp" type="text" x-model="otp" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autofocus
+                    <input id="otp" type="text" name="otp" x-model="otp" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autofocus
                         class="w-full px-4 py-2.5 rounded-lg border outline-none transition-all text-sm text-center tracking-[0.5em] text-lg font-bold focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                         :class="error ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
                         placeholder="000000">
@@ -78,8 +79,8 @@
                 </button>
             </form>
 
-            <form class="mt-4" @submit.prevent="resend">
-                <input type="hidden" x-model="email">
+            <form class="mt-4" method="POST" action="{{ route('verification.resend') }}" @submit.prevent="resend">
+                <input type="hidden" name="email" x-model="email" value="{{ $email ?? old('email') ?? '' }}">
                 <button type="submit" :disabled="loadingResend"
                     class="w-full py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                     :class="loadingResend ? 'text-gray-400' : 'text-emerald-600 hover:text-emerald-700'">
