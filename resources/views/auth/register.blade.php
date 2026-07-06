@@ -15,7 +15,41 @@
         </div>
 
         {{-- Form --}}
-        <div class="p-8">
+        <div class="p-8" x-data="{ toastShow: @json($errors->any()) }">
+
+            {{-- Global Error Alert Card --}}
+            @if ($errors->any())
+                <div class="mb-5 rounded-xl border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800/40 p-4 shadow-sm">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div class="flex-1">
+                            <h3 class="font-bold text-sm text-red-800 dark:text-red-300">{{ __('Registration failed') }}</h3>
+                            <ul class="mt-1 text-sm text-red-700 dark:text-red-400 list-disc list-inside space-y-0.5">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Toast Notification --}}
+            <div x-show="toastShow" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-2" x-init="setTimeout(() => toastShow = false, 6000)" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 max-w-sm w-full px-4" x-cloak>
+                <div class="rounded-xl border border-red-200 bg-white dark:bg-gray-900 dark:border-red-800/40 shadow-xl p-4 flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-bold text-gray-900 dark:text-white">{{ __('Registration failed') }}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mt-0.5">{{ $errors->first() }}</p>
+                    </div>
+                    <button @click="toastShow = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors" aria-label="Close">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+
             <form method="POST" action="{{ route('register') }}" class="space-y-5">
                 @csrf
 
