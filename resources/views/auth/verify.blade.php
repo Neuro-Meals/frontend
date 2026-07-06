@@ -188,6 +188,7 @@
 
                     const data = await response.json();
                     this.loadingResend = false;
+                    console.log('Resend response:', data);
 
                     if (data.success) {
                         this.showToast(data.message, 'success');
