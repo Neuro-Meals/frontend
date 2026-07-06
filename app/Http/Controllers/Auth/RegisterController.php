@@ -49,11 +49,20 @@ class RegisterController extends Controller
     public function register(Request $request, AuthApiService $authApi)
     {
         $validator = Validator::make($request->all(), [
-            'first_name' => ['required', 'string', 'max:100', 'min:2'],
-            'last_name'  => ['required', 'string', 'max:100', 'min:2'],
-            'email'      => ['required', 'string', 'email', 'max:255'],
-            'phone'      => ['required', 'string', 'min:8'],
-            'password'   => ['required', 'string', 'min:6', 'confirmed'],
+            'first_name'         => ['required', 'string', 'max:100', 'min:2'],
+            'last_name'          => ['required', 'string', 'max:100', 'min:2'],
+            'email'              => ['required', 'string', 'email', 'max:255'],
+            'phone'              => ['required', 'string', 'min:8'],
+            'password'           => ['required', 'string', 'min:6', 'confirmed'],
+            'location'           => ['required', 'string', 'max:255'],
+            'address'            => ['required', 'string', 'max:255'],
+            'gender'             => ['required', 'in:male,female,other'],
+            'age'                => ['required', 'integer', 'min:10', 'max:120'],
+            'height_cm'          => ['required', 'integer', 'min:50', 'max:300'],
+            'weight_kg'          => ['required', 'numeric', 'min:20', 'max:500'],
+            'fitness_goal'       => ['required', 'string', 'in:weight_loss,muscle_gain,maintenance,general_health'],
+            'dietary_preference' => ['required', 'string', 'in:standard,vegetarian,vegan,keto,paleo,gluten_free'],
+            'allergies'          => ['nullable', 'string', 'max:500'],
         ]);
 
         if ($validator->fails()) {
@@ -64,15 +73,24 @@ class RegisterController extends Controller
                     'errors' => $validator->errors()->toArray(),
                 ], 422);
             }
-            return back()->withErrors($validator)->withInput($request->only('first_name', 'last_name', 'email', 'phone'));
+            return back()->withErrors($validator)->withInput($request->except('password', 'password_confirmation'));
         }
 
         $response = $authApi->register([
-            'first_name' => $request->first_name,
-            'last_name'  => $request->last_name,
-            'email'      => $request->email,
-            'phone'      => $request->phone,
-            'password'   => $request->password,
+            'first_name'         => $request->first_name,
+            'last_name'          => $request->last_name,
+            'email'              => $request->email,
+            'phone'              => $request->phone,
+            'password'           => $request->password,
+            'location'           => $request->location,
+            'address'            => $request->address,
+            'gender'             => $request->gender,
+            'age'                => (int) $request->age,
+            'height_cm'          => (int) $request->height_cm,
+            'weight_kg'          => (float) $request->weight_kg,
+            'fitness_goal'       => $request->fitness_goal,
+            'dietary_preference' => $request->dietary_preference,
+            'allergies'          => $request->allergies ? array_map('trim', explode(',', $request->allergies)) : [],
         ]);
 
         if (isset($response['success']) && $response['success'] === false) {
@@ -88,7 +106,7 @@ class RegisterController extends Controller
             }
 
             return back()->withErrors(is_array($errors) && !empty($errors) ? $errors : ['email' => $message])
-                ->withInput($request->only('first_name', 'last_name', 'email', 'phone'));
+                ->withInput($request->except('password', 'password_confirmation'));
         }
 
         try {
