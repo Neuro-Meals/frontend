@@ -15,8 +15,8 @@
         </div>
 
         {{-- Form --}}
-        <div class="p-8">
-            <form method="POST" action="{{ route('login') }}" class="space-y-5">
+        <div class="p-8" x-data="{ loading: false }">
+            <form method="POST" action="{{ route('login') }}" class="space-y-5" @submit="loading = true">
                 @csrf
 
                 {{-- Email --}}
