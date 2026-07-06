@@ -16,11 +16,11 @@ class RegistrationWelcomeMail extends Mailable
     public string $email;
     public string $verificationUrl;
 
-    public function __construct(string $fullName, string $email, ?string $verificationUrl = null)
+    public function __construct(string $fullName, string $email, string $verificationUrl)
     {
         $this->fullName = $fullName;
         $this->email = $email;
-        $this->verificationUrl = $verificationUrl ?? route('login');
+        $this->verificationUrl = $verificationUrl;
     }
 
     public function envelope(): Envelope
