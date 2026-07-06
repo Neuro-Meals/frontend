@@ -134,6 +134,143 @@
                     </div>
                 </div>
 
+                {{-- Location --}}
+                <div>
+                    <label for="location" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Location') }}</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
+                        <input id="location" type="text" x-model="form.location" required
+                            class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                            :class="errors.location ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
+                            placeholder="e.g. Riyadh">
+                    </div>
+                </div>
+
+                {{-- Address --}}
+                <div>
+                    <label for="address" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Address') }}</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            </svg>
+                        </div>
+                        <input id="address" type="text" x-model="form.address" required
+                            class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                            :class="errors.address ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
+                            placeholder="e.g. King Fahd Road">
+                    </div>
+                </div>
+
+                {{-- Gender --}}
+                <div>
+                    <label for="gender" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Gender') }}</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                        </div>
+                        <select id="gender" x-model="form.gender" required
+                            class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 appearance-none bg-white"
+                            :class="errors.gender ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'">
+                            <option value="">{{ __('Select gender') }}</option>
+                            <option value="male">{{ __('Male') }}</option>
+                            <option value="female">{{ __('Female') }}</option>
+                            <option value="other">{{ __('Other') }}</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Age, Height, Weight --}}
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label for="age" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Age') }}</label>
+                        <input id="age" type="number" x-model="form.age" required min="10" max="120"
+                            class="w-full px-3 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                            :class="errors.age ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
+                            placeholder="30">
+                    </div>
+                    <div>
+                        <label for="height_cm" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Height') }} (cm)</label>
+                        <input id="height_cm" type="number" x-model="form.height_cm" required min="50" max="300"
+                            class="w-full px-3 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                            :class="errors.height_cm ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
+                            placeholder="175">
+                    </div>
+                    <div>
+                        <label for="weight_kg" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Weight') }} (kg)</label>
+                        <input id="weight_kg" type="number" x-model="form.weight_kg" required min="20" max="500" step="0.1"
+                            class="w-full px-3 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                            :class="errors.weight_kg ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
+                            placeholder="70">
+                    </div>
+                </div>
+
+                {{-- Fitness Goal & Dietary Preference --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="fitness_goal" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Fitness Goal') }}</label>
+                        <div class="relative">
+                            <select id="fitness_goal" x-model="form.fitness_goal" required
+                                class="w-full px-3 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 appearance-none bg-white"
+                                :class="errors.fitness_goal ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'">
+                                <option value="">{{ __('Select goal') }}</option>
+                                <option value="weight_loss">{{ __('Weight Loss') }}</option>
+                                <option value="muscle_gain">{{ __('Muscle Gain') }}</option>
+                                <option value="maintenance">{{ __('Maintenance') }}</option>
+                                <option value="general_health">{{ __('General Health') }}</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="dietary_preference" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Dietary Preference') }}</label>
+                        <div class="relative">
+                            <select id="dietary_preference" x-model="form.dietary_preference" required
+                                class="w-full px-3 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 appearance-none bg-white"
+                                :class="errors.dietary_preference ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'">
+                                <option value="">{{ __('Select preference') }}</option>
+                                <option value="standard">{{ __('Standard') }}</option>
+                                <option value="vegetarian">{{ __('Vegetarian') }}</option>
+                                <option value="vegan">{{ __('Vegan') }}</option>
+                                <option value="keto">{{ __('Keto') }}</option>
+                                <option value="paleo">{{ __('Paleo') }}</option>
+                                <option value="gluten_free">{{ __('Gluten Free') }}</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Allergies --}}
+                <div>
+                    <label for="allergies" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Allergies') }} <span class="text-gray-400 font-normal">({{ __('optional, comma separated') }})</span></label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        </div>
+                        <input id="allergies" type="text" x-model="form.allergies"
+                            class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                            :class="errors.allergies ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
+                            placeholder="e.g. nuts, shellfish">
+                    </div>
+                </div>
+
                 {{-- Submit --}}
                 <button type="submit" :disabled="loading"
                     class="w-full py-3 text-sm font-bold text-white rounded-lg shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
@@ -185,7 +322,16 @@
                 phone: '',
                 email: '',
                 password: '',
-                password_confirmation: ''
+                password_confirmation: '',
+                location: '',
+                address: '',
+                gender: '',
+                age: '',
+                height_cm: '',
+                weight_kg: '',
+                fitness_goal: '',
+                dietary_preference: '',
+                allergies: ''
             },
             showToast(message, type = 'error') {
                 this.toast = {
