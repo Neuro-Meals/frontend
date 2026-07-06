@@ -147,6 +147,7 @@
 
                     const data = await response.json();
                     this.loadingVerify = false;
+                    console.log('Verify response:', data);
 
                     if (data.success) {
                         this.showToast(data.message, 'success');
@@ -170,6 +171,8 @@
                 this.loadingResend = true;
                 this.error = '';
                 this.toast.show = false;
+
+                console.log('Resend data:', { email: this.email });
 
                 try {
                     const response = await fetch(this.resendUrl, {
