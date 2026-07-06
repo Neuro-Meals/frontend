@@ -17,8 +17,6 @@
 </head>
 <body class="font-sans antialiased text-slate-800 min-h-screen">
 
-    @include('partials.loading')
-
     {{-- Auth Background --}}
     <div class="fixed inset-0 z-0">
         <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('{{ asset('flat-abstract-background-pattern-vector_822782-866.jpg') }}');"></div>
