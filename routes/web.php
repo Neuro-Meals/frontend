@@ -64,6 +64,34 @@ Route::get('/test-api', function () {
     }
 })->name('test.api');
 
+// Test register by sending a real request to the API
+Route::get('/test-register', function () {
+    $authApi = app(\App\Services\Api\AuthApiService::class);
+    $testEmail = 'test_' . time() . '@example.com';
+
+    $response = $authApi->register([
+        'first_name' => 'Test',
+        'last_name' => 'User',
+        'email' => $testEmail,
+        'phone' => '+966551234567',
+        'password' => 'password123',
+        'location' => 'Riyadh',
+        'address' => 'King Fahd Road',
+        'gender' => 'male',
+        'age' => 30,
+        'height_cm' => 175,
+        'weight_kg' => 70,
+        'fitness_goal' => 'weight_loss',
+        'dietary_preference' => 'standard',
+        'allergies' => [],
+    ]);
+
+    return response()->json([
+        'test_email' => $testEmail,
+        'api_response' => $response,
+    ]);
+})->name('test.register');
+
 // ─── Auth Routes (API-based) ───
 // Login
 Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
