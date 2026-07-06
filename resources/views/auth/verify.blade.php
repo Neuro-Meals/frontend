@@ -57,7 +57,7 @@
 
                 <div>
                     <label for="otp" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Verification Code') }}</label>
-                    <input id="otp" type="text" x-model="otp" required maxlength="6" pattern="[0-9]{6}" autofocus
+                    <input id="otp" type="text" x-model="otp" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autofocus
                         class="w-full px-4 py-2.5 rounded-lg border outline-none transition-all text-sm text-center tracking-[0.5em] text-lg font-bold focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                         :class="error ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
                         placeholder="000000">
@@ -113,6 +113,8 @@
             networkError: @json(__('Network error. Please try again.')),
             verifyUrl: @json(route('verify.email.verify')),
             resendUrl: @json(route('verification.resend')),
+            verifyText: @json(__('Verify Email')),
+            resendText: @json(__('Resend OTP')),
             showToast(message, type = 'error') {
                 this.toast = {
                     show: true,
