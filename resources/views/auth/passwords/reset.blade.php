@@ -15,8 +15,8 @@
         </div>
 
         {{-- Form --}}
-        <div class="p-8">
-            <form method="POST" action="{{ route('password.update') }}" class="space-y-5">
+        <div class="p-8" x-data="{ loading: false }">
+            <form method="POST" action="{{ route('password.update') }}" class="space-y-5" @submit="loading = true">
                 @csrf
 
                 {{-- OTP Code --}}
@@ -96,11 +96,17 @@
                 </div>
 
                 {{-- Submit --}}
-                <button type="submit" class="w-full py-3 text-sm font-bold text-white bg-gradient-to-r from-brand-light to-brand-dark hover:from-brand-dark hover:to-brand-light rounded-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button type="submit" :disabled="loading"
+                    class="w-full py-3 text-sm font-bold text-white rounded-lg shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                    :class="loading ? 'bg-gray-400' : 'bg-gradient-to-r from-brand-light to-brand-dark hover:from-brand-dark hover:to-brand-light hover:shadow-lg'">
+                    <svg x-show="!loading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
-                    Reset Password
+                    <svg x-show="loading" class="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span x-text="loading ? '{{ __('Please wait...') }}' : 'Reset Password'"></span>
                 </button>
             </form>
         </div>
