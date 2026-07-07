@@ -143,6 +143,8 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/customers', [AdminController::class, 'customers'])->name('customers');
     Route::get('/subscriptions', [AdminController::class, 'subscriptions'])->name('subscriptions');
+    Route::get('/plans', [AdminController::class, 'plans'])->name('plans');
+    Route::post('/plans', [AdminController::class, 'storePlan'])->name('plans.store');
     Route::get('/meals', [AdminController::class, 'meals'])->name('meals');
     Route::get('/orders', [AdminController::class, 'orders'])->name('orders');
     Route::get('/deliveries', [AdminController::class, 'deliveries'])->name('deliveries');

@@ -206,6 +206,110 @@ class AdminController extends Controller
         return view('admin.subscriptions', compact('plans', 'stats'));
     }
 
+    public function plans(PlanApiService $planApi, SubscriptionApiService $subscriptionApi)
+    {
+        $plansData = $this->apiData($planApi->list(['limit' => 100]), function () {
+            return [];
+        });
+
+        $subscriptionsData = $this->apiData($subscriptionApi->list(['limit' => 100]), function () {
+            return [];
+        });
+
+        $plans = [];
+        if (!empty($plansData)) {
+            $colors = ['#173327', '#033133', '#f9ac00', '#3b82f6', '#8b5cf6', '#ef4444'];
+            $colorIndex = 0;
+            foreach ($plansData as $plan) {
+                $subscriberCount = 0;
+                if (!empty($subscriptionsData)) {
+                    foreach ($subscriptionsData as $sub) {
+                        if (($sub['plan_id'] ?? 0) === ($plan['id'] ?? 0)) {
+                            $subscriberCount++;
+                        }
+                    }
+                }
+                $plans[] = [
+                    'id' => $plan['id'] ?? 0,
+                    'name' => $plan['name_en'] ?? 'Plan',
+                    'price' => $plan['price'] ?? 0,
+                    'duration' => ($plan['duration_days'] ?? 28) . ' days',
+                    'meals' => $plan['total_meals'] ?? 84,
+                    'subscribers' => $subscriberCount,
+                    'status' => ($plan['is_active'] ?? true) ? 'active' : 'draft',
+                    'calories' => $plan['calories'] ?? '1500-1800',
+                    'color' => $colors[$colorIndex % count($colors)],
+                ];
+                $colorIndex++;
+            }
+        }
+
+        $totalSubscribers = array_sum(array_column($plans, 'subscribers'));
+        $activePlans = count(array_filter($plans, fn ($p) => $p['status'] === 'active'));
+        $avgPrice = count($plans) > 0 ? round(array_sum(array_column($plans, 'price')) / count($plans)) : 0;
+
+        $stats = [
+            'total' => count($plans),
+            'active' => $activePlans,
+            'totalSubscribers' => $totalSubscribers,
+            'avgRevenue' => $avgPrice,
+        ];
+
+        return view('admin.plans', compact('plans', 'stats'));
+    }
+
+    public function storePlan(Request $request, PlanApiService $planApi)
+    {
+        $validator = validator($request->all(), [
+            'name_en' => ['required', 'string', 'min:2', 'max:150'],
+            'name_ar' => ['nullable', 'string', 'max:150'],
+            'description_en' => ['nullable', 'string'],
+            'description_ar' => ['nullable', 'string'],
+            'plan_type' => ['required', 'in:weekly,monthly,custom,corporate'],
+            'goal' => ['nullable', 'in:weight_loss,muscle_gain,maintenance'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'duration_days' => ['required', 'integer', 'min:1'],
+            'meals_per_day' => ['required', 'integer', 'min:1'],
+            'total_meals' => ['required', 'integer', 'min:1'],
+            'is_active' => ['boolean'],
+        ]);
+
+        if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('Please fix the errors in the form.'),
+                    'errors' => $validator->errors()->toArray(),
+                ], 422);
+            }
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $data = $validator->validated();
+        $data['is_active'] = $request->boolean('is_active', true);
+
+        $response = $this->apiData($planApi->create($data), function () {
+            return ['success' => false, 'message' => 'Failed to create plan.'];
+        });
+
+        $success = is_array($response) && ($response['success'] ?? true) !== false && !isset($response['errors']);
+        $message = $response['message'] ?? ($success ? __('Plan created successfully.') : __('Failed to create plan.'));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => $success,
+                'message' => $message,
+                'redirect' => route('admin.plans'),
+            ], $success ? 200 : 422);
+        }
+
+        if ($success) {
+            return redirect()->route('admin.plans')->with('status', $message);
+        }
+
+        return back()->withErrors(['general' => $message])->withInput();
+    }
+
     public function meals(MealApiService $mealApi)
     {
         $mealsData = $this->apiData($mealApi->list(['limit' => 100]), function () {
