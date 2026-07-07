@@ -25,6 +25,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Role Map
+    |--------------------------------------------------------------------------
+    | Maps role_id values returned by the backend API to role names used by
+    | the application middleware and login redirects.
+    */
+    'role_map' => [
+        1 => 'customer',
+        2 => 'admin',
+        3 => 'super_admin',
+        4 => 'driver',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Endpoints
     |--------------------------------------------------------------------------
     | All endpoint paths relative to base_url.
