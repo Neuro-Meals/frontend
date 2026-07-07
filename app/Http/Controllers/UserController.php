@@ -675,23 +675,35 @@ class UserController extends Controller
         return 'pending';
     }
 
-    public function delivery()
+    public function delivery(SubscriptionApiService $subscriptionApi, AuthApiService $authApi)
     {
+        // Note: There is no dedicated delivery API yet. We use subscriptions and user profile to enhance mock data.
+        $subscriptions = $this->apiData($subscriptionApi->my(), function () {
+            return [];
+        });
+
+        $user = $this->apiData($authApi->me(), function () use ($authApi) {
+            return $authApi->user() ?? [];
+        });
+
+        $zone = $user['location'] ?? 'Riyadh Central';
+        $totalDeliveries = max(2, count($subscriptions));
+
         $upcoming = [
-            ['id' => 'DLV-501', 'order' => 'ORD-2401', 'date' => 'Tomorrow', 'time' => '09:00 - 10:00', 'zone' => 'Riyadh Central', 'driver' => 'Yousef', 'status' => 'scheduled', 'meals' => 3],
-            ['id' => 'DLV-502', 'order' => 'ORD-2402', 'date' => 'Wed, Jul 3', 'time' => '09:00 - 10:00', 'zone' => 'Riyadh Central', 'driver' => 'Unassigned', 'status' => 'scheduled', 'meals' => 3],
+            ['id' => 'DLV-501', 'order' => 'ORD-2401', 'date' => 'Tomorrow', 'time' => '09:00 - 10:00', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'scheduled', 'meals' => 3],
+            ['id' => 'DLV-502', 'order' => 'ORD-2402', 'date' => 'Wed, Jul 3', 'time' => '09:00 - 10:00', 'zone' => $zone, 'driver' => 'Unassigned', 'status' => 'scheduled', 'meals' => 3],
         ];
 
         $history = [
-            ['id' => 'DLV-498', 'order' => 'ORD-2387', 'date' => 'Today', 'time' => '09:15', 'zone' => 'Riyadh Central', 'driver' => 'Yousef', 'status' => 'delivered', 'eta' => 'On time'],
-            ['id' => 'DLV-487', 'order' => 'ORD-2372', 'date' => 'Yesterday', 'time' => '09:10', 'zone' => 'Riyadh Central', 'driver' => 'Yousef', 'status' => 'delivered', 'eta' => 'On time'],
-            ['id' => 'DLV-475', 'order' => 'ORD-2358', 'date' => 'Jun 27', 'time' => '09:20', 'zone' => 'Riyadh Central', 'driver' => 'Hassan', 'status' => 'delivered', 'eta' => '5 min late'],
-            ['id' => 'DLV-462', 'order' => 'ORD-2341', 'date' => 'Jun 26', 'time' => '09:05', 'zone' => 'Riyadh Central', 'driver' => 'Yousef', 'status' => 'delivered', 'eta' => 'On time'],
-            ['id' => 'DLV-451', 'order' => 'ORD-2329', 'date' => 'Jun 25', 'time' => '09:15', 'zone' => 'Riyadh Central', 'driver' => 'Yousef', 'status' => 'delivered', 'eta' => 'On time'],
+            ['id' => 'DLV-498', 'order' => 'ORD-2387', 'date' => 'Today', 'time' => '09:15', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'delivered', 'eta' => 'On time'],
+            ['id' => 'DLV-487', 'order' => 'ORD-2372', 'date' => 'Yesterday', 'time' => '09:10', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'delivered', 'eta' => 'On time'],
+            ['id' => 'DLV-475', 'order' => 'ORD-2358', 'date' => 'Jun 27', 'time' => '09:20', 'zone' => $zone, 'driver' => 'Hassan', 'status' => 'delivered', 'eta' => '5 min late'],
+            ['id' => 'DLV-462', 'order' => 'ORD-2341', 'date' => 'Jun 26', 'time' => '09:05', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'delivered', 'eta' => 'On time'],
+            ['id' => 'DLV-451', 'order' => 'ORD-2329', 'date' => 'Jun 25', 'time' => '09:15', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'delivered', 'eta' => 'On time'],
         ];
 
         $stats = [
-            'totalDeliveries' => 40,
+            'totalDeliveries' => $totalDeliveries,
             'onTimeRate' => 95,
             'avgDeliveryTime' => '32 min',
             'preferredSlot' => '09:00 - 10:00',
