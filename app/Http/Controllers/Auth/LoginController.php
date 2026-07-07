@@ -41,6 +41,14 @@ class LoginController extends Controller
         // API may explicitly tell us that the email needs verification.
         if (isset($response['requires_verification']) && $response['requires_verification'] === true) {
             $authApi->resendVerificationOtp($request->email);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'requires_verification' => true,
+                    'message' => __('Please verify your email before logging in. We have sent an OTP to your email.'),
+                    'redirect' => route('verify.email', ['email' => $request->email]),
+                ], 403);
+            }
             return redirect()->route('verify.email', ['email' => $request->email])
                 ->with('status', __('Please verify your email before logging in. We have sent an OTP to your email.'));
         }
@@ -59,13 +67,18 @@ class LoginController extends Controller
 
             // Robust role checking: handles string role, role_id, or nested role object.
             $role = $authApi->role();
+            $redirect = $authApi->isAdmin() ? route('admin.dashboard') : route('user.dashboard');
 
-            if ($authApi->isAdmin()) {
-                return redirect()->route('admin.dashboard');
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'verified' => $isVerified,
+                    'message' => $isVerified ? __('Login successful. Redirecting to your dashboard...') : __('Login successful. Please complete verification.'),
+                    'redirect' => $redirect,
+                ]);
             }
 
-            // Default unknown/customer roles to user dashboard.
-            return redirect()->route('user.dashboard');
+            return redirect()->to($redirect);
         }
 
         $message = $response['message'] ?? 'Invalid credentials. Please try again.';
@@ -78,12 +91,34 @@ class LoginController extends Controller
             $resendMessage = $resendResponse['message'] ?? '';
 
             if (is_string($resendMessage) && str_contains(strtolower($resendMessage), 'already verified')) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => __('Invalid credentials. Please try again.'),
+                    ], 422);
+                }
                 return back()->withErrors(['email' => __('Invalid credentials. Please try again.')])
                     ->withInput($request->only('email'));
             }
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'requires_verification' => true,
+                    'message' => __('Please verify your email before logging in. We have sent an OTP to your email.'),
+                    'redirect' => route('verify.email', ['email' => $request->email]),
+                ], 403);
+            }
+
             return redirect()->route('verify.email', ['email' => $request->email])
                 ->with('status', __('Please verify your email before logging in. We have sent an OTP to your email.'));
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+            ], 422);
         }
 
         return back()->withErrors(['email' => $message])->withInput($request->only('email'));

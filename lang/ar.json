@@ -494,5 +494,15 @@
     "active subscribers": "مشترك نشط",
     "Join our members": "انضم إلى أعضائنا",
     "No plans available at the moment. Please check back soon.": "لا توجد خطط متاحة حاليًا. يرجى التحقق لاحقًا.",
-    "period": "فترة"
+    "period": "فترة",
+    "Back to Home": "العودة إلى الرئيسية",
+    "Continue to Login": "المتابعة إلى تسجيل الدخول",
+    "Email verified successfully": "تم التحقق من البريد الإلكتروني بنجاح",
+    "Your email has been verified. You can now sign in.": "تم التحقق من بريدك الإلكتروني. يمكنك الآن تسجيل الدخول.",
+    "Login failed": "فشل تسجيل الدخول",
+    "Verified": "تم التحقق",
+    "Go to Dashboard": "الذهاب إلى لوحة التحكم",
+    "Login successful. Redirecting to your dashboard...": "تم تسجيل الدخول بنجاح. جاري التوجيه إلى لوحة التحكم...",
+    "Email Not Verified": "البريد الإلكتروني غير مؤكد",
+    "Verify Email Now": "تأكيد البريد الإلكتروني الآن"
 }

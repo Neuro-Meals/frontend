@@ -11,7 +11,7 @@
         <span class="text-[10px] font-medium text-white/60">Calories Today</span>
         <div class="text-2xl font-bold mt-1">{{ number_format($todayStats['calories']) }}</div>
         <div class="mt-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
-            <div class="h-full bg-white rounded-full" style="width: {{ min(round($todayStats['calories'] / $todayStats['calorieTarget'] * 100), 100) }}%"></div>
+            <div class="h-full bg-white rounded-full" style="width: {{ min(round($todayStats['calories'] / ($todayStats['calorieTarget'] ?: 1) * 100), 100) }}%"></div>
         </div>
         <span class="text-[10px] text-white/50 mt-1 block">Target: {{ number_format($todayStats['calorieTarget']) }} kcal</span>
     </div>

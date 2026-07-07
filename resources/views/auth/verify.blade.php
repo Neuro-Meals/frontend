@@ -22,6 +22,26 @@
         {{-- Content --}}
         <div class="p-8 sm:p-10">
 
+            {{-- Success Modal --}}
+            <div x-show="successModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-[60] flex items-center justify-center p-4" x-cloak>
+                <div class="absolute inset-0 bg-emerald-900/60 backdrop-blur-sm" @click="successModal = false"></div>
+                <div class="relative bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-emerald-100 p-8 max-w-sm w-full text-center transform transition-all scale-100">
+                    <div class="w-20 h-20 mx-auto bg-emerald-100 rounded-full flex items-center justify-center mb-5 animate-bounce">
+                        <svg class="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <h3 class="text-2xl font-extrabold text-gray-900 dark:text-white mb-2">{{ __('Email verified successfully') }}</h3>
+                    <p class="text-gray-600 dark:text-gray-300 text-sm mb-6">{{ __('Your email has been verified. You can now sign in.') }}</p>
+                    <div class="space-y-3">
+                        <a href="{{ route('login') }}" class="block w-full py-3 text-sm font-bold text-white rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 shadow-lg hover:shadow-xl transition-all">
+                            {{ __('Continue to Login') }}
+                        </a>
+                        <a href="{{ route('landing') }}" class="block w-full py-3 text-sm font-semibold text-emerald-600 hover:text-emerald-700 rounded-xl border border-emerald-200 hover:bg-emerald-50 transition-colors">
+                            {{ __('Back to Home') }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+
             {{-- Toast Notification --}}
             <div x-show="toast.show" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-2" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 max-w-sm w-full px-4" x-cloak>
                 <div class="rounded-xl border shadow-xl p-4 flex items-start gap-3"
@@ -124,6 +144,7 @@
             loadingVerify: false,
             loadingResend: false,
             error: '',
+            successModal: false,
             toast: { show: false, message: '', type: 'error', title: '' },
             pleaseWait: @json(__('Please wait...')),
             successTitle: @json(__('Success')),
@@ -219,11 +240,7 @@
 
                     if (data.success) {
                         this.showToast(data.message, 'success');
-                        setTimeout(() => {
-                            if (data.redirect) {
-                                window.location.href = data.redirect;
-                            }
-                        }, data.already_verified ? 2000 : 1500);
+                        this.successModal = true;
                         return;
                     }
 
@@ -257,8 +274,8 @@
 
                     if (data.success) {
                         this.showToast(data.message, 'success');
-                        if (data.already_verified && data.redirect) {
-                            setTimeout(() => { window.location.href = data.redirect }, 2000);
+                        if (data.already_verified) {
+                            this.successModal = true;
                         }
                         return;
                     }

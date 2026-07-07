@@ -67,7 +67,10 @@ class VerificationController extends Controller
             ? __('Your email is already verified. You can log in now.')
             : __('Email verified successfully! You can now log in.');
 
-        session(['email_verified' => true]);
+        session([
+            'email_verified' => true,
+            'verified_email' => $request->email,
+        ]);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([

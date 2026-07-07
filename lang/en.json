@@ -494,5 +494,15 @@
     "active subscribers": "active subscribers",
     "Join our members": "Join our members",
     "No plans available at the moment. Please check back soon.": "No plans available at the moment. Please check back soon.",
-    "period": "period"
+    "period": "period",
+    "Back to Home": "Back to Home",
+    "Continue to Login": "Continue to Login",
+    "Email verified successfully": "Email verified successfully",
+    "Your email has been verified. You can now sign in.": "Your email has been verified. You can now sign in.",
+    "Login failed": "Login failed",
+    "Verified": "Verified",
+    "Go to Dashboard": "Go to Dashboard",
+    "Login successful. Redirecting to your dashboard...": "Login successful. Redirecting to your dashboard...",
+    "Email Not Verified": "Email Not Verified",
+    "Verify Email Now": "Verify Email Now"
 }

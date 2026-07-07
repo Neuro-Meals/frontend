@@ -462,17 +462,17 @@ class UserController extends Controller
         if (!empty($apiNutrition)) {
             $todayStats = [
                 'calories' => $apiNutrition['calories'] ?? 0,
-                'calorieTarget' => $apiNutrition['calorie_target'] ?? $targets['calories'],
+                'calorieTarget' => max((int) ($apiNutrition['calorie_target'] ?? $targets['calories']), 1),
                 'protein' => $apiNutrition['protein'] ?? 0,
-                'proteinTarget' => $apiNutrition['protein_target'] ?? $targets['protein'],
+                'proteinTarget' => max((int) ($apiNutrition['protein_target'] ?? $targets['protein']), 1),
                 'carbs' => $apiNutrition['carbs'] ?? 0,
-                'carbsTarget' => $apiNutrition['carbs_target'] ?? $targets['carbs'],
+                'carbsTarget' => max((int) ($apiNutrition['carbs_target'] ?? $targets['carbs']), 1),
                 'fat' => $apiNutrition['fat'] ?? 0,
-                'fatTarget' => $apiNutrition['fat_target'] ?? $targets['fat'],
+                'fatTarget' => max((int) ($apiNutrition['fat_target'] ?? $targets['fat']), 1),
                 'water' => $apiNutrition['water'] ?? 0,
-                'waterTarget' => $apiNutrition['water_target'] ?? 0,
+                'waterTarget' => (int) ($apiNutrition['water_target'] ?? 8) ?: 8,
                 'steps' => $apiNutrition['steps'] ?? 0,
-                'stepsTarget' => $apiNutrition['steps_target'] ?? 0,
+                'stepsTarget' => (int) ($apiNutrition['steps_target'] ?? 10000) ?: 10000,
             ];
         } else {
             $todayMeals = array_slice($meals, 0, 3);
@@ -489,17 +489,17 @@ class UserController extends Controller
 
             $todayStats = [
                 'calories' => $todayCalories,
-                'calorieTarget' => $targets['calories'],
+                'calorieTarget' => max((int) ($targets['calories'] ?? 1800), 1),
                 'protein' => $todayProtein,
-                'proteinTarget' => $targets['protein'],
+                'proteinTarget' => max((int) ($targets['protein'] ?? 140), 1),
                 'carbs' => $todayCarbs,
-                'carbsTarget' => $targets['carbs'],
+                'carbsTarget' => max((int) ($targets['carbs'] ?? 200), 1),
                 'fat' => $todayFat,
-                'fatTarget' => $targets['fat'],
+                'fatTarget' => max((int) ($targets['fat'] ?? 55), 1),
                 'water' => 0,
-                'waterTarget' => 0,
+                'waterTarget' => 8,
                 'steps' => 0,
-                'stepsTarget' => 0,
+                'stepsTarget' => 10000,
             ];
         }
 
