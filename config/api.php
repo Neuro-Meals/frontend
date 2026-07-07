@@ -101,6 +101,52 @@ return [
             'cancel' => '/subscriptions/{subscription_id}/cancel',
         ],
 
+        // ─── Orders ───
+        'orders' => [
+            'list'          => '/orders/',
+            'my'            => '/orders/my',
+            'show'          => '/orders/{order_id}',
+            'from_subscription' => '/orders/from-subscription',
+            'update_status' => '/orders/{order_id}/status',
+            'cancel'        => '/orders/{order_id}/cancel',
+        ],
+
+        // ─── Deliveries ───
+        'deliveries' => [
+            'list'           => '/deliveries/',
+            'create'         => '/deliveries/',
+            'my'             => '/deliveries/my',
+            'driver_my'      => '/deliveries/driver/my',
+            'show'           => '/deliveries/{delivery_id}',
+            'assign_driver'  => '/deliveries/{delivery_id}/assign-driver',
+            'update_status'  => '/deliveries/{delivery_id}/status',
+            'update_location' => '/deliveries/{delivery_id}/location',
+        ],
+
+        // ─── Notifications ───
+        'notifications' => [
+            'list'     => '/notifications/',
+            'create'   => '/notifications/',
+            'my'       => '/notifications/my',
+            'show'     => '/notifications/{notification_id}',
+            'read'     => '/notifications/{notification_id}/read',
+            'read_all' => '/notifications/my/read-all',
+        ],
+
+        // ─── Meal Schedule (not in OpenAPI spec — customer dashboard requirement) ───
+        'meal_schedule' => [
+            'my'       => '/meal-schedule/my',
+            'my_today' => '/meal-schedule/my/today',
+        ],
+
+        // ─── Nutrition / Tracking (not in OpenAPI spec — customer dashboard requirement) ───
+        'nutrition' => [
+            'today'         => '/nutrition/today',
+            'weekly'        => '/nutrition/weekly',
+            'weight_history' => '/weight-history',
+            'activity_today' => '/activity/today',
+        ],
+
         // ─── Reports (not in OpenAPI spec — used with mock fallback) ───
         'reports' => [
             'dashboard' => [
