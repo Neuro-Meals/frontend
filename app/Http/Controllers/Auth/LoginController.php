@@ -52,7 +52,15 @@ class LoginController extends Controller
                 $user = $response['user'] ?? [];
                 session(['email_verified' => !empty($user['is_verified'])]);
 
+                $role = $authApi->role();
                 $redirect = $authApi->isAdmin() ? route('admin.dashboard') : route('user.dashboard');
+
+                Log::info('Login role redirect', [
+                    'email' => $request->email,
+                    'role' => $role,
+                    'is_admin' => $authApi->isAdmin(),
+                    'redirect' => $redirect,
+                ]);
 
                 if ($request->ajax() || $request->wantsJson()) {
                     return response()->json([
