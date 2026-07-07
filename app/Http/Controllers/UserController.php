@@ -4,8 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\Api\AuthApiService;
+use App\Services\Api\DeliveryApiService;
 use App\Services\Api\HasApiData;
 use App\Services\Api\MealApiService;
+use App\Services\Api\MealScheduleApiService;
+use App\Services\Api\NotificationApiService;
+use App\Services\Api\NutritionApiService;
+use App\Services\Api\OrderApiService;
 use App\Services\Api\PlanApiService;
 use App\Services\Api\ProfileApiService;
 use App\Services\Api\SubscriptionApiService;
