@@ -850,23 +850,46 @@ class UserController extends Controller
         return view('user.delivery', compact('upcoming', 'history', 'stats'));
     }
 
-    public function notifications(AuthApiService $authApi)
+    public function notifications(NotificationApiService $notificationApi, AuthApiService $authApi)
     {
-        // Note: There is no notifications API yet. We fetch user profile for context but keep mock notifications.
+        $apiNotifications = $this->apiData($notificationApi->my(), function () {
+            return [];
+        });
+
         $user = $this->apiData($authApi->me(), function () use ($authApi) {
             return $authApi->user() ?? [];
         });
 
         $userName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: 'User';
 
-        $notifications = [
-            ['id' => 1, 'title' => 'Delivery Tomorrow', 'message' => 'Your meal delivery is scheduled for tomorrow 09:00 - 10:00', 'type' => 'delivery', 'time' => '1 hour ago', 'read' => false],
-            ['id' => 2, 'title' => 'Meal Plan Renewal', 'message' => 'Your Weight Loss Pro plan renews on Jul 1, 2025', 'type' => 'subscription', 'time' => '5 hours ago', 'read' => false],
-            ['id' => 3, 'title' => 'Nutrition Goal Achieved', 'message' => 'Congratulations! You hit your protein target 5 days in a row', 'type' => 'achievement', 'time' => 'Yesterday', 'read' => true],
-            ['id' => 4, 'title' => 'New Meal Added', 'message' => 'Grilled Chicken Bowl has been added to your meal plan', 'type' => 'meal', 'time' => '2 days ago', 'read' => true],
-            ['id' => 5, 'title' => 'Payment Successful', 'message' => 'Payment of SAR 420 for ORD-2387 was completed', 'type' => 'payment', 'time' => '3 days ago', 'read' => true],
-            ['id' => 6, 'title' => 'Weekly Digest', 'message' => 'Your weekly nutrition summary is ready to view', 'type' => 'digest', 'time' => '4 days ago', 'read' => true],
-        ];
+        $notifications = [];
+
+        if (!empty($apiNotifications) && is_array($apiNotifications)) {
+            foreach ($apiNotifications as $notification) {
+                $createdAt = $notification['created_at'] ?? null;
+                $time = $createdAt ? $this->timeAgo($createdAt) : 'Just now';
+                $notifications[] = [
+                    'id' => $notification['id'],
+                    'title' => $notification['title'],
+                    'message' => $notification['message'],
+                    'type' => $notification['notification_type'] ?? 'general',
+                    'time' => $time,
+                    'read' => (bool) ($notification['is_read'] ?? false),
+                ];
+            }
+        }
+
+        // Fallback mock data if API is not available
+        if (empty($notifications)) {
+            $notifications = [
+                ['id' => 1, 'title' => 'Delivery Tomorrow', 'message' => 'Your meal delivery is scheduled for tomorrow 09:00 - 10:00', 'type' => 'delivery', 'time' => '1 hour ago', 'read' => false],
+                ['id' => 2, 'title' => 'Meal Plan Renewal', 'message' => 'Your Weight Loss Pro plan renews on Jul 1, 2025', 'type' => 'subscription', 'time' => '5 hours ago', 'read' => false],
+                ['id' => 3, 'title' => 'Nutrition Goal Achieved', 'message' => 'Congratulations! You hit your protein target 5 days in a row', 'type' => 'achievement', 'time' => 'Yesterday', 'read' => true],
+                ['id' => 4, 'title' => 'New Meal Added', 'message' => 'Grilled Chicken Bowl has been added to your meal plan', 'type' => 'meal', 'time' => '2 days ago', 'read' => true],
+                ['id' => 5, 'title' => 'Payment Successful', 'message' => 'Payment of SAR 420 for ORD-2387 was completed', 'type' => 'payment', 'time' => '3 days ago', 'read' => true],
+                ['id' => 6, 'title' => 'Weekly Digest', 'message' => 'Your weekly nutrition summary is ready to view', 'type' => 'digest', 'time' => '4 days ago', 'read' => true],
+            ];
+        }
 
         $preferences = [
             ['name' => 'Delivery Alerts', 'channel' => 'SMS', 'enabled' => true],
@@ -884,6 +907,30 @@ class UserController extends Controller
         ];
 
         return view('user.notifications', compact('notifications', 'preferences', 'stats', 'userName'));
+    }
+
+    /**
+     * Convert datetime to relative time string.
+     */
+    private function timeAgo(string $datetime): string
+    {
+        $time = strtotime($datetime);
+        $diff = time() - $time;
+
+        if ($diff < 60) {
+            return 'Just now';
+        }
+        if ($diff < 3600) {
+            return round($diff / 60) . ' min ago';
+        }
+        if ($diff < 86400) {
+            return round($diff / 3600) . ' hour' . (round($diff / 3600) > 1 ? 's' : '') . ' ago';
+        }
+        if ($diff < 604800) {
+            return round($diff / 86400) . ' day' . (round($diff / 86400) > 1 ? 's' : '') . ' ago';
+        }
+
+        return date('M d', $time);
     }
 
     public function settings(ProfileApiService $profileApi)
