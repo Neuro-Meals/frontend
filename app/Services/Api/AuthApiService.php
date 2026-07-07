@@ -129,7 +129,7 @@ class AuthApiService extends BaseApiService
 
     /**
      * Extract the normalized role string from user data.
-     * Handles role as string, role_id integer, or nested role object.
+     * Handles role as string, enum value, role_id integer, or nested role object.
      */
     public function role(): ?string
     {
@@ -138,12 +138,20 @@ class AuthApiService extends BaseApiService
             return null;
         }
 
-        if (is_string($user['role'] ?? null) && !empty($user['role'])) {
-            return strtolower($user['role']);
+        $rawRole = $user['role'] ?? null;
+
+        // Backend sends UserRole enum serialized as a string (e.g. "customer", "admin").
+        if (is_string($rawRole) && !empty($rawRole)) {
+            return strtolower($rawRole);
         }
 
-        if (is_array($user['role'] ?? null) && !empty($user['role']['name'])) {
-            return strtolower($user['role']['name']);
+        // Enum object fallback: { value: "admin" }
+        if (is_array($rawRole)) {
+            foreach (['value', 'name', 'role'] as $key) {
+                if (!empty($rawRole[$key]) && is_string($rawRole[$key])) {
+                    return strtolower($rawRole[$key]);
+                }
+            }
         }
 
         $roleId = $user['role_id'] ?? null;

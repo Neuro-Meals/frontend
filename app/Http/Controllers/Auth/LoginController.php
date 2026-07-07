@@ -45,133 +45,43 @@ class LoginController extends Controller
                 return back()->withErrors($validator)->withInput($request->only('email'));
             }
 
-            try {
-                $response = $authApi->login($request->email, $request->password);
-            } catch (\Throwable $e) {
-                Log::error('Login API request failed', [
-                    'email' => $request->email,
-                    'error' => $e->getMessage(),
-                ]);
+            $response = $authApi->login($request->email, $request->password);
+
+            // Backend returned an access token — login succeeded.
+            if (isset($response['access_token'])) {
+                $user = $response['user'] ?? [];
+                session(['email_verified' => !empty($user['is_verified'])]);
+
+                $redirect = $authApi->isAdmin() ? route('admin.dashboard') : route('user.dashboard');
 
                 if ($request->ajax() || $request->wantsJson()) {
                     return response()->json([
-                        'success' => false,
-                        'message' => __('Unable to reach authentication service. Please try again later.'),
-                    ], 503);
+                        'success' => true,
+                        'verified' => !empty($user['is_verified']),
+                        'message' => __('Login successful. Redirecting to your dashboard...'),
+                        'redirect' => $redirect,
+                    ]);
                 }
 
-                return back()->withErrors(['email' => __('Unable to reach authentication service. Please try again later.')])
-                    ->withInput($request->only('email'));
+                return redirect()->to($redirect);
             }
 
-            // API may explicitly tell us that the email needs verification.
-        if (isset($response['requires_verification']) && $response['requires_verification'] === true) {
-            $authApi->resendVerificationOtp($request->email);
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'requires_verification' => true,
-                    'message' => __('Please verify your email before logging in. We have sent an OTP to your email.'),
-                    'redirect' => route('verify.email', ['email' => $request->email]),
-                ], 403);
-            }
-            return redirect()->route('verify.email', ['email' => $request->email])
-                ->with('status', __('Please verify your email before logging in. We have sent an OTP to your email.'));
-        }
-
-        if (isset($response['access_token'])) {
-            $user = $response['user'] ?? [];
-
-            // Determine verification status: API field first, then fall back to resend endpoint.
-            $isVerified = !empty($user['is_verified']);
-            if (!$isVerified) {
-                $resendResponse = $authApi->resendVerificationOtp($request->email);
-                $resendMessage = $resendResponse['message'] ?? '';
-                $isVerified = is_string($resendMessage) && str_contains(strtolower($resendMessage), 'already verified');
-            }
-            session(['email_verified' => $isVerified]);
-
-            // Redirect based on role: admin users to admin dashboard, customers to user dashboard.
-            $redirect = $authApi->isAdmin() ? route('admin.dashboard') : route('user.dashboard');
-
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'verified' => $isVerified,
-                    'message' => $isVerified ? __('Login successful. Redirecting to your dashboard...') : __('Login successful. Please complete verification.'),
-                    'redirect' => $redirect,
-                ]);
-            }
-
-            return redirect()->to($redirect);
-        }
-
-        $message = $response['message'] ?? 'Invalid credentials. Please try again.';
-        $status = $response['status'] ?? 0;
-
-        // If the backend itself failed, surface a friendly message and log details.
-        if ($status >= 500) {
-            Log::error('Backend returned server error during login', [
-                'email' => $request->email,
-                'status' => $status,
-                'response' => $response,
-            ]);
-
-            $serverMessage = __('Something went wrong on our side. Please try again in a moment.');
+            // Something else came back from the backend.
+            $message = $response['message'] ?? $response['detail'][0]['msg'] ?? __('Invalid credentials. Please try again.');
+            $status = $response['status'] ?? 422;
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => $serverMessage,
-                ], 500);
+                    'message' => $message,
+                ], $status >= 400 && $status < 600 ? $status : 422);
             }
 
-            return back()->withErrors(['email' => $serverMessage])->withInput($request->only('email'));
-        }
-
-        // API may reject unverified users with 401 Unauthorized.
-        // To avoid sending already-verified users to the verify page, check the resend endpoint first.
-        if ($status === 401 || (is_string($message) && str_contains(strtolower($message), 'unauthorized'))) {
-            $resendResponse = $authApi->resendVerificationOtp($request->email);
-            $resendMessage = $resendResponse['message'] ?? '';
-
-            if (is_string($resendMessage) && str_contains(strtolower($resendMessage), 'already verified')) {
-                if ($request->ajax() || $request->wantsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => __('Invalid credentials. Please try again.'),
-                    ], 422);
-                }
-                return back()->withErrors(['email' => __('Invalid credentials. Please try again.')])
-                    ->withInput($request->only('email'));
-            }
-
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'requires_verification' => true,
-                    'message' => __('Please verify your email before logging in. We have sent an OTP to your email.'),
-                    'redirect' => route('verify.email', ['email' => $request->email]),
-                ], 403);
-            }
-
-            return redirect()->route('verify.email', ['email' => $request->email])
-                ->with('status', __('Please verify your email before logging in. We have sent an OTP to your email.'));
-        }
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => false,
-                'message' => $message,
-            ], 422);
-        }
-
-        return back()->withErrors(['email' => $message])->withInput($request->only('email'));
+            return back()->withErrors(['email' => $message])->withInput($request->only('email'));
         } catch (\Throwable $e) {
-            Log::error('Unexpected login error', [
+            Log::error('Login failed', [
                 'email' => $request->email,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
 
             $fallbackMessage = __('Something went wrong. Please try again.');
