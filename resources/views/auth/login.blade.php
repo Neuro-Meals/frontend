@@ -72,6 +72,9 @@
                         <a href="{{ route('password.request') }}" class="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors">{{ __('Forgot Your Password?') }}</a>
                     @endif
                 </div>
+                <div class="text-center">
+                    <a href="{{ route('verify.email') }}" class="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors">{{ __('Verify Email') }}</a>
+                </div>
 
                 {{-- Submit --}}
                 <button type="submit" :disabled="loading"
