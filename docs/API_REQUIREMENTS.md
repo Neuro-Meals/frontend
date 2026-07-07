@@ -596,6 +596,81 @@ Each customer feature has a dedicated service class under `app/Services/Api/`:
 
 ---
 
+## Role-Based Access Control (RBAC)
+
+### Required Backend Behavior
+
+The backend API must enforce strict role separation between admin, customer, and driver users.
+
+#### 1. Login Response Must Include Role
+
+`POST /auth/login` should return the authenticated user's role in a consistent format:
+
+```json
+{
+  "access_token": "string",
+  "token_type": "bearer",
+  "user": {
+    "id": 1,
+    "email": "user@example.com",
+    "role": "customer",
+    "role_id": 1,
+    "is_verified": true
+  }
+}
+```
+
+Accepted formats:
+- `role` as a string: `"customer"`, `"admin"`, `"super_admin"`, `"driver"`
+- `role_id` as an integer with documented mapping
+- `role` as an object: `{ "id": 2, "name": "admin" }`
+
+#### 2. Admin API Protection
+
+All `/users/`, `/reports/`, admin dashboard stats, content management, and driver assignment endpoints must require an admin or super_admin role. Non-admin requests must return `403 Forbidden`.
+
+#### 3. Customer API Protection
+
+Customer-only endpoints (subscriptions, orders from subscription, deliveries for me, nutrition, notifications for me) must reject admin users with `403 Forbidden`. This prevents admins from accidentally creating customer data or accessing customer portals.
+
+#### 4. Driver API Protection
+
+Delivery endpoints meant for drivers (`GET /deliveries/driver/my`, `PATCH /deliveries/{id}/location`) must require the `driver` role.
+
+### Frontend Role Mapping
+
+The Laravel frontend uses `config/api.php` to map `role_id` to role names:
+
+```php
+'role_map' => [
+    1 => 'customer',
+    2 => 'admin',
+    3 => 'super_admin',
+    4 => 'driver',
+],
+```
+
+### Middleware Applied
+
+| Middleware | Purpose | Route Groups |
+|------------|---------|--------------|
+| `api.auth` | Ensure user is logged in | Both admin and user groups |
+| `api.admin` | Ensure user is admin/super_admin | `admin.*` routes |
+| `api.customer` | Ensure user is a customer | `user.*` routes |
+
+### Login Flow with Role Check
+
+1. User submits email/password.
+2. Frontend calls `POST /auth/login`.
+3. On success, frontend stores token and user data in session.
+4. Frontend reads the normalized role from `role`, `role.name`, or `role_id`.
+5. Admin users are redirected to `/admin/dashboard`.
+6. Customer, driver, or unknown roles are redirected to `/user/dashboard`.
+7. If a logged-in admin manually visits `/user/*`, the `api.customer` middleware redirects them to the admin dashboard.
+8. If a logged-in customer manually visits `/admin/*`, the `api.admin` middleware aborts with `403`.
+
+---
+
 ## Backend Implementation Checklist
 
 ### High Priority
