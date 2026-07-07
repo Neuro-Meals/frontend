@@ -506,6 +506,8 @@
     "Email Not Verified": "Email Not Verified",
     "Verify Email Now": "Verify Email Now",
     "No weight data available yet": "No weight data available yet",
+    "Unable to reach authentication service. Please try again later.": "Unable to reach authentication service. Please try again later.",
+    "Something went wrong on our side. Please try again in a moment.": "Something went wrong on our side. Please try again in a moment.",
     "Welcome to :app — Your email is verified!": "Welcome to :app — Your email is verified!",
     "Welcome aboard, :name!": "Welcome aboard, :name!",
     "Your email :email has been successfully verified. Your :app account is now fully active.": "Your email :email has been successfully verified. Your :app account is now fully active.",

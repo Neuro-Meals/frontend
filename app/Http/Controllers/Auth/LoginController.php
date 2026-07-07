@@ -33,10 +33,34 @@ class LoginController extends Controller
         ]);
 
         if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('Please fix the errors in the form.'),
+                    'errors' => $validator->errors()->toArray(),
+                ], 422);
+            }
             return back()->withErrors($validator)->withInput($request->only('email'));
         }
 
-        $response = $authApi->login($request->email, $request->password);
+        try {
+            $response = $authApi->login($request->email, $request->password);
+        } catch (\Exception $e) {
+            Log::error('Login API request failed', [
+                'email' => $request->email,
+                'error' => $e->getMessage(),
+            ]);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('Unable to reach authentication service. Please try again later.'),
+                ], 503);
+            }
+
+            return back()->withErrors(['email' => __('Unable to reach authentication service. Please try again later.')])
+                ->withInput($request->only('email'));
+        }
 
         // API may explicitly tell us that the email needs verification.
         if (isset($response['requires_verification']) && $response['requires_verification'] === true) {
@@ -82,6 +106,26 @@ class LoginController extends Controller
 
         $message = $response['message'] ?? 'Invalid credentials. Please try again.';
         $status = $response['status'] ?? 0;
+
+        // If the backend itself failed, surface a friendly message and log details.
+        if ($status >= 500) {
+            Log::error('Backend returned server error during login', [
+                'email' => $request->email,
+                'status' => $status,
+                'response' => $response,
+            ]);
+
+            $serverMessage = __('Something went wrong on our side. Please try again in a moment.');
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $serverMessage,
+                ], 500);
+            }
+
+            return back()->withErrors(['email' => $serverMessage])->withInput($request->only('email'));
+        }
 
         // API may reject unverified users with 401 Unauthorized.
         // To avoid sending already-verified users to the verify page, check the resend endpoint first.
