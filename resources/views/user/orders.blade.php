@@ -5,6 +5,28 @@
 
 @section('content')
 
+{{-- Flash Messages --}}
+@if(session('success'))
+<div class="mb-4 bg-green-50 border border-green-100 text-green-700 rounded-xl px-4 py-3 text-sm">
+    {{ session('success') }}
+</div>
+@endif
+@if(session('error'))
+<div class="mb-4 bg-red-50 border border-red-100 text-red-700 rounded-xl px-4 py-3 text-sm">
+    {{ session('error') }}
+</div>
+@endif
+
+{{-- Create Order Action --}}
+<div class="mb-6 flex justify-end">
+    <form action="{{ route('user.orders.from-subscription') }}" method="POST">
+        @csrf
+        <button type="submit" class="px-4 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-md transition-all">
+            + Create Order from Subscription
+        </button>
+    </form>
+</div>
+
 {{-- Stats --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
     <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-4 text-white shadow-lg shadow-[#6E7A25]/20">
