@@ -301,7 +301,7 @@ class UserController extends Controller
         return view('user.subscriptions', compact('activePlan', 'availablePlans', 'history'));
     }
 
-    public function meals(MealApiService $mealApi, SubscriptionApiService $subscriptionApi)
+    public function meals(MealApiService $mealApi, SubscriptionApiService $subscriptionApi, PlanApiService $planApi)
     {
         $meals = $this->apiData($mealApi->list(['limit' => 100, 'is_available' => true]), function () {
             return [];
@@ -319,8 +319,16 @@ class UserController extends Controller
             }
         }
 
-        $totalPlanMeals = $activeSubscription['plan_total_meals'] ?? 84;
-        $mealsPerDay = $activeSubscription['plan_meals_per_day'] ?? 3;
+        // Fetch plan details to get meals_per_day and total_meals
+        $planDetails = [];
+        if ($activeSubscription && !empty($activeSubscription['plan_id'])) {
+            $planDetails = $this->apiData($planApi->show($activeSubscription['plan_id']), function () {
+                return [];
+            });
+        }
+
+        $totalPlanMeals = $planDetails['total_meals'] ?? 84;
+        $mealsPerDay = $planDetails['meals_per_day'] ?? 3;
         $mealsConsumed = $activeSubscription['meals_consumed'] ?? 0;
 
         // Map API meals to view format
