@@ -167,7 +167,7 @@
             networkError: @json(__('Network error. Please try again.')),
             loginUrl: @json(route('login')),
             form: {
-                email: '',
+                email: @json(old('email') ?? session('verified_email') ?? ''),
                 password: ''
             },
             showToast(message, type = 'error') {
