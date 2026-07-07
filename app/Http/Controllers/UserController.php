@@ -659,54 +659,84 @@ class UserController extends Controller
         return (int) round($total / count($meals)) * 3; // Approximate 3 meals per day
     }
 
-    public function orders(SubscriptionApiService $subscriptionApi, PlanApiService $planApi)
+    public function orders(OrderApiService $orderApi, SubscriptionApiService $subscriptionApi, PlanApiService $planApi)
     {
-        $subscriptions = $this->apiData($subscriptionApi->my(), function () {
+        $apiOrders = $this->apiData($orderApi->my(), function () {
             return [];
         });
-
-        $plans = $this->apiData($planApi->list(['limit' => 100]), function () {
-            return [];
-        });
-
-        $plansById = [];
-        foreach ($plans as $plan) {
-            $plansById[$plan['id'] ?? 0] = $plan;
-        }
 
         $orders = [];
         $total = 0;
         $delivered = 0;
         $cancelled = 0;
         $totalSpent = 0;
-        $index = 1;
 
-        foreach ($subscriptions as $sub) {
-            $planId = $sub['plan_id'] ?? 0;
-            $plan = $plansById[$planId] ?? [];
-            $planName = $plan['name_en'] ?? 'Plan #' . $planId;
-            $meals = $plan['meals_per_day'] ?? 3;
-            $status = $this->mapSubscriptionStatus($sub['status'] ?? 'pending', $sub['payment_status'] ?? 'unpaid');
-            $amount = $sub['amount'] ?? 0;
-            $date = $sub['created_at'] ?? $sub['start_date'] ?? date('Y-m-d');
+        if (!empty($apiOrders) && is_array($apiOrders)) {
+            foreach ($apiOrders as $order) {
+                $status = $order['status'] ?? 'pending';
+                $amount = $order['total_amount'] ?? 0;
+                $orders[] = [
+                    'id' => $order['order_number'] ?? ('ORD-' . $order['id']),
+                    'plan' => $order['plan_name'] ?? 'Plan',
+                    'meals' => $order['meals'] ?? count($order['items'] ?? []),
+                    'amount' => $amount,
+                    'date' => $order['created_at'] ?? date('Y-m-d'),
+                    'status' => $status,
+                ];
 
-            $orders[] = [
-                'id' => 'ORD-' . str_pad($index, 4, '0', STR_PAD_LEFT),
-                'plan' => $planName,
-                'meals' => $meals,
-                'amount' => $amount,
-                'date' => $date,
-                'status' => $status,
-            ];
-
-            $total++;
-            $totalSpent += $amount;
-            if ($status === 'delivered') {
-                $delivered++;
-            } elseif ($status === 'cancelled') {
-                $cancelled++;
+                $total++;
+                $totalSpent += $amount;
+                if ($status === 'delivered') {
+                    $delivered++;
+                } elseif ($status === 'cancelled') {
+                    $cancelled++;
+                }
             }
-            $index++;
+        }
+
+        // Fallback: derive orders from subscriptions if orders API is empty
+        if (empty($orders)) {
+            $subscriptions = $this->apiData($subscriptionApi->my(), function () {
+                return [];
+            });
+
+            $plans = $this->apiData($planApi->list(['limit' => 100]), function () {
+                return [];
+            });
+
+            $plansById = [];
+            foreach ($plans as $plan) {
+                $plansById[$plan['id'] ?? 0] = $plan;
+            }
+
+            $index = 1;
+            foreach ($subscriptions as $sub) {
+                $planId = $sub['plan_id'] ?? 0;
+                $plan = $plansById[$planId] ?? [];
+                $planName = $plan['name_en'] ?? 'Plan #' . $planId;
+                $meals = $plan['meals_per_day'] ?? 3;
+                $status = $this->mapSubscriptionStatus($sub['status'] ?? 'pending', $sub['payment_status'] ?? 'unpaid');
+                $amount = $sub['amount'] ?? 0;
+                $date = $sub['created_at'] ?? $sub['start_date'] ?? date('Y-m-d');
+
+                $orders[] = [
+                    'id' => 'ORD-' . str_pad($index, 4, '0', STR_PAD_LEFT),
+                    'plan' => $planName,
+                    'meals' => $meals,
+                    'amount' => $amount,
+                    'date' => $date,
+                    'status' => $status,
+                ];
+
+                $total++;
+                $totalSpent += $amount;
+                if ($status === 'delivered') {
+                    $delivered++;
+                } elseif ($status === 'cancelled') {
+                    $cancelled++;
+                }
+                $index++;
+            }
         }
 
         // Sort by date descending
