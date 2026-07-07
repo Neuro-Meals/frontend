@@ -155,7 +155,7 @@
                             if (data.redirect) {
                                 window.location.href = data.redirect;
                             }
-                        }, 1500);
+                        }, data.already_verified ? 2000 : 1500);
                         return;
                     }
 
