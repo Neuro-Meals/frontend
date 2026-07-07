@@ -242,7 +242,7 @@ class UserController extends Controller
                 'started' => 'N/A',
                 'renewal' => 'N/A',
                 'mealsRemaining' => 0,
-                'mealsTotal' => 0,
+                'mealsTotal' => 1,
                 'calories' => '-',
                 'color' => '#6b7280',
             ];
