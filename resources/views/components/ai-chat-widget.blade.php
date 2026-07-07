@@ -38,6 +38,43 @@ $logoUrl = asset('whitelogo.png');
         animation: ai-pulse-ring 2s ease-out infinite;
         z-index: -1;
     }
+    .ai-msg-bot {
+        position: relative;
+        border-top-left-radius: 4px !important;
+    }
+    .ai-msg-bot::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -7px;
+        width: 12px;
+        height: 12px;
+        background: white;
+        border-bottom: 1px solid rgb(243 244 246);
+        border-left: 1px solid rgb(243 244 246);
+        border-bottom-left-radius: 12px;
+        clip-path: polygon(0 0, 100% 100%, 100% 0);
+    }
+    .dark .ai-msg-bot::before {
+        background: rgb(31 41 55);
+        border-bottom-color: rgb(55 65 81);
+        border-left-color: rgb(55 65 81);
+    }
+    .ai-msg-user {
+        position: relative;
+        border-top-right-radius: 4px !important;
+    }
+    .ai-msg-user::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: -7px;
+        width: 12px;
+        height: 12px;
+        background: linear-gradient(135deg, #173327, #6E7A25);
+        border-bottom-right-radius: 12px;
+        clip-path: polygon(0 0, 0 100%, 100% 0);
+    }
 </style>
 
 <div id="{{ $wrapperId }}" class="ai-chat-widget fixed {{ $positionClass }} bottom-4 z-50 w-full max-w-sm font-sans" data-endpoint="{{ $resolvedEndpoint }}" data-context="{{ $context }}">
@@ -76,7 +113,7 @@ $logoUrl = asset('whitelogo.png');
                 <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center flex-shrink-0 border border-white/10 shadow-sm">
                     <img src="{{ $logoUrl }}" alt="AI" class="w-5 h-5 object-contain">
                 </div>
-                <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-tl-none p-3 shadow-sm text-sm text-gray-700 dark:text-gray-200 max-w-[82%]">
+                <div class="ai-msg-bot bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-3 shadow-sm text-sm text-gray-700 dark:text-gray-200 max-w-[82%]">
                     {{ $resolvedGreeting }}
                 </div>
             </div>
@@ -128,8 +165,8 @@ $logoUrl = asset('whitelogo.png');
                 div.className = `ai-message flex gap-2.5 ${isBot ? '' : 'justify-end'}`;
                 div.innerHTML = isBot
                     ? `${botAvatar()}
-                       <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-tl-none p-3 shadow-sm text-sm text-gray-700 dark:text-gray-200 max-w-[82%]">${escapeHtml(text)}</div>`
-                    : `<div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white rounded-2xl rounded-tr-none p-3 shadow-sm text-sm max-w-[82%]">${escapeHtml(text)}</div>`;
+                       <div class="ai-msg-bot bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-3 shadow-sm text-sm text-gray-700 dark:text-gray-200 max-w-[82%]">${escapeHtml(text)}</div>`
+                    : `<div class="ai-msg-user bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white rounded-2xl p-3 shadow-sm text-sm max-w-[82%]">${escapeHtml(text)}</div>`;
                 messages.appendChild(div);
                 scrollToBottom();
             }
@@ -140,7 +177,7 @@ $logoUrl = asset('whitelogo.png');
                 div.id = id;
                 div.className = 'ai-message flex gap-2.5';
                 div.innerHTML = `${botAvatar()}
-                                 <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-tl-none p-3 shadow-sm flex items-center gap-1 w-16">
+                                 <div class="ai-msg-bot bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-3 shadow-sm flex items-center gap-1 w-16">
                                      <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0s;"></span>
                                      <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: .15s;"></span>
                                      <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay: .3s;"></span>
