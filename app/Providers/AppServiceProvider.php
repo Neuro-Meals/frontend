@@ -12,6 +12,8 @@ use App\Services\Api\PlanApiService;
 use App\Services\Api\SubscriptionApiService;
 use App\Services\Api\RbacApiService;
 use App\Services\Api\ProfileApiService;
+use App\Services\Api\MealApiService;
+use App\Services\Api\SubscriptionApiService;
 
 class AppServiceProvider extends ServiceProvider
 {

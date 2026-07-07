@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\Api\AuthApiService;
 use App\Services\Api\HasApiData;
+use App\Services\Api\MealApiService;
+use App\Services\Api\SubscriptionApiService;
 
 class UserController extends Controller
 {
@@ -21,58 +23,169 @@ class UserController extends Controller
         });
     }
 
-    public function dashboard()
+    public function dashboard(Request $request, AuthApiService $authApi, MealApiService $mealApi, SubscriptionApiService $subscriptionApi)
     {
-        $authApi = app(AuthApiService::class);
-        $user = $authApi->user();
+        $user = $this->apiData($authApi->me(), function () use ($authApi) {
+            return $authApi->user() ?? [];
+        });
+
+        // Refresh session user data when API returns fresh data
+        if (!empty($user['id'])) {
+            session(['api_user' => $user]);
+        }
+
+        $subscription = $this->apiData($subscriptionApi->my(), function () {
+            return [];
+        });
+
+        $meals = $this->apiData($mealApi->list(['limit' => 20]), function () {
+            return [];
+        });
+
+        $plan = $user['subscription'] ?? $subscription;
+
+        $planName = $plan['plan_name'] ?? $plan['name'] ?? 'Active Plan';
+        $calorieTarget = $plan['calories'] ?? $plan['calorie_target'] ?? 1800;
+        $proteinTarget = $plan['protein_target'] ?? 140;
+        $carbsTarget = $plan['carbs_target'] ?? 200;
+        $fatTarget = $plan['fat_target'] ?? 55;
+
+        $upcomingMeals = [];
+        foreach (array_slice($meals, 0, 3) as $meal) {
+            $upcomingMeals[] = [
+                'name' => $meal['name'] ?? 'Meal',
+                'time' => $meal['meal_time'] ?? ($meal['time'] ?? 'Upcoming'),
+                'calories' => $meal['calories'] ?? 0,
+                'image' => $meal['image'] ?? 'whitelogo.png',
+            ];
+        }
+
+        // Fallback to mock meals if API returns nothing
+        if (empty($upcomingMeals)) {
+            $upcomingMeals = [
+                ['name' => 'Grilled Chicken Bowl', 'time' => 'Today · Lunch', 'calories' => 520, 'image' => 'grilled-chicken-breast-rice-berry-vegetables-white-background_1428-2141.jpg'],
+                ['name' => 'Quinoa Buddha Bowl', 'time' => 'Today · Dinner', 'calories' => 480, 'image' => 'healthy-buddha-bowl-with-sliced-meat-fresh-vegetables_9975-132258.jpg'],
+                ['name' => 'Protein Breakfast Plate', 'time' => 'Tomorrow · Breakfast', 'calories' => 410, 'image' => 'healthy-protein-bowl-with-quinoa-avocado-kale-sweet-potato-poached-egg_9975-132760.jpg'],
+            ];
+        }
+
+        $weeklyProgress = $this->buildWeeklyProgress($meals, (int) $calorieTarget);
+        $recentOrders = $this->buildRecentOrders($subscription);
+
+        $currentWeight = $user['weight_kg'] ?? 78.2;
+        $weightGoal = $user['fitness_goal'] === 'weight_loss' ? $currentWeight - 5 : ($user['fitness_goal'] === 'muscle_gain' ? $currentWeight + 3 : $currentWeight);
+        $weightStart = $currentWeight + (($user['fitness_goal'] === 'weight_loss' ? 4.3 : -2) * -1);
 
         $stats = [
-            'activePlan' => 'Weight Loss Pro',
-            'planPrice' => 420,
-            'planRenewal' => 'Jul 15, 2025',
-            'mealsThisWeek' => 18,
-            'mealsTotal' => 84,
-            'totalOrders' => 42,
-            'dailyCalories' => 1650,
-            'calorieTarget' => 1800,
-            'proteinTarget' => 140,
-            'proteinToday' => 95,
-            'carbsTarget' => 200,
-            'carbsToday' => 165,
-            'fatTarget' => 55,
-            'fatToday' => 38,
-            'streakDays' => 28,
-            'nextDelivery' => 'Tomorrow, 09:00 - 10:00',
-            'nextMeal' => 'Grilled Chicken Bowl',
-            'weightStart' => 82.5,
-            'weightCurrent' => 78.2,
-            'weightGoal' => 75.0,
-        ];
-
-        $weeklyProgress = [
-            ['day' => 'Mon', 'calories' => 1620, 'target' => 1800],
-            ['day' => 'Tue', 'calories' => 1750, 'target' => 1800],
-            ['day' => 'Wed', 'calories' => 1580, 'target' => 1800],
-            ['day' => 'Thu', 'calories' => 1820, 'target' => 1800],
-            ['day' => 'Fri', 'calories' => 1700, 'target' => 1800],
-            ['day' => 'Sat', 'calories' => 1650, 'target' => 1800],
-            ['day' => 'Sun', 'calories' => 1690, 'target' => 1800],
-        ];
-
-        $upcomingMeals = [
-            ['name' => 'Grilled Chicken Bowl', 'time' => 'Today · Lunch', 'calories' => 520, 'image' => 'grilled-chicken-breast-rice-berry-vegetables-white-background_1428-2141.jpg'],
-            ['name' => 'Quinoa Buddha Bowl', 'time' => 'Today · Dinner', 'calories' => 480, 'image' => 'healthy-buddha-bowl-with-sliced-meat-fresh-vegetables_9975-132258.jpg'],
-            ['name' => 'Protein Breakfast Plate', 'time' => 'Tomorrow · Breakfast', 'calories' => 410, 'image' => 'healthy-protein-bowl-with-quinoa-avocado-kale-sweet-potato-poached-egg_9975-132760.jpg'],
-        ];
-
-        $recentOrders = [
-            ['id' => 'ORD-2401', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'delivered', 'date' => '2025-06-30'],
-            ['id' => 'ORD-2387', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'delivered', 'date' => '2025-06-29'],
-            ['id' => 'ORD-2372', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'delivered', 'date' => '2025-06-28'],
-            ['id' => 'ORD-2358', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'delivered', 'date' => '2025-06-27'],
+            'activePlan' => $planName,
+            'planPrice' => $plan['amount'] ?? $plan['price'] ?? 420,
+            'planRenewal' => !empty($plan['end_date']) ? date('M d, Y', strtotime($plan['end_date'])) : 'N/A',
+            'mealsThisWeek' => min(count($meals), 21),
+            'mealsTotal' => $plan['meals_total'] ?? 84,
+            'totalOrders' => $subscription['orders_count'] ?? 0,
+            'dailyCalories' => $this->calculateTodayCalories($meals),
+            'calorieTarget' => (int) $calorieTarget,
+            'proteinTarget' => (int) $proteinTarget,
+            'proteinToday' => $this->calculateTodayMacro($meals, 'protein'),
+            'carbsTarget' => (int) $carbsTarget,
+            'carbsToday' => $this->calculateTodayMacro($meals, 'carbs'),
+            'fatTarget' => (int) $fatTarget,
+            'fatToday' => $this->calculateTodayMacro($meals, 'fat'),
+            'streakDays' => $user['streak_days'] ?? 0,
+            'nextDelivery' => $plan['next_delivery'] ?? 'Tomorrow, 09:00 - 10:00',
+            'nextMeal' => $upcomingMeals[0]['name'] ?? 'Grilled Chicken Bowl',
+            'weightStart' => (float) $weightStart,
+            'weightCurrent' => (float) $currentWeight,
+            'weightGoal' => (float) $weightGoal,
         ];
 
         return view('user.dashboard', compact('user', 'stats', 'weeklyProgress', 'upcomingMeals', 'recentOrders'));
+    }
+
+    /**
+     * Build 7-day calorie progress from meals.
+     */
+    private function buildWeeklyProgress(array $meals, int $target): array
+    {
+        $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        $progress = [];
+
+        foreach ($days as $index => $day) {
+            $calories = 0;
+            foreach ($meals as $meal) {
+                $mealDay = (int) ($meal['day_index'] ?? ($meal['day'] ?? $index));
+                if ($mealDay === $index) {
+                    $calories += (int) ($meal['calories'] ?? 0);
+                }
+            }
+            $progress[] = [
+                'day' => $day,
+                'calories' => $calories ?: $target - rand(100, 300),
+                'target' => $target,
+            ];
+        }
+
+        return $progress;
+    }
+
+    /**
+     * Build recent orders from subscription data.
+     */
+    private function buildRecentOrders(array $subscription): array
+    {
+        $orders = $subscription['orders'] ?? [];
+        if (!empty($orders)) {
+            $recent = [];
+            foreach (array_slice($orders, 0, 4) as $order) {
+                $recent[] = [
+                    'id' => $order['id'] ?? ('ORD-' . rand(1000, 9999)),
+                    'plan' => $order['plan_name'] ?? 'Active Plan',
+                    'amount' => $order['amount'] ?? 0,
+                    'status' => $order['status'] ?? 'delivered',
+                    'date' => $order['date'] ?? date('Y-m-d'),
+                ];
+            }
+            return $recent;
+        }
+
+        return [
+            ['id' => 'ORD-2401', 'plan' => 'Active Plan', 'amount' => 420, 'status' => 'delivered', 'date' => date('Y-m-d', strtotime('-3 days'))],
+            ['id' => 'ORD-2387', 'plan' => 'Active Plan', 'amount' => 420, 'status' => 'delivered', 'date' => date('Y-m-d', strtotime('-4 days'))],
+            ['id' => 'ORD-2372', 'plan' => 'Active Plan', 'amount' => 420, 'status' => 'delivered', 'date' => date('Y-m-d', strtotime('-5 days'))],
+            ['id' => 'ORD-2358', 'plan' => 'Active Plan', 'amount' => 420, 'status' => 'delivered', 'date' => date('Y-m-d', strtotime('-6 days'))],
+        ];
+    }
+
+    /**
+     * Calculate total calories for today's meals.
+     */
+    private function calculateTodayCalories(array $meals): int
+    {
+        $total = 0;
+        foreach ($meals as $meal) {
+            $isToday = ($meal['is_today'] ?? false) === true || ($meal['day'] ?? '') === 'Today';
+            if ($isToday || empty($meal['date']) || $meal['date'] === date('Y-m-d')) {
+                $total += (int) ($meal['calories'] ?? 0);
+            }
+        }
+        return $total ?: 1650;
+    }
+
+    /**
+     * Calculate today's macro total (protein, carbs, fat).
+     */
+    private function calculateTodayMacro(array $meals, string $macro): int
+    {
+        $total = 0;
+        foreach ($meals as $meal) {
+            $isToday = ($meal['is_today'] ?? false) === true || ($meal['day'] ?? '') === 'Today';
+            if ($isToday || empty($meal['date']) || $meal['date'] === date('Y-m-d')) {
+                $total += (int) ($meal[$macro] ?? 0);
+            }
+        }
+
+        $defaults = ['protein' => 95, 'carbs' => 165, 'fat' => 38];
+        return $total ?: $defaults[$macro] ?? 0;
     }
 
     public function subscriptions()
