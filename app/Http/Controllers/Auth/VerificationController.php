@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\VerifiedWelcomeMail;
 use App\Services\Api\AuthApiService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class VerificationController extends Controller
@@ -71,6 +74,22 @@ class VerificationController extends Controller
             'email_verified' => true,
             'verified_email' => $request->email,
         ]);
+
+        // Send post-verification welcome email with hints and account details.
+        try {
+            $fullName = session('pending_verification_name', '');
+            Mail::to($request->email)->send(new VerifiedWelcomeMail(
+                fullName: $fullName ?: $request->email,
+                email: $request->email,
+            ));
+
+            session()->forget(['pending_verification_email', 'pending_verification_name']);
+        } catch (\Exception $e) {
+            Log::warning('Failed to send post-verification welcome email', [
+                'email' => $request->email,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([

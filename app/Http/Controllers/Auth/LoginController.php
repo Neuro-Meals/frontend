@@ -65,9 +65,8 @@ class LoginController extends Controller
             }
             session(['email_verified' => $isVerified]);
 
-            // Robust role checking: handles string role, role_id, or nested role object.
-            $role = $authApi->role();
-            $redirect = $authApi->isAdmin() ? route('admin.dashboard') : route('user.dashboard');
+            // Customer login only: redirect all verified users to the user dashboard.
+            $redirect = route('user.dashboard');
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
