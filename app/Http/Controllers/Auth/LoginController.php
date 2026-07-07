@@ -41,6 +41,15 @@ class LoginController extends Controller
         if (isset($response['access_token'])) {
             $user = $response['user'] ?? [];
 
+            // Determine verification status: API field first, then fall back to resend endpoint.
+            $isVerified = !empty($user['is_verified']);
+            if (!$isVerified) {
+                $resendResponse = $authApi->resendVerificationOtp($request->email);
+                $resendMessage = $resendResponse['message'] ?? '';
+                $isVerified = is_string($resendMessage) && str_contains(strtolower($resendMessage), 'already verified');
+            }
+            session(['email_verified' => $isVerified]);
+
             if (in_array($user['role'] ?? null, ['admin', 'super_admin'])) {
                 return redirect()->route('admin.dashboard');
             }
