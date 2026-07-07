@@ -569,10 +569,10 @@ Add these fields for the customer delivery page:
 | Dashboard | Partially API-driven | `/auth/me`, `/subscriptions/my`, `/meals/`, `/plans/` | Daily stats, recent orders |
 | Subscriptions | API-driven | `/subscriptions/my`, `/plans/`, `POST /subscriptions/` | `plan_name`, `meals_consumed`, `meals_total` in subscription |
 | Meals | API-driven | `/meals/`, `/subscriptions/my`, `/plans/{id}` | Meal schedule endpoint, `meal_time`, `status` on meals |
-| Orders | Mock data | `GET /orders/my`, `POST /orders/from-subscription` | Integrate with real endpoint |
-| Delivery | Mock data | `GET /deliveries/my` | Integrate with real endpoint, add driver/time fields |
-| Nutrition | Mock data | `GET /nutrition/today`, `GET /weight-history` | Missing endpoints |
-| Notifications | Mock data | `GET /notifications/my`, `PATCH /notifications/{id}/read` | Missing endpoint integration |
+| Orders | API-driven (list + create) | `GET /orders/my`, `POST /orders/from-subscription` | Add missing fields in `OrderResponse` |
+| Delivery | API-driven (fallback) | `GET /deliveries/my` | Add driver/time fields when API available |
+| Nutrition | API-driven (fallback) | `GET /nutrition/today`, `GET /weight-history` | Missing endpoints |
+| Notifications | API-driven (fallback) | `GET /notifications/my`, `PATCH /notifications/{id}/read` | Missing endpoint integration |
 | Settings | API-driven | `GET /profile/`, `PUT /profile/` | Add missing profile fields |
 
 ---
