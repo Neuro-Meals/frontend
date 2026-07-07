@@ -302,6 +302,25 @@ class UserController extends Controller
         return view('user.subscriptions', compact('activePlan', 'availablePlans', 'history'));
     }
 
+    public function subscribe(Request $request, SubscriptionApiService $subscriptionApi)
+    {
+        $planId = (int) $request->input('plan_id');
+
+        if ($planId <= 0) {
+            return redirect()->route('user.subscriptions')->with('error', 'Invalid plan selected.');
+        }
+
+        $result = $this->apiData($subscriptionApi->create(['plan_id' => $planId]), function () {
+            return [];
+        });
+
+        if (empty($result) || !empty($result['error'])) {
+            return redirect()->route('user.subscriptions')->with('error', 'Failed to subscribe. Please try again.');
+        }
+
+        return redirect()->route('user.subscriptions')->with('success', 'Subscription created successfully!');
+    }
+
     public function meals(MealApiService $mealApi, SubscriptionApiService $subscriptionApi, PlanApiService $planApi)
     {
         $meals = $this->apiData($mealApi->list(['limit' => 100, 'is_available' => true]), function () {
