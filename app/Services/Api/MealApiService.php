@@ -26,7 +26,7 @@ class MealApiService extends BaseApiService
         return $this->put('meals.update', ['meal_id' => $mealId], $data);
     }
 
-    public function delete(int $mealId): array
+    public function destroy(int $mealId): array
     {
         return $this->delete('meals.delete', ['meal_id' => $mealId]);
     }
