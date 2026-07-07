@@ -22,7 +22,7 @@ class VerificationController extends Controller
 
     public function show(Request $request)
     {
-        $email = $request->query('email', '');
+        $email = urldecode($request->query('email', ''));
         return view('auth.verify', ['email' => $email]);
     }
 
