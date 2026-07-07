@@ -57,9 +57,14 @@ class LoginController extends Controller
             }
             session(['email_verified' => $isVerified]);
 
-            if (in_array($user['role'] ?? null, ['admin', 'super_admin'])) {
+            // Robust role checking: handles string role, role_id, or nested role object.
+            $role = $authApi->role();
+
+            if ($authApi->isAdmin()) {
                 return redirect()->route('admin.dashboard');
             }
+
+            // Default unknown/customer roles to user dashboard.
             return redirect()->route('user.dashboard');
         }
 
