@@ -152,11 +152,15 @@ class BaseApiService
                 }
 
                 if ($response->status() === 401) {
-                    Log::warning('API unauthorized', ['url' => $url]);
+                    $json = $response->json() ?? [];
+                    Log::warning('API unauthorized', [
+                        'url' => $url,
+                        'body' => $response->body(),
+                    ]);
                     return [
                         'success' => false,
                         'status' => 401,
-                        'message' => 'Unauthorized',
+                        'message' => $json['message'] ?? $json['detail'] ?? 'Unauthorized',
                     ];
                 }
 
