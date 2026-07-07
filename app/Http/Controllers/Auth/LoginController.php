@@ -65,8 +65,8 @@ class LoginController extends Controller
             }
             session(['email_verified' => $isVerified]);
 
-            // Customer login only: redirect all verified users to the user dashboard.
-            $redirect = route('user.dashboard');
+            // Redirect based on role: admin users to admin dashboard, customers to user dashboard.
+            $redirect = $authApi->isAdmin() ? route('admin.dashboard') : route('user.dashboard');
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
