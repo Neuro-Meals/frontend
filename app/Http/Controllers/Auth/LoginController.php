@@ -46,7 +46,7 @@ class LoginController extends Controller
                 $authApi->logout();
                 $authApi->resendVerificationOtp($request->email);
                 return redirect()->route('verify.email', ['email' => $request->email])
-                    ->with('status', 'Please verify your email before logging in. We have sent an OTP to your email.');
+                    ->with('status', __('Please verify your email before logging in. We have sent an OTP to your email.'));
             }
 
             if (in_array($user['role'] ?? null, ['admin', 'super_admin'])) {
@@ -64,8 +64,9 @@ class LoginController extends Controller
             str_contains(strtolower($message), 'not verified') ||
             str_contains(strtolower($message), 'unauthorized')
         )) {
+            $authApi->resendVerificationOtp($request->email);
             return redirect()->route('verify.email', ['email' => $request->email])
-                ->with('status', 'Please verify your email before logging in. We have sent an OTP to your email.');
+                ->with('status', __('Please verify your email before logging in. We have sent an OTP to your email.'));
         }
 
         return back()->withErrors(['email' => $message])->withInput($request->only('email'));
