@@ -4,7 +4,7 @@ namespace App\Services\Api;
 
 class ProfileApiService extends BaseApiService
 {
-    public function get(): array
+    public function fetch(): array
     {
         return $this->get('profile.get');
     }
