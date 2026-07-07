@@ -712,8 +712,15 @@ class UserController extends Controller
         return view('user.delivery', compact('upcoming', 'history', 'stats'));
     }
 
-    public function notifications()
+    public function notifications(AuthApiService $authApi)
     {
+        // Note: There is no notifications API yet. We fetch user profile for context but keep mock notifications.
+        $user = $this->apiData($authApi->me(), function () use ($authApi) {
+            return $authApi->user() ?? [];
+        });
+
+        $userName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: 'User';
+
         $notifications = [
             ['id' => 1, 'title' => 'Delivery Tomorrow', 'message' => 'Your meal delivery is scheduled for tomorrow 09:00 - 10:00', 'type' => 'delivery', 'time' => '1 hour ago', 'read' => false],
             ['id' => 2, 'title' => 'Meal Plan Renewal', 'message' => 'Your Weight Loss Pro plan renews on Jul 1, 2025', 'type' => 'subscription', 'time' => '5 hours ago', 'read' => false],
@@ -731,12 +738,14 @@ class UserController extends Controller
             ['name' => 'Promotional Offers', 'channel' => 'Push', 'enabled' => false],
         ];
 
+        $unread = count(array_filter($notifications, fn ($n) => !($n['read'] ?? false)));
+
         $stats = [
-            'unread' => 2,
-            'total' => 48,
+            'unread' => $unread,
+            'total' => count($notifications),
         ];
 
-        return view('user.notifications', compact('notifications', 'preferences', 'stats'));
+        return view('user.notifications', compact('notifications', 'preferences', 'stats', 'userName'));
     }
 
     public function settings()
