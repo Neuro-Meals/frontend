@@ -155,6 +155,7 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
 Route::prefix('user')->name('user.')->middleware('api.auth')->group(function () {
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('dashboard');
     Route::get('/subscriptions', [UserController::class, 'subscriptions'])->name('subscriptions');
+    Route::post('/subscriptions', [UserController::class, 'subscribe'])->name('subscriptions.subscribe');
     Route::get('/meals', [UserController::class, 'meals'])->name('meals');
     Route::get('/nutrition', [UserController::class, 'nutrition'])->name('nutrition');
     Route::get('/orders', [UserController::class, 'orders'])->name('orders');
