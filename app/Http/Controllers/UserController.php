@@ -137,7 +137,7 @@ class UserController extends Controller
             $recent = [];
             foreach (array_slice($orders, 0, 4) as $order) {
                 $recent[] = [
-                    'id' => $order['id'] ?? ('ORD-' . rand(1000, 9999)),
+                    'id' => $order['id'] ?? ('ORD-' . ($order['order_number'] ?? 0)),
                     'plan' => $order['plan_name'] ?? 'Active Plan',
                     'amount' => $order['amount'] ?? 0,
                     'status' => $order['status'] ?? 'delivered',
@@ -255,21 +255,11 @@ class UserController extends Controller
                 'price' => $plan['price'] ?? 0,
                 'duration' => ($plan['duration_days'] ?? 28) . ' days',
                 'calories' => $plan['calories'] ?? '1500-1800',
-                'subscribers' => $plan['subscribers_count'] ?? rand(50, 150),
+                'subscribers' => $plan['subscribers_count'] ?? 0,
                 'color' => $colors[$colorIndex % count($colors)],
                 'current' => $isCurrent,
             ];
             $colorIndex++;
-        }
-
-        // Fallback if API returns no plans
-        if (empty($availablePlans)) {
-            $availablePlans = [
-                ['id' => 1, 'name' => 'Weight Loss Pro', 'price' => 420, 'duration' => '4 weeks', 'calories' => '1500-1800', 'subscribers' => 128, 'color' => '#259B00', 'current' => true],
-                ['id' => 2, 'name' => 'Muscle Gain', 'price' => 380, 'duration' => '4 weeks', 'calories' => '2500-3000', 'subscribers' => 94, 'color' => '#033133', 'current' => false],
-                ['id' => 3, 'name' => 'Maintenance', 'price' => 295, 'duration' => '4 weeks', 'calories' => '2000-2200', 'subscribers' => 76, 'color' => '#f9ac00', 'current' => false],
-                ['id' => 4, 'name' => 'Keto Premium', 'price' => 510, 'duration' => '4 weeks', 'calories' => '1800-2000', 'subscribers' => 44, 'color' => '#3b82f6', 'current' => false],
-            ];
         }
 
         // Build subscription history
@@ -281,12 +271,6 @@ class UserController extends Controller
                 'period' => !empty($sub['start_date']) ? date('M Y', strtotime($sub['start_date'])) : 'N/A',
                 'status' => $sub['status'] ?? 'unknown',
                 'amount' => $sub['amount'] ?? 0,
-            ];
-        }
-
-        if (empty($history)) {
-            $history = [
-                ['plan' => 'Weight Loss Pro', 'period' => date('M Y'), 'status' => 'active', 'amount' => 420],
             ];
         }
 
@@ -363,33 +347,6 @@ class UserController extends Controller
             }
         }
 
-        // Fallback: map API meals to view format
-        if (empty($todayMeals)) {
-            $mealTimes = ['Breakfast · 07:30', 'Lunch · 12:30', 'Dinner · 19:00'];
-            $timeIndex = 0;
-            foreach (array_slice($meals, 0, $mealsPerDay) as $index => $meal) {
-                $todayMeals[] = [
-                    'name' => $meal['name_en'] ?? 'Meal',
-                    'time' => $meal['meal_time'] ?? ($mealTimes[$timeIndex % 3]),
-                    'calories' => (int) ($meal['calories'] ?? 0),
-                    'protein' => (int) ($meal['protein_g'] ?? 0),
-                    'carbs' => (int) ($meal['carbs_g'] ?? 0),
-                    'fat' => (int) ($meal['fat_g'] ?? 0),
-                    'status' => ($index === 0 && $timeIndex === 0) ? 'upcoming' : 'delivered',
-                    'image' => $meal['image_url'] ?? 'whitelogo.png',
-                ];
-                $timeIndex++;
-            }
-        }
-
-        if (empty($todayMeals)) {
-            $todayMeals = [
-                ['name' => 'Protein Breakfast Plate', 'time' => 'Breakfast · 07:30', 'calories' => 410, 'protein' => 35, 'carbs' => 28, 'fat' => 14, 'status' => 'delivered', 'image' => 'healthy-protein-bowl-with-quinoa-avocado-kale-sweet-potato-poached-egg_9975-132760.jpg'],
-                ['name' => 'Grilled Chicken Bowl', 'time' => 'Lunch · 12:30', 'calories' => 520, 'protein' => 45, 'carbs' => 38, 'fat' => 18, 'status' => 'delivered', 'image' => 'grilled-chicken-breast-rice-berry-vegetables-white-background_1428-2141.jpg'],
-                ['name' => 'Quinoa Buddha Bowl', 'time' => 'Dinner · 19:00', 'calories' => 480, 'protein' => 22, 'carbs' => 62, 'fat' => 16, 'status' => 'upcoming', 'image' => 'healthy-buddha-bowl-with-sliced-meat-fresh-vegetables_9975-132258.jpg'],
-            ];
-        }
-
         // Build weekly schedule from meal schedule API or meals
         $apiWeekly = $apiSchedule['weekly'] ?? [];
         if (!empty($apiWeekly) && is_array($apiWeekly)) {
@@ -413,7 +370,7 @@ class UserController extends Controller
             'totalPlan' => $totalPlanMeals,
             'remaining' => max(0, $totalPlanMeals - $mealsConsumed),
             'avgCalories' => $avgCalories,
-            'favoriteMeal' => $favoriteMeal['name'] ?? 'Grilled Chicken Bowl',
+            'favoriteMeal' => $favoriteMeal['name'] ?? 'N/A',
             'favoriteCount' => $favoriteMeal['count'] ?? 0,
         ];
 
@@ -451,7 +408,7 @@ class UserController extends Controller
     private function calculateAvgCalories(array $meals): int
     {
         if (empty($meals)) {
-            return 1450;
+            return 0;
         }
         $total = 0;
         foreach ($meals as $meal) {
@@ -466,7 +423,7 @@ class UserController extends Controller
     private function findFavoriteMeal(array $meals): array
     {
         if (empty($meals)) {
-            return ['name' => 'Grilled Chicken Bowl', 'count' => 0];
+            return ['name' => 'N/A', 'count' => 0];
         }
 
         $counts = [];
@@ -512,10 +469,10 @@ class UserController extends Controller
                 'carbsTarget' => $apiNutrition['carbs_target'] ?? $targets['carbs'],
                 'fat' => $apiNutrition['fat'] ?? 0,
                 'fatTarget' => $apiNutrition['fat_target'] ?? $targets['fat'],
-                'water' => $apiNutrition['water'] ?? 6,
-                'waterTarget' => $apiNutrition['water_target'] ?? 8,
-                'steps' => $apiNutrition['steps'] ?? 8420,
-                'stepsTarget' => $apiNutrition['steps_target'] ?? 10000,
+                'water' => $apiNutrition['water'] ?? 0,
+                'waterTarget' => $apiNutrition['water_target'] ?? 0,
+                'steps' => $apiNutrition['steps'] ?? 0,
+                'stepsTarget' => $apiNutrition['steps_target'] ?? 0,
             ];
         } else {
             $todayMeals = array_slice($meals, 0, 3);
@@ -539,10 +496,10 @@ class UserController extends Controller
                 'carbsTarget' => $targets['carbs'],
                 'fat' => $todayFat,
                 'fatTarget' => $targets['fat'],
-                'water' => 6,
-                'waterTarget' => 8,
-                'steps' => 8420,
-                'stepsTarget' => 10000,
+                'water' => 0,
+                'waterTarget' => 0,
+                'steps' => 0,
+                'stepsTarget' => 0,
             ];
         }
 
@@ -551,7 +508,7 @@ class UserController extends Controller
         // Weight progress from API or fallback
         if (!empty($apiWeight)) {
             $currentWeight = $apiWeight['current_weight'] ?? $currentWeight;
-            $startWeight = $apiWeight['start_weight'] ?? ($currentWeight + 4.3);
+            $startWeight = $apiWeight['start_weight'] ?? $currentWeight;
             $goalWeight = $apiWeight['goal_weight'] ?? $this->calculateGoalWeight($currentWeight, $fitnessGoal);
             $weightProgress = array_map(fn ($item) => [
                 'week' => $item['week'] ?? '',
@@ -564,12 +521,12 @@ class UserController extends Controller
             $avgDailyCalories = $apiWeight['stats']['avg_daily_calories'] ?? $this->calculateAvgDailyCalories($meals);
         } else {
             $goalWeight = $this->calculateGoalWeight($currentWeight, $fitnessGoal);
-            $startWeight = $currentWeight + ($goalWeight < $currentWeight ? 4.3 : 0);
-            $weightProgress = $this->buildWeightProgress($startWeight, $currentWeight, $goalWeight);
-            $lost = max(0, $startWeight - $currentWeight);
-            $remaining = max(0, $currentWeight - $goalWeight);
-            $streakDays = 28;
-            $adherenceRate = 92;
+            $startWeight = $currentWeight;
+            $weightProgress = [];
+            $lost = 0;
+            $remaining = 0;
+            $streakDays = 0;
+            $adherenceRate = 0;
             $avgDailyCalories = $this->calculateAvgDailyCalories($meals);
         }
 
@@ -668,7 +625,7 @@ class UserController extends Controller
     private function calculateAvgDailyCalories(array $meals): int
     {
         if (empty($meals)) {
-            return 1623;
+            return 0;
         }
         $total = 0;
         foreach ($meals as $meal) {
@@ -709,51 +666,6 @@ class UserController extends Controller
                 } elseif ($status === 'cancelled') {
                     $cancelled++;
                 }
-            }
-        }
-
-        // Fallback: derive orders from subscriptions if orders API is empty
-        if (empty($orders)) {
-            $subscriptions = $this->apiData($subscriptionApi->my(), function () {
-                return [];
-            });
-
-            $plans = $this->apiData($planApi->list(['limit' => 100]), function () {
-                return [];
-            });
-
-            $plansById = [];
-            foreach ($plans as $plan) {
-                $plansById[$plan['id'] ?? 0] = $plan;
-            }
-
-            $index = 1;
-            foreach ($subscriptions as $sub) {
-                $planId = $sub['plan_id'] ?? 0;
-                $plan = $plansById[$planId] ?? [];
-                $planName = $plan['name_en'] ?? 'Plan #' . $planId;
-                $meals = $plan['meals_per_day'] ?? 3;
-                $status = $this->mapSubscriptionStatus($sub['status'] ?? 'pending', $sub['payment_status'] ?? 'unpaid');
-                $amount = $sub['amount'] ?? 0;
-                $date = $sub['created_at'] ?? $sub['start_date'] ?? date('Y-m-d');
-
-                $orders[] = [
-                    'id' => 'ORD-' . str_pad($index, 4, '0', STR_PAD_LEFT),
-                    'plan' => $planName,
-                    'meals' => $meals,
-                    'amount' => $amount,
-                    'date' => $date,
-                    'status' => $status,
-                ];
-
-                $total++;
-                $totalSpent += $amount;
-                if ($status === 'delivered') {
-                    $delivered++;
-                } elseif ($status === 'cancelled') {
-                    $cancelled++;
-                }
-                $index++;
             }
         }
 
@@ -829,7 +741,7 @@ class UserController extends Controller
             return $authApi->user() ?? [];
         });
 
-        $zone = $user['location'] ?? 'Riyadh Central';
+        $zone = $user['location'] ?? '';
 
         $upcoming = [];
         $history = [];
@@ -861,41 +773,15 @@ class UserController extends Controller
             }
         }
 
-        // Fallback mock data if API is not available
-        if (empty($upcoming) && empty($history)) {
-            $subscriptions = $this->apiData($subscriptionApi->my(), function () {
-                return [];
-            });
-            $totalDeliveries = max(2, count($subscriptions));
+        $totalDeliveries = count($upcoming) + count($history);
+        $delivered = count(array_filter($history, fn ($d) => ($d['status'] ?? '') === 'delivered'));
 
-            $upcoming = [
-                ['id' => 'DLV-501', 'order' => 'ORD-2401', 'date' => 'Tomorrow', 'time' => '09:00 - 10:00', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'scheduled', 'meals' => 3, 'eta' => 'On time'],
-                ['id' => 'DLV-502', 'order' => 'ORD-2402', 'date' => 'Wed, Jul 3', 'time' => '09:00 - 10:00', 'zone' => $zone, 'driver' => 'Unassigned', 'status' => 'scheduled', 'meals' => 3, 'eta' => 'On time'],
-            ];
-
-            $history = [
-                ['id' => 'DLV-498', 'order' => 'ORD-2387', 'date' => 'Today', 'time' => '09:15', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'delivered', 'meals' => 3, 'eta' => 'On time'],
-                ['id' => 'DLV-487', 'order' => 'ORD-2372', 'date' => 'Yesterday', 'time' => '09:10', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'delivered', 'meals' => 3, 'eta' => 'On time'],
-                ['id' => 'DLV-475', 'order' => 'ORD-2358', 'date' => 'Jun 27', 'time' => '09:20', 'zone' => $zone, 'driver' => 'Hassan', 'status' => 'delivered', 'meals' => 3, 'eta' => '5 min late'],
-                ['id' => 'DLV-462', 'order' => 'ORD-2341', 'date' => 'Jun 26', 'time' => '09:05', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'delivered', 'meals' => 3, 'eta' => 'On time'],
-                ['id' => 'DLV-451', 'order' => 'ORD-2329', 'date' => 'Jun 25', 'time' => '09:15', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'delivered', 'meals' => 3, 'eta' => 'On time'],
-            ];
-
-            $stats = [
-                'totalDeliveries' => $totalDeliveries,
-                'onTimeRate' => 95,
-                'avgDeliveryTime' => '32 min',
-                'preferredSlot' => '09:00 - 10:00',
-            ];
-        } else {
-            $totalDeliveries = count($upcoming) + count($history);
-            $stats = [
-                'totalDeliveries' => $totalDeliveries,
-                'onTimeRate' => 95,
-                'avgDeliveryTime' => '32 min',
-                'preferredSlot' => '09:00 - 10:00',
-            ];
-        }
+        $stats = [
+            'totalDeliveries' => $totalDeliveries,
+            'onTimeRate' => $totalDeliveries > 0 ? round(($delivered / $totalDeliveries) * 100, 1) : 0,
+            'avgDeliveryTime' => 'N/A',
+            'preferredSlot' => 'N/A',
+        ];
 
         return view('user.delivery', compact('upcoming', 'history', 'stats'));
     }
@@ -929,25 +815,7 @@ class UserController extends Controller
             }
         }
 
-        // Fallback mock data if API is not available
-        if (empty($notifications)) {
-            $notifications = [
-                ['id' => 1, 'title' => 'Delivery Tomorrow', 'message' => 'Your meal delivery is scheduled for tomorrow 09:00 - 10:00', 'type' => 'delivery', 'time' => '1 hour ago', 'read' => false],
-                ['id' => 2, 'title' => 'Meal Plan Renewal', 'message' => 'Your Weight Loss Pro plan renews on Jul 1, 2025', 'type' => 'subscription', 'time' => '5 hours ago', 'read' => false],
-                ['id' => 3, 'title' => 'Nutrition Goal Achieved', 'message' => 'Congratulations! You hit your protein target 5 days in a row', 'type' => 'achievement', 'time' => 'Yesterday', 'read' => true],
-                ['id' => 4, 'title' => 'New Meal Added', 'message' => 'Grilled Chicken Bowl has been added to your meal plan', 'type' => 'meal', 'time' => '2 days ago', 'read' => true],
-                ['id' => 5, 'title' => 'Payment Successful', 'message' => 'Payment of SAR 420 for ORD-2387 was completed', 'type' => 'payment', 'time' => '3 days ago', 'read' => true],
-                ['id' => 6, 'title' => 'Weekly Digest', 'message' => 'Your weekly nutrition summary is ready to view', 'type' => 'digest', 'time' => '4 days ago', 'read' => true],
-            ];
-        }
-
-        $preferences = [
-            ['name' => 'Delivery Alerts', 'channel' => 'SMS', 'enabled' => true],
-            ['name' => 'Meal Reminders', 'channel' => 'Push', 'enabled' => true],
-            ['name' => 'Payment Receipts', 'channel' => 'Email', 'enabled' => true],
-            ['name' => 'Weekly Digest', 'channel' => 'Email', 'enabled' => true],
-            ['name' => 'Promotional Offers', 'channel' => 'Push', 'enabled' => false],
-        ];
+        $preferences = [];
 
         $unread = count(array_filter($notifications, fn ($n) => !($n['read'] ?? false)));
 
@@ -990,17 +858,17 @@ class UserController extends Controller
         });
 
         $profile = [
-            'name' => trim(($apiUser['first_name'] ?? '') . ' ' . ($apiUser['last_name'] ?? '')) ?: 'John Doe',
-            'email' => $apiUser['email'] ?? 'john@example.com',
-            'phone' => $apiUser['phone'] ?? '+966 55 123 4567',
-            'dob' => $apiUser['date_of_birth'] ?? '1990-05-15',
-            'gender' => ucfirst($apiUser['gender'] ?? 'Male'),
-            'height' => $apiUser['height_cm'] ?? 178,
+            'name' => trim(($apiUser['first_name'] ?? '') . ' ' . ($apiUser['last_name'] ?? '')),
+            'email' => $apiUser['email'] ?? '',
+            'phone' => $apiUser['phone'] ?? '',
+            'dob' => $apiUser['date_of_birth'] ?? '',
+            'gender' => ucfirst($apiUser['gender'] ?? ''),
+            'height' => $apiUser['height_cm'] ?? 0,
             'weight' => $apiUser['weight_kg'] ?? 0,
-            'goal' => ucfirst(str_replace('_', ' ', $apiUser['fitness_goal'] ?? 'weight_loss')),
-            'activity' => $apiUser['activity_level'] ?? 'Moderate',
-            'address' => $apiUser['address'] ?? 'King Fahd Road, Riyadh, Saudi Arabia',
-            'zone' => $apiUser['location'] ?? 'Riyadh Central',
+            'goal' => ucfirst(str_replace('_', ' ', $apiUser['fitness_goal'] ?? '')),
+            'activity' => $apiUser['activity_level'] ?? '',
+            'address' => $apiUser['address'] ?? '',
+            'zone' => $apiUser['location'] ?? '',
         ];
 
         return view('user.settings', compact('profile'));

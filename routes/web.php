@@ -9,12 +9,11 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\LandingController;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\App;
 
-Route::get('/', function () {
-    return view('landing');
-});
+Route::get('/', [LandingController::class, 'index'])->name('landing');
 
 // Locale switching
 Route::get('/locale/{locale}', function ($locale) {
