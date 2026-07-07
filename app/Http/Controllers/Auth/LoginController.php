@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Services\Api\AuthApiService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class LoginController extends Controller
@@ -27,42 +28,43 @@ class LoginController extends Controller
 
     public function login(Request $request, AuthApiService $authApi)
     {
-        $validator = Validator::make($request->all(), [
-            'email'    => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
-        ]);
-
-        if ($validator->fails()) {
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => __('Please fix the errors in the form.'),
-                    'errors' => $validator->errors()->toArray(),
-                ], 422);
-            }
-            return back()->withErrors($validator)->withInput($request->only('email'));
-        }
-
         try {
-            $response = $authApi->login($request->email, $request->password);
-        } catch (\Exception $e) {
-            Log::error('Login API request failed', [
-                'email' => $request->email,
-                'error' => $e->getMessage(),
+            $validator = Validator::make($request->all(), [
+                'email'    => ['required', 'string', 'email'],
+                'password' => ['required', 'string'],
             ]);
 
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => __('Unable to reach authentication service. Please try again later.'),
-                ], 503);
+            if ($validator->fails()) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => __('Please fix the errors in the form.'),
+                        'errors' => $validator->errors()->toArray(),
+                    ], 422);
+                }
+                return back()->withErrors($validator)->withInput($request->only('email'));
             }
 
-            return back()->withErrors(['email' => __('Unable to reach authentication service. Please try again later.')])
-                ->withInput($request->only('email'));
-        }
+            try {
+                $response = $authApi->login($request->email, $request->password);
+            } catch (\Throwable $e) {
+                Log::error('Login API request failed', [
+                    'email' => $request->email,
+                    'error' => $e->getMessage(),
+                ]);
 
-        // API may explicitly tell us that the email needs verification.
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => __('Unable to reach authentication service. Please try again later.'),
+                    ], 503);
+                }
+
+                return back()->withErrors(['email' => __('Unable to reach authentication service. Please try again later.')])
+                    ->withInput($request->only('email'));
+            }
+
+            // API may explicitly tell us that the email needs verification.
         if (isset($response['requires_verification']) && $response['requires_verification'] === true) {
             $authApi->resendVerificationOtp($request->email);
             if ($request->ajax() || $request->wantsJson()) {
@@ -165,6 +167,24 @@ class LoginController extends Controller
         }
 
         return back()->withErrors(['email' => $message])->withInput($request->only('email'));
+        } catch (\Throwable $e) {
+            Log::error('Unexpected login error', [
+                'email' => $request->email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            $fallbackMessage = __('Something went wrong. Please try again.');
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $fallbackMessage,
+                ], 500);
+            }
+
+            return back()->withErrors(['email' => $fallbackMessage])->withInput($request->only('email'));
+        }
     }
 
     public function logout(AuthApiService $authApi)

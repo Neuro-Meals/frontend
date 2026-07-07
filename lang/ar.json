@@ -508,6 +508,7 @@
     "No weight data available yet": "لا توجد بيانات وزن متاحة بعد",
     "Unable to reach authentication service. Please try again later.": "تعذر الوصول إلى خدمة المصادقة. يرجى المحاولة مرة أخرى لاحقًا.",
     "Something went wrong on our side. Please try again in a moment.": "حدث خطأ من جانبنا. يرجى المحاولة مرة أخرى بعد قليل.",
+    "Something went wrong. Please try again.": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
     "Welcome to :app — Your email is verified!": "مرحبًا بك في :app — تم التحقق من بريدك الإلكتروني!",
     "Welcome aboard, :name!": "أهلاً بك، :name!",
     "Your email :email has been successfully verified. Your :app account is now fully active.": "تم التحقق من بريدك الإلكتروني :email بنجاح. حسابك على :app نشط الآن بالكامل.",
