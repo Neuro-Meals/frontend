@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'api.auth' => \App\Http\Middleware\ApiAuthMiddleware::class,
             'api.admin' => \App\Http\Middleware\AdminApiMiddleware::class,
+            'api.customer' => \App\Http\Middleware\CustomerApiMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -151,8 +151,8 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
     });
 });
 
-// User routes
-Route::prefix('user')->name('user.')->middleware('api.auth')->group(function () {
+// User routes (customer only)
+Route::prefix('user')->name('user.')->middleware(['api.auth', 'api.customer'])->group(function () {
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('dashboard');
     Route::get('/subscriptions', [UserController::class, 'subscriptions'])->name('subscriptions');
     Route::post('/subscriptions', [UserController::class, 'subscribe'])->name('subscriptions.subscribe');
