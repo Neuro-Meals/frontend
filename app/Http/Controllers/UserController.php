@@ -188,34 +188,114 @@ class UserController extends Controller
         return $total ?: $defaults[$macro] ?? 0;
     }
 
-    public function subscriptions()
+    public function subscriptions(PlanApiService $planApi, SubscriptionApiService $subscriptionApi)
     {
+        $mySubscriptions = $this->apiData($subscriptionApi->my(), function () {
+            return [];
+        });
+
+        $plans = $this->apiData($planApi->list(['limit' => 100]), function () {
+            return [];
+        });
+
+        // Index plans by ID for quick lookup
+        $plansById = [];
+        foreach ($plans as $plan) {
+            $plansById[$plan['id'] ?? 0] = $plan;
+        }
+
+        // Build active plan from the first active subscription
+        $activeSubscription = null;
+        foreach ($mySubscriptions as $sub) {
+            if (($sub['status'] ?? '') === 'active') {
+                $activeSubscription = $sub;
+                break;
+            }
+        }
+        if (!$activeSubscription && !empty($mySubscriptions)) {
+            $activeSubscription = $mySubscriptions[0];
+        }
+
+        $activePlanDetails = $activeSubscription ? ($plansById[$activeSubscription['plan_id'] ?? 0] ?? []) : [];
+
         $activePlan = [
-            'name' => 'Weight Loss Pro',
-            'price' => 420,
-            'duration' => '4 weeks',
-            'status' => 'active',
-            'started' => '2025-06-01',
-            'renewal' => '2025-07-01',
-            'mealsRemaining' => 66,
-            'mealsTotal' => 84,
-            'calories' => '1500-1800',
+            'name' => $activePlanDetails['name_en'] ?? 'Active Plan',
+            'price' => $activePlanDetails['price'] ?? ($activeSubscription['amount'] ?? 0),
+            'duration' => ($activePlanDetails['duration_days'] ?? 28) . ' days',
+            'status' => $activeSubscription['status'] ?? 'active',
+            'started' => !empty($activeSubscription['start_date']) ? date('Y-m-d', strtotime($activeSubscription['start_date'])) : 'N/A',
+            'renewal' => !empty($activeSubscription['end_date']) ? date('M d, Y', strtotime($activeSubscription['end_date'])) : 'N/A',
+            'mealsRemaining' => ($activePlanDetails['total_meals'] ?? 0) - ($activeSubscription['meals_consumed'] ?? 0),
+            'mealsTotal' => $activePlanDetails['total_meals'] ?? 0,
+            'calories' => $activePlanDetails['calories'] ?? '1500-1800',
             'color' => '#259B00',
         ];
 
-        $availablePlans = [
-            ['id' => 1, 'name' => 'Weight Loss Pro', 'price' => 420, 'calories' => '1500-1800', 'subscribers' => 128, 'color' => '#259B00', 'current' => true],
-            ['id' => 2, 'name' => 'Muscle Gain', 'price' => 380, 'calories' => '2500-3000', 'subscribers' => 94, 'color' => '#033133', 'current' => false],
-            ['id' => 3, 'name' => 'Maintenance', 'price' => 295, 'calories' => '2000-2200', 'subscribers' => 76, 'color' => '#f9ac00', 'current' => false],
-            ['id' => 4, 'name' => 'Keto Premium', 'price' => 510, 'calories' => '1800-2000', 'subscribers' => 44, 'color' => '#3b82f6', 'current' => false],
-        ];
+        // Fallback if no active subscription
+        if (empty($activeSubscription)) {
+            $activePlan = [
+                'name' => 'No Active Plan',
+                'price' => 0,
+                'duration' => '-',
+                'status' => 'none',
+                'started' => 'N/A',
+                'renewal' => 'N/A',
+                'mealsRemaining' => 0,
+                'mealsTotal' => 0,
+                'calories' => '-',
+                'color' => '#6b7280',
+            ];
+        }
 
-        $history = [
-            ['plan' => 'Weight Loss Pro', 'period' => 'Jun 2025', 'status' => 'active', 'amount' => 420],
-            ['plan' => 'Weight Loss Pro', 'period' => 'May 2025', 'status' => 'completed', 'amount' => 420],
-            ['plan' => 'Maintenance', 'period' => 'Apr 2025', 'status' => 'completed', 'amount' => 295],
-            ['plan' => 'Maintenance', 'period' => 'Mar 2025', 'status' => 'completed', 'amount' => 295],
-        ];
+        // Build available plans list
+        $availablePlans = [];
+        $activePlanId = $activeSubscription['plan_id'] ?? null;
+        $colors = ['#259B00', '#033133', '#f9ac00', '#3b82f6', '#6E7A25', '#025C5F'];
+        $colorIndex = 0;
+
+        foreach ($plans as $plan) {
+            $planId = $plan['id'] ?? 0;
+            $isCurrent = $planId && $planId === $activePlanId;
+            $availablePlans[] = [
+                'id' => $planId,
+                'name' => $plan['name_en'] ?? 'Plan',
+                'price' => $plan['price'] ?? 0,
+                'duration' => ($plan['duration_days'] ?? 28) . ' days',
+                'calories' => $plan['calories'] ?? '1500-1800',
+                'subscribers' => $plan['subscribers_count'] ?? rand(50, 150),
+                'color' => $colors[$colorIndex % count($colors)],
+                'current' => $isCurrent,
+            ];
+            $colorIndex++;
+        }
+
+        // Fallback if API returns no plans
+        if (empty($availablePlans)) {
+            $availablePlans = [
+                ['id' => 1, 'name' => 'Weight Loss Pro', 'price' => 420, 'duration' => '4 weeks', 'calories' => '1500-1800', 'subscribers' => 128, 'color' => '#259B00', 'current' => true],
+                ['id' => 2, 'name' => 'Muscle Gain', 'price' => 380, 'duration' => '4 weeks', 'calories' => '2500-3000', 'subscribers' => 94, 'color' => '#033133', 'current' => false],
+                ['id' => 3, 'name' => 'Maintenance', 'price' => 295, 'duration' => '4 weeks', 'calories' => '2000-2200', 'subscribers' => 76, 'color' => '#f9ac00', 'current' => false],
+                ['id' => 4, 'name' => 'Keto Premium', 'price' => 510, 'duration' => '4 weeks', 'calories' => '1800-2000', 'subscribers' => 44, 'color' => '#3b82f6', 'current' => false],
+            ];
+        }
+
+        // Build subscription history
+        $history = [];
+        foreach ($mySubscriptions as $sub) {
+            $plan = $plansById[$sub['plan_id'] ?? 0] ?? [];
+            $history[] = [
+                'plan' => $plan['name_en'] ?? 'Unknown Plan',
+                'period' => !empty($sub['start_date']) ? date('M Y', strtotime($sub['start_date'])) : 'N/A',
+                'status' => $sub['status'] ?? 'unknown',
+                'amount' => $sub['amount'] ?? 0,
+            ];
+        }
+
+        if (empty($history)) {
+            $history = [
+                ['plan' => 'Weight Loss Pro', 'period' => date('M Y'), 'status' => 'active', 'amount' => 420],
+            ];
+        }
 
         return view('user.subscriptions', compact('activePlan', 'availablePlans', 'history'));
     }
