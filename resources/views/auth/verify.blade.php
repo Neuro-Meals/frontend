@@ -192,6 +192,9 @@
 
                     if (data.success) {
                         this.showToast(data.message, 'success');
+                        if (data.already_verified && data.redirect) {
+                            setTimeout(() => { window.location.href = data.redirect }, 2000);
+                        }
                         return;
                     }
 

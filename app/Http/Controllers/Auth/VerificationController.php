@@ -106,6 +106,22 @@ class VerificationController extends Controller
             return back()->withErrors(['email' => $message]);
         }
 
+        $message = $response['message'] ?? '';
+
+        // API may signal that the email is already verified
+        if (is_string($message) && str_contains(strtolower($message), 'already verified')) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'already_verified' => true,
+                    'message' => 'Your email is already verified. You can log in now.',
+                    'redirect' => route('login'),
+                ]);
+            }
+
+            return redirect()->route('login')->with('status', 'Your email is already verified. You can log in now.');
+        }
+
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
