@@ -595,28 +595,84 @@ class UserController extends Controller
         return (int) round($total / count($meals)) * 3; // Approximate 3 meals per day
     }
 
-    public function orders()
+    public function orders(SubscriptionApiService $subscriptionApi, PlanApiService $planApi)
     {
-        $orders = [
-            ['id' => 'ORD-2401', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'delivered', 'date' => '2025-06-30', 'meals' => 3],
-            ['id' => 'ORD-2387', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'delivered', 'date' => '2025-06-29', 'meals' => 3],
-            ['id' => 'ORD-2372', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'delivered', 'date' => '2025-06-28', 'meals' => 3],
-            ['id' => 'ORD-2358', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'delivered', 'date' => '2025-06-27', 'meals' => 3],
-            ['id' => 'ORD-2341', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'delivered', 'date' => '2025-06-26', 'meals' => 3],
-            ['id' => 'ORD-2329', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'delivered', 'date' => '2025-06-25', 'meals' => 3],
-            ['id' => 'ORD-2315', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'cancelled', 'date' => '2025-06-24', 'meals' => 3],
-            ['id' => 'ORD-2302', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'delivered', 'date' => '2025-06-23', 'meals' => 3],
-        ];
+        $subscriptions = $this->apiData($subscriptionApi->my(), function () {
+            return [];
+        });
+
+        $plans = $this->apiData($planApi->list(['limit' => 100]), function () {
+            return [];
+        });
+
+        $plansById = [];
+        foreach ($plans as $plan) {
+            $plansById[$plan['id'] ?? 0] = $plan;
+        }
+
+        $orders = [];
+        $total = 0;
+        $delivered = 0;
+        $cancelled = 0;
+        $totalSpent = 0;
+        $index = 1;
+
+        foreach ($subscriptions as $sub) {
+            $planId = $sub['plan_id'] ?? 0;
+            $plan = $plansById[$planId] ?? [];
+            $planName = $plan['name_en'] ?? 'Plan #' . $planId;
+            $meals = $plan['meals_per_day'] ?? 3;
+            $status = $this->mapSubscriptionStatus($sub['status'] ?? 'pending', $sub['payment_status'] ?? 'unpaid');
+            $amount = $sub['amount'] ?? 0;
+            $date = $sub['created_at'] ?? $sub['start_date'] ?? date('Y-m-d');
+
+            $orders[] = [
+                'id' => 'ORD-' . str_pad($index, 4, '0', STR_PAD_LEFT),
+                'plan' => $planName,
+                'meals' => $meals,
+                'amount' => $amount,
+                'date' => $date,
+                'status' => $status,
+            ];
+
+            $total++;
+            $totalSpent += $amount;
+            if ($status === 'delivered') {
+                $delivered++;
+            } elseif ($status === 'cancelled') {
+                $cancelled++;
+            }
+            $index++;
+        }
+
+        // Sort by date descending
+        usort($orders, function ($a, $b) {
+            return strtotime($b['date']) <=> strtotime($a['date']);
+        });
 
         $stats = [
-            'total' => 42,
-            'delivered' => 40,
-            'cancelled' => 2,
-            'totalSpent' => 16800,
-            'avgOrder' => 400,
+            'total' => $total,
+            'delivered' => $delivered,
+            'cancelled' => $cancelled,
+            'totalSpent' => $totalSpent,
+            'avgOrder' => $total > 0 ? round($totalSpent / $total) : 0,
         ];
 
         return view('user.orders', compact('orders', 'stats'));
+    }
+
+    /**
+     * Map subscription status to order status.
+     */
+    private function mapSubscriptionStatus(string $subscriptionStatus, string $paymentStatus): string
+    {
+        if ($subscriptionStatus === 'cancelled' || $paymentStatus === 'failed') {
+            return 'cancelled';
+        }
+        if ($subscriptionStatus === 'active' && $paymentStatus === 'paid') {
+            return 'delivered';
+        }
+        return 'pending';
     }
 
     public function delivery()
