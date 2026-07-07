@@ -769,10 +769,9 @@ class UserController extends Controller
         return 'pending';
     }
 
-    public function delivery(SubscriptionApiService $subscriptionApi, AuthApiService $authApi)
+    public function delivery(DeliveryApiService $deliveryApi, SubscriptionApiService $subscriptionApi, AuthApiService $authApi)
     {
-        // Note: There is no dedicated delivery API yet. We use subscriptions and user profile to enhance mock data.
-        $subscriptions = $this->apiData($subscriptionApi->my(), function () {
+        $apiDeliveries = $this->apiData($deliveryApi->my(), function () {
             return [];
         });
 
@@ -781,27 +780,72 @@ class UserController extends Controller
         });
 
         $zone = $user['location'] ?? 'Riyadh Central';
-        $totalDeliveries = max(2, count($subscriptions));
 
-        $upcoming = [
-            ['id' => 'DLV-501', 'order' => 'ORD-2401', 'date' => 'Tomorrow', 'time' => '09:00 - 10:00', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'scheduled', 'meals' => 3],
-            ['id' => 'DLV-502', 'order' => 'ORD-2402', 'date' => 'Wed, Jul 3', 'time' => '09:00 - 10:00', 'zone' => $zone, 'driver' => 'Unassigned', 'status' => 'scheduled', 'meals' => 3],
-        ];
+        $upcoming = [];
+        $history = [];
 
-        $history = [
-            ['id' => 'DLV-498', 'order' => 'ORD-2387', 'date' => 'Today', 'time' => '09:15', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'delivered', 'eta' => 'On time'],
-            ['id' => 'DLV-487', 'order' => 'ORD-2372', 'date' => 'Yesterday', 'time' => '09:10', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'delivered', 'eta' => 'On time'],
-            ['id' => 'DLV-475', 'order' => 'ORD-2358', 'date' => 'Jun 27', 'time' => '09:20', 'zone' => $zone, 'driver' => 'Hassan', 'status' => 'delivered', 'eta' => '5 min late'],
-            ['id' => 'DLV-462', 'order' => 'ORD-2341', 'date' => 'Jun 26', 'time' => '09:05', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'delivered', 'eta' => 'On time'],
-            ['id' => 'DLV-451', 'order' => 'ORD-2329', 'date' => 'Jun 25', 'time' => '09:15', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'delivered', 'eta' => 'On time'],
-        ];
+        if (!empty($apiDeliveries) && is_array($apiDeliveries)) {
+            foreach ($apiDeliveries as $delivery) {
+                $status = $delivery['status'] ?? 'pending';
+                $scheduledAt = $delivery['scheduled_at'] ?? null;
+                $date = $scheduledAt ? date('M d', strtotime($scheduledAt)) : 'Pending';
+                $time = $scheduledAt ? date('H:i', strtotime($scheduledAt)) : '--:--';
 
-        $stats = [
-            'totalDeliveries' => $totalDeliveries,
-            'onTimeRate' => 95,
-            'avgDeliveryTime' => '32 min',
-            'preferredSlot' => '09:00 - 10:00',
-        ];
+                $item = [
+                    'id' => 'DLV-' . $delivery['id'],
+                    'order' => 'ORD-' . $delivery['order_id'],
+                    'date' => $date,
+                    'time' => $time,
+                    'zone' => $delivery['zone'] ?? $zone,
+                    'driver' => $delivery['driver_name'] ?? 'Unassigned',
+                    'status' => $status === 'out_for_delivery' ? 'out' : $status,
+                    'meals' => $delivery['meals'] ?? 3,
+                    'eta' => $delivery['eta'] ?? 'On time',
+                ];
+
+                if (in_array($status, ['pending', 'assigned', 'picked_up', 'out_for_delivery'])) {
+                    $upcoming[] = $item;
+                } else {
+                    $history[] = $item;
+                }
+            }
+        }
+
+        // Fallback mock data if API is not available
+        if (empty($upcoming) && empty($history)) {
+            $subscriptions = $this->apiData($subscriptionApi->my(), function () {
+                return [];
+            });
+            $totalDeliveries = max(2, count($subscriptions));
+
+            $upcoming = [
+                ['id' => 'DLV-501', 'order' => 'ORD-2401', 'date' => 'Tomorrow', 'time' => '09:00 - 10:00', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'scheduled', 'meals' => 3, 'eta' => 'On time'],
+                ['id' => 'DLV-502', 'order' => 'ORD-2402', 'date' => 'Wed, Jul 3', 'time' => '09:00 - 10:00', 'zone' => $zone, 'driver' => 'Unassigned', 'status' => 'scheduled', 'meals' => 3, 'eta' => 'On time'],
+            ];
+
+            $history = [
+                ['id' => 'DLV-498', 'order' => 'ORD-2387', 'date' => 'Today', 'time' => '09:15', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'delivered', 'meals' => 3, 'eta' => 'On time'],
+                ['id' => 'DLV-487', 'order' => 'ORD-2372', 'date' => 'Yesterday', 'time' => '09:10', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'delivered', 'meals' => 3, 'eta' => 'On time'],
+                ['id' => 'DLV-475', 'order' => 'ORD-2358', 'date' => 'Jun 27', 'time' => '09:20', 'zone' => $zone, 'driver' => 'Hassan', 'status' => 'delivered', 'meals' => 3, 'eta' => '5 min late'],
+                ['id' => 'DLV-462', 'order' => 'ORD-2341', 'date' => 'Jun 26', 'time' => '09:05', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'delivered', 'meals' => 3, 'eta' => 'On time'],
+                ['id' => 'DLV-451', 'order' => 'ORD-2329', 'date' => 'Jun 25', 'time' => '09:15', 'zone' => $zone, 'driver' => 'Yousef', 'status' => 'delivered', 'meals' => 3, 'eta' => 'On time'],
+            ];
+
+            $stats = [
+                'totalDeliveries' => $totalDeliveries,
+                'onTimeRate' => 95,
+                'avgDeliveryTime' => '32 min',
+                'preferredSlot' => '09:00 - 10:00',
+            ];
+        } else {
+            $totalDeliveries = count($upcoming) + count($history);
+            $stats = [
+                'totalDeliveries' => $totalDeliveries,
+                'onTimeRate' => 95,
+                'avgDeliveryTime' => '32 min',
+                'preferredSlot' => '09:00 - 10:00',
+            ];
+        }
 
         return view('user.delivery', compact('upcoming', 'history', 'stats'));
     }
