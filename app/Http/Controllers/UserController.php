@@ -461,8 +461,16 @@ class UserController extends Controller
         return ['name' => $favorite, 'count' => $counts[$favorite] ?? 0];
     }
 
-    public function nutrition(MealApiService $mealApi, AuthApiService $authApi)
+    public function nutrition(NutritionApiService $nutritionApi, MealApiService $mealApi, AuthApiService $authApi)
     {
+        $apiNutrition = $this->apiData($nutritionApi->today(), function () {
+            return [];
+        });
+
+        $apiWeight = $this->apiData($nutritionApi->weightHistory(), function () {
+            return [];
+        });
+
         $meals = $this->apiData($mealApi->list(['limit' => 100, 'is_available' => true]), function () {
             return [];
         });
@@ -473,48 +481,79 @@ class UserController extends Controller
 
         $currentWeight = $user['weight_kg'] ?? 78.2;
         $fitnessGoal = $user['fitness_goal'] ?? 'maintenance';
-
-        // Calculate targets based on fitness goal
         $targets = $this->calculateNutritionTargets($fitnessGoal, $currentWeight);
 
-        // Calculate today's nutrition from today's meals (assume first 3 meals of the day)
-        $todayMeals = array_slice($meals, 0, 3);
-        $todayCalories = 0;
-        $todayProtein = 0;
-        $todayCarbs = 0;
-        $todayFat = 0;
-        foreach ($todayMeals as $meal) {
-            $todayCalories += (int) ($meal['calories'] ?? 0);
-            $todayProtein += (int) ($meal['protein_g'] ?? 0);
-            $todayCarbs += (int) ($meal['carbs_g'] ?? 0);
-            $todayFat += (int) ($meal['fat_g'] ?? 0);
+        // If API provides today's nutrition, use it; otherwise calculate from meals
+        if (!empty($apiNutrition)) {
+            $todayStats = [
+                'calories' => $apiNutrition['calories'] ?? 0,
+                'calorieTarget' => $apiNutrition['calorie_target'] ?? $targets['calories'],
+                'protein' => $apiNutrition['protein'] ?? 0,
+                'proteinTarget' => $apiNutrition['protein_target'] ?? $targets['protein'],
+                'carbs' => $apiNutrition['carbs'] ?? 0,
+                'carbsTarget' => $apiNutrition['carbs_target'] ?? $targets['carbs'],
+                'fat' => $apiNutrition['fat'] ?? 0,
+                'fatTarget' => $apiNutrition['fat_target'] ?? $targets['fat'],
+                'water' => $apiNutrition['water'] ?? 6,
+                'waterTarget' => $apiNutrition['water_target'] ?? 8,
+                'steps' => $apiNutrition['steps'] ?? 8420,
+                'stepsTarget' => $apiNutrition['steps_target'] ?? 10000,
+            ];
+        } else {
+            $todayMeals = array_slice($meals, 0, 3);
+            $todayCalories = 0;
+            $todayProtein = 0;
+            $todayCarbs = 0;
+            $todayFat = 0;
+            foreach ($todayMeals as $meal) {
+                $todayCalories += (int) ($meal['calories'] ?? 0);
+                $todayProtein += (int) ($meal['protein_g'] ?? 0);
+                $todayCarbs += (int) ($meal['carbs_g'] ?? 0);
+                $todayFat += (int) ($meal['fat_g'] ?? 0);
+            }
+
+            $todayStats = [
+                'calories' => $todayCalories,
+                'calorieTarget' => $targets['calories'],
+                'protein' => $todayProtein,
+                'proteinTarget' => $targets['protein'],
+                'carbs' => $todayCarbs,
+                'carbsTarget' => $targets['carbs'],
+                'fat' => $todayFat,
+                'fatTarget' => $targets['fat'],
+                'water' => 6,
+                'waterTarget' => 8,
+                'steps' => 8420,
+                'stepsTarget' => 10000,
+            ];
         }
 
-        $todayStats = [
-            'calories' => $todayCalories,
-            'calorieTarget' => $targets['calories'],
-            'protein' => $todayProtein,
-            'proteinTarget' => $targets['protein'],
-            'carbs' => $todayCarbs,
-            'carbsTarget' => $targets['carbs'],
-            'fat' => $todayFat,
-            'fatTarget' => $targets['fat'],
-            'water' => 6,
-            'waterTarget' => 8,
-            'steps' => 8420,
-            'stepsTarget' => 10000,
-        ];
+        $weeklyData = $this->buildWeeklyCalories($meals, $todayStats['calorieTarget']);
 
-        // Build weekly data from meals
-        $weeklyData = $this->buildWeeklyCalories($meals, $targets['calories']);
-
-        // Build weight progress (fallback since API has no history)
-        $goalWeight = $this->calculateGoalWeight($currentWeight, $fitnessGoal);
-        $startWeight = $currentWeight + ($goalWeight < $currentWeight ? 4.3 : 0);
-        $weightProgress = $this->buildWeightProgress($startWeight, $currentWeight, $goalWeight);
-
-        $lost = max(0, $startWeight - $currentWeight);
-        $remaining = max(0, $currentWeight - $goalWeight);
+        // Weight progress from API or fallback
+        if (!empty($apiWeight)) {
+            $currentWeight = $apiWeight['current_weight'] ?? $currentWeight;
+            $startWeight = $apiWeight['start_weight'] ?? ($currentWeight + 4.3);
+            $goalWeight = $apiWeight['goal_weight'] ?? $this->calculateGoalWeight($currentWeight, $fitnessGoal);
+            $weightProgress = array_map(fn ($item) => [
+                'week' => $item['week'] ?? '',
+                'weight' => $item['weight'] ?? 0,
+            ], $apiWeight['history'] ?? []);
+            $lost = $apiWeight['stats']['lost'] ?? max(0, $startWeight - $currentWeight);
+            $remaining = $apiWeight['stats']['remaining'] ?? max(0, $currentWeight - $goalWeight);
+            $streakDays = $apiWeight['stats']['streak_days'] ?? 28;
+            $adherenceRate = $apiWeight['stats']['adherence_rate'] ?? 92;
+            $avgDailyCalories = $apiWeight['stats']['avg_daily_calories'] ?? $this->calculateAvgDailyCalories($meals);
+        } else {
+            $goalWeight = $this->calculateGoalWeight($currentWeight, $fitnessGoal);
+            $startWeight = $currentWeight + ($goalWeight < $currentWeight ? 4.3 : 0);
+            $weightProgress = $this->buildWeightProgress($startWeight, $currentWeight, $goalWeight);
+            $lost = max(0, $startWeight - $currentWeight);
+            $remaining = max(0, $currentWeight - $goalWeight);
+            $streakDays = 28;
+            $adherenceRate = 92;
+            $avgDailyCalories = $this->calculateAvgDailyCalories($meals);
+        }
 
         $stats = [
             'currentWeight' => $currentWeight,
@@ -522,9 +561,9 @@ class UserController extends Controller
             'goalWeight' => $goalWeight,
             'lost' => $lost,
             'remaining' => $remaining,
-            'streakDays' => 28,
-            'avgDailyCalories' => $this->calculateAvgDailyCalories($meals),
-            'adherenceRate' => 92,
+            'streakDays' => $streakDays,
+            'avgDailyCalories' => $avgDailyCalories,
+            'adherenceRate' => $adherenceRate,
         ];
 
         return view('user.nutrition', compact('todayStats', 'weeklyData', 'weightProgress', 'stats'));
