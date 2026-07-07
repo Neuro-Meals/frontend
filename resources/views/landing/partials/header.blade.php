@@ -24,7 +24,17 @@
                     <svg id="theme-icon-sun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                     <svg id="theme-icon-moon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
                 </button>
-                @if (Route::has('login'))
+                @php $authApi = app(\App\Services\Api\AuthApiService::class); @endphp
+                @if ($authApi->check())
+                    <a href="{{ $authApi->isAdmin() ? route('admin.dashboard') : route('user.dashboard') }}" class="hidden sm:inline-flex items-center gap-1.5 px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] hover:from-[#025C5F] hover:to-[#1E8A00] rounded-xl shadow-md shadow-brand-light/20 hover:shadow-lg hover:shadow-brand-light/30 hover:-translate-y-0.5 transition-all duration-300">
+                        {{ __('Go to Dashboard') }}
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    </a>
+                    <a href="{{ route('logout') }}" class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-xl border border-emerald-200 dark:border-emerald-700 transition-all duration-300">
+                        {{ __('Logout') }}
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    </a>
+                @elseif (Route::has('login'))
                     <a href="{{ route('login') }}" class="hidden sm:inline-flex items-center gap-1.5 px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] hover:from-[#025C5F] hover:to-[#1E8A00] rounded-xl shadow-md shadow-brand-light/20 hover:shadow-lg hover:shadow-brand-light/30 hover:-translate-y-0.5 transition-all duration-300">
                         {{ __('Get Started') }}
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
@@ -47,7 +57,16 @@
                 <a href="#how-it-works" @click="mobileOpen = false" class="text-base font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">{{ __('How It Works') }}</a>
                 <a href="#gallery" @click="mobileOpen = false" class="text-base font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">{{ __('Meals') }}</a>
                 <a href="#calculator" @click="mobileOpen = false" class="text-base font-semibold text-gray-600 dark:text-gray-300 hover:text-brand-light dark:hover:text-brand-light transition-colors">{{ __('Calculator') }}</a>
-                @if (Route::has('login'))
+                @if ($authApi->check())
+                    <a href="{{ $authApi->isAdmin() ? route('admin.dashboard') : route('user.dashboard') }}" @click="mobileOpen = false" class="mt-2 inline-flex items-center justify-center gap-1.5 px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] hover:from-[#025C5F] hover:to-[#1E8A00] rounded-xl shadow-md transition-all duration-300">
+                        {{ __('Go to Dashboard') }}
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    </a>
+                    <a href="{{ route('logout') }}" @click="mobileOpen = false" class="inline-flex items-center justify-center gap-1.5 px-6 py-2.5 text-sm font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl border border-emerald-200 dark:border-emerald-700 transition-all duration-300">
+                        {{ __('Logout') }}
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    </a>
+                @elseif (Route::has('login'))
                     <a href="{{ route('login') }}" @click="mobileOpen = false" class="mt-2 inline-flex items-center justify-center gap-1.5 px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] hover:from-[#025C5F] hover:to-[#1E8A00] rounded-xl shadow-md transition-all duration-300">
                         {{ __('Get Started') }}
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
