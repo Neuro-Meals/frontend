@@ -19,7 +19,7 @@
         <span class="text-[10px] font-medium text-gray-400">Protein</span>
         <div class="text-2xl font-bold text-gray-900 mt-1">{{ $todayStats['protein'] }}g</div>
         <div class="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div class="h-full bg-[#6E7A25] rounded-full" style="width: {{ min(round($todayStats['protein'] / $todayStats['proteinTarget'] * 100), 100) }}%"></div>
+            <div class="h-full bg-[#6E7A25] rounded-full" style="width: {{ min(round($todayStats['protein'] / ($todayStats['proteinTarget'] ?: 1) * 100), 100) }}%"></div>
         </div>
         <span class="text-[10px] text-gray-400 mt-1 block">Target: {{ $todayStats['proteinTarget'] }}g</span>
     </div>
@@ -27,7 +27,7 @@
         <span class="text-[10px] font-medium text-gray-400">Carbs</span>
         <div class="text-2xl font-bold text-gray-900 mt-1">{{ $todayStats['carbs'] }}g</div>
         <div class="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div class="h-full bg-[#949B50] rounded-full" style="width: {{ min(round($todayStats['carbs'] / $todayStats['carbsTarget'] * 100), 100) }}%"></div>
+            <div class="h-full bg-[#949B50] rounded-full" style="width: {{ min(round($todayStats['carbs'] / ($todayStats['carbsTarget'] ?: 1) * 100), 100) }}%"></div>
         </div>
         <span class="text-[10px] text-gray-400 mt-1 block">Target: {{ $todayStats['carbsTarget'] }}g</span>
     </div>
@@ -35,7 +35,7 @@
         <span class="text-[10px] font-medium text-gray-400">Fats</span>
         <div class="text-2xl font-bold text-gray-900 mt-1">{{ $todayStats['fat'] }}g</div>
         <div class="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div class="h-full bg-[#025C5F] rounded-full" style="width: {{ min(round($todayStats['fat'] / $todayStats['fatTarget'] * 100), 100) }}%"></div>
+            <div class="h-full bg-[#025C5F] rounded-full" style="width: {{ min(round($todayStats['fat'] / ($todayStats['fatTarget'] ?: 1) * 100), 100) }}%"></div>
         </div>
         <span class="text-[10px] text-gray-400 mt-1 block">Target: {{ $todayStats['fatTarget'] }}g</span>
     </div>
@@ -90,7 +90,7 @@
                     <span class="text-xs font-bold text-gray-900">{{ number_format($todayStats['steps']) }}</span>
                 </div>
                 <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                    <div class="bg-[#6E7A25] h-2.5 rounded-full transition-all duration-500" style="width: {{ min(round($todayStats['steps'] / $todayStats['stepsTarget'] * 100), 100) }}%"></div>
+                    <div class="bg-[#6E7A25] h-2.5 rounded-full transition-all duration-500" style="width: {{ min(round($todayStats['steps'] / ($todayStats['stepsTarget'] ?: 1) * 100), 100) }}%"></div>
                 </div>
                 <span class="text-[10px] text-gray-400 mt-1 block">Target: {{ number_format($todayStats['stepsTarget']) }} steps</span>
             </div>
