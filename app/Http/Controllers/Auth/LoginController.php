@@ -48,6 +48,14 @@ class LoginController extends Controller
         }
 
         $message = $response['message'] ?? 'Invalid credentials. Please try again.';
+        $status = $response['status'] ?? 0;
+
+        // API may reject unverified users with 401 Unauthorized
+        if ($status === 401 || (is_string($message) && str_contains(strtolower($message), 'unauthorized'))) {
+            $authApi->resendVerificationOtp($request->email);
+            return redirect()->route('verify.email', ['email' => $request->email])
+                ->with('status', __('Please verify your email before logging in. We have sent an OTP to your email.'));
+        }
 
         return back()->withErrors(['email' => $message])->withInput($request->only('email'));
     }
