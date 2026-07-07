@@ -41,23 +41,26 @@ class AdminController extends Controller
         $totalOrders = $ordersResponse['meta']['total'] ?? 0;
         $totalMeals = $mealsResponse['meta']['total'] ?? 0;
 
+        $deliveriesResponse = app(DeliveryApiService::class)->list(['limit' => 1]);
+        $totalDeliveries = $deliveriesResponse['meta']['total'] ?? 0;
+
         $stats = [
-            'totalUsers' => $totalUsers ?: 1248,
-            'newUsersThisWeek' => 23,
-            'totalRevenue' => 487320,
-            'activeSubscriptions' => $activeSubscriptions ?: 342,
-            'totalMeals' => $totalMeals ?: 128,
-            'successRate' => 98.6,
-            'ordersToday' => $totalOrders ?: 87,
-            'deliveriesToday' => 64,
-            'pendingPayments' => 12,
-            'avgOrderValue' => 342,
-            'monthlyRevenue' => 487320,
-            'lastMonthRevenue' => 421800,
-            'totalCustomers' => $totalUsers ?: 1248,
-            'newCustomersThisWeek' => 23,
-            'churnRate' => 2.4,
-            'retentionRate' => 94.2,
+            'totalUsers' => $totalUsers,
+            'newUsersThisWeek' => 0,
+            'totalRevenue' => 0,
+            'activeSubscriptions' => $activeSubscriptions,
+            'totalMeals' => $totalMeals,
+            'successRate' => 0,
+            'ordersToday' => $totalOrders,
+            'deliveriesToday' => $totalDeliveries,
+            'pendingPayments' => 0,
+            'avgOrderValue' => 0,
+            'monthlyRevenue' => 0,
+            'lastMonthRevenue' => 0,
+            'totalCustomers' => $totalUsers,
+            'newCustomersThisWeek' => 0,
+            'churnRate' => 0,
+            'retentionRate' => 0,
         ];
 
         $recentOrdersData = $this->apiData($orderApi->list(['limit' => 6]), function () {
@@ -77,19 +80,8 @@ class AdminController extends Controller
             }
         }
 
-        if (empty($recentOrders)) {
-            $recentOrders = [
-                ['id' => 'ORD-2401', 'customer' => 'Ahmed Al-Saud', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'delivered'],
-                ['id' => 'ORD-2400', 'customer' => 'Sarah Al-Otaibi', 'plan' => 'Muscle Gain', 'amount' => 380, 'status' => 'en_route'],
-                ['id' => 'ORD-2399', 'customer' => 'Khalid Al-Ghamdi', 'plan' => 'Maintenance', 'amount' => 295, 'status' => 'preparing'],
-                ['id' => 'ORD-2398', 'customer' => 'Noura Al-Harbi', 'plan' => 'Keto Premium', 'amount' => 510, 'status' => 'delivered'],
-                ['id' => 'ORD-2397', 'customer' => 'Faisal Al-Qahtani', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'pending'],
-                ['id' => 'ORD-2396', 'customer' => 'Layla Al-Subaie', 'plan' => 'Muscle Gain', 'amount' => 380, 'status' => 'delivered'],
-            ];
-        }
-
-        $revenueTrend = [28400, 31200, 29800, 34500, 38900, 42100, 39800, 36700, 41300, 45200, 43800, 48900, 52400, 49800];
-        $ordersTrend = [42, 55, 48, 67, 73, 81, 87];
+        $revenueTrend = [];
+        $ordersTrend = [];
 
         $plansData = $this->apiData($adminApi->plansList(['limit' => 100]), function () {
             return [];
@@ -109,29 +101,17 @@ class AdminController extends Controller
             }
         }
 
-        if (empty($planDistribution)) {
-            $planDistribution = [
-                ['name' => 'Weight Loss', 'count' => 128, 'color' => '#173327'],
-                ['name' => 'Muscle Gain', 'count' => 94, 'color' => '#033133'],
-                ['name' => 'Maintenance', 'count' => 76, 'color' => '#f9ac00'],
-                ['name' => 'Keto', 'count' => 44, 'color' => '#3b82f6'],
+        $topMealsData = $this->apiData($mealApi->list(['limit' => 5]), fn () => []);
+        $topMeals = [];
+        foreach ($topMealsData as $meal) {
+            $topMeals[] = [
+                'name' => $meal['name_en'] ?? 'Meal',
+                'orders' => $meal['orders_count'] ?? 0,
+                'revenue' => $meal['revenue'] ?? 0,
             ];
         }
 
-        $topMeals = [
-            ['name' => 'Grilled Chicken Bowl', 'orders' => 342, 'revenue' => 41200],
-            ['name' => 'Quinoa Buddha Bowl', 'orders' => 287, 'revenue' => 32100],
-            ['name' => 'Protein Breakfast Plate', 'orders' => 256, 'revenue' => 24800],
-            ['name' => 'Keto Salmon Salad', 'orders' => 198, 'revenue' => 28400],
-            ['name' => 'Beef & Rice Power Bowl', 'orders' => 174, 'revenue' => 22300],
-        ];
-
-        $deliveryZones = [
-            ['zone' => 'Riyadh Central', 'orders' => 34, 'drivers' => 8],
-            ['zone' => 'Riyadh North', 'orders' => 22, 'drivers' => 5],
-            ['zone' => 'Riyadh South', 'orders' => 18, 'drivers' => 4],
-            ['zone' => 'Jeddah', 'orders' => 13, 'drivers' => 3],
-        ];
+        $deliveryZones = [];
 
         return view('admin.dashboard', compact('stats', 'revenueTrend', 'ordersTrend', 'planDistribution', 'recentOrders', 'topMeals', 'deliveryZones'));
     }
@@ -159,25 +139,12 @@ class AdminController extends Controller
             }
         }
 
-        if (empty($customers)) {
-            $customers = [
-                ['id' => 1, 'name' => 'Ahmed Al-Saud', 'email' => 'ahmed@example.com', 'phone' => '+966551234567', 'plan' => 'Weight Loss Pro', 'status' => 'active', 'orders' => 42, 'spent' => 17640, 'joined' => '2024-01-15'],
-                ['id' => 2, 'name' => 'Sarah Al-Otaibi', 'email' => 'sarah@example.com', 'phone' => '+966552345678', 'plan' => 'Muscle Gain', 'status' => 'active', 'orders' => 38, 'spent' => 14440, 'joined' => '2024-02-03'],
-                ['id' => 3, 'name' => 'Khalid Al-Ghamdi', 'email' => 'khalid@example.com', 'phone' => '+966553456789', 'plan' => 'Maintenance', 'status' => 'active', 'orders' => 25, 'spent' => 7375, 'joined' => '2024-03-20'],
-                ['id' => 4, 'name' => 'Noura Al-Harbi', 'email' => 'noura@example.com', 'phone' => '+966554567890', 'plan' => 'Keto Premium', 'status' => 'paused', 'orders' => 19, 'spent' => 9690, 'joined' => '2024-04-10'],
-                ['id' => 5, 'name' => 'Faisal Al-Qahtani', 'email' => 'faisal@example.com', 'phone' => '+966555678901', 'plan' => 'Weight Loss Pro', 'status' => 'active', 'orders' => 31, 'spent' => 13020, 'joined' => '2024-05-05'],
-                ['id' => 6, 'name' => 'Layla Al-Subaie', 'email' => 'layla@example.com', 'phone' => '+966556789012', 'plan' => 'Muscle Gain', 'status' => 'active', 'orders' => 27, 'spent' => 10260, 'joined' => '2024-06-12'],
-                ['id' => 7, 'name' => 'Omar Al-Dossari', 'email' => 'omar@example.com', 'phone' => '+966557890123', 'plan' => 'Maintenance', 'status' => 'cancelled', 'orders' => 8, 'spent' => 2360, 'joined' => '2024-07-01'],
-                ['id' => 8, 'name' => 'Reem Al-Mutairi', 'email' => 'reem@example.com', 'phone' => '+966558901234', 'plan' => 'Keto Premium', 'status' => 'active', 'orders' => 22, 'spent' => 11220, 'joined' => '2024-08-15'],
-            ];
-        }
-
         $stats = [
-            'total' => count($customers) ?: 1248,
-            'active' => count(array_filter($customers, fn ($c) => $c['status'] === 'active')) ?: 1086,
-            'paused' => count(array_filter($customers, fn ($c) => $c['status'] === 'paused')) ?: 98,
-            'cancelled' => count(array_filter($customers, fn ($c) => $c['status'] === 'cancelled')) ?: 64,
-            'newThisWeek' => 23,
+            'total' => count($customers),
+            'active' => count(array_filter($customers, fn ($c) => $c['status'] === 'active')),
+            'paused' => count(array_filter($customers, fn ($c) => $c['status'] === 'paused')),
+            'cancelled' => count(array_filter($customers, fn ($c) => $c['status'] === 'cancelled')),
+            'newThisWeek' => 0,
         ];
 
         return view('admin.customers', compact('customers', 'stats'));
@@ -221,17 +188,6 @@ class AdminController extends Controller
             }
         }
 
-        if (empty($plans)) {
-            $plans = [
-                ['id' => 1, 'name' => 'Weight Loss Pro', 'price' => 420, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 128, 'status' => 'active', 'calories' => '1500-1800', 'color' => '#173327'],
-                ['id' => 2, 'name' => 'Muscle Gain', 'price' => 380, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 94, 'status' => 'active', 'calories' => '2500-3000', 'color' => '#033133'],
-                ['id' => 3, 'name' => 'Maintenance', 'price' => 295, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 76, 'status' => 'active', 'calories' => '2000-2200', 'color' => '#f9ac00'],
-                ['id' => 4, 'name' => 'Keto Premium', 'price' => 510, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 44, 'status' => 'active', 'calories' => '1800-2000', 'color' => '#3b82f6'],
-                ['id' => 5, 'name' => 'Vegan Fit', 'price' => 340, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 0, 'status' => 'draft', 'calories' => '1600-1900', 'color' => '#8b5cf6'],
-                ['id' => 6, 'name' => 'Athlete Performance', 'price' => 580, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 0, 'status' => 'draft', 'calories' => '3000-3500', 'color' => '#ef4444'],
-            ];
-        }
-
         $totalSubscribers = array_sum(array_column($plans, 'subscribers'));
         $activePlans = count(array_filter($plans, fn ($p) => $p['status'] === 'active'));
         $avgPrice = count($plans) > 0 ? round(array_sum(array_column($plans, 'price')) / count($plans)) : 0;
@@ -243,8 +199,8 @@ class AdminController extends Controller
             'totalSubscribers' => $totalSubscribers,
             'avgRevenue' => $avgPrice,
             'mrr' => $totalSubscribers * $avgPrice,
-            'churnRate' => 2.4,
-            'growthRate' => 12.4,
+            'churnRate' => 0,
+            'growthRate' => 0,
         ];
 
         return view('admin.subscriptions', compact('plans', 'stats'));
@@ -279,16 +235,6 @@ class AdminController extends Controller
             }
         }
 
-        if (empty($meals)) {
-            $meals = [
-                ['id' => 1, 'name' => 'Grilled Chicken Bowl', 'category' => 'High Protein', 'calories' => 520, 'protein' => 45, 'carbs' => 38, 'fat' => 18, 'orders' => 342, 'rating' => 4.8, 'status' => 'active', 'image' => 'grilled-chicken-breast-rice-berry-vegetables-white-background_1428-2141.jpg'],
-                ['id' => 2, 'name' => 'Quinoa Buddha Bowl', 'category' => 'Vegan', 'calories' => 480, 'protein' => 22, 'carbs' => 62, 'fat' => 16, 'orders' => 287, 'rating' => 4.6, 'status' => 'active', 'image' => 'healthy-buddha-bowl-with-sliced-meat-fresh-vegetables_9975-132258.jpg'],
-                ['id' => 3, 'name' => 'Protein Breakfast Plate', 'category' => 'Breakfast', 'calories' => 410, 'protein' => 35, 'carbs' => 28, 'fat' => 14, 'orders' => 256, 'rating' => 4.7, 'status' => 'active', 'image' => 'healthy-protein-bowl-with-quinoa-avocado-kale-sweet-potato-poached-egg_9975-132760.jpg'],
-                ['id' => 4, 'name' => 'Keto Salmon Salad', 'category' => 'Keto', 'calories' => 380, 'protein' => 32, 'carbs' => 8, 'fat' => 24, 'orders' => 198, 'rating' => 4.9, 'status' => 'active', 'image' => 'top-view-healthy-diet-salad-with-grilled-chicken-broccoli-cauliflower-tomato-lettuce-avocado-lettuce_141793-2438.jpg'],
-                ['id' => 5, 'name' => 'Beef & Rice Power Bowl', 'category' => 'High Protein', 'calories' => 610, 'protein' => 48, 'carbs' => 52, 'fat' => 22, 'orders' => 174, 'rating' => 4.5, 'status' => 'active', 'image' => 'grilled-chicken-breast-rice-berry-vegetables-white-background_1428-2141.jpg'],
-                ['id' => 6, 'name' => 'Avocado Toast Deluxe', 'category' => 'Breakfast', 'calories' => 340, 'protein' => 16, 'carbs' => 42, 'fat' => 14, 'orders' => 0, 'rating' => 0, 'status' => 'draft', 'image' => ''],
-            ];
-        }
 
         $categories = [];
         if (!empty($categoriesData)) {
@@ -304,15 +250,6 @@ class AdminController extends Controller
             }
         }
 
-        if (empty($categories)) {
-            $categories = [
-                ['name' => 'High Protein', 'count' => 24, 'color' => '#173327'],
-                ['name' => 'Vegan', 'count' => 18, 'color' => '#8b5cf6'],
-                ['name' => 'Keto', 'count' => 12, 'color' => '#3b82f6'],
-                ['name' => 'Breakfast', 'count' => 16, 'color' => '#f9ac00'],
-                ['name' => 'Maintenance', 'count' => 22, 'color' => '#033133'],
-            ];
-        }
 
         $activeMeals = count(array_filter($meals, fn ($m) => $m['status'] === 'active'));
         $totalOrders = array_sum(array_column($meals, 'orders'));
@@ -352,18 +289,6 @@ class AdminController extends Controller
             }
         }
 
-        if (empty($orders)) {
-            $orders = [
-                ['id' => 'ORD-2401', 'customer' => 'Ahmed Al-Saud', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'delivered', 'date' => '2025-06-30', 'delivery' => '09:00-10:00'],
-                ['id' => 'ORD-2400', 'customer' => 'Sarah Al-Otaibi', 'plan' => 'Muscle Gain', 'amount' => 380, 'status' => 'en_route', 'date' => '2025-06-30', 'delivery' => '10:00-11:00'],
-                ['id' => 'ORD-2399', 'customer' => 'Khalid Al-Ghamdi', 'plan' => 'Maintenance', 'amount' => 295, 'status' => 'preparing', 'date' => '2025-06-30', 'delivery' => '11:00-12:00'],
-                ['id' => 'ORD-2398', 'customer' => 'Noura Al-Harbi', 'plan' => 'Keto Premium', 'amount' => 510, 'status' => 'delivered', 'date' => '2025-06-29', 'delivery' => '08:00-09:00'],
-                ['id' => 'ORD-2397', 'customer' => 'Faisal Al-Qahtani', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'pending', 'date' => '2025-06-30', 'delivery' => '14:00-15:00'],
-                ['id' => 'ORD-2396', 'customer' => 'Layla Al-Subaie', 'plan' => 'Muscle Gain', 'amount' => 380, 'status' => 'delivered', 'date' => '2025-06-29', 'delivery' => '09:00-10:00'],
-                ['id' => 'ORD-2395', 'customer' => 'Omar Al-Dossari', 'plan' => 'Maintenance', 'amount' => 295, 'status' => 'cancelled', 'date' => '2025-06-28', 'delivery' => '12:00-13:00'],
-                ['id' => 'ORD-2394', 'customer' => 'Reem Al-Mutairi', 'plan' => 'Keto Premium', 'amount' => 510, 'status' => 'delivered', 'date' => '2025-06-29', 'delivery' => '10:00-11:00'],
-            ];
-        }
 
         $total = count($orders);
         $delivered = count(array_filter($orders, fn ($o) => $o['status'] === 'delivered'));
@@ -403,23 +328,18 @@ class AdminController extends Controller
             }
         }
 
-        if (empty($deliveries)) {
-            $deliveries = [
-                ['id' => 'DLV-501', 'order' => 'ORD-2401', 'customer' => 'Ahmed Al-Saud', 'zone' => 'Riyadh Central', 'driver' => 'Yousef', 'status' => 'delivered', 'time' => '09:15', 'eta' => 'On time'],
-                ['id' => 'DLV-502', 'order' => 'ORD-2400', 'customer' => 'Sarah Al-Otaibi', 'zone' => 'Riyadh North', 'driver' => 'Hassan', 'status' => 'en_route', 'time' => '10:30', 'eta' => '5 min'],
-                ['id' => 'DLV-503', 'order' => 'ORD-2399', 'customer' => 'Khalid Al-Ghamdi', 'zone' => 'Riyadh South', 'driver' => 'Ali', 'status' => 'preparing', 'time' => '11:00', 'eta' => '30 min'],
-                ['id' => 'DLV-504', 'order' => 'ORD-2398', 'customer' => 'Noura Al-Harbi', 'zone' => 'Jeddah', 'driver' => 'Mahmoud', 'status' => 'delivered', 'time' => '08:20', 'eta' => 'On time'],
-                ['id' => 'DLV-505', 'order' => 'ORD-2397', 'customer' => 'Faisal Al-Qahtani', 'zone' => 'Riyadh Central', 'driver' => 'Unassigned', 'status' => 'scheduled', 'time' => '14:00', 'eta' => 'Pending'],
-                ['id' => 'DLV-506', 'order' => 'ORD-2396', 'customer' => 'Layla Al-Subaie', 'zone' => 'Riyadh North', 'driver' => 'Yousef', 'status' => 'delivered', 'time' => '09:45', 'eta' => 'On time'],
-            ];
+        $zonesMap = [];
+        foreach ($deliveries as $delivery) {
+            $zoneName = $delivery['zone'] ?? 'N/A';
+            if (!isset($zonesMap[$zoneName])) {
+                $zonesMap[$zoneName] = ['name' => $zoneName, 'orders' => 0, 'drivers' => 0, 'completed' => 0];
+            }
+            $zonesMap[$zoneName]['orders']++;
+            if (($delivery['status'] ?? '') === 'delivered') {
+                $zonesMap[$zoneName]['completed']++;
+            }
         }
-
-        $zones = [
-            ['name' => 'Riyadh Central', 'orders' => 34, 'drivers' => 8, 'completed' => 28],
-            ['name' => 'Riyadh North', 'orders' => 22, 'drivers' => 5, 'completed' => 18],
-            ['name' => 'Riyadh South', 'orders' => 18, 'drivers' => 4, 'completed' => 12],
-            ['name' => 'Jeddah', 'orders' => 13, 'drivers' => 3, 'completed' => 6],
-        ];
+        $zones = array_values($zonesMap);
 
         $total = count($deliveries);
         $delivered = count(array_filter($deliveries, fn ($d) => $d['status'] === 'delivered'));
@@ -433,7 +353,7 @@ class AdminController extends Controller
             'enRoute' => $enRoute,
             'preparing' => $preparing,
             'scheduled' => $scheduled,
-            'onTimeRate' => 94.2,
+            'onTimeRate' => $total > 0 ? round(($delivered / $total) * 100, 1) : 0,
         ];
 
         return view('admin.deliveries', compact('deliveries', 'zones', 'stats'));
