@@ -38,6 +38,13 @@ class LoginController extends Controller
 
         $response = $authApi->login($request->email, $request->password);
 
+        // API may explicitly tell us that the email needs verification.
+        if (isset($response['requires_verification']) && $response['requires_verification'] === true) {
+            $authApi->resendVerificationOtp($request->email);
+            return redirect()->route('verify.email', ['email' => $request->email])
+                ->with('status', __('Please verify your email before logging in. We have sent an OTP to your email.'));
+        }
+
         if (isset($response['access_token'])) {
             $user = $response['user'] ?? [];
 
