@@ -504,5 +504,6 @@
     "Go to Dashboard": "الذهاب إلى لوحة التحكم",
     "Login successful. Redirecting to your dashboard...": "تم تسجيل الدخول بنجاح. جاري التوجيه إلى لوحة التحكم...",
     "Email Not Verified": "البريد الإلكتروني غير مؤكد",
-    "Verify Email Now": "تأكيد البريد الإلكتروني الآن"
+    "Verify Email Now": "تأكيد البريد الإلكتروني الآن",
+    "No weight data available yet": "لا توجد بيانات وزن متاحة بعد"
 }

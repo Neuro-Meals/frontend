@@ -108,21 +108,28 @@
                 <span class="text-[10px] text-gray-400 block">{{ $stats['remaining'] }}kg to goal</span>
             </div>
         </div>
-        @php $wMax = max(array_column($weightProgress, 'weight')); $wMin = min(array_column($weightProgress, 'weight')); $wRange = $wMax - $wMin ?: 1; @endphp
-        <div class="flex items-end gap-3 h-40">
-            @foreach($weightProgress as $wp)
-            @php $heightPct = (($wp['weight'] - $wMin) / $wRange) * 100; $isLast = $loop->last; @endphp
-            <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
-                <div class="w-full bg-gray-50 rounded-t-md relative h-32 overflow-hidden">
-                    <div class="absolute bottom-0 left-0 right-0 rounded-t-md transition-all duration-300 {{ $isLast ? 'bg-gradient-to-t from-[#6E7A25] to-[#6E7A25]/70' : 'bg-gradient-to-t from-[#173327]/60 to-[#173327]/30' }} group-hover:opacity-80" style="height: {{ max($heightPct, 8) }}%"></div>
-                    <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap">
-                        {{ $wp['weight'] }}kg
+        @if(!empty($weightProgress))
+            @php $weights = array_column($weightProgress, 'weight'); $wMax = max($weights); $wMin = min($weights); $wRange = $wMax - $wMin ?: 1; @endphp
+            <div class="flex items-end gap-3 h-40">
+                @foreach($weightProgress as $wp)
+                @php $heightPct = (($wp['weight'] - $wMin) / $wRange) * 100; $isLast = $loop->last; @endphp
+                <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
+                    <div class="w-full bg-gray-50 rounded-t-md relative h-32 overflow-hidden">
+                        <div class="absolute bottom-0 left-0 right-0 rounded-t-md transition-all duration-300 {{ $isLast ? 'bg-gradient-to-t from-[#6E7A25] to-[#6E7A25]/70' : 'bg-gradient-to-t from-[#173327]/60 to-[#173327]/30' }} group-hover:opacity-80" style="height: {{ max($heightPct, 8) }}%"></div>
+                        <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap">
+                            {{ $wp['weight'] }}kg
+                        </div>
                     </div>
+                    <span class="text-[9px] text-gray-400 font-medium">{{ $wp['week'] }}</span>
                 </div>
-                <span class="text-[9px] text-gray-400 font-medium">{{ $wp['week'] }}</span>
+                @endforeach
             </div>
-            @endforeach
-        </div>
+        @else
+            <div class="flex flex-col items-center justify-center h-40 text-gray-400">
+                <svg class="w-10 h-10 mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+                <span class="text-sm">{{ __('No weight data available yet') }}</span>
+            </div>
+        @endif
     </div>
 
     {{-- Summary Stats --}}
