@@ -787,6 +787,38 @@ class UserController extends Controller
         return view('user.orders', compact('orders', 'stats'));
     }
 
+    public function createOrderFromSubscription(Request $request, OrderApiService $orderApi, SubscriptionApiService $subscriptionApi)
+    {
+        $subscriptionId = (int) $request->input('subscription_id');
+
+        if ($subscriptionId <= 0) {
+            // Try to find active subscription automatically
+            $subscriptions = $this->apiData($subscriptionApi->my(), function () {
+                return [];
+            });
+            foreach ($subscriptions as $sub) {
+                if (($sub['status'] ?? '') === 'active') {
+                    $subscriptionId = $sub['id'] ?? 0;
+                    break;
+                }
+            }
+        }
+
+        if ($subscriptionId <= 0) {
+            return redirect()->route('user.orders')->with('error', 'No active subscription found.');
+        }
+
+        $result = $this->apiData($orderApi->fromSubscription($subscriptionId), function () {
+            return [];
+        });
+
+        if (empty($result) || !empty($result['error'])) {
+            return redirect()->route('user.orders')->with('error', 'Failed to create order. Please try again.');
+        }
+
+        return redirect()->route('user.orders')->with('success', 'Order created successfully!');
+    }
+
     /**
      * Map subscription status to order status.
      */
