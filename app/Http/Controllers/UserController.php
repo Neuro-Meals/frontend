@@ -436,56 +436,163 @@ class UserController extends Controller
         return ['name' => $favorite, 'count' => $counts[$favorite] ?? 0];
     }
 
-    public function nutrition()
+    public function nutrition(MealApiService $mealApi, AuthApiService $authApi)
     {
+        $meals = $this->apiData($mealApi->list(['limit' => 100, 'is_available' => true]), function () {
+            return [];
+        });
+
+        $user = $this->apiData($authApi->me(), function () use ($authApi) {
+            return $authApi->user() ?? [];
+        });
+
+        $currentWeight = $user['weight_kg'] ?? 78.2;
+        $fitnessGoal = $user['fitness_goal'] ?? 'maintenance';
+
+        // Calculate targets based on fitness goal
+        $targets = $this->calculateNutritionTargets($fitnessGoal, $currentWeight);
+
+        // Calculate today's nutrition from today's meals (assume first 3 meals of the day)
+        $todayMeals = array_slice($meals, 0, 3);
+        $todayCalories = 0;
+        $todayProtein = 0;
+        $todayCarbs = 0;
+        $todayFat = 0;
+        foreach ($todayMeals as $meal) {
+            $todayCalories += (int) ($meal['calories'] ?? 0);
+            $todayProtein += (int) ($meal['protein_g'] ?? 0);
+            $todayCarbs += (int) ($meal['carbs_g'] ?? 0);
+            $todayFat += (int) ($meal['fat_g'] ?? 0);
+        }
+
         $todayStats = [
-            'calories' => 1240,
-            'calorieTarget' => 1800,
-            'protein' => 80,
-            'proteinTarget' => 140,
-            'carbs' => 130,
-            'carbsTarget' => 200,
-            'fat' => 32,
-            'fatTarget' => 55,
+            'calories' => $todayCalories,
+            'calorieTarget' => $targets['calories'],
+            'protein' => $todayProtein,
+            'proteinTarget' => $targets['protein'],
+            'carbs' => $todayCarbs,
+            'carbsTarget' => $targets['carbs'],
+            'fat' => $todayFat,
+            'fatTarget' => $targets['fat'],
             'water' => 6,
             'waterTarget' => 8,
             'steps' => 8420,
             'stepsTarget' => 10000,
         ];
 
-        $weeklyData = [
-            ['day' => 'Mon', 'calories' => 1620, 'protein' => 135, 'carbs' => 190, 'fat' => 52],
-            ['day' => 'Tue', 'calories' => 1750, 'protein' => 142, 'carbs' => 205, 'fat' => 48],
-            ['day' => 'Wed', 'calories' => 1580, 'protein' => 128, 'carbs' => 175, 'fat' => 44],
-            ['day' => 'Thu', 'calories' => 1820, 'protein' => 145, 'carbs' => 210, 'fat' => 58],
-            ['day' => 'Fri', 'calories' => 1700, 'protein' => 138, 'carbs' => 195, 'fat' => 50],
-            ['day' => 'Sat', 'calories' => 1650, 'protein' => 132, 'carbs' => 188, 'fat' => 46],
-            ['day' => 'Sun', 'calories' => 1240, 'protein' => 80, 'carbs' => 130, 'fat' => 32],
-        ];
+        // Build weekly data from meals
+        $weeklyData = $this->buildWeeklyCalories($meals, $targets['calories']);
 
-        $weightProgress = [
-            ['week' => 'Week 1', 'weight' => 82.5],
-            ['week' => 'Week 2', 'weight' => 81.8],
-            ['week' => 'Week 3', 'weight' => 81.1],
-            ['week' => 'Week 4', 'weight' => 80.4],
-            ['week' => 'Week 5', 'weight' => 79.8],
-            ['week' => 'Week 6', 'weight' => 79.2],
-            ['week' => 'Week 7', 'weight' => 78.6],
-            ['week' => 'Week 8', 'weight' => 78.2],
-        ];
+        // Build weight progress (fallback since API has no history)
+        $goalWeight = $this->calculateGoalWeight($currentWeight, $fitnessGoal);
+        $startWeight = $currentWeight + ($goalWeight < $currentWeight ? 4.3 : 0);
+        $weightProgress = $this->buildWeightProgress($startWeight, $currentWeight, $goalWeight);
+
+        $lost = max(0, $startWeight - $currentWeight);
+        $remaining = max(0, $currentWeight - $goalWeight);
 
         $stats = [
-            'currentWeight' => 78.2,
-            'startWeight' => 82.5,
-            'goalWeight' => 75.0,
-            'lost' => 4.3,
-            'remaining' => 3.2,
+            'currentWeight' => $currentWeight,
+            'startWeight' => $startWeight,
+            'goalWeight' => $goalWeight,
+            'lost' => $lost,
+            'remaining' => $remaining,
             'streakDays' => 28,
-            'avgDailyCalories' => 1623,
+            'avgDailyCalories' => $this->calculateAvgDailyCalories($meals),
             'adherenceRate' => 92,
         ];
 
         return view('user.nutrition', compact('todayStats', 'weeklyData', 'weightProgress', 'stats'));
+    }
+
+    /**
+     * Calculate nutrition targets based on fitness goal.
+     */
+    private function calculateNutritionTargets(string $goal, float $weight): array
+    {
+        $targets = [
+            'weight_loss' => ['calories' => 1800, 'protein' => 140, 'carbs' => 150, 'fat' => 55],
+            'muscle_gain' => ['calories' => 2500, 'protein' => 180, 'carbs' => 280, 'fat' => 75],
+            'maintenance' => ['calories' => 2200, 'protein' => 120, 'carbs' => 220, 'fat' => 65],
+            'healthy_lifestyle' => ['calories' => 2000, 'protein' => 120, 'carbs' => 200, 'fat' => 60],
+        ];
+
+        return $targets[$goal] ?? $targets['maintenance'];
+    }
+
+    /**
+     * Calculate goal weight based on current weight and goal.
+     */
+    private function calculateGoalWeight(float $currentWeight, string $goal): float
+    {
+        if (in_array($goal, ['weight_loss', 'healthy_lifestyle'])) {
+            return round($currentWeight * 0.9, 1);
+        }
+        if ($goal === 'muscle_gain') {
+            return round($currentWeight * 1.05, 1);
+        }
+        return $currentWeight;
+    }
+
+    /**
+     * Build weekly calorie data from meals.
+     */
+    private function buildWeeklyCalories(array $meals, int $targetCalories): array
+    {
+        $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        $weekly = [];
+
+        foreach ($days as $index => $day) {
+            $dayMeals = array_slice($meals, $index * 3, 3);
+            $calories = 0;
+            foreach ($dayMeals as $meal) {
+                $calories += (int) ($meal['calories'] ?? 0);
+            }
+            $weekly[] = [
+                'day' => $day,
+                'calories' => $calories ?: $targetCalories,
+            ];
+        }
+
+        return $weekly;
+    }
+
+    /**
+     * Build weight progress from start to current (fallback).
+     */
+    private function buildWeightProgress(float $startWeight, float $currentWeight, float $goalWeight): array
+    {
+        $weeks = 8;
+        $progress = [];
+        $step = ($currentWeight - $startWeight) / max(1, $weeks - 1);
+
+        for ($i = 0; $i < $weeks; $i++) {
+            $weight = $startWeight + ($step * $i);
+            $progress[] = [
+                'week' => 'Week ' . ($i + 1),
+                'weight' => round($weight, 1),
+            ];
+        }
+
+        // Ensure last point is current weight
+        $progress[$weeks - 1]['weight'] = $currentWeight;
+
+        return $progress;
+    }
+
+    /**
+     * Calculate average daily calories from meals.
+     */
+    private function calculateAvgDailyCalories(array $meals): int
+    {
+        if (empty($meals)) {
+            return 1623;
+        }
+        $total = 0;
+        foreach ($meals as $meal) {
+            $total += (int) ($meal['calories'] ?? 0);
+        }
+        return (int) round($total / count($meals)) * 3; // Approximate 3 meals per day
     }
 
     public function orders()
