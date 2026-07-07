@@ -581,17 +581,18 @@ Add these fields for the customer delivery page:
 
 Each customer feature has a dedicated service class under `app/Services/Api/`:
 
-| Service | Endpoints Used |
-|---------|---------------|
-| `AuthApiService` | `/auth/*` |
-| `ProfileApiService` | `/profile/`, `/users/me` |
-| `MealApiService` | `/meals/*`, `/meal-categories/*` |
-| `PlanApiService` | `/plans/*` |
-| `SubscriptionApiService` | `/subscriptions/*` |
-| **OrderApiService** (needed) | `/orders/*` |
-| **DeliveryApiService** (needed) | `/deliveries/*` |
-| **NotificationApiService** (needed) | `/notifications/*` |
-| **NutritionApiService** (needed) | `/nutrition/*`, `/weight-history`, `/activity/*` |
+| Service | Status | Endpoints Used |
+|---------|--------|---------------|
+| `AuthApiService` | Created | `/auth/*` |
+| `ProfileApiService` | Created | `/profile/`, `/users/me` |
+| `MealApiService` | Created | `/meals/*`, `/meal-categories/*` |
+| `MealScheduleApiService` | Created | `/meal-schedule/*` |
+| `PlanApiService` | Created | `/plans/*` |
+| `SubscriptionApiService` | Created | `/subscriptions/*` |
+| `OrderApiService` | Created | `/orders/*` |
+| `DeliveryApiService` | Created | `/deliveries/*` |
+| `NotificationApiService` | Created | `/notifications/*` |
+| `NutritionApiService` | Created | `/nutrition/*`, `/weight-history`, `/activity/*` |
 
 ---
 
