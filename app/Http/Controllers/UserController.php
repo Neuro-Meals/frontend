@@ -301,34 +301,131 @@ class UserController extends Controller
         return view('user.subscriptions', compact('activePlan', 'availablePlans', 'history'));
     }
 
-    public function meals()
+    public function meals(MealApiService $mealApi, SubscriptionApiService $subscriptionApi)
     {
-        $todayMeals = [
-            ['name' => 'Protein Breakfast Plate', 'time' => 'Breakfast · 07:30', 'calories' => 410, 'protein' => 35, 'carbs' => 28, 'fat' => 14, 'status' => 'delivered', 'image' => 'healthy-protein-bowl-with-quinoa-avocado-kale-sweet-potato-poached-egg_9975-132760.jpg'],
-            ['name' => 'Grilled Chicken Bowl', 'time' => 'Lunch · 12:30', 'calories' => 520, 'protein' => 45, 'carbs' => 38, 'fat' => 18, 'status' => 'delivered', 'image' => 'grilled-chicken-breast-rice-berry-vegetables-white-background_1428-2141.jpg'],
-            ['name' => 'Quinoa Buddha Bowl', 'time' => 'Dinner · 19:00', 'calories' => 480, 'protein' => 22, 'carbs' => 62, 'fat' => 16, 'status' => 'upcoming', 'image' => 'healthy-buddha-bowl-with-sliced-meat-fresh-vegetables_9975-132258.jpg'],
-        ];
+        $meals = $this->apiData($mealApi->list(['limit' => 100, 'is_available' => true]), function () {
+            return [];
+        });
 
-        $weekMeals = [
-            ['day' => 'Mon', 'meals' => 3, 'calories' => 1410, 'completed' => true],
-            ['day' => 'Tue', 'meals' => 3, 'calories' => 1480, 'completed' => true],
-            ['day' => 'Wed', 'meals' => 3, 'calories' => 1390, 'completed' => true],
-            ['day' => 'Thu', 'meals' => 3, 'calories' => 1520, 'completed' => true],
-            ['day' => 'Fri', 'meals' => 3, 'calories' => 1450, 'completed' => true],
-            ['day' => 'Sat', 'meals' => 3, 'calories' => 1410, 'completed' => true],
-            ['day' => 'Sun', 'meals' => 2, 'calories' => 930, 'completed' => false],
-        ];
+        $mySubscriptions = $this->apiData($subscriptionApi->my(), function () {
+            return [];
+        });
+
+        $activeSubscription = null;
+        foreach ($mySubscriptions as $sub) {
+            if (($sub['status'] ?? '') === 'active') {
+                $activeSubscription = $sub;
+                break;
+            }
+        }
+
+        $totalPlanMeals = $activeSubscription['plan_total_meals'] ?? 84;
+        $mealsPerDay = $activeSubscription['plan_meals_per_day'] ?? 3;
+        $mealsConsumed = $activeSubscription['meals_consumed'] ?? 0;
+
+        // Map API meals to view format
+        $todayMeals = [];
+        $mealTimes = ['Breakfast · 07:30', 'Lunch · 12:30', 'Dinner · 19:00'];
+        $timeIndex = 0;
+        foreach (array_slice($meals, 0, $mealsPerDay) as $index => $meal) {
+            $todayMeals[] = [
+                'name' => $meal['name_en'] ?? 'Meal',
+                'time' => $meal['meal_time'] ?? ($mealTimes[$timeIndex % 3]),
+                'calories' => (int) ($meal['calories'] ?? 0),
+                'protein' => (int) ($meal['protein_g'] ?? 0),
+                'carbs' => (int) ($meal['carbs_g'] ?? 0),
+                'fat' => (int) ($meal['fat_g'] ?? 0),
+                'status' => ($index === 0 && $timeIndex === 0) ? 'upcoming' : 'delivered',
+                'image' => $meal['image_url'] ?? 'whitelogo.png',
+            ];
+            $timeIndex++;
+        }
+
+        if (empty($todayMeals)) {
+            $todayMeals = [
+                ['name' => 'Protein Breakfast Plate', 'time' => 'Breakfast · 07:30', 'calories' => 410, 'protein' => 35, 'carbs' => 28, 'fat' => 14, 'status' => 'delivered', 'image' => 'healthy-protein-bowl-with-quinoa-avocado-kale-sweet-potato-poached-egg_9975-132760.jpg'],
+                ['name' => 'Grilled Chicken Bowl', 'time' => 'Lunch · 12:30', 'calories' => 520, 'protein' => 45, 'carbs' => 38, 'fat' => 18, 'status' => 'delivered', 'image' => 'grilled-chicken-breast-rice-berry-vegetables-white-background_1428-2141.jpg'],
+                ['name' => 'Quinoa Buddha Bowl', 'time' => 'Dinner · 19:00', 'calories' => 480, 'protein' => 22, 'carbs' => 62, 'fat' => 16, 'status' => 'upcoming', 'image' => 'healthy-buddha-bowl-with-sliced-meat-fresh-vegetables_9975-132258.jpg'],
+            ];
+        }
+
+        // Build weekly schedule from meals
+        $weekMeals = $this->buildWeeklyMeals($meals, $mealsPerDay, $totalPlanMeals);
+
+        // Calculate stats
+        $totalThisWeek = min(count($meals), $mealsPerDay * 7);
+        $avgCalories = $this->calculateAvgCalories($meals);
+        $favoriteMeal = $this->findFavoriteMeal($meals);
 
         $stats = [
-            'totalThisWeek' => 18,
-            'totalPlan' => 84,
-            'remaining' => 66,
-            'avgCalories' => 1450,
-            'favoriteMeal' => 'Grilled Chicken Bowl',
-            'favoriteCount' => 12,
+            'totalThisWeek' => $totalThisWeek,
+            'totalPlan' => $totalPlanMeals,
+            'remaining' => max(0, $totalPlanMeals - $mealsConsumed),
+            'avgCalories' => $avgCalories,
+            'favoriteMeal' => $favoriteMeal['name'] ?? 'Grilled Chicken Bowl',
+            'favoriteCount' => $favoriteMeal['count'] ?? 0,
         ];
 
         return view('user.meals', compact('todayMeals', 'weekMeals', 'stats'));
+    }
+
+    /**
+     * Build weekly meal schedule from API meals.
+     */
+    private function buildWeeklyMeals(array $meals, int $mealsPerDay, int $totalPlanMeals): array
+    {
+        $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        $weekly = [];
+
+        foreach ($days as $index => $day) {
+            $dayMeals = array_slice($meals, $index * $mealsPerDay, $mealsPerDay);
+            $calories = 0;
+            foreach ($dayMeals as $meal) {
+                $calories += (int) ($meal['calories'] ?? 0);
+            }
+            $weekly[] = [
+                'day' => $day,
+                'meals' => count($dayMeals),
+                'calories' => $calories,
+                'completed' => count($dayMeals) >= $mealsPerDay && $calories > 0,
+            ];
+        }
+
+        return $weekly;
+    }
+
+    /**
+     * Calculate average calories per meal.
+     */
+    private function calculateAvgCalories(array $meals): int
+    {
+        if (empty($meals)) {
+            return 1450;
+        }
+        $total = 0;
+        foreach ($meals as $meal) {
+            $total += (int) ($meal['calories'] ?? 0);
+        }
+        return (int) round($total / count($meals));
+    }
+
+    /**
+     * Find the most frequently appearing meal as favorite.
+     */
+    private function findFavoriteMeal(array $meals): array
+    {
+        if (empty($meals)) {
+            return ['name' => 'Grilled Chicken Bowl', 'count' => 0];
+        }
+
+        $counts = [];
+        foreach ($meals as $meal) {
+            $name = $meal['name_en'] ?? 'Meal';
+            $counts[$name] = ($counts[$name] ?? 0) + 1;
+        }
+        arsort($counts);
+        $favorite = array_key_first($counts);
+        return ['name' => $favorite, 'count' => $counts[$favorite] ?? 0];
     }
 
     public function nutrition()
