@@ -7,6 +7,7 @@ use App\Services\Api\AuthApiService;
 use App\Services\Api\HasApiData;
 use App\Services\Api\MealApiService;
 use App\Services\Api\PlanApiService;
+use App\Services\Api\ProfileApiService;
 use App\Services\Api\SubscriptionApiService;
 
 class UserController extends Controller
@@ -748,23 +749,24 @@ class UserController extends Controller
         return view('user.notifications', compact('notifications', 'preferences', 'stats', 'userName'));
     }
 
-    public function settings()
+    public function settings(ProfileApiService $profileApi)
     {
-        $authApi = app(AuthApiService::class);
-        $apiUser = $authApi->user();
+        $apiUser = $this->apiData($profileApi->fetch(), function () use ($profileApi) {
+            return app(AuthApiService::class)->user() ?? [];
+        });
 
         $profile = [
-            'name' => trim(($apiUser['first_name'] ?? 'John') . ' ' . ($apiUser['last_name'] ?? 'Doe')),
+            'name' => trim(($apiUser['first_name'] ?? '') . ' ' . ($apiUser['last_name'] ?? '')) ?: 'John Doe',
             'email' => $apiUser['email'] ?? 'john@example.com',
             'phone' => $apiUser['phone'] ?? '+966 55 123 4567',
-            'dob' => '1990-05-15',
-            'gender' => 'Male',
-            'height' => 178,
-            'weight' => 78.2,
-            'goal' => 'Weight Loss',
-            'activity' => 'Moderate',
-            'address' => 'King Fahd Road, Riyadh, Saudi Arabia',
-            'zone' => 'Riyadh Central',
+            'dob' => $apiUser['date_of_birth'] ?? '1990-05-15',
+            'gender' => ucfirst($apiUser['gender'] ?? 'Male'),
+            'height' => $apiUser['height_cm'] ?? 178,
+            'weight' => $apiUser['weight_kg'] ?? 78.2,
+            'goal' => ucfirst(str_replace('_', ' ', $apiUser['fitness_goal'] ?? 'weight_loss')),
+            'activity' => $apiUser['activity_level'] ?? 'Moderate',
+            'address' => $apiUser['address'] ?? 'King Fahd Road, Riyadh, Saudi Arabia',
+            'zone' => $apiUser['location'] ?? 'Riyadh Central',
         ];
 
         return view('user.settings', compact('profile'));
