@@ -24,7 +24,7 @@
 {{-- Welcome --}}
 <div class="mb-6 flex flex-row items-start sm:items-center justify-between gap-3 flex-wrap animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
     <div class="min-w-0">
-        <h1 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 tracking-tight">{{ __('Hello') }} {{ Auth::user()->name }} 👋</h1>
+        <h1 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 tracking-tight">{{ __('Hello') }} {{ (session('api_user')['first_name'] ?? session('api_user')['name'] ?? 'User') }} 👋</h1>
         <p class="text-xs sm:text-sm text-gray-500 mt-0.5">{{ __('Here\'s your nutrition journey today.') }}</p>
     </div>
     <div class="flex items-center gap-2 shrink-0">
