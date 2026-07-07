@@ -40,6 +40,15 @@ class LoginController extends Controller
 
         if (isset($response['access_token'])) {
             $user = $response['user'] ?? [];
+
+            // If user is not verified, redirect to email verification page
+            if (empty($user['is_verified'])) {
+                $authApi->logout();
+                $authApi->resendVerificationOtp($request->email);
+                return redirect()->route('verify.email', ['email' => $request->email])
+                    ->with('status', 'Please verify your email before logging in. We have sent an OTP to your email.');
+            }
+
             if (in_array($user['role'] ?? null, ['admin', 'super_admin'])) {
                 return redirect()->route('admin.dashboard');
             }
@@ -47,6 +56,18 @@ class LoginController extends Controller
         }
 
         $message = $response['message'] ?? 'Invalid credentials. Please try again.';
+
+        // If the API signals email not verified, redirect to verification page
+        if (is_string($message) && (
+            str_contains(strtolower($message), 'verify') ||
+            str_contains(strtolower($message), 'verified') ||
+            str_contains(strtolower($message), 'not verified') ||
+            str_contains(strtolower($message), 'unauthorized')
+        )) {
+            return redirect()->route('verify.email', ['email' => $request->email])
+                ->with('status', 'Please verify your email before logging in. We have sent an OTP to your email.');
+        }
+
         return back()->withErrors(['email' => $message])->withInput($request->only('email'));
     }
 
