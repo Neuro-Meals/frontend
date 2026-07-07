@@ -67,28 +67,20 @@ class UserController extends Controller
             ];
         }
 
-        // Fallback to mock meals if API returns nothing
-        if (empty($upcomingMeals)) {
-            $upcomingMeals = [
-                ['name' => 'Grilled Chicken Bowl', 'time' => 'Today · Lunch', 'calories' => 520, 'image' => 'grilled-chicken-breast-rice-berry-vegetables-white-background_1428-2141.jpg'],
-                ['name' => 'Quinoa Buddha Bowl', 'time' => 'Today · Dinner', 'calories' => 480, 'image' => 'healthy-buddha-bowl-with-sliced-meat-fresh-vegetables_9975-132258.jpg'],
-                ['name' => 'Protein Breakfast Plate', 'time' => 'Tomorrow · Breakfast', 'calories' => 410, 'image' => 'healthy-protein-bowl-with-quinoa-avocado-kale-sweet-potato-poached-egg_9975-132760.jpg'],
-            ];
-        }
 
         $weeklyProgress = $this->buildWeeklyProgress($meals, (int) $calorieTarget);
         $recentOrders = $this->buildRecentOrders($subscription);
 
-        $currentWeight = $user['weight_kg'] ?? 78.2;
+        $currentWeight = $user['weight_kg'] ?? 0;
         $weightGoal = $user['fitness_goal'] === 'weight_loss' ? $currentWeight - 5 : ($user['fitness_goal'] === 'muscle_gain' ? $currentWeight + 3 : $currentWeight);
         $weightStart = $currentWeight + (($user['fitness_goal'] === 'weight_loss' ? 4.3 : -2) * -1);
 
         $stats = [
             'activePlan' => $planName,
-            'planPrice' => $plan['amount'] ?? $plan['price'] ?? 420,
+            'planPrice' => $plan['amount'] ?? $plan['price'] ?? 0,
             'planRenewal' => !empty($plan['end_date']) ? date('M d, Y', strtotime($plan['end_date'])) : 'N/A',
             'mealsThisWeek' => min(count($meals), 21),
-            'mealsTotal' => $plan['meals_total'] ?? 84,
+            'mealsTotal' => $plan['meals_total'] ?? 0,
             'totalOrders' => $subscription['orders_count'] ?? 0,
             'dailyCalories' => $this->calculateTodayCalories($meals),
             'calorieTarget' => (int) $calorieTarget,
@@ -99,8 +91,8 @@ class UserController extends Controller
             'fatTarget' => (int) $fatTarget,
             'fatToday' => $this->calculateTodayMacro($meals, 'fat'),
             'streakDays' => $user['streak_days'] ?? 0,
-            'nextDelivery' => $plan['next_delivery'] ?? 'Tomorrow, 09:00 - 10:00',
-            'nextMeal' => $upcomingMeals[0]['name'] ?? 'Grilled Chicken Bowl',
+            'nextDelivery' => $plan['next_delivery'] ?? 'N/A',
+            'nextMeal' => $upcomingMeals[0]['name'] ?? 'N/A',
             'weightStart' => (float) $weightStart,
             'weightCurrent' => (float) $currentWeight,
             'weightGoal' => (float) $weightGoal,
@@ -127,7 +119,7 @@ class UserController extends Controller
             }
             $progress[] = [
                 'day' => $day,
-                'calories' => $calories ?: $target - rand(100, 300),
+                'calories' => $calories,
                 'target' => $target,
             ];
         }
@@ -155,12 +147,7 @@ class UserController extends Controller
             return $recent;
         }
 
-        return [
-            ['id' => 'ORD-2401', 'plan' => 'Active Plan', 'amount' => 420, 'status' => 'delivered', 'date' => date('Y-m-d', strtotime('-3 days'))],
-            ['id' => 'ORD-2387', 'plan' => 'Active Plan', 'amount' => 420, 'status' => 'delivered', 'date' => date('Y-m-d', strtotime('-4 days'))],
-            ['id' => 'ORD-2372', 'plan' => 'Active Plan', 'amount' => 420, 'status' => 'delivered', 'date' => date('Y-m-d', strtotime('-5 days'))],
-            ['id' => 'ORD-2358', 'plan' => 'Active Plan', 'amount' => 420, 'status' => 'delivered', 'date' => date('Y-m-d', strtotime('-6 days'))],
-        ];
+        return [];
     }
 
     /**
@@ -175,7 +162,7 @@ class UserController extends Controller
                 $total += (int) ($meal['calories'] ?? 0);
             }
         }
-        return $total ?: 1650;
+        return $total;
     }
 
     /**
@@ -191,8 +178,7 @@ class UserController extends Controller
             }
         }
 
-        $defaults = ['protein' => 95, 'carbs' => 165, 'fat' => 38];
-        return $total ?: $defaults[$macro] ?? 0;
+        return $total;
     }
 
     public function subscriptions(PlanApiService $planApi, SubscriptionApiService $subscriptionApi)
@@ -511,7 +497,7 @@ class UserController extends Controller
             return $authApi->user() ?? [];
         });
 
-        $currentWeight = $user['weight_kg'] ?? 78.2;
+        $currentWeight = $user['weight_kg'] ?? 0;
         $fitnessGoal = $user['fitness_goal'] ?? 'maintenance';
         $targets = $this->calculateNutritionTargets($fitnessGoal, $currentWeight);
 
@@ -1010,7 +996,7 @@ class UserController extends Controller
             'dob' => $apiUser['date_of_birth'] ?? '1990-05-15',
             'gender' => ucfirst($apiUser['gender'] ?? 'Male'),
             'height' => $apiUser['height_cm'] ?? 178,
-            'weight' => $apiUser['weight_kg'] ?? 78.2,
+            'weight' => $apiUser['weight_kg'] ?? 0,
             'goal' => ucfirst(str_replace('_', ' ', $apiUser['fitness_goal'] ?? 'weight_loss')),
             'activity' => $apiUser['activity_level'] ?? 'Moderate',
             'address' => $apiUser['address'] ?? 'King Fahd Road, Riyadh, Saudi Arabia',
