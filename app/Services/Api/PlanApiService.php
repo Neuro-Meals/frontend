@@ -24,7 +24,7 @@ class PlanApiService extends BaseApiService
         return $this->put('plans.update', ['plan_id' => $planId], $data);
     }
 
-    public function delete(int $planId): array
+    public function destroy(int $planId): array
     {
         return $this->delete('plans.delete', ['plan_id' => $planId]);
     }
