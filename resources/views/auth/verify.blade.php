@@ -8,7 +8,7 @@
         {{-- Header --}}
         <div class="bg-white px-8 py-8 text-center border-b border-gray-100">
             <div class="mx-auto mb-4 flex items-center justify-center">
-                <img src="{{ asset('whitelogo.png') }}" alt="{{ config('app.name', 'Nitrio Meals') }}" class="h-20 w-auto object-contain">
+                <img src="{{ asset('whitelogo.png') }}" alt="{{ config('app.name', 'Nutrio Meals') }}" class="h-20 w-auto object-contain">
             </div>
             <h2 class="text-2xl font-extrabold text-gray-900">{{ __('Verify Email') }}</h2>
             <p class="text-gray-500 text-sm mt-1">{{ __('One more step to get started') }}</p>
@@ -43,33 +43,45 @@
                 </div>
             @endif
 
-            <div class="w-20 h-20 mx-auto bg-gold-50 rounded-full flex items-center justify-center mb-5">
-                <svg class="w-10 h-10 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            {{-- Email icon --}}
+            <div class="w-20 h-20 mx-auto bg-emerald-50 rounded-full flex items-center justify-center mb-5 ring-4 ring-emerald-50/50">
+                <svg class="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/>
                 </svg>
             </div>
 
             <p class="text-gray-600 text-center mb-2">{{ __('Enter the 6-digit code sent to your email.') }}</p>
-            <p class="text-gray-500 text-sm text-center mb-6" x-text="email"></p>
+            <p class="text-gray-500 text-sm text-center mb-6 font-medium" x-text="email"></p>
 
             <form class="space-y-5" method="POST" action="{{ route('verify.email.verify') }}" @submit.prevent="verify">
                 @csrf
                 <input type="hidden" name="email" x-model="email" value="{{ $email ?? old('email') ?? '' }}">
 
+                {{-- 6-digit OTP inputs --}}
                 <div>
-                    <label for="otp" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Verification Code') }}</label>
-                    <input id="otp" type="text" name="otp" x-model="otp" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autofocus
-                        class="w-full px-4 py-2.5 rounded-lg border outline-none transition-all text-sm text-center tracking-[0.5em] text-lg font-bold focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
-                        :class="error ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
-                        placeholder="000000">
-                    <p x-show="error" x-text="error" class="mt-1.5 text-sm text-red-600 flex items-center gap-1" x-cloak>
+                    <label class="block text-sm font-semibold text-gray-700 mb-3 text-center">{{ __('Verification Code') }}</label>
+                    <div class="flex justify-center gap-2 sm:gap-3" @paste="handlePaste($event)">
+                        <template x-for="(digit, index) in otpDigits" :key="index">
+                            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]"
+                                class="otp-input w-11 h-12 sm:w-12 sm:h-14 text-center text-xl font-bold rounded-xl border-2 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                                :class="error ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
+                                x-model="otpDigits[index]"
+                                @input="handleInput(index, $event)"
+                                @keydown.backspace="handleBackspace(index, $event)"
+                                @keydown.left="focusPrev(index)"
+                                @keydown.right="focusNext(index)"
+                                :aria-label="'Digit ' + (index + 1)">
+                        </template>
+                    </div>
+                    <input type="hidden" name="otp" x-model="otp">
+                    <p x-show="error" x-text="error" class="mt-3 text-sm text-red-600 flex items-center justify-center gap-1" x-cloak>
                         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </p>
                 </div>
 
-                <button type="submit" :disabled="loadingVerify"
+                <button type="submit" :disabled="loadingVerify || otp.length !== 6"
                     class="w-full py-3 text-sm font-bold text-white rounded-lg shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                    :class="loadingVerify ? 'bg-gray-400' : 'bg-gradient-to-r from-brand-light to-brand-dark hover:from-brand-dark hover:to-brand-light hover:shadow-lg'">
+                    :class="loadingVerify ? 'bg-gray-400' : 'bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 hover:shadow-lg'">
                     <svg x-show="!loadingVerify" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                     <svg x-show="loadingVerify" class="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -96,7 +108,7 @@
         </div>
     </div>
 
-    <p class="mt-6 text-center text-xs text-gray-300">&copy; {{ date('Y') }} {{ config('app.name', 'Nitrio Meals') }}. All rights reserved.</p>
+    <p class="mt-6 text-center text-xs text-gray-300">&copy; {{ date('Y') }} {{ config('app.name', 'Nutrio Meals') }}. All rights reserved.</p>
 </div>
 
 @push('scripts')
@@ -104,7 +116,7 @@
     function verifyForm() {
         return {
             email: @json($email ?? old('email') ?? ''),
-            otp: '',
+            otpDigits: ['', '', '', '', '', ''],
             loadingVerify: false,
             loadingResend: false,
             error: '',
@@ -117,6 +129,9 @@
             resendUrl: @json(route('verification.resend')),
             verifyText: @json(__('Verify Email')),
             resendText: @json(__('Resend OTP')),
+            get otp() {
+                return this.otpDigits.join('');
+            },
             showToast(message, type = 'error') {
                 this.toast = {
                     show: true,
@@ -126,12 +141,60 @@
                 };
                 setTimeout(() => { this.toast.show = false }, 7000);
             },
+            focusInput(index) {
+                const inputs = document.querySelectorAll('.otp-input');
+                if (inputs[index]) inputs[index].focus();
+            },
+            focusNext(index) {
+                if (index < 5) this.focusInput(index + 1);
+            },
+            focusPrev(index) {
+                if (index > 0) this.focusInput(index - 1);
+            },
+            handleInput(index, event) {
+                const value = event.target.value;
+                if (!/^\d*$/.test(value)) {
+                    this.otpDigits[index] = '';
+                    return;
+                }
+                // If user types more than one digit, distribute or just keep last
+                if (value.length > 1) {
+                    const digits = value.replace(/\D/g, '').split('');
+                    for (let i = 0; i < digits.length && index + i < 6; i++) {
+                        this.otpDigits[index + i] = digits[i];
+                    }
+                    this.focusNext(index + digits.length - 1);
+                    return;
+                }
+                this.otpDigits[index] = value.slice(-1);
+                if (value && index < 5) {
+                    this.focusNext(index);
+                }
+            },
+            handleBackspace(index, event) {
+                if (!this.otpDigits[index] && index > 0) {
+                    this.focusPrev(index);
+                }
+            },
+            handlePaste(event) {
+                event.preventDefault();
+                const pasted = (event.clipboardData || window.clipboardData).getData('text');
+                const digits = pasted.replace(/\D/g, '').split('').slice(0, 6);
+                for (let i = 0; i < 6; i++) {
+                    this.otpDigits[i] = digits[i] || '';
+                }
+                this.focusInput(Math.min(digits.length, 5));
+            },
             async verify() {
+                if (this.otp.length !== 6) {
+                    this.error = @json(__('Please enter the 6-digit code.'));
+                    this.showToast(this.error);
+                    return;
+                }
+
                 this.loadingVerify = true;
                 this.error = '';
                 this.toast.show = false;
-
-                console.log('Verify data:', { email: this.email, otp: this.otp });
 
                 try {
                     const response = await fetch(this.verifyUrl, {
@@ -147,7 +210,6 @@
 
                     const data = await response.json();
                     this.loadingVerify = false;
-                    console.log('Verify response:', data);
 
                     if (data.success) {
                         this.showToast(data.message, 'success');
@@ -159,7 +221,7 @@
                         return;
                     }
 
-                    this.error = data.message || 'Invalid or expired OTP.';
+                    this.error = data.message || @json(__('Invalid or expired OTP.'));
                     this.showToast(this.error);
                 } catch (error) {
                     this.loadingVerify = false;
@@ -171,8 +233,6 @@
                 this.loadingResend = true;
                 this.error = '';
                 this.toast.show = false;
-
-                console.log('Resend data:', { email: this.email });
 
                 try {
                     const response = await fetch(this.resendUrl, {
@@ -188,7 +248,6 @@
 
                     const data = await response.json();
                     this.loadingResend = false;
-                    console.log('Resend response:', data);
 
                     if (data.success) {
                         this.showToast(data.message, 'success');
@@ -198,7 +257,7 @@
                         return;
                     }
 
-                    this.error = data.message || 'Failed to resend OTP.';
+                    this.error = data.message || @json(__('Failed to resend OTP.'));
                     this.showToast(this.error);
                 } catch (error) {
                     this.loadingResend = false;
