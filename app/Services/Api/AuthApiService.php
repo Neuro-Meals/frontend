@@ -128,12 +128,44 @@ class AuthApiService extends BaseApiService
     }
 
     /**
+     * Extract the normalized role string from user data.
+     * Handles role as string, role_id integer, or nested role object.
+     */
+    public function role(): ?string
+    {
+        $user = $this->user();
+        if (!$user) {
+            return null;
+        }
+
+        if (is_string($user['role'] ?? null) && !empty($user['role'])) {
+            return strtolower($user['role']);
+        }
+
+        if (is_array($user['role'] ?? null) && !empty($user['role']['name'])) {
+            return strtolower($user['role']['name']);
+        }
+
+        $roleId = $user['role_id'] ?? null;
+        if (is_numeric($roleId)) {
+            $map = config('api.role_map', [
+                1 => 'customer',
+                2 => 'admin',
+                3 => 'super_admin',
+                4 => 'driver',
+            ]);
+            return $map[(int) $roleId] ?? null;
+        }
+
+        return null;
+    }
+
+    /**
      * Check if the authenticated user has a specific role.
      */
     public function hasRole(string $role): bool
     {
-        $user = $this->user();
-        return $user && ($user['role'] ?? null) === $role;
+        return $this->role() === strtolower($role);
     }
 
     /**
@@ -141,8 +173,15 @@ class AuthApiService extends BaseApiService
      */
     public function isAdmin(): bool
     {
-        $user = $this->user();
-        return $user && in_array($user['role'] ?? null, ['admin', 'super_admin']);
+        return in_array($this->role(), ['admin', 'super_admin']);
+    }
+
+    /**
+     * Check if the authenticated user is a customer.
+     */
+    public function isCustomer(): bool
+    {
+        return in_array($this->role(), ['customer', 'user', 'client', null]);
     }
 
     /**
@@ -152,5 +191,17 @@ class AuthApiService extends BaseApiService
     {
         $user = $this->user();
         return $user && in_array($permission, $user['permissions'] ?? []);
+    }
+
+    /**
+     * Check if the authenticated user has any of the given roles.
+     */
+    public function hasAnyRole(array $roles): bool
+    {
+        $current = $this->role();
+        if (!$current) {
+            return in_array('customer', $roles, true) || in_array('user', $roles, true);
+        }
+        return in_array($current, array_map('strtolower', $roles), true);
     }
 }
