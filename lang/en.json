@@ -70,6 +70,7 @@
     "Password": "Password",
     "Remember Me": "Remember Me",
     "Forgot Your Password?": "Forgot Your Password?",
+    "Invalid credentials. Please try again.": "Invalid credentials. Please try again.",
     "Login": "Login",
     "Register": "Register",
     "Name": "Name",
