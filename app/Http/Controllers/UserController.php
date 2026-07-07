@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Services\Api\AuthApiService;
 use App\Services\Api\HasApiData;
 use App\Services\Api\MealApiService;
+use App\Services\Api\PlanApiService;
 use App\Services\Api\SubscriptionApiService;
 
 class UserController extends Controller
