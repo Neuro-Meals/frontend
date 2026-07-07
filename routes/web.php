@@ -159,6 +159,7 @@ Route::prefix('user')->name('user.')->middleware('api.auth')->group(function () 
     Route::get('/meals', [UserController::class, 'meals'])->name('meals');
     Route::get('/nutrition', [UserController::class, 'nutrition'])->name('nutrition');
     Route::get('/orders', [UserController::class, 'orders'])->name('orders');
+    Route::post('/orders/from-subscription', [UserController::class, 'createOrderFromSubscription'])->name('orders.from-subscription');
     Route::get('/delivery', [UserController::class, 'delivery'])->name('delivery');
     Route::get('/notifications', [UserController::class, 'notifications'])->name('notifications');
     Route::get('/settings', [UserController::class, 'settings'])->name('settings');
