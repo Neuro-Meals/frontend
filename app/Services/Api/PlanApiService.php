@@ -28,4 +28,19 @@ class PlanApiService extends BaseApiService
     {
         return $this->delete('plans.delete', ['plan_id' => $planId]);
     }
+
+    public function addMealToPlan(int $planId, array $data): array
+    {
+        return $this->post('plans.items_add', ['plan_id' => $planId], $data);
+    }
+
+    public function listPlanItems(int $planId): array
+    {
+        return $this->get('plans.items_list', ['plan_id' => $planId]);
+    }
+
+    public function removeMealFromPlan(int $planId, int $itemId): array
+    {
+        return $this->delete('plans.items_remove', ['plan_id' => $planId, 'item_id' => $itemId]);
+    }
 }

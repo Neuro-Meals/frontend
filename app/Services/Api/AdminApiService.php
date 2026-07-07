@@ -13,7 +13,7 @@ class AdminApiService extends BaseApiService
 
     public function userShow(int $userId): array
     {
-        return $this->get('users.list', [], ['user_id' => $userId]);
+        return $this->get('users.show', ['user_id' => $userId]);
     }
 
     public function updateUserRole(int $userId, string $role): array

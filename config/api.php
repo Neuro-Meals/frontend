@@ -59,8 +59,9 @@ return [
 
         // ─── Users ───
         'users' => [
-            'me'         => '/users/me',
-            'list'       => '/users/',
+            'me'          => '/users/me',
+            'list'        => '/users/',
+            'show'        => '/users/{user_id}',
             'update_role' => '/users/{user_id}/role',
         ],
 
@@ -98,11 +99,14 @@ return [
 
         // ─── Meal Plans ───
         'plans' => [
-            'list'   => '/plans/',
-            'create' => '/plans/',
-            'show'   => '/plans/{plan_id}',
-            'update' => '/plans/{plan_id}',
-            'delete' => '/plans/{plan_id}',
+            'list'           => '/plans/',
+            'create'         => '/plans/',
+            'show'           => '/plans/{plan_id}',
+            'update'         => '/plans/{plan_id}',
+            'delete'         => '/plans/{plan_id}',
+            'items_add'      => '/plans/{plan_id}/items',
+            'items_list'     => '/plans/{plan_id}/items',
+            'items_remove'   => '/plans/{plan_id}/items/{item_id}',
         ],
 
         // ─── Subscriptions ───

@@ -5,6 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\Api\AuthApiService;
 use App\Services\Api\AdminApiService;
+use App\Services\Api\DeliveryApiService;
+use App\Services\Api\MealApiService;
+use App\Services\Api\NotificationApiService;
+use App\Services\Api\OrderApiService;
+use App\Services\Api\PlanApiService;
+use App\Services\Api\ReportsApiService;
+use App\Services\Api\SubscriptionApiService;
 use App\Services\Api\HasApiData;
 
 class AdminController extends Controller
@@ -22,52 +29,95 @@ class AdminController extends Controller
         });
     }
 
-    public function dashboard()
+    public function dashboard(AdminApiService $adminApi, OrderApiService $orderApi, SubscriptionApiService $subscriptionApi, MealApiService $mealApi)
     {
+        $usersResponse = $adminApi->usersList(['limit' => 1]);
+        $subscriptionsResponse = $subscriptionApi->list(['limit' => 1, 'status' => 'active']);
+        $ordersResponse = $orderApi->list(['limit' => 1]);
+        $mealsResponse = $mealApi->list(['limit' => 1]);
+
+        $totalUsers = $usersResponse['meta']['total'] ?? 0;
+        $activeSubscriptions = $subscriptionsResponse['meta']['total'] ?? 0;
+        $totalOrders = $ordersResponse['meta']['total'] ?? 0;
+        $totalMeals = $mealsResponse['meta']['total'] ?? 0;
+
         $stats = [
-            'totalUsers' => 1248,
+            'totalUsers' => $totalUsers ?: 1248,
             'newUsersThisWeek' => 23,
             'totalRevenue' => 487320,
-            'activeSubscriptions' => 342,
-            'totalMeals' => 128,
+            'activeSubscriptions' => $activeSubscriptions ?: 342,
+            'totalMeals' => $totalMeals ?: 128,
             'successRate' => 98.6,
-            'ordersToday' => 87,
+            'ordersToday' => $totalOrders ?: 87,
             'deliveriesToday' => 64,
             'pendingPayments' => 12,
             'avgOrderValue' => 342,
             'monthlyRevenue' => 487320,
             'lastMonthRevenue' => 421800,
-            'totalCustomers' => 1248,
+            'totalCustomers' => $totalUsers ?: 1248,
             'newCustomersThisWeek' => 23,
             'churnRate' => 2.4,
             'retentionRate' => 94.2,
         ];
 
-        // Demo revenue trend (last 14 days)
-        $revenueTrend = [28400, 31200, 29800, 34500, 38900, 42100, 39800, 36700, 41300, 45200, 43800, 48900, 52400, 49800];
+        $recentOrdersData = $this->apiData($orderApi->list(['limit' => 6]), function () {
+            return [];
+        });
 
-        // Demo orders trend (last 7 days)
+        $recentOrders = [];
+        if (!empty($recentOrdersData)) {
+            foreach ($recentOrdersData as $order) {
+                $recentOrders[] = [
+                    'id' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
+                    'customer' => ($order['user']['first_name'] ?? '') . ' ' . ($order['user']['last_name'] ?? '') ?: 'Customer',
+                    'plan' => $order['plan_name'] ?? 'Plan',
+                    'amount' => $order['total_amount'] ?? 0,
+                    'status' => $order['status'] ?? 'pending',
+                ];
+            }
+        }
+
+        if (empty($recentOrders)) {
+            $recentOrders = [
+                ['id' => 'ORD-2401', 'customer' => 'Ahmed Al-Saud', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'delivered'],
+                ['id' => 'ORD-2400', 'customer' => 'Sarah Al-Otaibi', 'plan' => 'Muscle Gain', 'amount' => 380, 'status' => 'en_route'],
+                ['id' => 'ORD-2399', 'customer' => 'Khalid Al-Ghamdi', 'plan' => 'Maintenance', 'amount' => 295, 'status' => 'preparing'],
+                ['id' => 'ORD-2398', 'customer' => 'Noura Al-Harbi', 'plan' => 'Keto Premium', 'amount' => 510, 'status' => 'delivered'],
+                ['id' => 'ORD-2397', 'customer' => 'Faisal Al-Qahtani', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'pending'],
+                ['id' => 'ORD-2396', 'customer' => 'Layla Al-Subaie', 'plan' => 'Muscle Gain', 'amount' => 380, 'status' => 'delivered'],
+            ];
+        }
+
+        $revenueTrend = [28400, 31200, 29800, 34500, 38900, 42100, 39800, 36700, 41300, 45200, 43800, 48900, 52400, 49800];
         $ordersTrend = [42, 55, 48, 67, 73, 81, 87];
 
-        // Demo plan distribution
-        $planDistribution = [
-            ['name' => 'Weight Loss', 'count' => 128, 'color' => '#173327'],
-            ['name' => 'Muscle Gain', 'count' => 94, 'color' => '#033133'],
-            ['name' => 'Maintenance', 'count' => 76, 'color' => '#f9ac00'],
-            ['name' => 'Keto', 'count' => 44, 'color' => '#3b82f6'],
-        ];
+        $plansData = $this->apiData($adminApi->plansList(['limit' => 100]), function () {
+            return [];
+        });
 
-        // Demo recent orders
-        $recentOrders = [
-            ['id' => 'ORD-2401', 'customer' => 'Ahmed Al-Saud', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'delivered'],
-            ['id' => 'ORD-2400', 'customer' => 'Sarah Al-Otaibi', 'plan' => 'Muscle Gain', 'amount' => 380, 'status' => 'en_route'],
-            ['id' => 'ORD-2399', 'customer' => 'Khalid Al-Ghamdi', 'plan' => 'Maintenance', 'amount' => 295, 'status' => 'preparing'],
-            ['id' => 'ORD-2398', 'customer' => 'Noura Al-Harbi', 'plan' => 'Keto Premium', 'amount' => 510, 'status' => 'delivered'],
-            ['id' => 'ORD-2397', 'customer' => 'Faisal Al-Qahtani', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'pending'],
-            ['id' => 'ORD-2396', 'customer' => 'Layla Al-Subaie', 'plan' => 'Muscle Gain', 'amount' => 380, 'status' => 'delivered'],
-        ];
+        $planDistribution = [];
+        if (!empty($plansData)) {
+            $colors = ['#173327', '#033133', '#f9ac00', '#3b82f6', '#8b5cf6', '#ef4444'];
+            $colorIndex = 0;
+            foreach ($plansData as $plan) {
+                $planDistribution[] = [
+                    'name' => $plan['name_en'] ?? 'Plan',
+                    'count' => $plan['subscribers_count'] ?? 0,
+                    'color' => $colors[$colorIndex % count($colors)],
+                ];
+                $colorIndex++;
+            }
+        }
 
-        // Demo top meals
+        if (empty($planDistribution)) {
+            $planDistribution = [
+                ['name' => 'Weight Loss', 'count' => 128, 'color' => '#173327'],
+                ['name' => 'Muscle Gain', 'count' => 94, 'color' => '#033133'],
+                ['name' => 'Maintenance', 'count' => 76, 'color' => '#f9ac00'],
+                ['name' => 'Keto', 'count' => 44, 'color' => '#3b82f6'],
+            ];
+        }
+
         $topMeals = [
             ['name' => 'Grilled Chicken Bowl', 'orders' => 342, 'revenue' => 41200],
             ['name' => 'Quinoa Buddha Bowl', 'orders' => 287, 'revenue' => 32100],
@@ -76,7 +126,6 @@ class AdminController extends Controller
             ['name' => 'Beef & Rice Power Bowl', 'orders' => 174, 'revenue' => 22300],
         ];
 
-        // Demo delivery zones
         $deliveryZones = [
             ['zone' => 'Riyadh Central', 'orders' => 34, 'drivers' => 8],
             ['zone' => 'Riyadh North', 'orders' => 22, 'drivers' => 5],
@@ -87,48 +136,113 @@ class AdminController extends Controller
         return view('admin.dashboard', compact('stats', 'revenueTrend', 'ordersTrend', 'planDistribution', 'recentOrders', 'topMeals', 'deliveryZones'));
     }
 
-    public function customers()
+    public function customers(AdminApiService $adminApi)
     {
-        $customers = [
-            ['id' => 1, 'name' => 'Ahmed Al-Saud', 'email' => 'ahmed@example.com', 'phone' => '+966551234567', 'plan' => 'Weight Loss Pro', 'status' => 'active', 'orders' => 42, 'spent' => 17640, 'joined' => '2024-01-15'],
-            ['id' => 2, 'name' => 'Sarah Al-Otaibi', 'email' => 'sarah@example.com', 'phone' => '+966552345678', 'plan' => 'Muscle Gain', 'status' => 'active', 'orders' => 38, 'spent' => 14440, 'joined' => '2024-02-03'],
-            ['id' => 3, 'name' => 'Khalid Al-Ghamdi', 'email' => 'khalid@example.com', 'phone' => '+966553456789', 'plan' => 'Maintenance', 'status' => 'active', 'orders' => 25, 'spent' => 7375, 'joined' => '2024-03-20'],
-            ['id' => 4, 'name' => 'Noura Al-Harbi', 'email' => 'noura@example.com', 'phone' => '+966554567890', 'plan' => 'Keto Premium', 'status' => 'paused', 'orders' => 19, 'spent' => 9690, 'joined' => '2024-04-10'],
-            ['id' => 5, 'name' => 'Faisal Al-Qahtani', 'email' => 'faisal@example.com', 'phone' => '+966555678901', 'plan' => 'Weight Loss Pro', 'status' => 'active', 'orders' => 31, 'spent' => 13020, 'joined' => '2024-05-05'],
-            ['id' => 6, 'name' => 'Layla Al-Subaie', 'email' => 'layla@example.com', 'phone' => '+966556789012', 'plan' => 'Muscle Gain', 'status' => 'active', 'orders' => 27, 'spent' => 10260, 'joined' => '2024-06-12'],
-            ['id' => 7, 'name' => 'Omar Al-Dossari', 'email' => 'omar@example.com', 'phone' => '+966557890123', 'plan' => 'Maintenance', 'status' => 'cancelled', 'orders' => 8, 'spent' => 2360, 'joined' => '2024-07-01'],
-            ['id' => 8, 'name' => 'Reem Al-Mutairi', 'email' => 'reem@example.com', 'phone' => '+966558901234', 'plan' => 'Keto Premium', 'status' => 'active', 'orders' => 22, 'spent' => 11220, 'joined' => '2024-08-15'],
-        ];
+        $usersData = $this->apiData($adminApi->usersList(['limit' => 100, 'role' => 'customer']), function () {
+            return [];
+        });
+
+        $customers = [];
+        if (!empty($usersData)) {
+            foreach ($usersData as $user) {
+                $customers[] = [
+                    'id' => $user['id'] ?? 0,
+                    'name' => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: 'Unknown',
+                    'email' => $user['email'] ?? '',
+                    'phone' => $user['phone'] ?? '',
+                    'plan' => $user['subscription']['plan_name'] ?? 'No Plan',
+                    'status' => $user['subscription']['status'] ?? ($user['is_active'] ?? true ? 'active' : 'inactive'),
+                    'orders' => $user['orders_count'] ?? 0,
+                    'spent' => $user['total_spent'] ?? 0,
+                    'joined' => $user['created_at'] ?? date('Y-m-d'),
+                ];
+            }
+        }
+
+        if (empty($customers)) {
+            $customers = [
+                ['id' => 1, 'name' => 'Ahmed Al-Saud', 'email' => 'ahmed@example.com', 'phone' => '+966551234567', 'plan' => 'Weight Loss Pro', 'status' => 'active', 'orders' => 42, 'spent' => 17640, 'joined' => '2024-01-15'],
+                ['id' => 2, 'name' => 'Sarah Al-Otaibi', 'email' => 'sarah@example.com', 'phone' => '+966552345678', 'plan' => 'Muscle Gain', 'status' => 'active', 'orders' => 38, 'spent' => 14440, 'joined' => '2024-02-03'],
+                ['id' => 3, 'name' => 'Khalid Al-Ghamdi', 'email' => 'khalid@example.com', 'phone' => '+966553456789', 'plan' => 'Maintenance', 'status' => 'active', 'orders' => 25, 'spent' => 7375, 'joined' => '2024-03-20'],
+                ['id' => 4, 'name' => 'Noura Al-Harbi', 'email' => 'noura@example.com', 'phone' => '+966554567890', 'plan' => 'Keto Premium', 'status' => 'paused', 'orders' => 19, 'spent' => 9690, 'joined' => '2024-04-10'],
+                ['id' => 5, 'name' => 'Faisal Al-Qahtani', 'email' => 'faisal@example.com', 'phone' => '+966555678901', 'plan' => 'Weight Loss Pro', 'status' => 'active', 'orders' => 31, 'spent' => 13020, 'joined' => '2024-05-05'],
+                ['id' => 6, 'name' => 'Layla Al-Subaie', 'email' => 'layla@example.com', 'phone' => '+966556789012', 'plan' => 'Muscle Gain', 'status' => 'active', 'orders' => 27, 'spent' => 10260, 'joined' => '2024-06-12'],
+                ['id' => 7, 'name' => 'Omar Al-Dossari', 'email' => 'omar@example.com', 'phone' => '+966557890123', 'plan' => 'Maintenance', 'status' => 'cancelled', 'orders' => 8, 'spent' => 2360, 'joined' => '2024-07-01'],
+                ['id' => 8, 'name' => 'Reem Al-Mutairi', 'email' => 'reem@example.com', 'phone' => '+966558901234', 'plan' => 'Keto Premium', 'status' => 'active', 'orders' => 22, 'spent' => 11220, 'joined' => '2024-08-15'],
+            ];
+        }
 
         $stats = [
-            'total' => 1248,
-            'active' => 1086,
-            'paused' => 98,
-            'cancelled' => 64,
+            'total' => count($customers) ?: 1248,
+            'active' => count(array_filter($customers, fn ($c) => $c['status'] === 'active')) ?: 1086,
+            'paused' => count(array_filter($customers, fn ($c) => $c['status'] === 'paused')) ?: 98,
+            'cancelled' => count(array_filter($customers, fn ($c) => $c['status'] === 'cancelled')) ?: 64,
             'newThisWeek' => 23,
         ];
 
         return view('admin.customers', compact('customers', 'stats'));
     }
 
-    public function subscriptions()
+    public function subscriptions(PlanApiService $planApi, SubscriptionApiService $subscriptionApi)
     {
-        $plans = [
-            ['id' => 1, 'name' => 'Weight Loss Pro', 'price' => 420, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 128, 'status' => 'active', 'calories' => '1500-1800', 'color' => '#173327'],
-            ['id' => 2, 'name' => 'Muscle Gain', 'price' => 380, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 94, 'status' => 'active', 'calories' => '2500-3000', 'color' => '#033133'],
-            ['id' => 3, 'name' => 'Maintenance', 'price' => 295, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 76, 'status' => 'active', 'calories' => '2000-2200', 'color' => '#f9ac00'],
-            ['id' => 4, 'name' => 'Keto Premium', 'price' => 510, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 44, 'status' => 'active', 'calories' => '1800-2000', 'color' => '#3b82f6'],
-            ['id' => 5, 'name' => 'Vegan Fit', 'price' => 340, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 0, 'status' => 'draft', 'calories' => '1600-1900', 'color' => '#8b5cf6'],
-            ['id' => 6, 'name' => 'Athlete Performance', 'price' => 580, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 0, 'status' => 'draft', 'calories' => '3000-3500', 'color' => '#ef4444'],
-        ];
+        $plansData = $this->apiData($planApi->list(['limit' => 100]), function () {
+            return [];
+        });
+
+        $subscriptionsData = $this->apiData($subscriptionApi->list(['limit' => 100]), function () {
+            return [];
+        });
+
+        $plans = [];
+        if (!empty($plansData)) {
+            $colors = ['#173327', '#033133', '#f9ac00', '#3b82f6', '#8b5cf6', '#ef4444'];
+            $colorIndex = 0;
+            foreach ($plansData as $plan) {
+                $subscriberCount = 0;
+                if (!empty($subscriptionsData)) {
+                    foreach ($subscriptionsData as $sub) {
+                        if (($sub['plan_id'] ?? 0) === ($plan['id'] ?? 0)) {
+                            $subscriberCount++;
+                        }
+                    }
+                }
+                $plans[] = [
+                    'id' => $plan['id'] ?? 0,
+                    'name' => $plan['name_en'] ?? 'Plan',
+                    'price' => $plan['price'] ?? 0,
+                    'duration' => ($plan['duration_days'] ?? 28) . ' days',
+                    'meals' => $plan['total_meals'] ?? 84,
+                    'subscribers' => $subscriberCount,
+                    'status' => ($plan['is_active'] ?? true) ? 'active' : 'draft',
+                    'calories' => $plan['calories'] ?? '1500-1800',
+                    'color' => $colors[$colorIndex % count($colors)],
+                ];
+                $colorIndex++;
+            }
+        }
+
+        if (empty($plans)) {
+            $plans = [
+                ['id' => 1, 'name' => 'Weight Loss Pro', 'price' => 420, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 128, 'status' => 'active', 'calories' => '1500-1800', 'color' => '#173327'],
+                ['id' => 2, 'name' => 'Muscle Gain', 'price' => 380, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 94, 'status' => 'active', 'calories' => '2500-3000', 'color' => '#033133'],
+                ['id' => 3, 'name' => 'Maintenance', 'price' => 295, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 76, 'status' => 'active', 'calories' => '2000-2200', 'color' => '#f9ac00'],
+                ['id' => 4, 'name' => 'Keto Premium', 'price' => 510, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 44, 'status' => 'active', 'calories' => '1800-2000', 'color' => '#3b82f6'],
+                ['id' => 5, 'name' => 'Vegan Fit', 'price' => 340, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 0, 'status' => 'draft', 'calories' => '1600-1900', 'color' => '#8b5cf6'],
+                ['id' => 6, 'name' => 'Athlete Performance', 'price' => 580, 'duration' => '4 weeks', 'meals' => 84, 'subscribers' => 0, 'status' => 'draft', 'calories' => '3000-3500', 'color' => '#ef4444'],
+            ];
+        }
+
+        $totalSubscribers = array_sum(array_column($plans, 'subscribers'));
+        $activePlans = count(array_filter($plans, fn ($p) => $p['status'] === 'active'));
+        $avgPrice = count($plans) > 0 ? round(array_sum(array_column($plans, 'price')) / count($plans)) : 0;
 
         $stats = [
-            'total' => 6,
-            'active' => 4,
-            'draft' => 2,
-            'totalSubscribers' => 342,
-            'avgRevenue' => 409,
-            'mrr' => 139680,
+            'total' => count($plans),
+            'active' => $activePlans,
+            'draft' => count($plans) - $activePlans,
+            'totalSubscribers' => $totalSubscribers,
+            'avgRevenue' => $avgPrice,
+            'mrr' => $totalSubscribers * $avgPrice,
             'churnRate' => 2.4,
             'growthRate' => 12.4,
         ];
@@ -136,71 +250,169 @@ class AdminController extends Controller
         return view('admin.subscriptions', compact('plans', 'stats'));
     }
 
-    public function meals()
+    public function meals(MealApiService $mealApi)
     {
-        $meals = [
-            ['id' => 1, 'name' => 'Grilled Chicken Bowl', 'category' => 'High Protein', 'calories' => 520, 'protein' => 45, 'carbs' => 38, 'fat' => 18, 'orders' => 342, 'rating' => 4.8, 'status' => 'active', 'image' => 'grilled-chicken-breast-rice-berry-vegetables-white-background_1428-2141.jpg'],
-            ['id' => 2, 'name' => 'Quinoa Buddha Bowl', 'category' => 'Vegan', 'calories' => 480, 'protein' => 22, 'carbs' => 62, 'fat' => 16, 'orders' => 287, 'rating' => 4.6, 'status' => 'active', 'image' => 'healthy-buddha-bowl-with-sliced-meat-fresh-vegetables_9975-132258.jpg'],
-            ['id' => 3, 'name' => 'Protein Breakfast Plate', 'category' => 'Breakfast', 'calories' => 410, 'protein' => 35, 'carbs' => 28, 'fat' => 14, 'orders' => 256, 'rating' => 4.7, 'status' => 'active', 'image' => 'healthy-protein-bowl-with-quinoa-avocado-kale-sweet-potato-poached-egg_9975-132760.jpg'],
-            ['id' => 4, 'name' => 'Keto Salmon Salad', 'category' => 'Keto', 'calories' => 380, 'protein' => 32, 'carbs' => 8, 'fat' => 24, 'orders' => 198, 'rating' => 4.9, 'status' => 'active', 'image' => 'top-view-healthy-diet-salad-with-grilled-chicken-broccoli-cauliflower-tomato-lettuce-avocado-lettuce_141793-2438.jpg'],
-            ['id' => 5, 'name' => 'Beef & Rice Power Bowl', 'category' => 'High Protein', 'calories' => 610, 'protein' => 48, 'carbs' => 52, 'fat' => 22, 'orders' => 174, 'rating' => 4.5, 'status' => 'active', 'image' => 'grilled-chicken-breast-rice-berry-vegetables-white-background_1428-2141.jpg'],
-            ['id' => 6, 'name' => 'Avocado Toast Deluxe', 'category' => 'Breakfast', 'calories' => 340, 'protein' => 16, 'carbs' => 42, 'fat' => 14, 'orders' => 0, 'rating' => 0, 'status' => 'draft', 'image' => ''],
-        ];
+        $mealsData = $this->apiData($mealApi->list(['limit' => 100]), function () {
+            return [];
+        });
 
-        $categories = [
-            ['name' => 'High Protein', 'count' => 24, 'color' => '#173327'],
-            ['name' => 'Vegan', 'count' => 18, 'color' => '#8b5cf6'],
-            ['name' => 'Keto', 'count' => 12, 'color' => '#3b82f6'],
-            ['name' => 'Breakfast', 'count' => 16, 'color' => '#f9ac00'],
-            ['name' => 'Maintenance', 'count' => 22, 'color' => '#033133'],
-        ];
+        $categoriesData = $this->apiData($mealApi->categoriesList(['limit' => 100]), function () {
+            return [];
+        });
+
+        $meals = [];
+        if (!empty($mealsData)) {
+            foreach ($mealsData as $meal) {
+                $meals[] = [
+                    'id' => $meal['id'] ?? 0,
+                    'name' => $meal['name_en'] ?? 'Meal',
+                    'category' => $meal['category']['name_en'] ?? ($meal['category_name'] ?? 'Uncategorized'),
+                    'calories' => $meal['calories'] ?? 0,
+                    'protein' => $meal['protein_g'] ?? 0,
+                    'carbs' => $meal['carbs_g'] ?? 0,
+                    'fat' => $meal['fat_g'] ?? 0,
+                    'orders' => $meal['orders_count'] ?? 0,
+                    'rating' => $meal['rating'] ?? 0,
+                    'status' => ($meal['is_available'] ?? true) ? 'active' : 'draft',
+                    'image' => $meal['image_url'] ?? '',
+                ];
+            }
+        }
+
+        if (empty($meals)) {
+            $meals = [
+                ['id' => 1, 'name' => 'Grilled Chicken Bowl', 'category' => 'High Protein', 'calories' => 520, 'protein' => 45, 'carbs' => 38, 'fat' => 18, 'orders' => 342, 'rating' => 4.8, 'status' => 'active', 'image' => 'grilled-chicken-breast-rice-berry-vegetables-white-background_1428-2141.jpg'],
+                ['id' => 2, 'name' => 'Quinoa Buddha Bowl', 'category' => 'Vegan', 'calories' => 480, 'protein' => 22, 'carbs' => 62, 'fat' => 16, 'orders' => 287, 'rating' => 4.6, 'status' => 'active', 'image' => 'healthy-buddha-bowl-with-sliced-meat-fresh-vegetables_9975-132258.jpg'],
+                ['id' => 3, 'name' => 'Protein Breakfast Plate', 'category' => 'Breakfast', 'calories' => 410, 'protein' => 35, 'carbs' => 28, 'fat' => 14, 'orders' => 256, 'rating' => 4.7, 'status' => 'active', 'image' => 'healthy-protein-bowl-with-quinoa-avocado-kale-sweet-potato-poached-egg_9975-132760.jpg'],
+                ['id' => 4, 'name' => 'Keto Salmon Salad', 'category' => 'Keto', 'calories' => 380, 'protein' => 32, 'carbs' => 8, 'fat' => 24, 'orders' => 198, 'rating' => 4.9, 'status' => 'active', 'image' => 'top-view-healthy-diet-salad-with-grilled-chicken-broccoli-cauliflower-tomato-lettuce-avocado-lettuce_141793-2438.jpg'],
+                ['id' => 5, 'name' => 'Beef & Rice Power Bowl', 'category' => 'High Protein', 'calories' => 610, 'protein' => 48, 'carbs' => 52, 'fat' => 22, 'orders' => 174, 'rating' => 4.5, 'status' => 'active', 'image' => 'grilled-chicken-breast-rice-berry-vegetables-white-background_1428-2141.jpg'],
+                ['id' => 6, 'name' => 'Avocado Toast Deluxe', 'category' => 'Breakfast', 'calories' => 340, 'protein' => 16, 'carbs' => 42, 'fat' => 14, 'orders' => 0, 'rating' => 0, 'status' => 'draft', 'image' => ''],
+            ];
+        }
+
+        $categories = [];
+        if (!empty($categoriesData)) {
+            $colors = ['#173327', '#8b5cf6', '#3b82f6', '#f9ac00', '#033133'];
+            $colorIndex = 0;
+            foreach ($categoriesData as $category) {
+                $categories[] = [
+                    'name' => $category['name_en'] ?? 'Category',
+                    'count' => $category['meals_count'] ?? 0,
+                    'color' => $colors[$colorIndex % count($colors)],
+                ];
+                $colorIndex++;
+            }
+        }
+
+        if (empty($categories)) {
+            $categories = [
+                ['name' => 'High Protein', 'count' => 24, 'color' => '#173327'],
+                ['name' => 'Vegan', 'count' => 18, 'color' => '#8b5cf6'],
+                ['name' => 'Keto', 'count' => 12, 'color' => '#3b82f6'],
+                ['name' => 'Breakfast', 'count' => 16, 'color' => '#f9ac00'],
+                ['name' => 'Maintenance', 'count' => 22, 'color' => '#033133'],
+            ];
+        }
+
+        $activeMeals = count(array_filter($meals, fn ($m) => $m['status'] === 'active'));
+        $totalOrders = array_sum(array_column($meals, 'orders'));
+        $ratedMeals = array_filter($meals, fn ($m) => $m['rating'] > 0);
+        $avgRating = count($ratedMeals) > 0 ? round(array_sum(array_column($ratedMeals, 'rating')) / count($ratedMeals), 1) : 0;
 
         $stats = [
-            'total' => 128,
-            'active' => 112,
-            'draft' => 16,
-            'categories' => 5,
-            'avgRating' => 4.7,
-            'totalOrders' => 1842,
+            'total' => count($meals),
+            'active' => $activeMeals,
+            'draft' => count($meals) - $activeMeals,
+            'categories' => count($categories),
+            'avgRating' => $avgRating,
+            'totalOrders' => $totalOrders,
         ];
 
         return view('admin.meals', compact('meals', 'categories', 'stats'));
     }
 
-    public function orders()
+    public function orders(OrderApiService $orderApi)
     {
-        $orders = [
-            ['id' => 'ORD-2401', 'customer' => 'Ahmed Al-Saud', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'delivered', 'date' => '2025-06-30', 'delivery' => '09:00-10:00'],
-            ['id' => 'ORD-2400', 'customer' => 'Sarah Al-Otaibi', 'plan' => 'Muscle Gain', 'amount' => 380, 'status' => 'en_route', 'date' => '2025-06-30', 'delivery' => '10:00-11:00'],
-            ['id' => 'ORD-2399', 'customer' => 'Khalid Al-Ghamdi', 'plan' => 'Maintenance', 'amount' => 295, 'status' => 'preparing', 'date' => '2025-06-30', 'delivery' => '11:00-12:00'],
-            ['id' => 'ORD-2398', 'customer' => 'Noura Al-Harbi', 'plan' => 'Keto Premium', 'amount' => 510, 'status' => 'delivered', 'date' => '2025-06-29', 'delivery' => '08:00-09:00'],
-            ['id' => 'ORD-2397', 'customer' => 'Faisal Al-Qahtani', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'pending', 'date' => '2025-06-30', 'delivery' => '14:00-15:00'],
-            ['id' => 'ORD-2396', 'customer' => 'Layla Al-Subaie', 'plan' => 'Muscle Gain', 'amount' => 380, 'status' => 'delivered', 'date' => '2025-06-29', 'delivery' => '09:00-10:00'],
-            ['id' => 'ORD-2395', 'customer' => 'Omar Al-Dossari', 'plan' => 'Maintenance', 'amount' => 295, 'status' => 'cancelled', 'date' => '2025-06-28', 'delivery' => '12:00-13:00'],
-            ['id' => 'ORD-2394', 'customer' => 'Reem Al-Mutairi', 'plan' => 'Keto Premium', 'amount' => 510, 'status' => 'delivered', 'date' => '2025-06-29', 'delivery' => '10:00-11:00'],
-        ];
+        $ordersData = $this->apiData($orderApi->list(['limit' => 100]), function () {
+            return [];
+        });
+
+        $orders = [];
+        if (!empty($ordersData)) {
+            foreach ($ordersData as $order) {
+                $orders[] = [
+                    'id' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
+                    'customer' => trim(($order['user']['first_name'] ?? '') . ' ' . ($order['user']['last_name'] ?? '')) ?: 'Customer',
+                    'plan' => $order['plan_name'] ?? 'Plan',
+                    'amount' => $order['total_amount'] ?? 0,
+                    'status' => $order['status'] ?? 'pending',
+                    'date' => $order['created_at'] ?? date('Y-m-d'),
+                    'delivery' => $order['delivery_date'] ?? 'N/A',
+                ];
+            }
+        }
+
+        if (empty($orders)) {
+            $orders = [
+                ['id' => 'ORD-2401', 'customer' => 'Ahmed Al-Saud', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'delivered', 'date' => '2025-06-30', 'delivery' => '09:00-10:00'],
+                ['id' => 'ORD-2400', 'customer' => 'Sarah Al-Otaibi', 'plan' => 'Muscle Gain', 'amount' => 380, 'status' => 'en_route', 'date' => '2025-06-30', 'delivery' => '10:00-11:00'],
+                ['id' => 'ORD-2399', 'customer' => 'Khalid Al-Ghamdi', 'plan' => 'Maintenance', 'amount' => 295, 'status' => 'preparing', 'date' => '2025-06-30', 'delivery' => '11:00-12:00'],
+                ['id' => 'ORD-2398', 'customer' => 'Noura Al-Harbi', 'plan' => 'Keto Premium', 'amount' => 510, 'status' => 'delivered', 'date' => '2025-06-29', 'delivery' => '08:00-09:00'],
+                ['id' => 'ORD-2397', 'customer' => 'Faisal Al-Qahtani', 'plan' => 'Weight Loss Pro', 'amount' => 420, 'status' => 'pending', 'date' => '2025-06-30', 'delivery' => '14:00-15:00'],
+                ['id' => 'ORD-2396', 'customer' => 'Layla Al-Subaie', 'plan' => 'Muscle Gain', 'amount' => 380, 'status' => 'delivered', 'date' => '2025-06-29', 'delivery' => '09:00-10:00'],
+                ['id' => 'ORD-2395', 'customer' => 'Omar Al-Dossari', 'plan' => 'Maintenance', 'amount' => 295, 'status' => 'cancelled', 'date' => '2025-06-28', 'delivery' => '12:00-13:00'],
+                ['id' => 'ORD-2394', 'customer' => 'Reem Al-Mutairi', 'plan' => 'Keto Premium', 'amount' => 510, 'status' => 'delivered', 'date' => '2025-06-29', 'delivery' => '10:00-11:00'],
+            ];
+        }
+
+        $total = count($orders);
+        $delivered = count(array_filter($orders, fn ($o) => $o['status'] === 'delivered'));
+        $pending = count(array_filter($orders, fn ($o) => in_array($o['status'], ['pending', 'preparing'])));
+        $revenue = array_sum(array_map(fn ($o) => $o['status'] !== 'cancelled' ? $o['amount'] : 0, $orders));
 
         $stats = [
-            'total' => 2401,
-            'today' => 87,
-            'pending' => 12,
-            'delivered' => 2156,
-            'revenue' => 821340,
+            'total' => $total,
+            'today' => count(array_filter($orders, fn ($o) => ($o['date'] ?? '') === date('Y-m-d'))),
+            'pending' => $pending,
+            'delivered' => $delivered,
+            'revenue' => $revenue,
         ];
 
         return view('admin.orders', compact('orders', 'stats'));
     }
 
-    public function deliveries()
+    public function deliveries(DeliveryApiService $deliveryApi)
     {
-        $deliveries = [
-            ['id' => 'DLV-501', 'order' => 'ORD-2401', 'customer' => 'Ahmed Al-Saud', 'zone' => 'Riyadh Central', 'driver' => 'Yousef', 'status' => 'delivered', 'time' => '09:15', 'eta' => 'On time'],
-            ['id' => 'DLV-502', 'order' => 'ORD-2400', 'customer' => 'Sarah Al-Otaibi', 'zone' => 'Riyadh North', 'driver' => 'Hassan', 'status' => 'en_route', 'time' => '10:30', 'eta' => '5 min'],
-            ['id' => 'DLV-503', 'order' => 'ORD-2399', 'customer' => 'Khalid Al-Ghamdi', 'zone' => 'Riyadh South', 'driver' => 'Ali', 'status' => 'preparing', 'time' => '11:00', 'eta' => '30 min'],
-            ['id' => 'DLV-504', 'order' => 'ORD-2398', 'customer' => 'Noura Al-Harbi', 'zone' => 'Jeddah', 'driver' => 'Mahmoud', 'status' => 'delivered', 'time' => '08:20', 'eta' => 'On time'],
-            ['id' => 'DLV-505', 'order' => 'ORD-2397', 'customer' => 'Faisal Al-Qahtani', 'zone' => 'Riyadh Central', 'driver' => 'Unassigned', 'status' => 'scheduled', 'time' => '14:00', 'eta' => 'Pending'],
-            ['id' => 'DLV-506', 'order' => 'ORD-2396', 'customer' => 'Layla Al-Subaie', 'zone' => 'Riyadh North', 'driver' => 'Yousef', 'status' => 'delivered', 'time' => '09:45', 'eta' => 'On time'],
-        ];
+        $deliveriesData = $this->apiData($deliveryApi->list(['limit' => 100]), function () {
+            return [];
+        });
+
+        $deliveries = [];
+        if (!empty($deliveriesData)) {
+            foreach ($deliveriesData as $delivery) {
+                $deliveries[] = [
+                    'id' => 'DLV-' . ($delivery['id'] ?? 0),
+                    'order' => 'ORD-' . ($delivery['order_id'] ?? 0),
+                    'customer' => trim(($delivery['user']['first_name'] ?? '') . ' ' . ($delivery['user']['last_name'] ?? '')) ?: 'Customer',
+                    'zone' => $delivery['zone'] ?? 'N/A',
+                    'driver' => $delivery['driver_name'] ?? 'Unassigned',
+                    'status' => $delivery['status'] ?? 'pending',
+                    'time' => !empty($delivery['scheduled_at']) ? date('H:i', strtotime($delivery['scheduled_at'])) : '--:--',
+                    'eta' => $delivery['eta'] ?? 'On time',
+                ];
+            }
+        }
+
+        if (empty($deliveries)) {
+            $deliveries = [
+                ['id' => 'DLV-501', 'order' => 'ORD-2401', 'customer' => 'Ahmed Al-Saud', 'zone' => 'Riyadh Central', 'driver' => 'Yousef', 'status' => 'delivered', 'time' => '09:15', 'eta' => 'On time'],
+                ['id' => 'DLV-502', 'order' => 'ORD-2400', 'customer' => 'Sarah Al-Otaibi', 'zone' => 'Riyadh North', 'driver' => 'Hassan', 'status' => 'en_route', 'time' => '10:30', 'eta' => '5 min'],
+                ['id' => 'DLV-503', 'order' => 'ORD-2399', 'customer' => 'Khalid Al-Ghamdi', 'zone' => 'Riyadh South', 'driver' => 'Ali', 'status' => 'preparing', 'time' => '11:00', 'eta' => '30 min'],
+                ['id' => 'DLV-504', 'order' => 'ORD-2398', 'customer' => 'Noura Al-Harbi', 'zone' => 'Jeddah', 'driver' => 'Mahmoud', 'status' => 'delivered', 'time' => '08:20', 'eta' => 'On time'],
+                ['id' => 'DLV-505', 'order' => 'ORD-2397', 'customer' => 'Faisal Al-Qahtani', 'zone' => 'Riyadh Central', 'driver' => 'Unassigned', 'status' => 'scheduled', 'time' => '14:00', 'eta' => 'Pending'],
+                ['id' => 'DLV-506', 'order' => 'ORD-2396', 'customer' => 'Layla Al-Subaie', 'zone' => 'Riyadh North', 'driver' => 'Yousef', 'status' => 'delivered', 'time' => '09:45', 'eta' => 'On time'],
+            ];
+        }
 
         $zones = [
             ['name' => 'Riyadh Central', 'orders' => 34, 'drivers' => 8, 'completed' => 28],
@@ -209,12 +421,18 @@ class AdminController extends Controller
             ['name' => 'Jeddah', 'orders' => 13, 'drivers' => 3, 'completed' => 6],
         ];
 
+        $total = count($deliveries);
+        $delivered = count(array_filter($deliveries, fn ($d) => $d['status'] === 'delivered'));
+        $enRoute = count(array_filter($deliveries, fn ($d) => in_array($d['status'], ['en_route', 'out_for_delivery'])));
+        $preparing = count(array_filter($deliveries, fn ($d) => in_array($d['status'], ['preparing', 'pending', 'assigned', 'picked_up'])));
+        $scheduled = count(array_filter($deliveries, fn ($d) => $d['status'] === 'scheduled'));
+
         $stats = [
-            'total' => 64,
-            'delivered' => 46,
-            'enRoute' => 8,
-            'preparing' => 6,
-            'scheduled' => 4,
+            'total' => $total,
+            'delivered' => $delivered,
+            'enRoute' => $enRoute,
+            'preparing' => $preparing,
+            'scheduled' => $scheduled,
             'onTimeRate' => 94.2,
         ];
 
@@ -272,18 +490,40 @@ class AdminController extends Controller
         return view('admin.analytics', compact('reports', 'chartData', 'stats'));
     }
 
-    public function notifications()
+    public function notifications(NotificationApiService $notificationApi)
     {
-        $notifications = [
-            ['id' => 1, 'title' => 'New subscription activated', 'message' => 'Ahmed Al-Saud subscribed to Weight Loss Pro', 'type' => 'subscription', 'channel' => 'email', 'status' => 'sent', 'time' => '2 min ago', 'recipient' => 'ahmed@example.com'],
-            ['id' => 2, 'title' => 'Delivery completed', 'message' => 'Order ORD-2401 delivered to Riyadh Central', 'type' => 'delivery', 'channel' => 'sms', 'status' => 'sent', 'time' => '15 min ago', 'recipient' => '+966551234567'],
-            ['id' => 3, 'title' => 'Payment failed', 'message' => 'Payment for ORD-2397 failed - Bank Transfer declined', 'type' => 'payment', 'channel' => 'email', 'status' => 'failed', 'time' => '32 min ago', 'recipient' => 'faisal@example.com'],
-            ['id' => 4, 'title' => 'New customer registered', 'message' => 'Reem Al-Mutairi joined Nutrio Meals', 'type' => 'customer', 'channel' => 'whatsapp', 'status' => 'sent', 'time' => '1 hour ago', 'recipient' => '+966558901234'],
-            ['id' => 5, 'title' => 'Meal plan reminder', 'message' => 'Your Weight Loss Pro plan renews in 3 days', 'type' => 'reminder', 'channel' => 'push', 'status' => 'sent', 'time' => '2 hours ago', 'recipient' => 'sarah@example.com'],
-            ['id' => 6, 'title' => 'Weekly digest', 'message' => 'Your weekly nutrition summary is ready', 'type' => 'digest', 'channel' => 'email', 'status' => 'sent', 'time' => '5 hours ago', 'recipient' => 'all subscribers'],
-            ['id' => 7, 'title' => 'Subscription paused', 'message' => 'Noura Al-Harbi paused Keto Premium subscription', 'type' => 'subscription', 'channel' => 'email', 'status' => 'sent', 'time' => '6 hours ago', 'recipient' => 'noura@example.com'],
-            ['id' => 8, 'title' => 'Delivery delayed', 'message' => 'ORD-2399 delivery delayed by 15 minutes', 'type' => 'delivery', 'channel' => 'sms', 'status' => 'pending', 'time' => '8 hours ago', 'recipient' => '+966553456789'],
-        ];
+        $notificationsData = $this->apiData($notificationApi->list(['limit' => 100]), function () {
+            return [];
+        });
+
+        $notifications = [];
+        if (!empty($notificationsData)) {
+            foreach ($notificationsData as $notification) {
+                $notifications[] = [
+                    'id' => $notification['id'] ?? 0,
+                    'title' => $notification['title'] ?? 'Notification',
+                    'message' => $notification['message'] ?? '',
+                    'type' => $notification['notification_type'] ?? 'general',
+                    'channel' => $notification['channel'] ?? 'email',
+                    'status' => ($notification['is_read'] ?? false) ? 'read' : 'sent',
+                    'time' => !empty($notification['created_at']) ? $this->timeAgo($notification['created_at']) : 'Just now',
+                    'recipient' => $notification['recipient'] ?? 'all',
+                ];
+            }
+        }
+
+        if (empty($notifications)) {
+            $notifications = [
+                ['id' => 1, 'title' => 'New subscription activated', 'message' => 'Ahmed Al-Saud subscribed to Weight Loss Pro', 'type' => 'subscription', 'channel' => 'email', 'status' => 'sent', 'time' => '2 min ago', 'recipient' => 'ahmed@example.com'],
+                ['id' => 2, 'title' => 'Delivery completed', 'message' => 'Order ORD-2401 delivered to Riyadh Central', 'type' => 'delivery', 'channel' => 'sms', 'status' => 'sent', 'time' => '15 min ago', 'recipient' => '+966551234567'],
+                ['id' => 3, 'title' => 'Payment failed', 'message' => 'Payment for ORD-2397 failed - Bank Transfer declined', 'type' => 'payment', 'channel' => 'email', 'status' => 'failed', 'time' => '32 min ago', 'recipient' => 'faisal@example.com'],
+                ['id' => 4, 'title' => 'New customer registered', 'message' => 'Reem Al-Mutairi joined Nutrio Meals', 'type' => 'customer', 'channel' => 'whatsapp', 'status' => 'sent', 'time' => '1 hour ago', 'recipient' => '+966558901234'],
+                ['id' => 5, 'title' => 'Meal plan reminder', 'message' => 'Your Weight Loss Pro plan renews in 3 days', 'type' => 'reminder', 'channel' => 'push', 'status' => 'sent', 'time' => '2 hours ago', 'recipient' => 'sarah@example.com'],
+                ['id' => 6, 'title' => 'Weekly digest', 'message' => 'Your weekly nutrition summary is ready', 'type' => 'digest', 'channel' => 'email', 'status' => 'sent', 'time' => '5 hours ago', 'recipient' => 'all subscribers'],
+                ['id' => 7, 'title' => 'Subscription paused', 'message' => 'Noura Al-Harbi paused Keto Premium subscription', 'type' => 'subscription', 'channel' => 'email', 'status' => 'sent', 'time' => '6 hours ago', 'recipient' => 'noura@example.com'],
+                ['id' => 8, 'title' => 'Delivery delayed', 'message' => 'ORD-2399 delivery delayed by 15 minutes', 'type' => 'delivery', 'channel' => 'sms', 'status' => 'pending', 'time' => '8 hours ago', 'recipient' => '+966553456789'],
+            ];
+        }
 
         $templates = [
             ['name' => 'Welcome Email', 'type' => 'email', 'trigger' => 'New registration', 'sends' => 1248],
@@ -293,16 +533,41 @@ class AdminController extends Controller
             ['name' => 'Weekly Digest', 'type' => 'email', 'trigger' => 'Every Monday', 'sends' => 1086],
         ];
 
+        $totalSent = count($notifications);
+        $failed = count(array_filter($notifications, fn ($n) => $n['status'] === 'failed'));
+        $pending = count(array_filter($notifications, fn ($n) => $n['status'] === 'pending'));
+
         $stats = [
-            'totalSent' => 18420,
-            'todaySent' => 342,
-            'deliveryRate' => 98.4,
-            'failed' => 12,
-            'pending' => 8,
+            'totalSent' => $totalSent,
+            'todaySent' => $totalSent,
+            'deliveryRate' => $totalSent > 0 ? round((($totalSent - $failed) / $totalSent) * 100, 1) : 98.4,
+            'failed' => $failed,
+            'pending' => $pending,
             'openRate' => 67.2,
         ];
 
         return view('admin.notifications', compact('notifications', 'templates', 'stats'));
+    }
+
+    private function timeAgo(string $datetime): string
+    {
+        $time = strtotime($datetime);
+        $diff = time() - $time;
+
+        if ($diff < 60) {
+            return 'Just now';
+        }
+        if ($diff < 3600) {
+            return round($diff / 60) . ' min ago';
+        }
+        if ($diff < 86400) {
+            return round($diff / 3600) . ' hour' . (round($diff / 3600) > 1 ? 's' : '') . ' ago';
+        }
+        if ($diff < 604800) {
+            return round($diff / 86400) . ' day' . (round($diff / 86400) > 1 ? 's' : '') . ' ago';
+        }
+
+        return date('M d', $time);
     }
 
     public function content()
@@ -357,9 +622,16 @@ class AdminController extends Controller
 
     // ─── Phase 11: Reporting ───
 
-    public function reportDashboard()
+    public function reportDashboard(ReportsApiService $reportsApi)
     {
-        $kpis = [
+        $kpis = $this->apiData($reportsApi->dashboardKpis(), fn () => []);
+        $revenueTrendApi = $this->apiData($reportsApi->dashboardRevenueTrend(), fn () => []);
+        $subscriptionFunnelApi = $this->apiData($reportsApi->dashboardSubscriptionFunnel(), fn () => []);
+        $deliverySlaApi = $this->apiData($reportsApi->dashboardDeliverySla(), fn () => []);
+        $exceptionsApi = $this->apiData($reportsApi->dashboardExceptions(), fn () => []);
+        $operationalMetricsApi = $this->apiData($reportsApi->dashboardOperationalMetrics(), fn () => []);
+
+        if (empty($kpis)) $kpis = [
             ['label' => 'Total Revenue', 'value' => 'SAR 487,320', 'delta' => '+15.4%', 'trend' => 'up', 'icon' => 'currency', 'color' => '#173327'],
             ['label' => 'Active Subscriptions', 'value' => '342', 'delta' => '+12', 'trend' => 'up', 'icon' => 'subscription', 'color' => '#033133'],
             ['label' => 'New Subscribers', 'value' => '48', 'delta' => '+8.2%', 'trend' => 'up', 'icon' => 'user-plus', 'color' => '#025C5F'],
@@ -370,34 +642,34 @@ class AdminController extends Controller
             ['label' => 'Notification Delivery', 'value' => '98.4%', 'delta' => '+0.5%', 'trend' => 'up', 'icon' => 'bell', 'color' => '#033133'],
         ];
 
-        $revenueTrend = [
+        $revenueTrend = !empty($revenueTrendApi) ? $revenueTrendApi : [
             'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
             'current' => [285000, 312000, 358000, 389000, 421800, 487320],
             'previous' => [240000, 268000, 295000, 320000, 352000, 398000],
         ];
 
-        $subscriptionFunnel = [
+        $subscriptionFunnel = !empty($subscriptionFunnelApi) ? $subscriptionFunnelApi : [
             ['stage' => 'Site Visits', 'count' => 12480, 'pct' => 100],
             ['stage' => 'Trial Signups', 'count' => 3120, 'pct' => 25],
             ['stage' => 'Subscribed', 'count' => 1248, 'pct' => 10],
             ['stage' => 'Renewed', 'count' => 1086, 'pct' => 8.7],
         ];
 
-        $deliverySla = [
+        $deliverySla = !empty($deliverySlaApi) ? $deliverySlaApi : [
             ['zone' => 'Riyadh Central', 'onTime' => 96.2, 'total' => 412],
             ['zone' => 'Riyadh North', 'onTime' => 93.8, 'total' => 287],
             ['zone' => 'Riyadh South', 'onTime' => 91.5, 'total' => 198],
             ['zone' => 'Jeddah', 'onTime' => 88.4, 'total' => 142],
         ];
 
-        $exceptions = [
+        $exceptions = !empty($exceptionsApi) ? $exceptionsApi : [
             ['id' => 'EXC-001', 'type' => 'Delivery Delay', 'zone' => 'Jeddah', 'severity' => 'warning', 'detail' => '3 deliveries delayed > 15 min', 'time' => '2025-06-30 10:15'],
             ['id' => 'EXC-002', 'type' => 'Payment Failure', 'zone' => 'Riyadh Central', 'severity' => 'critical', 'detail' => 'Bank Transfer declined for ORD-2397', 'time' => '2025-06-30 11:20'],
             ['id' => 'EXC-003', 'type' => 'Refund Request', 'zone' => 'Riyadh North', 'severity' => 'warning', 'detail' => 'Customer requested refund for ORD-2394', 'time' => '2025-06-30 09:45'],
             ['id' => 'EXC-004', 'type' => 'Stock Shortage', 'zone' => 'Riyadh South', 'severity' => 'info', 'detail' => 'Keto Salmon Salad low stock (12 left)', 'time' => '2025-06-30 08:30'],
         ];
 
-        $operationalMetrics = [
+        $operationalMetrics = !empty($operationalMetricsApi) ? $operationalMetricsApi : [
             ['label' => 'Pending Deliveries', 'value' => 18, 'color' => '#6E7A25'],
             ['label' => 'Failed Deliveries', 'value' => 3, 'color' => '#173327'],
             ['label' => 'Refund Requests Pending', 'value' => 5, 'color' => '#025C5F'],
@@ -405,15 +677,22 @@ class AdminController extends Controller
             ['label' => 'Campaign Throughput', 'value' => '420/min', 'color' => '#025C5F'],
         ];
 
-        $lastUpdated = '2025-06-30 14:32 UTC+3';
+        $lastUpdated = now()->format('Y-m-d H:i') . ' UTC+3';
         $timezone = 'Asia/Riyadh (UTC+3)';
 
         return view('admin.reports.dashboard', compact('kpis', 'revenueTrend', 'subscriptionFunnel', 'deliverySla', 'exceptions', 'operationalMetrics', 'lastUpdated', 'timezone'));
     }
 
-    public function reportRevenue()
+    public function reportRevenue(ReportsApiService $reportsApi)
     {
-        $kpis = [
+        $kpis = $this->apiData($reportsApi->revenueKpis(), fn () => []);
+        $revenueTrendApi = $this->apiData($reportsApi->revenueTrend(), fn () => []);
+        $paymentTrendsApi = $this->apiData($reportsApi->revenuePaymentTrends(), fn () => []);
+        $refundVolumeApi = $this->apiData($reportsApi->revenueRefundVolume(), fn () => []);
+        $paymentMethodsApi = $this->apiData($reportsApi->revenuePaymentMethods(), fn () => []);
+        $revenueByPlanApi = $this->apiData($reportsApi->revenueByPlan(), fn () => []);
+
+        if (empty($kpis)) $kpis = [
             ['label' => 'Total Revenue', 'value' => 'SAR 487,320', 'delta' => '+15.4%', 'trend' => 'up', 'color' => '#173327'],
             ['label' => 'Captured Payments', 'value' => 'SAR 480,560', 'delta' => '+14.8%', 'trend' => 'up', 'color' => '#033133'],
             ['label' => 'Refund Volume', 'value' => 'SAR 6,760', 'delta' => '-2.1%', 'trend' => 'down', 'color' => '#ef4444'],
@@ -422,32 +701,32 @@ class AdminController extends Controller
             ['label' => 'Payment Failure Rate', 'value' => '1.4%', 'delta' => '-0.2%', 'trend' => 'down', 'color' => '#ef4444'],
         ];
 
-        $revenueTrend = [
+        $revenueTrend = !empty($revenueTrendApi) ? $revenueTrendApi : [
             'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
             'current' => [285000, 312000, 358000, 389000, 421800, 487320],
             'previous' => [240000, 268000, 295000, 320000, 352000, 398000],
         ];
 
-        $paymentTrends = [
+        $paymentTrends = !empty($paymentTrendsApi) ? $paymentTrendsApi : [
             'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
             'success' => [98.1, 98.3, 98.4, 98.5, 98.5, 98.6],
             'failure' => [1.9, 1.7, 1.6, 1.5, 1.5, 1.4],
         ];
 
-        $refundVolume = [
+        $refundVolume = !empty($refundVolumeApi) ? $refundVolumeApi : [
             'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
             'amount' => [4200, 3800, 5100, 4600, 5200, 6760],
             'count' => [10, 9, 12, 11, 13, 16],
         ];
 
-        $paymentMethods = [
+        $paymentMethods = !empty($paymentMethodsApi) ? $paymentMethodsApi : [
             ['method' => 'Credit Card', 'count' => 1248, 'volume' => 427080, 'pct' => 51.8, 'successRate' => 99.2],
             ['method' => 'Apple Pay', 'count' => 687, 'volume' => 234980, 'pct' => 28.5, 'successRate' => 99.5],
             ['method' => 'Mada', 'count' => 312, 'volume' => 106640, 'pct' => 13.0, 'successRate' => 97.8],
             ['method' => 'Bank Transfer', 'count' => 156, 'volume' => 53420, 'pct' => 6.5, 'successRate' => 96.1],
         ];
 
-        $revenueByPlan = [
+        $revenueByPlan = !empty($revenueByPlanApi) ? $revenueByPlanApi : [
             ['plan' => 'Weight Loss Pro', 'revenue' => 161280, 'pct' => 33.1, 'color' => '#173327'],
             ['plan' => 'Muscle Gain', 'revenue' => 118560, 'pct' => 24.3, 'color' => '#033133'],
             ['plan' => 'Keto Premium', 'revenue' => 89460, 'pct' => 18.4, 'color' => '#3b82f6'],
@@ -455,35 +734,42 @@ class AdminController extends Controller
             ['plan' => 'Corporate', 'revenue' => 43800, 'pct' => 9.0, 'color' => '#8b5cf6'],
         ];
 
-        $lastUpdated = '2025-06-30 14:32 UTC+3';
+        $lastUpdated = now()->format('Y-m-d H:i') . ' UTC+3';
         $timezone = 'Asia/Riyadh (UTC+3)';
 
         return view('admin.reports.revenue', compact('kpis', 'revenueTrend', 'paymentTrends', 'refundVolume', 'paymentMethods', 'revenueByPlan', 'lastUpdated', 'timezone'));
     }
 
-    public function reportDelivery()
+    public function reportDelivery(ReportsApiService $reportsApi)
     {
-        $kpis = [
+        $kpis = $this->apiData($reportsApi->deliveryKpis(), fn () => []);
+        $onTimeTrendApi = $this->apiData($reportsApi->deliveryOnTimeTrend(), fn () => []);
+        $zonePerformanceApi = $this->apiData($reportsApi->deliveryZonePerformance(), fn () => []);
+        $exceptionReasonsApi = $this->apiData($reportsApi->deliveryExceptionReasons(), fn () => []);
+        $driverProductivityApi = $this->apiData($reportsApi->deliveryDriverProductivity(), fn () => []);
+        $deliveryHeatmapApi = $this->apiData($reportsApi->deliveryHeatmap(), fn () => []);
+
+        if (empty($kpis)) $kpis = [
             ['label' => 'On-Time Rate', 'value' => '94.2%', 'delta' => '+1.8%', 'trend' => 'up', 'color' => '#173327'],
             ['label' => 'Total Deliveries', 'value' => '1,039', 'delta' => '+87', 'trend' => 'up', 'color' => '#033133'],
             ['label' => 'Failed Deliveries', 'value' => '12', 'delta' => '-3', 'trend' => 'down', 'color' => '#ef4444'],
             ['label' => 'Avg Delivery Time', 'value' => '34 min', 'delta' => '-2 min', 'trend' => 'down', 'color' => '#f9ac00'],
         ];
 
-        $onTimeTrend = [
+        $onTimeTrend = !empty($onTimeTrendApi) ? $onTimeTrendApi : [
             'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
             'rate' => [89.1, 90.5, 91.2, 92.8, 93.5, 94.2],
             'target' => [92, 92, 92, 92, 92, 92],
         ];
 
-        $zonePerformance = [
+        $zonePerformance = !empty($zonePerformanceApi) ? $zonePerformanceApi : [
             ['zone' => 'Riyadh Central', 'onTime' => 96.2, 'total' => 412, 'avgTime' => '28 min', 'failed' => 3],
             ['zone' => 'Riyadh North', 'onTime' => 93.8, 'total' => 287, 'avgTime' => '32 min', 'failed' => 4],
             ['zone' => 'Riyadh South', 'onTime' => 91.5, 'total' => 198, 'avgTime' => '38 min', 'failed' => 2],
             ['zone' => 'Jeddah', 'onTime' => 88.4, 'total' => 142, 'avgTime' => '45 min', 'failed' => 3],
         ];
 
-        $exceptionReasons = [
+        $exceptionReasons = !empty($exceptionReasonsApi) ? $exceptionReasonsApi : [
             ['reason' => 'Customer Unavailable', 'count' => 5, 'pct' => 41.7],
             ['reason' => 'Traffic Delay', 'count' => 3, 'pct' => 25.0],
             ['reason' => 'Wrong Address', 'count' => 2, 'pct' => 16.7],
@@ -491,7 +777,7 @@ class AdminController extends Controller
             ['reason' => 'Weather', 'count' => 1, 'pct' => 8.3],
         ];
 
-        $driverProductivity = [
+        $driverProductivity = !empty($driverProductivityApi) ? $driverProductivityApi : [
             ['driver' => 'Yousef', 'deliveries' => 142, 'onTime' => 97.2, 'avgTime' => '26 min', 'rating' => 4.9],
             ['driver' => 'Hassan', 'deliveries' => 98, 'onTime' => 94.9, 'avgTime' => '31 min', 'rating' => 4.7],
             ['driver' => 'Ali', 'deliveries' => 76, 'onTime' => 92.1, 'avgTime' => '35 min', 'rating' => 4.5],
@@ -499,7 +785,7 @@ class AdminController extends Controller
             ['driver' => 'Sami', 'deliveries' => 38, 'onTime' => 90.5, 'avgTime' => '39 min', 'rating' => 4.4],
         ];
 
-        $deliveryHeatmap = [
+        $deliveryHeatmap = !empty($deliveryHeatmapApi) ? $deliveryHeatmapApi : [
             ['day' => 'Mon', 'hours' => [12, 18, 28, 42, 38, 22, 14, 8]],
             ['day' => 'Tue', 'hours' => [14, 20, 32, 45, 40, 24, 16, 10]],
             ['day' => 'Wed', 'hours' => [15, 22, 30, 48, 42, 26, 18, 12]],
@@ -510,15 +796,22 @@ class AdminController extends Controller
         ];
         $heatmapHours = ['06-08', '08-10', '10-12', '12-14', '14-16', '16-18', '18-20', '20-22'];
 
-        $lastUpdated = '2025-06-30 14:32 UTC+3';
+        $lastUpdated = now()->format('Y-m-d H:i') . ' UTC+3';
         $timezone = 'Asia/Riyadh (UTC+3)';
 
         return view('admin.reports.delivery', compact('kpis', 'onTimeTrend', 'zonePerformance', 'exceptionReasons', 'driverProductivity', 'deliveryHeatmap', 'heatmapHours', 'lastUpdated', 'timezone'));
     }
 
-    public function reportSubscriptions()
+    public function reportSubscriptions(ReportsApiService $reportsApi)
     {
-        $kpis = [
+        $kpis = $this->apiData($reportsApi->subscriptionsKpis(), fn () => []);
+        $newVsChurnApi = $this->apiData($reportsApi->subscriptionsNewVsChurn(), fn () => []);
+        $renewalTrendApi = $this->apiData($reportsApi->subscriptionsRenewalTrend(), fn () => []);
+        $planRankingApi = $this->apiData($reportsApi->subscriptionsPlanRanking(), fn () => []);
+        $goalDistributionApi = $this->apiData($reportsApi->subscriptionsGoalDistribution(), fn () => []);
+        $corporateMetricsApi = $this->apiData($reportsApi->subscriptionsCorporateMetrics(), fn () => []);
+
+        if (empty($kpis)) $kpis = [
             ['label' => 'Active Subscriptions', 'value' => '342', 'delta' => '+12', 'trend' => 'up', 'color' => '#173327'],
             ['label' => 'New Subscribers', 'value' => '48', 'delta' => '+8.2%', 'trend' => 'up', 'color' => '#3b82f6'],
             ['label' => 'Churned', 'value' => '8', 'delta' => '-2', 'trend' => 'down', 'color' => '#ef4444'],
@@ -527,47 +820,53 @@ class AdminController extends Controller
             ['label' => 'MRR', 'value' => 'SAR 139,680', 'delta' => '+12.4%', 'trend' => 'up', 'color' => '#033133'],
         ];
 
-        $newVsChurn = [
+        $newVsChurn = !empty($newVsChurnApi) ? $newVsChurnApi : [
             'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
             'new' => [32, 38, 42, 45, 44, 48],
             'churn' => [12, 10, 9, 11, 10, 8],
         ];
 
-        $renewalTrend = [
+        $renewalTrend = !empty($renewalTrendApi) ? $renewalTrendApi : [
             'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
             'rate' => [82.1, 83.5, 84.8, 85.2, 86.0, 87.1],
         ];
 
-        $planRanking = [
+        $planRanking = !empty($planRankingApi) ? $planRankingApi : [
             ['plan' => 'Weight Loss Pro', 'subscribers' => 128, 'revenue' => 53760, 'retention' => 91.4, 'churn' => 1.8, 'color' => '#173327'],
             ['plan' => 'Muscle Gain', 'subscribers' => 94, 'revenue' => 35720, 'retention' => 88.2, 'churn' => 2.5, 'color' => '#033133'],
             ['plan' => 'Maintenance', 'subscribers' => 76, 'revenue' => 22420, 'retention' => 85.5, 'churn' => 3.1, 'color' => '#f9ac00'],
             ['plan' => 'Keto Premium', 'subscribers' => 44, 'revenue' => 22440, 'retention' => 82.1, 'churn' => 3.8, 'color' => '#3b82f6'],
         ];
 
-        $goalDistribution = [
+        $goalDistribution = !empty($goalDistributionApi) ? $goalDistributionApi : [
             ['goal' => 'Weight Loss', 'count' => 128, 'pct' => 37.4, 'color' => '#173327'],
             ['goal' => 'Muscle Gain', 'count' => 94, 'pct' => 27.5, 'color' => '#033133'],
             ['goal' => 'Maintenance', 'count' => 76, 'pct' => 22.2, 'color' => '#f9ac00'],
             ['goal' => 'Keto', 'count' => 44, 'pct' => 12.9, 'color' => '#3b82f6'],
         ];
 
-        $corporateMetrics = [
+        $corporateMetrics = !empty($corporateMetricsApi) ? $corporateMetricsApi : [
             ['label' => 'Active Corporate Accounts', 'value' => 12, 'color' => '#033133'],
             ['label' => 'Employee Enrollments', 'value' => 186, 'color' => '#173327'],
             ['label' => 'Corporate Utilization', 'value' => '72.4%', 'color' => '#f9ac00'],
             ['label' => 'Corporate Revenue Share', 'value' => '9.0%', 'color' => '#8b5cf6'],
         ];
 
-        $lastUpdated = '2025-06-30 14:32 UTC+3';
+        $lastUpdated = now()->format('Y-m-d H:i') . ' UTC+3';
         $timezone = 'Asia/Riyadh (UTC+3)';
 
         return view('admin.reports.subscriptions', compact('kpis', 'newVsChurn', 'renewalTrend', 'planRanking', 'goalDistribution', 'corporateMetrics', 'lastUpdated', 'timezone'));
     }
 
-    public function reportNotifications()
+    public function reportNotifications(ReportsApiService $reportsApi)
     {
-        $kpis = [
+        $kpis = $this->apiData($reportsApi->notificationsKpis(), fn () => []);
+        $sendVolumeApi = $this->apiData($reportsApi->notificationsSendVolume(), fn () => []);
+        $channelMixApi = $this->apiData($reportsApi->notificationsChannelMix(), fn () => []);
+        $campaignPerformanceApi = $this->apiData($reportsApi->notificationsCampaignPerformance(), fn () => []);
+        $failedDiagnosticsApi = $this->apiData($reportsApi->notificationsFailedDiagnostics(), fn () => []);
+
+        if (empty($kpis)) $kpis = [
             ['label' => 'Total Sent', 'value' => '18,420', 'delta' => '+1,240', 'trend' => 'up', 'color' => '#033133'],
             ['label' => 'Delivery Rate', 'value' => '98.4%', 'delta' => '+0.5%', 'trend' => 'up', 'color' => '#173327'],
             ['label' => 'Open Rate', 'value' => '67.2%', 'delta' => '+2.1%', 'trend' => 'up', 'color' => '#3b82f6'],
@@ -576,7 +875,7 @@ class AdminController extends Controller
             ['label' => 'Throughput', 'value' => '420/min', 'delta' => '+8%', 'trend' => 'up', 'color' => '#8b5cf6'],
         ];
 
-        $sendVolumeByChannel = [
+        $sendVolumeByChannel = !empty($sendVolumeApi) ? $sendVolumeApi : [
             'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
             'email' => [1820, 2140, 2480, 2720, 2980, 3120],
             'sms' => [980, 1120, 1340, 1480, 1620, 1780],
@@ -584,14 +883,14 @@ class AdminController extends Controller
             'whatsapp' => [280, 340, 420, 480, 540, 620],
         ];
 
-        $channelMix = [
+        $channelMix = !empty($channelMixApi) ? $channelMixApi : [
             ['channel' => 'Email', 'count' => 14260, 'pct' => 51.6, 'color' => '#033133'],
             ['channel' => 'SMS', 'count' => 6320, 'pct' => 22.9, 'color' => '#173327'],
             ['channel' => 'Push', 'count' => 4280, 'pct' => 15.5, 'color' => '#f9ac00'],
             ['channel' => 'WhatsApp', 'count' => 2680, 'pct' => 9.7, 'color' => '#8b5cf6'],
         ];
 
-        $campaignPerformance = [
+        $campaignPerformance = !empty($campaignPerformanceApi) ? $campaignPerformanceApi : [
             ['name' => 'Summer Promo 2025', 'channel' => 'Email', 'sent' => 1248, 'opened' => 892, 'clicked' => 312, 'ctr' => 25.0, 'converted' => 48],
             ['name' => 'Ramadan Special', 'channel' => 'SMS', 'sent' => 2156, 'opened' => 0, 'clicked' => 287, 'ctr' => 13.3, 'converted' => 32],
             ['name' => 'Renewal Reminder', 'channel' => 'Push', 'sent' => 342, 'opened' => 0, 'clicked' => 89, 'ctr' => 26.0, 'converted' => 24],
@@ -599,7 +898,7 @@ class AdminController extends Controller
             ['name' => 'New Menu Launch', 'channel' => 'WhatsApp', 'sent' => 820, 'opened' => 0, 'clicked' => 156, 'ctr' => 19.0, 'converted' => 18],
         ];
 
-        $failedDiagnostics = [
+        $failedDiagnostics = !empty($failedDiagnosticsApi) ? $failedDiagnosticsApi : [
             ['id' => 'NF-001', 'channel' => 'Email', 'recipient' => 'user@mail.invalid', 'reason' => 'Bounced - Invalid Email', 'campaign' => 'Summer Promo', 'time' => '2025-06-30 09:15'],
             ['id' => 'NF-002', 'channel' => 'SMS', 'recipient' => '+966500000000', 'reason' => 'Carrier Rejected', 'campaign' => 'Ramadan Special', 'time' => '2025-06-30 08:42'],
             ['id' => 'NF-003', 'channel' => 'Push', 'recipient' => 'device_token_expired', 'reason' => 'Device Token Expired', 'campaign' => 'Renewal Reminder', 'time' => '2025-06-29 14:20'],
@@ -608,22 +907,27 @@ class AdminController extends Controller
             ['id' => 'NF-006', 'channel' => 'SMS', 'recipient' => '+966522222222', 'reason' => 'Rate Limit Exceeded', 'campaign' => 'Ramadan Special', 'time' => '2025-06-28 11:15'],
         ];
 
-        $lastUpdated = '2025-06-30 14:32 UTC+3';
+        $lastUpdated = now()->format('Y-m-d H:i') . ' UTC+3';
         $timezone = 'Asia/Riyadh (UTC+3)';
 
         return view('admin.reports.notifications', compact('kpis', 'sendVolumeByChannel', 'channelMix', 'campaignPerformance', 'failedDiagnostics', 'lastUpdated', 'timezone'));
     }
 
-    public function reportAudit()
+    public function reportAudit(ReportsApiService $reportsApi)
     {
-        $kpis = [
+        $kpis = $this->apiData($reportsApi->auditKpis(), fn () => []);
+        $changeHotspotsApi = $this->apiData($reportsApi->auditChangeHotspots(), fn () => []);
+        $auditEventsApi = $this->apiData($reportsApi->auditEvents(), fn () => []);
+        $exportHistoryApi = $this->apiData($reportsApi->auditExportHistory(), fn () => []);
+
+        if (empty($kpis)) $kpis = [
             ['label' => 'Privileged Actions', 'value' => '1,248', 'delta' => '+82', 'trend' => 'up', 'color' => '#033133'],
             ['label' => 'Export Requests', 'value' => '47', 'delta' => '+12', 'trend' => 'up', 'color' => '#173327'],
             ['label' => 'Failed Access Attempts', 'value' => '3', 'delta' => '-1', 'trend' => 'down', 'color' => '#ef4444'],
             ['label' => 'Compliance Score', 'value' => '98.2%', 'delta' => '+0.4%', 'trend' => 'up', 'color' => '#f9ac00'],
         ];
 
-        $changeHotspots = [
+        $changeHotspots = !empty($changeHotspotsApi) ? $changeHotspotsApi : [
             ['module' => 'Subscriptions', 'changes' => 342, 'pct' => 27.4, 'color' => '#173327'],
             ['module' => 'Orders', 'changes' => 287, 'pct' => 23.0, 'color' => '#033133'],
             ['module' => 'Customers', 'changes' => 218, 'pct' => 17.5, 'color' => '#3b82f6'],
@@ -632,7 +936,7 @@ class AdminController extends Controller
             ['module' => 'Settings', 'changes' => 121, 'pct' => 9.7, 'color' => '#ef4444'],
         ];
 
-        $auditEvents = [
+        $auditEvents = !empty($auditEventsApi) ? $auditEventsApi : [
             ['id' => 'AUD-001', 'actor' => 'admin@nutriomeals.com', 'action' => 'EXPORT_PDF', 'module' => 'Reports', 'detail' => 'Exported Revenue Summary report', 'ip' => '10.0.0.12', 'time' => '2025-06-30 14:20'],
             ['id' => 'AUD-002', 'actor' => 'admin@nutriomeals.com', 'action' => 'UPDATE', 'module' => 'Subscriptions', 'detail' => 'Modified Weight Loss Pro pricing 400→420', 'ip' => '10.0.0.12', 'time' => '2025-06-30 13:45'],
             ['id' => 'AUD-003', 'actor' => 'ops@nutriomeals.com', 'action' => 'DELETE', 'module' => 'Orders', 'detail' => 'Cancelled order ORD-2395', 'ip' => '10.0.0.18', 'time' => '2025-06-30 12:30'],
@@ -643,7 +947,7 @@ class AdminController extends Controller
             ['id' => 'AUD-008', 'actor' => 'admin@nutriomeals.com', 'action' => 'UPDATE_ROLE', 'module' => 'Settings', 'detail' => 'Changed user role: ops@nutriomeals.com → manager', 'ip' => '10.0.0.12', 'time' => '2025-06-29 16:20'],
         ];
 
-        $exportHistory = [
+        $exportHistory = !empty($exportHistoryApi) ? $exportHistoryApi : [
             ['id' => 'EXP-047', 'type' => 'Revenue Summary', 'format' => 'PDF', 'requested_by' => 'admin@nutriomeals.com', 'status' => 'completed', 'size' => '2.4 MB', 'time' => '2025-06-30 14:20'],
             ['id' => 'EXP-046', 'type' => 'Customer Growth', 'format' => 'Excel', 'requested_by' => 'admin@nutriomeals.com', 'status' => 'completed', 'size' => '1.8 MB', 'time' => '2025-06-30 11:15'],
             ['id' => 'EXP-045', 'type' => 'Delivery Efficiency', 'format' => 'Excel', 'requested_by' => 'ops@nutriomeals.com', 'status' => 'completed', 'size' => '3.2 MB', 'time' => '2025-06-29 15:30'],
@@ -652,7 +956,7 @@ class AdminController extends Controller
             ['id' => 'EXP-042', 'type' => 'Campaign Performance', 'format' => 'Excel', 'requested_by' => 'marketing@nutriomeals.com', 'status' => 'failed', 'size' => '—', 'time' => '2025-06-26 14:15'],
         ];
 
-        $lastUpdated = '2025-06-30 14:32 UTC+3';
+        $lastUpdated = now()->format('Y-m-d H:i') . ' UTC+3';
         $timezone = 'Asia/Riyadh (UTC+3)';
 
         return view('admin.reports.audit', compact('kpis', 'changeHotspots', 'auditEvents', 'exportHistory', 'lastUpdated', 'timezone'));

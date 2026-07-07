@@ -16,6 +16,11 @@ class UserApiService extends BaseApiService
         return $this->get('users.list', [], $query);
     }
 
+    public function show(int $userId): array
+    {
+        return $this->get('users.show', ['user_id' => $userId]);
+    }
+
     public function updateRole(int $userId, string $role): array
     {
         return $this->patch('users.update_role', ['user_id' => $userId], [
