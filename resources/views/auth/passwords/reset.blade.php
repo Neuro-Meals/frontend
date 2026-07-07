@@ -16,19 +16,26 @@
 
         {{-- Form --}}
         <div class="p-8" x-data="{ loading: false }">
+            @if (session('status'))
+                <div class="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm flex items-center gap-2">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    {{ session('status') }}
+                </div>
+            @endif
+
             <form method="POST" action="{{ route('password.update') }}" class="space-y-5" @submit="loading = true">
                 @csrf
 
                 {{-- OTP Code --}}
                 <div>
-                    <label for="token" class="block text-sm font-semibold text-gray-700 mb-1.5">Reset Code</label>
+                    <label for="token" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Reset Code') }}</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                         </div>
                         <input id="token" type="text" name="token" value="{{ $token }}" required maxlength="6" pattern="[0-9]{6}"
                             class="w-full pl-11 pr-4 py-2.5 rounded-lg border @error('token') border-red-300 ring-2 ring-red-100 @else border-gray-200 @enderror focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm"
-                            placeholder="Enter the 6-digit code">
+                            placeholder="{{ __('Enter the 6-digit code') }}">
                     </div>
                     @error('token')
                         <p class="mt-1.5 text-sm text-red-600 flex items-center gap-1">
@@ -40,7 +47,7 @@
 
                 {{-- Email --}}
                 <div>
-                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
+                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Email') }}</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,7 +68,7 @@
 
                 {{-- Password --}}
                 <div>
-                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-1.5">New Password</label>
+                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('New Password') }}</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,7 +77,7 @@
                         </div>
                         <input id="password" type="password" name="password" required autocomplete="new-password"
                             class="w-full pl-11 pr-4 py-2.5 rounded-lg border @error('password') border-red-300 ring-2 ring-red-100 @else border-gray-200 @enderror focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm"
-                            placeholder="Create a strong password">
+                            placeholder="{{ __('Create a new secure password') }}">
                     </div>
                     @error('password')
                         <p class="mt-1.5 text-sm text-red-600 flex items-center gap-1">
@@ -82,7 +89,7 @@
 
                 {{-- Confirm Password --}}
                 <div>
-                    <label for="password-confirm" class="block text-sm font-semibold text-gray-700 mb-1.5">Confirm Password</label>
+                    <label for="password-confirm" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Confirm Password') }}</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,7 +98,7 @@
                         </div>
                         <input id="password-confirm" type="password" name="password_confirmation" required autocomplete="new-password"
                             class="w-full pl-11 pr-4 py-2.5 rounded-lg border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm"
-                            placeholder="Confirm your password">
+                            placeholder="{{ __('Re-enter your password') }}">
                     </div>
                 </div>
 
@@ -106,7 +113,7 @@
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <span x-text="loading ? '{{ __('Please wait...') }}' : 'Reset Password'"></span>
+                    <span x-text="loading ? '{{ __('Please wait...') }}' : '{{ __('Reset Password') }}'"></span>
                 </button>
             </form>
         </div>
