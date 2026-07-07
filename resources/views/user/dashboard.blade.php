@@ -44,20 +44,21 @@
     <img src="{{ asset('images/meals/top-view-healthy-diet-salad-with-grilled-chicken-broccoli-cauliflower-tomato-lettuce-avocado-lettuce_141793-2438.jpg') }}" alt="Healthy Meal" class="absolute inset-0 w-full h-full object-cover">
     <div class="absolute inset-0 bg-gradient-to-r from-[#173327]/95 via-[#173327]/70 to-[#6E7A25]/40"></div>
     <div class="relative z-10 p-5 sm:p-8 lg:p-10 flex flex-col justify-center min-h-[200px] sm:min-h-[240px]">
+        @php $heroMeal = $upcomingMeals[0] ?? ['name' => 'Grilled Chicken Power Bowl', 'calories' => 520, 'protein' => 42, 'description' => 'Fresh greens, grilled chicken, avocado & broccoli — packed with protein to fuel your day.', 'image' => 'images/meals/top-view-healthy-diet-salad-with-grilled-chicken-broccoli-cauliflower-tomato-lettuce-avocado-lettuce_141793-2438.jpg']; @endphp
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#6E7A25]/30 backdrop-blur-sm text-[#949B50] text-[10px] font-bold uppercase tracking-wider w-fit mb-3">
             <span class="w-1.5 h-1.5 bg-[#949B50] rounded-full animate-pulse"></span>
             {{ __('Today\'s Pick') }}
         </span>
-        <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight max-w-md leading-tight">{{ __('Grilled Chicken Power Bowl') }}</h2>
-        <p class="text-xs sm:text-sm text-white/60 mt-2 max-w-sm leading-relaxed">{{ __('Fresh greens, grilled chicken, avocado & broccoli — packed with protein to fuel your day.') }}</p>
+        <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight max-w-md leading-tight">{{ $heroMeal['name'] }}</h2>
+        <p class="text-xs sm:text-sm text-white/60 mt-2 max-w-sm leading-relaxed">{{ $heroMeal['description'] ?? __('Fresh greens, grilled chicken, avocado & broccoli — packed with protein to fuel your day.') }}</p>
         <div class="flex items-center gap-4 mt-4">
             <div class="flex items-center gap-1.5">
                 <svg class="w-4 h-4 text-[#949B50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                <span class="text-xs font-bold text-white">520 {{ __('kcal') }}</span>
+                <span class="text-xs font-bold text-white">{{ $heroMeal['calories'] ?? 520 }} {{ __('kcal') }}</span>
             </div>
             <div class="flex items-center gap-1.5">
                 <svg class="w-4 h-4 text-[#949B50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17"/></svg>
-                <span class="text-xs font-bold text-white">42g {{ __('Protein') }}</span>
+                <span class="text-xs font-bold text-white">{{ $heroMeal['protein'] ?? 42 }}g {{ __('Protein') }}</span>
             </div>
             <a href="{{ route('user.meals') }}" class="ml-auto px-4 py-2 bg-[#6E7A25] hover:bg-[#949B50] text-white text-xs font-bold rounded-lg transition-all hover:shadow-lg hover:shadow-[#6E7A25]/30 active:scale-95">
                 {{ __('View Meal') }} →
