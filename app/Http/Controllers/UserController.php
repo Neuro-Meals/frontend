@@ -226,8 +226,8 @@ class UserController extends Controller
             'status' => $activeSubscription['status'] ?? 'active',
             'started' => !empty($activeSubscription['start_date']) ? date('Y-m-d', strtotime($activeSubscription['start_date'])) : 'N/A',
             'renewal' => !empty($activeSubscription['end_date']) ? date('M d, Y', strtotime($activeSubscription['end_date'])) : 'N/A',
-            'mealsRemaining' => ($activePlanDetails['total_meals'] ?? 0) - ($activeSubscription['meals_consumed'] ?? 0),
-            'mealsTotal' => $activePlanDetails['total_meals'] ?? 0,
+            'mealsRemaining' => max(0, ($activePlanDetails['total_meals'] ?? 0) - ($activeSubscription['meals_consumed'] ?? 0)),
+            'mealsTotal' => max(1, $activePlanDetails['total_meals'] ?? 0),
             'calories' => $activePlanDetails['calories'] ?? '1500-1800',
             'color' => '#259B00',
         ];

@@ -25,8 +25,9 @@
             <div class="text-xs text-white/50 mt-1">Meals remaining</div>
         </div>
     </div>
+    @php $progressWidth = ($activePlan['mealsTotal'] ?? 0) > 0 ? round($activePlan['mealsRemaining'] / $activePlan['mealsTotal'] * 100) : 0; @endphp
     <div class="mt-4 h-2 bg-white/10 rounded-full overflow-hidden">
-        <div class="h-full bg-white rounded-full transition-all duration-1000" style="width: {{ round($activePlan['mealsRemaining'] / $activePlan['mealsTotal'] * 100) }}%"></div>
+        <div class="h-full bg-white rounded-full transition-all duration-1000" style="width: {{ $progressWidth }}%"></div>
     </div>
 </div>
 
