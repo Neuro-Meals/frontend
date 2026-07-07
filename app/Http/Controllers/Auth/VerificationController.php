@@ -64,8 +64,8 @@ class VerificationController extends Controller
         $message = $response['message'] ?? '';
         $alreadyVerified = is_string($message) && str_contains(strtolower($message), 'already verified');
         $successMessage = $alreadyVerified
-            ? 'Your email is already verified. You can log in now.'
-            : 'Email verified successfully! You can now log in.';
+            ? __('Your email is already verified. You can log in now.')
+            : __('Email verified successfully! You can now log in.');
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
@@ -117,25 +117,29 @@ class VerificationController extends Controller
 
         // API may signal that the email is already verified
         if (is_string($message) && str_contains(strtolower($message), 'already verified')) {
+            $successMessage = __('Your email is already verified. You can log in now.');
+
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
                     'already_verified' => true,
-                    'message' => 'Your email is already verified. You can log in now.',
+                    'message' => $successMessage,
                     'redirect' => route('login'),
                 ]);
             }
 
-            return redirect()->route('login')->with('status', 'Your email is already verified. You can log in now.');
+            return redirect()->route('login')->with('status', $successMessage);
         }
+
+        $successMessage = __('A new verification OTP has been sent to your email.');
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'A new verification OTP has been sent to your email.',
+                'message' => $successMessage,
             ]);
         }
 
-        return back()->with('status', 'A new verification OTP has been sent to your email.');
+        return back()->with('status', $successMessage);
     }
 }
