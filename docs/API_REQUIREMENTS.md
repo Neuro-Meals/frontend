@@ -1,154 +1,415 @@
 # Nutrio Meals - Backend API Requirements
 
-This document lists all API endpoints currently used by the customer dashboard, plus the missing endpoints and fields required to eliminate hardcoded/mock data.
+This document maps the full OpenAPI 3.1.0 specification to the customer dashboard, lists missing fields, and defines missing endpoints needed to remove all hardcoded/mock data.
 
 ---
 
-## Existing API Endpoints Used
+## API Specification Summary
 
-| Section | Method | Endpoint | Service | Purpose |
-|---------|--------|----------|---------|---------|
-| Auth | POST | `/auth/login` | AuthApiService | Login + get token |
-| Auth | POST | `/auth/register` | AuthApiService | Register new user |
-| Auth | POST | `/auth/verify-email` | AuthApiService | Verify email with OTP |
-| Auth | POST | `/auth/resend-verification-otp` | AuthApiService | Resend OTP |
-| Auth | GET | `/auth/me` | AuthApiService | Get logged-in user |
-| Profile | GET | `/profile/` | ProfileApiService | Get full profile |
-| Profile | PUT | `/profile/` | ProfileApiService | Update profile |
-| Meals | GET | `/meals/` | MealApiService | List meals |
-| Plans | GET | `/plans/` | PlanApiService | List plans |
-| Plans | GET | `/plans/{plan_id}` | PlanApiService | Plan details |
-| Subscriptions | GET | `/subscriptions/my` | SubscriptionApiService | User subscriptions |
-| Subscriptions | POST | `/subscriptions/` | SubscriptionApiService | Create subscription |
+The backend exposes the following resource groups:
+
+- **Auth** - Login, register, verify email, forgot/reset password
+- **Users** - User profiles and role management
+- **RBAC** - Roles and permissions
+- **Profile** - Authenticated user profile update
+- **Meal Categories** - Meal categorization
+- **Meals** - Meal catalog and management
+- **Meal Plans** - Subscription plans
+- **Subscriptions** - Customer subscriptions
+- **Orders** - Orders derived from subscriptions
+- **Deliveries** - Delivery scheduling and tracking
+- **Notifications** - User notifications
+
+Authentication is **OAuth2 Password Bearer** using `/auth/login` as the token URL.
 
 ---
 
-## Missing Endpoints / Fields Required
+## Existing Endpoints (From OpenAPI Spec)
 
-### 1. Orders API
+### Auth
 
-Currently orders are derived from subscriptions. A dedicated orders endpoint is needed.
+| Method | Endpoint | Purpose | Request Schema |
+|--------|----------|---------|----------------|
+| POST | `/auth/register` | Register new user | `UserCreate` |
+| POST | `/auth/verify-email` | Verify email with OTP | `VerifyEmailOTP` |
+| POST | `/auth/resend-verification-otp` | Resend OTP | `ResendVerificationOTP` |
+| POST | `/auth/login` | Login and get token | `LoginRequest` |
+| GET | `/auth/me` | Get logged-in user | - |
+| POST | `/auth/forgot-password` | Request password reset | `ForgotPasswordRequest` |
+| POST | `/auth/reset-password` | Reset password with OTP | `ResetPasswordRequest` |
+| POST | `/auth/change-password` | Change password | `ChangePasswordRequest` |
 
-**Required endpoint:**
+### Users
 
-```http
-GET /orders/my
-```
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| GET | `/users/me` | My profile |
+| GET | `/users/` | List users (admin) |
+| PATCH | `/users/{user_id}/role` | Update user role |
 
-**Expected JSON response:**
+### Profile
+
+| Method | Endpoint | Purpose | Request Schema |
+|--------|----------|---------|----------------|
+| GET | `/profile/` | Get profile | - |
+| PUT | `/profile/` | Update profile | `ProfileUpdate` |
+
+### Meal Categories
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| GET | `/meal-categories/` | List categories |
+| POST | `/meal-categories/` | Create category |
+| GET | `/meal-categories/{category_id}` | Get category |
+| PUT | `/meal-categories/{category_id}` | Update category |
+| DELETE | `/meal-categories/{category_id}` | Delete category |
+
+### Meals
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| GET | `/meals/` | List meals |
+| POST | `/meals/` | Create meal |
+| GET | `/meals/{meal_id}` | Get meal |
+| PUT | `/meals/{meal_id}` | Update meal |
+| DELETE | `/meals/{meal_id}` | Delete meal |
+
+### Meal Plans
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| GET | `/plans/` | List plans |
+| POST | `/plans/` | Create plan |
+| GET | `/plans/{plan_id}` | Get plan |
+| PUT | `/plans/{plan_id}` | Update plan |
+| DELETE | `/plans/{plan_id}` | Delete plan |
+
+### Subscriptions
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| POST | `/subscriptions/` | Create subscription |
+| GET | `/subscriptions/` | List subscriptions (admin) |
+| GET | `/subscriptions/my` | My subscriptions |
+| GET | `/subscriptions/{subscription_id}` | Get subscription |
+| PATCH | `/subscriptions/{subscription_id}` | Admin update subscription |
+| POST | `/subscriptions/{subscription_id}/cancel` | Cancel subscription |
+
+### Orders
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| POST | `/orders/from-subscription` | Create order from subscription |
+| GET | `/orders/my` | My orders |
+| GET | `/orders/` | List orders (admin) |
+| GET | `/orders/{order_id}` | Get order |
+| PATCH | `/orders/{order_id}/status` | Update order status |
+| POST | `/orders/{order_id}/cancel` | Cancel order |
+
+### Deliveries
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| GET | `/deliveries/` | List deliveries (admin) |
+| POST | `/deliveries/` | Create delivery |
+| GET | `/deliveries/my` | My deliveries |
+| GET | `/deliveries/driver/my` | Driver deliveries |
+| GET | `/deliveries/{delivery_id}` | Get delivery |
+| PATCH | `/deliveries/{delivery_id}/assign-driver` | Assign driver |
+| PATCH | `/deliveries/{delivery_id}/status` | Update delivery status |
+| PATCH | `/deliveries/{delivery_id}/location` | Update driver location |
+
+### Notifications
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| GET | `/notifications/` | List notifications (admin) |
+| POST | `/notifications/` | Create notification |
+| GET | `/notifications/my` | My notifications |
+| GET | `/notifications/{notification_id}` | Get notification |
+| PATCH | `/notifications/{notification_id}/read` | Mark as read |
+| PATCH | `/notifications/my/read-all` | Mark all as read |
+
+---
+
+## Key Schemas Reference
+
+### UserCreate (Register)
 
 ```json
 {
-  "data": [
-    {
-      "id": "ORD-2401",
-      "subscription_id": 12,
-      "plan_name": "Weight Loss Pro",
-      "meals": 3,
-      "amount": 420,
-      "status": "delivered",
-      "date": "2025-06-30T00:00:00Z"
-    }
-  ],
-  "stats": {
-    "total": 42,
-    "delivered": 40,
-    "cancelled": 2,
-    "total_spent": 16800,
-    "average_order": 400
-  }
+  "first_name": "string",
+  "last_name": "string",
+  "email": "string",
+  "phone": "string",
+  "password": "string",
+  "location": "string | null",
+  "address": "string | null",
+  "gender": "male | female | other | null",
+  "age": "integer | null",
+  "height_cm": "number | null",
+  "weight_kg": "number | null",
+  "fitness_goal": "weight_loss | muscle_gain | maintenance | healthy_lifestyle | null",
+  "dietary_preference": "string | null",
+  "allergies": ["string"] | null
 }
 ```
 
-### 2. Deliveries API
-
-Currently fully mocked. Required endpoints:
-
-```http
-GET /deliveries/my
-GET /deliveries/{delivery_id}
-```
-
-**Expected JSON response:**
+### LoginRequest
 
 ```json
 {
-  "upcoming": [
-    {
-      "id": "DLV-501",
-      "order_id": "ORD-2401",
-      "date": "2025-07-08",
-      "time_slot": "09:00 - 10:00",
-      "zone": "Riyadh Central",
-      "driver": "Yousef",
-      "status": "scheduled",
-      "meals": 3
-    }
-  ],
-  "history": [
-    {
-      "id": "DLV-498",
-      "order_id": "ORD-2387",
-      "date": "2025-07-07",
-      "time": "09:15",
-      "zone": "Riyadh Central",
-      "driver": "Yousef",
-      "status": "delivered",
-      "eta": "On time"
-    }
-  ],
-  "stats": {
-    "total_deliveries": 40,
-    "on_time_rate": 95,
-    "avg_delivery_time": "32 min",
-    "preferred_slot": "09:00 - 10:00"
-  }
+  "email": "string",
+  "password": "string"
 }
 ```
 
-### 3. Notifications API
-
-Currently fully mocked. Required endpoints:
-
-```http
-GET /notifications
-PATCH /notifications/{id}/read
-DELETE /notifications/{id}
-GET /notification-preferences
-PUT /notification-preferences
-```
-
-**Expected JSON response:**
+### TokenResponse
 
 ```json
 {
-  "data": [
-    {
-      "id": 1,
-      "title": "Delivery Tomorrow",
-      "message": "Your meal delivery is scheduled for tomorrow 09:00 - 10:00",
-      "type": "delivery",
-      "read": false,
-      "created_at": "2025-07-07T18:00:00Z"
-    }
-  ],
-  "stats": {
-    "unread": 2,
-    "total": 48
-  }
+  "access_token": "string",
+  "token_type": "bearer",
+  "user": "LoggedInUser"
 }
 ```
 
-### 4. Meal Schedule API
+### LoggedInUser
 
-Required for the meals page weekly schedule and today's meals.
+```json
+{
+  "id": "integer",
+  "first_name": "string",
+  "last_name": "string",
+  "email": "string",
+  "phone": "string",
+  "role": "string",
+  "permissions": ["string"],
+  "gender": "string | null",
+  "age": "integer | null",
+  "height_cm": "number | null",
+  "weight_kg": "number | null",
+  "fitness_goal": "string | null",
+  "dietary_preference": "string | null",
+  "allergies": ["string"] | null,
+  "subscription": "CurrentSubscriptionResponse | null"
+}
+```
+
+### CurrentSubscriptionResponse (Inside LoggedInUser)
+
+```json
+{
+  "id": "integer",
+  "plan_id": "integer",
+  "plan_name": "string | null",
+  "status": "string",
+  "payment_status": "string",
+  "amount": "number",
+  "start_date": "datetime | null",
+  "end_date": "datetime | null"
+}
+```
+
+### UserResponse (Profile)
+
+```json
+{
+  "id": "integer",
+  "first_name": "string",
+  "last_name": "string",
+  "email": "string",
+  "phone": "string",
+  "location": "string | null",
+  "address": "string | null",
+  "gender": "male | female | other | null",
+  "age": "integer | null",
+  "height_cm": "number | null",
+  "weight_kg": "number | null",
+  "fitness_goal": "weight_loss | muscle_gain | maintenance | healthy_lifestyle | null",
+  "dietary_preference": "string | null",
+  "allergies": ["string"] | null,
+  "role": "UserRole",
+  "is_active": "boolean",
+  "is_verified": "boolean",
+  "created_at": "datetime"
+}
+```
+
+### ProfileUpdate
+
+```json
+{
+  "first_name": "string | null",
+  "last_name": "string | null",
+  "phone": "string | null",
+  "location": "string | null",
+  "address": "string | null",
+  "gender": "male | female | other | null",
+  "age": "integer | null",
+  "height_cm": "number | null",
+  "weight_kg": "number | null",
+  "fitness_goal": "weight_loss | muscle_gain | maintenance | healthy_lifestyle | null",
+  "dietary_preference": "string | null",
+  "allergies": ["string"] | null
+}
+```
+
+### MealResponse
+
+```json
+{
+  "id": "integer",
+  "category_id": "integer",
+  "name_en": "string",
+  "name_ar": "string | null",
+  "description_en": "string | null",
+  "description_ar": "string | null",
+  "calories": "number",
+  "protein_g": "number",
+  "carbs_g": "number",
+  "fat_g": "number",
+  "fiber_g": "number | null",
+  "sugar_g": "number | null",
+  "sodium_mg": "number | null",
+  "price": "number",
+  "image_url": "string | null",
+  "ingredients": ["string"] | null,
+  "allergens": ["string"] | null,
+  "diet_tags": ["string"] | null,
+  "is_available": "boolean",
+  "created_at": "datetime"
+}
+```
+
+### MealPlanResponse
+
+```json
+{
+  "id": "integer",
+  "name_en": "string",
+  "name_ar": "string | null",
+  "description_en": "string | null",
+  "description_ar": "string | null",
+  "plan_type": "weekly | monthly | custom | family | corporate",
+  "goal": "weight_loss | muscle_gain | maintenance | healthy_lifestyle | null",
+  "price": "number",
+  "duration_days": "integer",
+  "meals_per_day": "integer",
+  "total_meals": "integer",
+  "image_url": "string | null",
+  "is_active": "boolean",
+  "created_at": "datetime"
+}
+```
+
+### SubscriptionCreate
+
+```json
+{
+  "plan_id": "integer",
+  "notes": "string | null"
+}
+```
+
+### SubscriptionResponse
+
+```json
+{
+  "id": "integer",
+  "user_id": "integer",
+  "plan_id": "integer",
+  "status": "pending_payment | active | paused | cancelled | expired",
+  "payment_status": "unpaid | pending | paid | failed | refunded",
+  "amount": "number",
+  "start_date": "datetime | null",
+  "end_date": "datetime | null",
+  "notes": "string | null",
+  "created_at": "datetime"
+}
+```
+
+### OrderFromSubscriptionCreate
+
+```json
+{
+  "subscription_id": "integer",
+  "delivery_address": "string | null",
+  "delivery_notes": "string | null"
+}
+```
+
+### OrderResponse
+
+```json
+{
+  "id": "integer",
+  "user_id": "integer",
+  "subscription_id": "integer | null",
+  "plan_id": "integer | null",
+  "order_number": "string",
+  "status": "pending | confirmed | preparing | ready_for_delivery | out_for_delivery | delivered | cancelled",
+  "total_amount": "number",
+  "delivery_date": "datetime | null",
+  "delivery_address": "string | null",
+  "delivery_notes": "string | null",
+  "items": ["object"] | null,
+  "created_at": "datetime"
+}
+```
+
+### DeliveryResponse
+
+```json
+{
+  "id": "integer",
+  "order_id": "integer",
+  "user_id": "integer",
+  "driver_id": "integer | null",
+  "status": "pending | assigned | picked_up | out_for_delivery | delivered | failed | cancelled",
+  "delivery_address": "string",
+  "delivery_notes": "string | null",
+  "scheduled_at": "datetime | null",
+  "picked_up_at": "datetime | null",
+  "delivered_at": "datetime | null",
+  "current_latitude": "number | null",
+  "current_longitude": "number | null",
+  "failure_reason": "string | null",
+  "created_at": "datetime"
+}
+```
+
+### NotificationResponse
+
+```json
+{
+  "id": "integer",
+  "user_id": "integer",
+  "title": "string",
+  "message": "string",
+  "notification_type": "general | order | delivery | subscription | payment | promotion",
+  "channel": "in_app | email | sms | whatsapp",
+  "is_read": "boolean",
+  "created_at": "datetime"
+}
+```
+
+---
+
+## Missing Endpoints Required
+
+These endpoints are **not present** in the OpenAPI spec but are required for the customer dashboard.
+
+### 1. Meal Schedule API
 
 ```http
 GET /meal-schedule/my
 GET /meal-schedule/my/today
 ```
 
-**Expected JSON response:**
+**Purpose:** Provide today's scheduled meals and weekly schedule for the active subscription.
+
+**Expected response:**
 
 ```json
 {
@@ -178,9 +439,7 @@ GET /meal-schedule/my/today
 }
 ```
 
-### 5. Nutrition / Tracking API
-
-Required for the nutrition tracker page.
+### 2. Nutrition / Tracking API
 
 ```http
 GET /nutrition/today
@@ -189,7 +448,7 @@ GET /weight-history
 GET /activity/today
 ```
 
-**Expected JSON response for `/nutrition/today`:**
+**Expected response for `/nutrition/today`:**
 
 ```json
 {
@@ -208,7 +467,7 @@ GET /activity/today
 }
 ```
 
-**Expected JSON response for `/weight-history`:**
+**Expected response for `/weight-history`:**
 
 ```json
 {
@@ -229,61 +488,144 @@ GET /activity/today
 }
 ```
 
-### 6. Missing Fields in Existing Endpoints
+---
 
-#### `/auth/me` and `/profile/` (UserResponse)
+## Missing Fields in Existing Schemas
 
-Add the following fields:
+### SubscriptionResponse
 
-- `date_of_birth` (string, ISO date)
-- `activity_level` (string, e.g. "low", "moderate", "high")
-- `delivery_zone` (string)
-- `is_verified` (boolean) - already exists in UserResponse, ensure it is returned
+Add these fields so the frontend can calculate meals remaining, progress, and display plan name without extra API calls:
 
-#### `/subscriptions/my` (SubscriptionResponse)
+```json
+{
+  "plan_name": "string",
+  "meals_consumed": "integer",
+  "meals_total": "integer",
+  "meals_per_day": "integer",
+  "plan_duration_days": "integer",
+  "plan_calories": "integer"
+}
+```
 
-Add the following fields:
+### MealResponse
 
-- `plan_name` (string)
-- `meals_consumed` (integer)
-- `meals_total` (integer)
-- `meals_per_day` (integer)
-- `plan_duration_days` (integer)
-- `plan_calories` (integer)
+Add these fields for the dashboard and meals page:
 
-#### `/meals/` (MealResponse)
+```json
+{
+  "meal_time": "Breakfast | Lunch | Dinner | Snack",
+  "status": "delivered | upcoming | completed",
+  "date": "date | null",
+  "order_count": "integer",
+  "favorite_count": "integer",
+  "category_name": "string"
+}
+```
 
-Add the following fields:
+### UserResponse / ProfileUpdate
 
-- `meal_time` (string, e.g. "Breakfast", "Lunch", "Dinner")
-- `status` (string, e.g. "delivered", "upcoming", "completed")
-- `date` or `day_index` (for weekly schedule)
-- `order_count` (integer)
-- `favorite_count` (integer)
-- `category_name` (string)
+Add these fields for the settings page and nutrition calculations:
+
+```json
+{
+  "date_of_birth": "date | null",
+  "activity_level": "low | moderate | high | null",
+  "delivery_zone": "string | null"
+}
+```
+
+### OrderResponse
+
+Add these fields for a richer orders page:
+
+```json
+{
+  "plan_name": "string | null",
+  "meals": "integer | null",
+  "eta": "string | null",
+  "driver_name": "string | null"
+}
+```
+
+### DeliveryResponse
+
+Add these fields for the customer delivery page:
+
+```json
+{
+  "driver_name": "string | null",
+  "time_slot": "string | null",
+  "zone": "string | null",
+  "meals": "integer | null"
+}
+```
 
 ---
 
-## Customer Dashboard Sections Summary
+## Customer Dashboard Mapping
 
-| Page | Status | API Used | Missing API |
-|------|--------|----------|-------------|
-| Dashboard | Uses API | `/auth/me`, `/subscriptions/my`, `/meals/`, `/plans/` | Daily stats, recent orders |
-| Subscriptions | Uses API | `/subscriptions/my`, `/plans/` | `plan_name`, `meals_consumed` |
-| Meals | Uses API | `/meals/`, `/subscriptions/my`, `/plans/{id}` | Meal schedule, meal_time, status |
-| Nutrition | Uses API partially | `/meals/`, `/auth/me` | Nutrition tracking, weight history, activity |
-| Orders | Uses API partially | `/subscriptions/my`, `/plans/` | Dedicated orders endpoint |
-| Delivery | Mock only | `/subscriptions/my`, `/auth/me` (fallback) | Deliveries endpoint |
-| Notifications | Mock only | `/auth/me` (fallback) | Notifications endpoint |
-| Settings | Uses API | `/profile/` | `date_of_birth`, `activity_level`, `delivery_zone` |
+| Page | Current Status | APIs to Use | Missing Pieces |
+|------|---------------|-------------|----------------|
+| Dashboard | Partially API-driven | `/auth/me`, `/subscriptions/my`, `/meals/`, `/plans/` | Daily stats, recent orders |
+| Subscriptions | API-driven | `/subscriptions/my`, `/plans/`, `POST /subscriptions/` | `plan_name`, `meals_consumed`, `meals_total` in subscription |
+| Meals | API-driven | `/meals/`, `/subscriptions/my`, `/plans/{id}` | Meal schedule endpoint, `meal_time`, `status` on meals |
+| Orders | Mock data | `GET /orders/my`, `POST /orders/from-subscription` | Integrate with real endpoint |
+| Delivery | Mock data | `GET /deliveries/my` | Integrate with real endpoint, add driver/time fields |
+| Nutrition | Mock data | `GET /nutrition/today`, `GET /weight-history` | Missing endpoints |
+| Notifications | Mock data | `GET /notifications/my`, `PATCH /notifications/{id}/read` | Missing endpoint integration |
+| Settings | API-driven | `GET /profile/`, `PUT /profile/` | Add missing profile fields |
+
+---
+
+## Frontend Service Classes
+
+Each customer feature has a dedicated service class under `app/Services/Api/`:
+
+| Service | Endpoints Used |
+|---------|---------------|
+| `AuthApiService` | `/auth/*` |
+| `ProfileApiService` | `/profile/`, `/users/me` |
+| `MealApiService` | `/meals/*`, `/meal-categories/*` |
+| `PlanApiService` | `/plans/*` |
+| `SubscriptionApiService` | `/subscriptions/*` |
+| **OrderApiService** (needed) | `/orders/*` |
+| **DeliveryApiService** (needed) | `/deliveries/*` |
+| **NotificationApiService** (needed) | `/notifications/*` |
+| **NutritionApiService** (needed) | `/nutrition/*`, `/weight-history`, `/activity/*` |
+
+---
+
+## Backend Implementation Checklist
+
+### High Priority
+
+- [ ] Return `plan_name`, `meals_consumed`, `meals_total`, `meals_per_day` in `SubscriptionResponse`
+- [ ] Return `category_name`, `meal_time`, `status`, `date` in `MealResponse`
+- [ ] Add `date_of_birth`, `activity_level`, `delivery_zone` to `UserResponse` and `ProfileUpdate`
+- [ ] Implement `GET /orders/my` and ensure `OrderResponse` returns `plan_name` and `meals`
+- [ ] Implement `GET /deliveries/my` with customer-friendly fields (`driver_name`, `time_slot`, `zone`)
+- [ ] Implement `GET /notifications/my` and `PATCH /notifications/{id}/read`
+
+### Medium Priority
+
+- [ ] Implement `GET /meal-schedule/my` and `GET /meal-schedule/my/today`
+- [ ] Implement `GET /nutrition/today` and `GET /weight-history`
+- [ ] Implement `POST /orders/from-subscription` for order creation from active subscription
+
+### Low Priority
+
+- [ ] Add `order_count` and `favorite_count` to `MealResponse`
+- [ ] Add `eta` and `driver_name` to `OrderResponse`
+- [ ] Add notification preferences endpoints
 
 ---
 
 ## Notes for Backend Team
 
-1. Return consistent `snake_case` field names.
-2. All date/datetime fields should use ISO 8601 format.
-3. Image URLs should be absolute and publicly accessible.
-4. Include pagination metadata where lists can be large.
-5. Use standard HTTP status codes (200, 201, 400, 401, 422, 500).
-6. For missing fields, send `null` rather than omitting the key to keep frontend stable.
+1. Use consistent `snake_case` field names across all responses.
+2. Return `null` for missing fields instead of omitting keys.
+3. Use ISO 8601 for all date and datetime fields.
+4. Return absolute URLs for all image assets.
+5. Paginated list endpoints should return `data`, `total`, `page`, `limit`, and `pages`.
+6. Use standard HTTP status codes: `200`, `201`, `400`, `401`, `403`, `422`, `500`.
+7. Ensure authenticated endpoints validate the `Authorization: Bearer <token>` header.
