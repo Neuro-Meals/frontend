@@ -5,6 +5,18 @@
 
 @section('content')
 
+{{-- Flash Messages --}}
+@if(session('success'))
+<div class="mb-4 bg-green-50 border border-green-100 text-green-700 rounded-xl px-4 py-3 text-sm">
+    {{ session('success') }}
+</div>
+@endif
+@if(session('error'))
+<div class="mb-4 bg-red-50 border border-red-100 text-red-700 rounded-xl px-4 py-3 text-sm">
+    {{ session('error') }}
+</div>
+@endif
+
 {{-- Active Plan Banner --}}
 <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-2xl p-6 text-white shadow-lg mb-6 relative overflow-hidden">
     <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl"></div>
@@ -47,9 +59,19 @@
             <div class="mt-2 text-2xl font-bold text-gray-900">SAR {{ $plan['price'] }}<span class="text-xs font-normal text-gray-400">/{{ $plan['duration'] ?? '4 weeks' }}</span></div>
             <p class="text-xs text-gray-400 mt-1">{{ $plan['calories'] }} kcal</p>
             <p class="text-[10px] text-gray-400 mt-2">{{ $plan['subscribers'] }} subscribers</p>
-            <button class="mt-4 w-full px-3 py-2 text-xs font-bold rounded-lg transition-all {{ $plan['current'] ? 'bg-gray-100 text-gray-400 cursor-default' : 'bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-md' }}">
-                {{ $plan['current'] ? 'Active' : 'Switch Plan' }}
+            @if($plan['current'])
+            <button type="button" class="mt-4 w-full px-3 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-400 cursor-default">
+                Active
             </button>
+            @else
+            <form action="{{ route('user.subscriptions.subscribe') }}" method="POST" class="mt-4">
+                @csrf
+                <input type="hidden" name="plan_id" value="{{ $plan['id'] }}">
+                <button type="submit" class="w-full px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-md transition-all">
+                    Switch Plan
+                </button>
+            </form>
+            @endif
         </div>
         @endforeach
     </div>
