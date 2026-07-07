@@ -67,8 +67,9 @@ class ForgotPasswordController extends Controller
                 ->withInput($request->only('email'));
         }
 
-        return back()->with('status', 'A password reset OTP has been sent to your email.')
-            ->withInput($request->only('email'));
+        // Redirect to the password reset page so the user can enter the OTP and new password
+        return redirect()->route('password.reset', ['email' => $request->email])
+            ->with('status', 'A password reset OTP has been sent to your email.');
     }
 
     /**
