@@ -6,7 +6,9 @@
 @section('content')
 @php
     $fmt = fn($n) => $n >= 1000000 ? number_format($n/1000000, 2).'M' : ($n >= 1000 ? number_format($n/1000, 1).'K' : number_format($n));
-    $revGrowth = round(($stats['monthlyRevenue'] - $stats['lastMonthRevenue']) / $stats['lastMonthRevenue'] * 100, 1);
+    $revGrowth = $stats['lastMonthRevenue'] > 0
+        ? round(($stats['monthlyRevenue'] - $stats['lastMonthRevenue']) / $stats['lastMonthRevenue'] * 100, 1)
+        : 0;
     $statusColors = [
         'delivered' => 'bg-green-50 text-green-700 border-green-200',
         'en_route' => 'bg-blue-50 text-blue-700 border-blue-200',
@@ -148,8 +150,8 @@
             </div>
         </div>
         @php
-            $revMax = max($revenueTrend) ?: 1;
-            $revTotal = array_sum($revenueTrend);
+            $revMax = !empty($revenueTrend) ? (max($revenueTrend) ?: 1) : 1;
+            $revTotal = !empty($revenueTrend) ? array_sum($revenueTrend) : 0;
         @endphp
         <div class="flex items-end gap-2 h-48">
             @foreach($revenueTrend as $i => $rev)
@@ -190,7 +192,7 @@
         @php $totalPlans = array_sum(array_column($planDistribution, 'count')); @endphp
         <div class="space-y-4">
             @foreach($planDistribution as $plan)
-                @php $pct = round($plan['count'] / $totalPlans * 100); @endphp
+                @php $pct = $totalPlans > 0 ? round($plan['count'] / $totalPlans * 100) : 0; @endphp
                 <div>
                     <div class="flex items-center justify-between mb-1.5">
                         <span class="text-xs font-medium text-gray-700">{{ $plan['name'] }}</span>
@@ -224,7 +226,7 @@
                 <span class="text-xs text-gray-500">{{ __('Orders') }}</span>
             </div>
         </div>
-        @php $ordMax = max($ordersTrend) ?: 1; @endphp
+        @php $ordMax = !empty($ordersTrend) ? (max($ordersTrend) ?: 1) : 1; @endphp
         <div class="flex items-end gap-3 h-40">
             @foreach($ordersTrend as $i => $ord)
                 @php $pct = min(100, ($ord / $ordMax) * 100); @endphp

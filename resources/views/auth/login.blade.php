@@ -17,29 +17,6 @@
         {{-- Form --}}
         <div class="p-8">
 
-            {{-- Success / Verification Modal --}}
-            <div x-show="modal.show" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-[60] flex items-center justify-center p-4" x-cloak>
-                <div class="absolute inset-0 bg-emerald-900/60 backdrop-blur-sm"></div>
-                <div class="relative bg-white rounded-3xl shadow-2xl border border-emerald-100 p-8 max-w-sm w-full text-center transform transition-all scale-100">
-                    <div class="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-5 animate-bounce"
-                         :class="modal.type === 'success' ? 'bg-emerald-100' : 'bg-amber-100'">
-                        <svg x-show="modal.type === 'success'" class="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        <svg x-show="modal.type === 'verification'" class="w-10 h-10 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                    </div>
-                    <h3 class="text-2xl font-extrabold text-gray-900 mb-2" x-text="modal.title"></h3>
-                    <p class="text-gray-600 text-sm mb-6" x-text="modal.message"></p>
-                    <div class="space-y-3">
-                        <button type="button" @click="modal.action()" class="block w-full py-3 text-sm font-bold text-white rounded-xl shadow-lg transition-all hover:shadow-xl"
-                                :class="modal.type === 'success' ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600' : 'bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-600 hover:to-amber-500'">
-                            <span x-text="modal.buttonText"></span>
-                        </button>
-                        <a href="{{ route('landing') }}" class="block w-full py-3 text-sm font-semibold text-emerald-600 hover:text-emerald-700 rounded-xl border border-emerald-200 hover:bg-emerald-50 transition-colors">
-                            {{ __('Back to Home') }}
-                        </a>
-                    </div>
-                </div>
-            </div>
-
             {{-- Toast Notification --}}
             <div x-show="toast.show" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-2" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 max-w-sm w-full px-4" x-cloak>
                 <div class="rounded-xl border shadow-xl p-4 flex items-start gap-3"
@@ -159,7 +136,6 @@
             loading: false,
             errors: {},
             toast: { show: false, message: '', type: 'error', title: '' },
-            modal: { show: false, type: 'success', title: '', message: '', buttonText: '', action: () => {} },
             pleaseWait: @json(__('Please wait...')),
             loginText: @json(__('Login')),
             successTitle: @json(__('Success')),
@@ -178,9 +154,6 @@
                     title: type === 'success' ? this.successTitle : this.errorTitle
                 };
                 setTimeout(() => { this.toast.show = false }, 7000);
-            },
-            showModal(type, title, message, buttonText, action) {
-                this.modal = { show: true, type, title, message, buttonText, action };
             },
             async submit() {
                 this.loading = true;
@@ -203,28 +176,15 @@
                     this.loading = false;
 
                     if (data.success) {
-                        this.showModal(
-                            'success',
-                            @json(__('Verified')),
-                            data.message || @json(__('Login successful. Redirecting to your dashboard...')),
-                            @json(__('Go to Dashboard')),
-                            () => { window.location.href = data.redirect || @json(route('user.dashboard')); }
-                        );
-                        // Auto redirect after 2 seconds
+                        this.showToast(data.message || @json(__('Login successful. Redirecting to your dashboard...')), 'success');
                         setTimeout(() => {
-                            if (data.redirect) window.location.href = data.redirect;
-                        }, 2000);
+                            window.location.href = data.redirect || @json(route('user.dashboard'));
+                        }, 1200);
                         return;
                     }
 
                     if (data.requires_verification) {
-                        this.showModal(
-                            'verification',
-                            @json(__('Email Not Verified')),
-                            data.message || @json(__('Please verify your email before logging in. We have sent an OTP to your email.')),
-                            @json(__('Verify Email Now')),
-                            () => { window.location.href = data.redirect || @json(route('verify.email')) + '?email=' + encodeURIComponent(this.form.email); }
-                        );
+                        window.location.href = data.redirect || @json(route('verify.email')) + '?email=' + encodeURIComponent(this.form.email);
                         return;
                     }
 
