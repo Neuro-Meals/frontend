@@ -23,4 +23,6 @@
     </main>
 
     @include('landing.partials.footer')
+
+    <x-ai-chat-widget context="landing" position="bottom-right" />
 @endsection

@@ -10,10 +10,23 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\UploadController;
+use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\App;
 
 Route::get('/', [LandingController::class, 'index'])->name('landing');
+
+// AI Chat placeholder endpoints
+Route::post('/ai/chat/landing', [ChatController::class, 'landing'])->name('ai.chat.landing');
+Route::middleware('auth')->post('/ai/chat/customer', [ChatController::class, 'customer'])->name('ai.chat.customer');
+
+// Image uploads (handled locally by Laravel)
+Route::middleware('auth')->group(function () {
+    Route::post('/upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
+    Route::post('/upload/images', [UploadController::class, 'uploadImages'])->name('upload.images');
+    Route::post('/upload/avatar', [UploadController::class, 'uploadAvatar'])->name('upload.avatar');
+});
 
 // Locale switching
 Route::get('/locale/{locale}', function ($locale) {

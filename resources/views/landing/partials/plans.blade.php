@@ -14,64 +14,39 @@
             <div class="plans-track flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 -mx-4 px-4" style="scrollbar-width: none; -ms-overflow-style: none;">
                 <style>.plans-track::-webkit-scrollbar { display: none; }</style>
 
-                @php
-                    $plans = [
-                        [
-                            'name' => __('Weight Loss'), 'price' => '299', 'period' => '/month',
-                            'desc' => __('Perfect for shedding extra kilos while enjoying delicious meals'),
-                            'features' => [__('Low-calorie meals (1200-1500 kcal)'), __('High protein portions'), __('Fat-burning ingredients'), __('Daily fresh delivery'), __('Macro tracking access')],
-                            'popular' => false,
-                        ],
-                        [
-                            'name' => __('Muscle Gain'), 'price' => '399', 'period' => '/month',
-                            'desc' => __('Built for athletes and gym enthusiasts wanting serious gains'),
-                            'features' => [__('High-protein meals (2500+ kcal)'), __('Performance carbs'), __('Pre/post workout meals'), __('Daily fresh delivery'), __('Macro tracking access'), __('Free nutritionist consult')],
-                            'popular' => true,
-                        ],
-                        [
-                            'name' => __('Maintenance'), 'price' => '349', 'period' => '/month',
-                            'desc' => __('Stay in shape with balanced, flexible daily nutrition'),
-                            'features' => [__('Balanced nutrition (1800-2000 kcal)'), __('Flexible meal choices'), __('Healthy lifestyle support'), __('Daily fresh delivery'), __('Macro tracking access')],
-                            'popular' => false,
-                        ],
-                        [
-                            'name' => __('Keto Plan'), 'price' => '449', 'period' => '/month',
-                            'desc' => __('Low-carb, high-fat meals designed for ketosis and energy'),
-                            'features' => [__('Ultra low-carb meals'), __('High healthy fats'), __('Ketosis support'), __('Daily fresh delivery'), __('Macro tracking access'), __('Weekly progress reports')],
-                            'popular' => false,
-                        ],
-                        [
-                            'name' => __('Athlete Pro'), 'price' => '599', 'period' => '/month',
-                            'desc' => __('Premium plan for competitive athletes with custom macros'),
-                            'features' => [__('Custom macro calculation'), __('Performance-optimized meals'), __('Pre/post workout nutrition'), __('2x daily delivery'), __('Personal nutritionist'), __('Weekly progress reports'), __('Priority support')],
-                            'popular' => false,
-                        ],
-                        [
-                            'name' => __('Family Plan'), 'price' => '899', 'period' => '/month',
-                            'desc' => __('Healthy meals for the whole family, delivered together'),
-                            'features' => [__('Meals for 2-4 people'), __('Customizable per member'), __('Balanced family nutrition'), __('Daily fresh delivery'), __('Macro tracking for all'), __('Free nutritionist consult')],
-                            'popular' => false,
-                        ],
-                    ];
-                @endphp
-
-                @foreach ($plans as $plan)
+                @forelse (($plans ?? []) as $index => $plan)
+                    @php
+                        $planFeatures = $plan['features'] ?? [];
+                        if (!is_array($planFeatures) || empty($planFeatures)) {
+                            $planFeatures = [
+                                (!empty($plan['duration']) ? __('Duration: ') . $plan['duration'] : __('Flexible duration')),
+                                (!empty($plan['meals']) ? $plan['meals'] . ' ' . __('meals included') : __('Daily meal coverage')),
+                                (!empty($plan['calories']) ? $plan['calories'] . ' ' . __('kcal target') : __('Calorie-optimized')),
+                                (!empty($plan['subscribers']) ? $plan['subscribers'] . ' ' . __('active subscribers') : __('Join our members')),
+                            ];
+                        }
+                        $isPopular = $plan['popular'] ?? ($index === 0);
+                        $accentColor = $plan['color'] ?? '#6E7A25';
+                    @endphp
                     <div class="plan-card flex-shrink-0 w-[85%] sm:w-[45%] lg:w-[31.5%] snap-center">
-                        <div class="relative h-full rounded-3xl overflow-hidden {{ $plan['popular'] ? 'shadow-2xl ring-2 ring-[#6E7A25]' : 'shadow-lg' }} bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                        <div class="relative h-full rounded-3xl overflow-hidden {{ $isPopular ? 'shadow-2xl ring-2' : 'shadow-lg' }} bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                             style="{{ $isPopular ? 'ring-color: ' . $accentColor : '' }}">
                             {{-- Popular badge --}}
-                            @if ($plan['popular'])
-                                <div class="absolute top-0 left-0 right-0 bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-center py-2 text-xs font-bold uppercase tracking-wider">{{ __('Most Popular') }}</div>
+                            @if ($isPopular)
+                                <div class="absolute top-0 left-0 right-0 text-white text-center py-2 text-xs font-bold uppercase tracking-wider" style="background: linear-gradient(135deg, #173327, {{ $accentColor }});">
+                                    {{ __('Most Popular') }}
+                                </div>
                             @endif
 
-                            <div class="p-8 {{ $plan['popular'] ? 'pt-14' : '' }}">
+                            <div class="p-8 {{ $isPopular ? 'pt-14' : '' }}">
                                 {{-- Name --}}
-                                <h3 class="text-2xl font-extrabold text-gray-900 dark:text-white mb-2">{{ $plan['name'] }}</h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">{{ $plan['desc'] }}</p>
+                                <h3 class="text-2xl font-extrabold text-gray-900 dark:text-white mb-2">{{ $plan['name'] ?? __('Plan') }}</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">{{ $plan['description'] ?? $plan['desc'] ?? '' }}</p>
 
                                 {{-- Price --}}
                                 <div class="flex items-baseline gap-1 mb-6">
-                                    <span class="text-4xl font-extrabold {{ $plan['popular'] ? 'text-[#6E7A25]' : 'text-gray-900 dark:text-white' }}">{{ $plan['price'] }}</span>
-                                    <span class="text-lg font-medium text-gray-500 dark:text-gray-400">SAR{{ $plan['period'] }}</span>
+                                    <span class="text-4xl font-extrabold {{ $isPopular ? 'text-[#6E7A25]' : 'text-gray-900 dark:text-white' }}" style="{{ $isPopular ? 'color: ' . $accentColor . ' !important;' : '' }}">{{ number_format($plan['price'] ?? 0, 0) }}</span>
+                                    <span class="text-lg font-medium text-gray-500 dark:text-gray-400">SAR / {{ $plan['duration'] ?? __('period') }}</span>
                                 </div>
 
                                 {{-- Divider --}}
@@ -79,10 +54,10 @@
 
                                 {{-- Features --}}
                                 <ul class="space-y-3 mb-8">
-                                    @foreach ($plan['features'] as $feature)
+                                    @foreach ($planFeatures as $feature)
                                         <li class="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-300">
-                                            <div class="w-5 h-5 rounded-full bg-brand-light/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                <svg class="w-3 h-3 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                            <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style="background: {{ $accentColor }}1a;">
+                                                <svg class="w-3 h-3" style="color: {{ $accentColor }};" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                                             </div>
                                             {{ $feature }}
                                         </li>
@@ -90,13 +65,19 @@
                                 </ul>
 
                                 {{-- CTA --}}
-                                <a href="#" class="block w-full py-3.5 text-center text-sm font-bold rounded-xl transition-all duration-300 {{ $plan['popular'] ? 'bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-lg hover:shadow-brand-light/30 hover:-translate-y-0.5' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' }}">
+                                <a href="{{ route('register') }}" class="block w-full py-3.5 text-center text-sm font-bold rounded-xl transition-all duration-300 {{ $isPopular ? 'text-white hover:shadow-lg hover:-translate-y-0.5' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' }}"
+                                   style="{{ $isPopular ? 'background: linear-gradient(135deg, #173327, ' . $accentColor . ');' : '' }}">
                                     {{ __('Subscribe Now') }}
                                 </a>
                             </div>
                         </div>
                     </div>
-                @endforeach
+                @empty
+                    <div class="w-full text-center py-12">
+                        <p class="text-gray-500 dark:text-gray-400">{{ __('No plans available at the moment. Please check back soon.') }}</p>
+                        <a href="{{ route('register') }}" class="mt-4 inline-block px-6 py-3 text-sm font-bold text-white rounded-xl" style="background: linear-gradient(135deg, #173327, #6E7A25);">{{ __('Get Started') }}</a>
+                    </div>
+                @endforelse
             </div>
 
             {{-- Navigation arrows --}}
