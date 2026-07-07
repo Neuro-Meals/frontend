@@ -40,11 +40,11 @@
 </div>
 
 {{-- Hero Card --}}
+@php $heroMeal = $upcomingMeals[0] ?? ['name' => 'Grilled Chicken Power Bowl', 'calories' => 520, 'protein' => 42, 'description' => 'Fresh greens, grilled chicken, avocado & broccoli — packed with protein to fuel your day.', 'image' => 'images/meals/top-view-healthy-diet-salad-with-grilled-chicken-broccoli-cauliflower-tomato-lettuce-avocado-lettuce_141793-2438.jpg']; @endphp
 <div class="relative rounded-2xl overflow-hidden shadow-xl mb-6 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
-    <img src="{{ asset('images/meals/top-view-healthy-diet-salad-with-grilled-chicken-broccoli-cauliflower-tomato-lettuce-avocado-lettuce_141793-2438.jpg') }}" alt="Healthy Meal" class="absolute inset-0 w-full h-full object-cover">
+    <img src="{{ asset($heroMeal['image'] ?? 'images/meals/top-view-healthy-diet-salad-with-grilled-chicken-broccoli-cauliflower-tomato-lettuce-avocado-lettuce_141793-2438.jpg') }}" alt="{{ $heroMeal['name'] }}" class="absolute inset-0 w-full h-full object-cover">
     <div class="absolute inset-0 bg-gradient-to-r from-[#173327]/95 via-[#173327]/70 to-[#6E7A25]/40"></div>
     <div class="relative z-10 p-5 sm:p-8 lg:p-10 flex flex-col justify-center min-h-[200px] sm:min-h-[240px]">
-        @php $heroMeal = $upcomingMeals[0] ?? ['name' => 'Grilled Chicken Power Bowl', 'calories' => 520, 'protein' => 42, 'description' => 'Fresh greens, grilled chicken, avocado & broccoli — packed with protein to fuel your day.', 'image' => 'images/meals/top-view-healthy-diet-salad-with-grilled-chicken-broccoli-cauliflower-tomato-lettuce-avocado-lettuce_141793-2438.jpg']; @endphp
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#6E7A25]/30 backdrop-blur-sm text-[#949B50] text-[10px] font-bold uppercase tracking-wider w-fit mb-3">
             <span class="w-1.5 h-1.5 bg-[#949B50] rounded-full animate-pulse"></span>
             {{ __('Today\'s Pick') }}
