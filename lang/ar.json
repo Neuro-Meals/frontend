@@ -70,6 +70,7 @@
     "Password": "كلمة المرور",
     "Remember Me": "تذكرني",
     "Forgot Your Password?": "نسيت كلمة المرور؟",
+    "Invalid credentials. Please try again.": "بيانات الدخول غير صحيحة. يرجى المحاولة مرة أخرى.",
     "Login": "تسجيل الدخول",
     "Register": "تسجيل",
     "Name": "الاسم",
