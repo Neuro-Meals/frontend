@@ -779,6 +779,65 @@ class AdminController extends Controller
         return date('M d', $time);
     }
 
+    public function dashboardLive(Request $request, OrderApiService $orderApi, DeliveryApiService $deliveryApi, AdminApiService $adminApi)
+    {
+        $today = date('Y-m-d');
+
+        $ordersData = $this->apiData($orderApi->list(['limit' => 50, 'date' => $today]), fn () => []);
+        $deliveriesData = $this->apiData($deliveryApi->list(['limit' => 50]), fn () => []);
+        $driversData = $this->apiData($adminApi->usersList(['limit' => 100, 'role' => 'driver']), fn () => []);
+
+        $orders = [];
+        foreach ($ordersData as $o) {
+            if (($o['created_at'] ?? '') !== $today && !$request->input('all')) continue;
+            $orders[] = [
+                'id' => $o['order_number'] ?? ('ORD-' . ($o['id'] ?? 0)),
+                'customer' => trim(($o['user']['first_name'] ?? '') . ' ' . ($o['user']['last_name'] ?? '')) ?: 'Customer',
+                'plan' => $o['plan_name'] ?? 'Plan',
+                'amount' => $o['total_amount'] ?? 0,
+                'status' => $o['status'] ?? 'pending',
+                'payment_status' => $o['payment_status'] ?? 'unpaid',
+                'date' => $o['created_at'] ?? '',
+                'delivery_id' => $o['delivery_id'] ?? null,
+            ];
+        }
+
+        $deliveries = [];
+        foreach ($deliveriesData as $d) {
+            $deliveries[] = [
+                'id' => $d['id'] ?? 0,
+                'label' => 'DLV-' . ($d['id'] ?? 0),
+                'order' => $d['order_number'] ?? ('ORD-' . ($d['order_id'] ?? 0)),
+                'customer' => trim(($d['user']['first_name'] ?? '') . ' ' . ($d['user']['last_name'] ?? '')) ?: 'Customer',
+                'zone' => $d['zone'] ?? 'N/A',
+                'driver_id' => $d['driver_id'] ?? null,
+                'driver' => $d['driver_name'] ?? 'Unassigned',
+                'status' => $d['status'] ?? 'pending',
+                'time' => !empty($d['scheduled_at']) ? date('H:i', strtotime($d['scheduled_at'])) : '--:--',
+                'eta' => $d['eta'] ?? 'On time',
+            ];
+        }
+
+        $drivers = [];
+        foreach ($driversData as $d) {
+            $drivers[] = [
+                'id' => $d['id'] ?? 0,
+                'name' => trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? '')) ?: 'Driver',
+            ];
+        }
+
+        return response()->json([
+            'orders' => $orders,
+            'deliveries' => $deliveries,
+            'drivers' => $drivers,
+            'counts' => [
+                'pending_deliveries' => count(array_filter($deliveries, fn ($d) => !in_array($d['status'], ['delivered', 'cancelled', 'failed']))),
+                'unassigned' => count(array_filter($deliveries, fn ($d) => empty($d['driver_id']))),
+                'today_orders' => count($orders),
+            ],
+        ]);
+    }
+
     public function content()
     {
         // NOTE: Backend /content endpoints not implemented yet (see BACKEND_RECOMMENDATIONS.md).

@@ -141,6 +141,7 @@ Route::get('/home', function () {
 // Admin routes
 Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dashboard/live', [AdminController::class, 'dashboardLive'])->name('dashboard.live');
     Route::get('/customers', [AdminController::class, 'customers'])->name('customers');
     Route::get('/customers/{id}/details', [AdminController::class, 'customerDetails'])->name('customers.details');
     Route::post('/customers/{id}/assign-plan', [AdminController::class, 'assignPlanToCustomer'])->name('customers.assign-plan');
