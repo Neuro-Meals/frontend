@@ -45,7 +45,10 @@
                 <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-gray-300"></span> {{ __('Previous') }}</span>
             </div>
         </div>
-        @php $revMax = max(array_merge($revenueTrend['current'], $revenueTrend['previous'])) ?: 500000; @endphp
+        @php
+            $revArrays = array_merge($revenueTrend['current'] ?? [], $revenueTrend['previous'] ?? []);
+            $revMax = !empty($revArrays) ? max($revArrays) : 500000;
+        @endphp
         <div class="flex items-end gap-3 h-48">
             @foreach($revenueTrend['labels'] as $i => $label)
             @php $currPct = ($revenueTrend['current'][$i] / $revMax) * 100; $prevPct = ($revenueTrend['previous'][$i] / $revMax) * 100; @endphp
@@ -102,7 +105,10 @@
                 <span class="text-[10px] text-gray-400">SAR | {{ __('Monthly') }} | {{ __('Refund Ratio') }}: 1.4%</span>
             </div>
         </div>
-        @php $refMax = max($refundVolume['amount']) ?: 7000; @endphp
+        @php
+            $refAmounts = $refundVolume['amount'] ?? [];
+            $refMax = !empty($refAmounts) ? max($refAmounts) : 7000;
+        @endphp
         <div class="flex items-end gap-3 h-40">
             @foreach($refundVolume['labels'] as $i => $label)
             @php $rPct = ($refundVolume['amount'][$i] / $refMax) * 100; @endphp

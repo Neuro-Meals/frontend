@@ -45,7 +45,10 @@
                 <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-red-400"></span> {{ __('Churned') }}</span>
             </div>
         </div>
-        @php $ncMax = max(array_merge($newVsChurn['new'], $newVsChurn['churn'])) ?: 50; @endphp
+        @php
+            $ncArrays = array_merge($newVsChurn['new'] ?? [], $newVsChurn['churn'] ?? []);
+            $ncMax = !empty($ncArrays) ? max($ncArrays) : 50;
+        @endphp
         <div class="flex items-end gap-3 h-48">
             @foreach($newVsChurn['labels'] as $i => $label)
             @php $newPct = ($newVsChurn['new'][$i] / $ncMax) * 100; $churnPct = ($newVsChurn['churn'][$i] / $ncMax) * 100; @endphp
