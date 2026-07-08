@@ -4,6 +4,7 @@
 @section('page_title', __('Live Operations'))
 
 @section('content')
+@php $todayOrdersLabel = __("Today's Orders"); @endphp
 <div x-data="liveApp()" x-init="init()" class="space-y-4">
 
   {{-- Header Stats --}}
@@ -171,7 +172,7 @@ function liveApp() {
         this.stats = [
           { label: '{{ __('Pending Deliveries') }}', value: this.counts.pending_deliveries, color: 'text-amber-600' },
           { label: '{{ __('Unassigned') }}', value: this.counts.unassigned, color: 'text-red-600' },
-          { label: "{{ __(\"Today's Orders\") }}", value: this.counts.today_orders, color: 'text-[#6E7A25]' },
+          { label: '{{ $todayOrdersLabel }}', value: this.counts.today_orders, color: 'text-[#6E7A25]' },
           { label: '{{ __('Available Drivers') }}', value: this.drivers.length, color: 'text-gray-900' },
         ];
         this.lastUpdated = new Date().toLocaleTimeString();
