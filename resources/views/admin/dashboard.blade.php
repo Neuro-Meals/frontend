@@ -407,7 +407,7 @@
 </div>
 
 {{-- ═══════════════════════════════════════════════════════════════ --}}
-{{── LIVE DELIVERY BIG POPUP ──}}
+{{-- LIVE DELIVERY BIG POPUP --}}
 {{-- ═══════════════════════════════════════════════════════════════ --}}
 <div x-show="showLiveModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4" style="display: none" x-cloak>
     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="showLiveModal = false"></div>
