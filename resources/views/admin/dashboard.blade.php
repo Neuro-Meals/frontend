@@ -4,7 +4,7 @@
 @section('page_title', __('Dashboard Overview'))
 
 @section('content')
-<div x-data="liveApp()" x-init="init()" class="space-y-4">
+<div class="space-y-4">
 
 @php
     $fmt = fn($n) => $n >= 1000000 ? number_format($n/1000000, 2).'M' : ($n >= 1000 ? number_format($n/1000, 1).'K' : number_format($n));
@@ -27,7 +27,7 @@
 @endphp
 
 {{-- KPI Cards Row --}}
-<div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     {{-- Revenue --}}
     <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20" style="animation-delay: 0.1s;">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
@@ -96,30 +96,7 @@
         </div>
     </div>
 
-    {{-- Live Delivery Blinking Card --}}
-    <div @click="openLiveModal()" class="kpi-card animate__animated animate__fadeInUp cursor-pointer bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-amber-500/30 group" style="animation-delay: 0.45s;">
-        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
-        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
-        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
-        <div class="relative z-10">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-11 h-11 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center relative">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
-                    <span x-show="counts.unassigned > 0" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[8px] font-bold text-white animate-ping"></span>
-                    <span x-show="counts.unassigned > 0" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[8px] font-bold text-white" x-text="counts.unassigned"></span>
-                </div>
-                <span class="text-[10px] font-bold text-white bg-white/20 px-2 py-1 rounded-full animate-pulse" x-text="`${counts.pending_deliveries} {{ __('active') }}`"></span>
-            </div>
-            <p class="text-xs text-white/70 font-medium mb-1">{{ __('Live Deliveries') }}</p>
-            <p class="text-2xl font-bold tracking-tight" x-text="counts.pending_deliveries"></p>
-            <p class="text-xs text-white/60 mt-1 flex items-center gap-1">
-                <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse inline-block"></span>
-                <span x-text="`${counts.unassigned} {{ __('unassigned') }}`"></span>
-            </p>
-        </div>
-        <div class="absolute bottom-2 right-3 text-white/30 text-[9px] font-bold tracking-wider uppercase opacity-0 group-hover:opacity-100 transition-opacity">{{ __('Click to view') }} →</div>
     </div>
-</div>
 
 {{-- Secondary KPI Row --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
@@ -407,245 +384,8 @@
 </div>
 
 {{-- ═══════════════════════════════════════════════════════════════ --}}
-{{-- LIVE DELIVERY BIG POPUP --}}
-{{-- ═══════════════════════════════════════════════════════════════ --}}
-<div x-show="showLiveModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4" style="display: none" x-cloak>
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="showLiveModal = false"></div>
-    <div class="relative w-full max-w-5xl max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col" @click.outside="showLiveModal = false">
 
-        {{-- Modal Header --}}
-        <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] px-6 py-4 flex items-center justify-between flex-shrink-0">
-            <div>
-                <h3 class="text-white text-lg font-bold flex items-center gap-2">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
-                    {{ __('Live Operations') }}
-                </h3>
-                <p class="text-xs text-white/60 mt-0.5" x-text="`${new Date().toLocaleDateString()} · {{ __('Last updated') }}: ` + lastUpdated"></p>
-            </div>
-            <div class="flex items-center gap-3">
-                <button @click="fetchLiveData()" class="px-3 py-1.5 text-xs font-bold bg-white/15 text-white rounded-lg hover:bg-white/25 transition-colors flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5" :class="{'animate-spin': refreshing}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    {{ __('Refresh') }}
-                </button>
-                <button @click="showLiveModal = false" class="text-white/60 hover:text-white transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-        </div>
-
-        {{-- Modal Tabs --}}
-        <div class="flex border-b border-gray-100 bg-gray-50/50">
-            <button @click="tab = 'deliveries'" class="flex-1 px-4 py-3 text-xs font-bold flex items-center justify-center gap-2 transition-colors" :class="tab === 'deliveries' ? 'text-[#6E7A25] border-b-2 border-[#6E7A25] bg-white' : 'text-gray-400 hover:text-gray-600'">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
-                {{ __('Deliveries') }}
-                <span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[#6E7A25]/10 text-[#6E7A25]" x-text="counts.pending_deliveries"></span>
-            </button>
-            <button @click="tab = 'orders'" class="flex-1 px-4 py-3 text-xs font-bold flex items-center justify-center gap-2 transition-colors" :class="tab === 'orders' ? 'text-[#6E7A25] border-b-2 border-[#6E7A25] bg-white' : 'text-gray-400 hover:text-gray-600'">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                {{ __('Orders') }}
-                <span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[#6E7A25]/10 text-[#6E7A25]" x-text="counts.today_orders"></span>
-            </button>
-        </div>
-
-        {{-- Modal Body (scrollable) --}}
-        <div class="flex-1 overflow-y-auto p-4">
-
-            {{-- ═══ DELIVERIES TAB ═══ --}}
-            <div x-show="tab === 'deliveries'">
-                <div class="space-y-2">
-                    <template x-for="d in deliveries" :key="d.id">
-                        <div class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:shadow-sm hover:border-gray-200 transition-all bg-white">
-                            {{-- Status Indicator --}}
-                            <div class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center" :class="{
-                                'bg-green-50 text-green-600': d.status === 'delivered',
-                                'bg-blue-50 text-blue-600': ['en_route','out_for_delivery'].includes(d.status),
-                                'bg-purple-50 text-purple-600': d.status === 'assigned',
-                                'bg-amber-50 text-amber-600': ['pending','preparing','scheduled'].includes(d.status),
-                                'bg-red-50 text-red-600': ['failed','cancelled'].includes(d.status)
-                            }">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
-                            </div>
-                            {{-- Info --}}
-                            <div class="flex-1 min-w-0 grid grid-cols-4 gap-2 text-xs">
-                                <div>
-                                    <p class="text-[10px] text-gray-400">{{ __('Delivery') }}</p>
-                                    <p class="font-semibold text-gray-900 truncate" x-text="d.label"></p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-gray-400">{{ __('Order') }}</p>
-                                    <p class="font-semibold text-gray-900 truncate" x-text="d.order"></p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-gray-400">{{ __('Customer') }}</p>
-                                    <p class="font-medium text-gray-700 truncate" x-text="d.customer"></p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-gray-400">{{ __('Zone') }}</p>
-                                    <p class="font-medium text-gray-700 truncate" x-text="d.zone"></p>
-                                </div>
-                            </div>
-                            {{-- Driver Assign --}}
-                            <div class="flex-shrink-0 w-44">
-                                <template x-if="d.status !== 'delivered' && d.status !== 'cancelled'">
-                                    <div class="flex items-center gap-1.5">
-                                        <select x-model="d.driver_id" @change="assignDriver(d)" class="text-[10px] border border-gray-100 rounded-lg px-2 py-1.5 bg-gray-50 text-gray-600 outline-none cursor-pointer w-full">
-                                            <option value="">{{ __('Assign driver...') }}</option>
-                                            <template x-for="dr in drivers" :key="dr.id">
-                                                <option :value="dr.id" x-text="dr.name"></option>
-                                            </template>
-                                        </select>
-                                        <span x-show="d.assigned" class="text-green-500 flex-shrink-0">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                        </span>
-                                    </div>
-                                </template>
-                                <template x-if="d.status === 'delivered'">
-                                    <span class="text-[10px] font-bold text-green-600 flex items-center gap-1">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        {{ __('Delivered') }}
-                                    </span>
-                                </template>
-                            </div>
-                            {{-- Status Badge --}}
-                            <div class="flex-shrink-0 w-20 text-right">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold border" :class="{
-                                    'bg-green-50 text-green-700 border-green-200': d.status === 'delivered',
-                                    'bg-blue-50 text-blue-700 border-blue-200': ['en_route','out_for_delivery'].includes(d.status),
-                                    'bg-purple-50 text-purple-700 border-purple-200': d.status === 'assigned',
-                                    'bg-amber-50 text-amber-700 border-amber-200': ['pending','preparing','scheduled'].includes(d.status),
-                                    'bg-red-50 text-red-600 border-red-200': ['failed','cancelled'].includes(d.status)
-                                }" x-text="d.status.replace('_',' ').replace(/\b\w/g, l => l.toUpperCase())"></span>
-                                <p class="text-[9px] text-gray-400 mt-0.5" x-text="d.time"></p>
-                            </div>
-                        </div>
-                    </template>
-                    <template x-if="deliveries.length === 0">
-                        <div class="text-center py-12 text-xs text-gray-400">{{ __('No deliveries found for today.') }}</div>
-                    </template>
-                </div>
-            </div>
-
-            {{-- ═══ ORDERS TAB ═══ --}}
-            <div x-show="tab === 'orders'">
-                <div class="space-y-2">
-                    <template x-for="o in orders" :key="o.id">
-                        <div class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:shadow-sm hover:border-gray-200 transition-all bg-white">
-                            <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 flex items-center justify-center">
-                                <svg class="w-5 h-5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                            </div>
-                            <div class="flex-1 min-w-0 grid grid-cols-4 gap-2 text-xs">
-                                <div>
-                                    <p class="text-[10px] text-gray-400">{{ __('Order') }}</p>
-                                    <p class="font-semibold text-gray-900 truncate" x-text="o.id"></p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-gray-400">{{ __('Customer') }}</p>
-                                    <p class="font-medium text-gray-700 truncate" x-text="o.customer"></p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-gray-400">{{ __('Plan') }}</p>
-                                    <p class="font-medium text-gray-700 truncate" x-text="o.plan"></p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-gray-400">{{ __('Amount') }}</p>
-                                    <p class="font-bold text-gray-900" x-text="'SAR ' + o.amount.toLocaleString()"></p>
-                                </div>
-                            </div>
-                            <div class="flex-shrink-0 flex items-center gap-2">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold border" :class="{
-                                    'bg-green-50 text-green-700 border-green-200': o.status === 'delivered',
-                                    'bg-blue-50 text-blue-700 border-blue-200': o.status === 'en_route',
-                                    'bg-amber-50 text-amber-700 border-amber-200': ['pending','preparing'].includes(o.status),
-                                    'bg-red-50 text-red-600 border-red-200': o.status === 'cancelled'
-                                }" x-text="o.status.charAt(0).toUpperCase() + o.status.slice(1)"></span>
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold border" :class="{
-                                    'bg-green-50 text-green-700 border-green-200': o.payment_status === 'paid',
-                                    'bg-amber-50 text-amber-700 border-amber-200': o.payment_status === 'unpaid' || o.payment_status === 'pending',
-                                    'bg-red-50 text-red-600 border-red-200': o.payment_status === 'failed'
-                                }" x-text="o.payment_status.charAt(0).toUpperCase() + o.payment_status.slice(1)"></span>
-                            </div>
-                        </div>
-                    </template>
-                    <template x-if="orders.length === 0">
-                        <div class="text-center py-12 text-xs text-gray-400">{{ __('No orders for today yet.') }}</div>
-                    </template>
-                </div>
-            </div>
-        </div>
-
-        {{-- Modal Footer --}}
-        <div class="px-6 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between flex-shrink-0">
-            <div class="flex items-center gap-4 text-[10px] text-gray-400">
-                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> {{ __('Live') }}</span>
-                <span x-text="`${deliveries.length} {{ __('deliveries') }}`"></span>
-                <span x-text="`${orders.length} {{ __('orders') }}`"></span>
-                <span x-text="`${drivers.length} {{ __('drivers') }}`"></span>
-            </div>
-            <span class="text-[10px] text-gray-400" x-text="`{{ __('Updated') }}: ${lastUpdated}`"></span>
-        </div>
-    </div>
-</div>
 
 </div>
 
-@push('scripts')
-<script>
-function liveApp() {
-    return {
-        showLiveModal: false,
-        tab: 'deliveries',
-        deliveries: [],
-        orders: [],
-        drivers: [],
-        counts: { pending_deliveries: 0, unassigned: 0, today_orders: 0 },
-        lastUpdated: '—',
-        refreshing: false,
-
-        init() {
-            this.fetchLiveData();
-        },
-
-        async fetchLiveData() {
-            this.refreshing = true;
-            try {
-                const r = await fetch('{{ route('admin.dashboard.live') }}', {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-                });
-                const d = await r.json();
-                this.deliveries = (d.deliveries || []).map(dl => ({ ...dl, assigned: false }));
-                this.orders = d.orders || [];
-                this.drivers = d.drivers || [];
-                this.counts = d.counts || { pending_deliveries: 0, unassigned: 0, today_orders: 0 };
-                this.lastUpdated = new Date().toLocaleTimeString();
-            } catch(e) { console.error('Failed to fetch live data', e); }
-            finally { this.refreshing = false; }
-        },
-
-        openLiveModal() {
-            this.fetchLiveData();
-            this.showLiveModal = true;
-            this.tab = 'deliveries';
-        },
-
-        async assignDriver(d) {
-            if (!d.driver_id) return;
-            d.assigned = false;
-            try {
-                const r = await fetch('{{ url('admin/deliveries') }}/' + d.id + '/assign-driver', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-                    body: JSON.stringify({ driver_id: d.driver_id })
-                });
-                const result = await r.json();
-                if (result.success || r.ok) {
-                    d.assigned = true;
-                    d.driver = (this.drivers.find(dr => dr.id == d.driver_id) || {}).name || 'Assigned';
-                    setTimeout(() => { d.assigned = false; }, 2000);
-                }
-            } catch(e) { console.error('Failed to assign driver', e); }
-        }
-    }
-}
-</script>
-@endpush
 @endsection

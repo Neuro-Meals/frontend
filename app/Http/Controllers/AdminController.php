@@ -779,6 +779,11 @@ class AdminController extends Controller
         return date('M d', $time);
     }
 
+    public function live()
+    {
+        return view('admin.live');
+    }
+
     public function dashboardLive(Request $request, OrderApiService $orderApi, DeliveryApiService $deliveryApi, AdminApiService $adminApi)
     {
         $today = date('Y-m-d');

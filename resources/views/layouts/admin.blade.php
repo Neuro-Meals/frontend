@@ -135,6 +135,12 @@
                 <span>{{ __('Deliveries') }}</span>
             </a>
 
+            <a href="{{ route('admin.live') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.live') ? 'active' : '' }}">
+                <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                <span>{{ __('Live') }}</span>
+                <span class="ml-auto px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[9px] font-bold animate-pulse">●</span>
+            </a>
+
             <a href="{{ route('admin.payments') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.payments*') ? 'active' : '' }}">
                 <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                 <span>{{ __('Payments') }}</span>
@@ -205,6 +211,12 @@
                 </div>
                 {{-- Language Switcher --}}
                 @include('partials.language_switcher', ['isDark' => false])
+                {{-- Live Delivery --}}
+                <a href="{{ route('admin.live') }}" class="relative p-2 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors group" title="{{ __('Live Deliveries') }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
+                    <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center text-[8px] font-bold text-white animate-pulse">!</span>
+                    <span class="absolute inset-0 rounded-lg ring-2 ring-orange-400/0 group-hover:ring-orange-400/30 transition-all"></span>
+                </a>
                 {{-- Notifications --}}
                 <button class="relative p-2 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
