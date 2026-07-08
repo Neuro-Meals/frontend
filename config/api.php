@@ -151,6 +151,14 @@ return [
             'read_all' => '/notifications/my/read-all',
         ],
 
+        // ─── Payments / Checkout ───
+        'payments' => [
+            'create_checkout' => '/payments/create-checkout',
+            'my'              => '/payments/my',
+            'list'            => '/payments/',
+            'verify_session'  => '/payments/verify-session/{session_id}',
+        ],
+
         // ─── Meal Schedule (not in OpenAPI spec — customer dashboard requirement) ───
         'meal_schedule' => [
             'my'       => '/meal-schedule/my',
@@ -165,53 +173,13 @@ return [
             'activity_today' => '/activity/today',
         ],
 
-        // ─── Reports (not in OpenAPI spec — used with mock fallback) ───
+        // ─── Reports (backend provides 5 basic endpoints; view data derived from these) ───
         'reports' => [
-            'dashboard' => [
-                'kpis'               => '/reports/dashboard/kpis',
-                'revenue_trend'      => '/reports/dashboard/revenue-trend',
-                'subscription_funnel' => '/reports/dashboard/subscription-funnel',
-                'delivery_sla'       => '/reports/dashboard/delivery-sla',
-                'exceptions'         => '/reports/dashboard/exceptions',
-                'operational_metrics' => '/reports/dashboard/operational-metrics',
-            ],
-            'revenue' => [
-                'kpis'            => '/reports/revenue/kpis',
-                'revenue_trend'   => '/reports/revenue/trend',
-                'payment_trends'  => '/reports/revenue/payment-trends',
-                'refund_volume'   => '/reports/revenue/refund-volume',
-                'payment_methods' => '/reports/revenue/payment-methods',
-                'revenue_by_plan' => '/reports/revenue/by-plan',
-            ],
-            'delivery' => [
-                'kpis'              => '/reports/delivery/kpis',
-                'on_time_trend'     => '/reports/delivery/on-time-trend',
-                'zone_performance'  => '/reports/delivery/zone-performance',
-                'exception_reasons' => '/reports/delivery/exception-reasons',
-                'driver_productivity' => '/reports/delivery/driver-productivity',
-                'heatmap'           => '/reports/delivery/heatmap',
-            ],
-            'subscriptions' => [
-                'kpis'             => '/reports/subscriptions/kpis',
-                'new_vs_churn'     => '/reports/subscriptions/new-vs-churn',
-                'renewal_trend'    => '/reports/subscriptions/renewal-trend',
-                'plan_ranking'     => '/reports/subscriptions/plan-ranking',
-                'goal_distribution' => '/reports/subscriptions/goal-distribution',
-                'corporate_metrics' => '/reports/subscriptions/corporate-metrics',
-            ],
-            'notifications' => [
-                'kpis'                 => '/reports/notifications/kpis',
-                'send_volume'          => '/reports/notifications/send-volume',
-                'channel_mix'          => '/reports/notifications/channel-mix',
-                'campaign_performance' => '/reports/notifications/campaign-performance',
-                'failed_diagnostics'   => '/reports/notifications/failed-diagnostics',
-            ],
-            'audit' => [
-                'kpis'            => '/reports/audit/kpis',
-                'change_hotspots' => '/reports/audit/change-hotspots',
-                'events'          => '/reports/audit/events',
-                'export_history'  => '/reports/audit/export-history',
-            ],
+            'summary'       => '/reports/summary',
+            'orders'        => '/reports/orders',
+            'subscriptions' => '/reports/subscriptions',
+            'deliveries'    => '/reports/deliveries',
+            'revenue'       => '/reports/revenue',
         ],
     ],
 ];

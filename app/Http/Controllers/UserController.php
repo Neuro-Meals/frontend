@@ -11,6 +11,7 @@ use App\Services\Api\MealScheduleApiService;
 use App\Services\Api\NotificationApiService;
 use App\Services\Api\NutritionApiService;
 use App\Services\Api\OrderApiService;
+use App\Services\Api\PaymentApiService;
 use App\Services\Api\PlanApiService;
 use App\Services\Api\ProfileApiService;
 use App\Services\Api\SubscriptionApiService;
@@ -216,6 +217,7 @@ class UserController extends Controller
             'price' => $activePlanDetails['price'] ?? ($activeSubscription['amount'] ?? 0),
             'duration' => ($activePlanDetails['duration_days'] ?? 28) . ' days',
             'status' => $activeSubscription['status'] ?? 'active',
+            'payment_status' => $activeSubscription['payment_status'] ?? 'unpaid',
             'started' => !empty($activeSubscription['start_date']) ? date('Y-m-d', strtotime($activeSubscription['start_date'])) : 'N/A',
             'renewal' => !empty($activeSubscription['end_date']) ? date('M d, Y', strtotime($activeSubscription['end_date'])) : 'N/A',
             'mealsRemaining' => max(0, ($activePlanDetails['total_meals'] ?? 0) - ($activeSubscription['meals_consumed'] ?? 0)),
@@ -231,6 +233,7 @@ class UserController extends Controller
                 'price' => 0,
                 'duration' => '-',
                 'status' => 'none',
+                'payment_status' => 'none',
                 'started' => 'N/A',
                 'renewal' => 'N/A',
                 'mealsRemaining' => 0,
@@ -270,6 +273,7 @@ class UserController extends Controller
                 'plan' => $plan['name_en'] ?? 'Unknown Plan',
                 'period' => !empty($sub['start_date']) ? date('M Y', strtotime($sub['start_date'])) : 'N/A',
                 'status' => $sub['status'] ?? 'unknown',
+                'payment_status' => $sub['payment_status'] ?? 'unpaid',
                 'amount' => $sub['amount'] ?? 0,
             ];
         }
@@ -277,7 +281,7 @@ class UserController extends Controller
         return view('user.subscriptions', compact('activePlan', 'availablePlans', 'history'));
     }
 
-    public function subscribe(Request $request, SubscriptionApiService $subscriptionApi)
+    public function subscribe(Request $request, SubscriptionApiService $subscriptionApi, PaymentApiService $paymentApi)
     {
         $planId = (int) $request->input('plan_id');
 
@@ -285,15 +289,40 @@ class UserController extends Controller
             return redirect()->route('user.subscriptions')->with('error', 'Invalid plan selected.');
         }
 
-        $result = $this->apiData($subscriptionApi->create(['plan_id' => $planId]), function () {
+        $subscription = $this->apiData($subscriptionApi->create(['plan_id' => $planId]), function () {
             return [];
         });
 
-        if (empty($result) || !empty($result['error'])) {
+        if (empty($subscription) || !empty($subscription['error']) || !isset($subscription['id'])) {
             return redirect()->route('user.subscriptions')->with('error', 'Failed to subscribe. Please try again.');
         }
 
-        return redirect()->route('user.subscriptions')->with('success', 'Subscription created successfully!');
+        $subscriptionId = $subscription['id'];
+        $checkout = $this->apiData($paymentApi->createCheckout($subscriptionId), function () {
+            return [];
+        });
+
+        if (!empty($checkout['checkout_url'])) {
+            return redirect()->away($checkout['checkout_url']);
+        }
+
+        return redirect()->route('user.subscriptions')->with('success', 'Subscription created! Please complete payment.');
+    }
+
+    public function paymentSuccess(Request $request, PaymentApiService $paymentApi)
+    {
+        $sessionId = $request->input('session_id');
+        if ($sessionId) {
+            $this->apiData($paymentApi->verifySession($sessionId), function () {
+                return [];
+            });
+        }
+        return redirect()->route('user.subscriptions')->with('success', 'Payment successful! Your subscription is now active.');
+    }
+
+    public function paymentCancel(Request $request)
+    {
+        return redirect()->route('user.subscriptions')->with('error', 'Payment was cancelled. You can try again anytime.');
     }
 
     public function meals(MealApiService $mealApi, MealScheduleApiService $scheduleApi, SubscriptionApiService $subscriptionApi, PlanApiService $planApi)

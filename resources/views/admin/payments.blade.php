@@ -6,6 +6,7 @@
 @section('content')
 @php
     $statusColors = [
+        'paid' => 'bg-green-50 text-green-700 border-green-200',
         'completed' => 'bg-green-50 text-green-700 border-green-200',
         'pending' => 'bg-amber-50 text-amber-700 border-amber-200',
         'failed' => 'bg-red-50 text-red-600 border-red-200',

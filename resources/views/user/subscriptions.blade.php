@@ -22,25 +22,55 @@
     <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl"></div>
     <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-            <span class="text-xs font-medium text-white/50">Active Subscription</span>
+            <span class="text-xs font-medium text-white/50">
+                @if($activePlan['payment_status'] === 'paid')
+                Active Subscription
+                @elseif($activePlan['payment_status'] === 'unpaid' || $activePlan['payment_status'] === 'pending')
+                Pending Payment
+                @else
+                Subscription
+                @endif
+            </span>
             <h2 class="text-2xl font-bold mt-1">{{ $activePlan['name'] }}</h2>
             <div class="flex items-center gap-4 mt-3 text-xs text-white/60">
+                @if($activePlan['price'] > 0)
                 <span>SAR {{ $activePlan['price'] }} / {{ $activePlan['duration'] }}</span>
                 <span class="w-1 h-1 bg-white/30 rounded-full"></span>
+                @endif
                 <span>{{ $activePlan['calories'] }} kcal</span>
+                @if($activePlan['status'] === 'active')
                 <span class="w-1 h-1 bg-white/30 rounded-full"></span>
                 <span>Renews {{ $activePlan['renewal'] }}</span>
+                @endif
+            </div>
+            {{-- Payment status badge --}}
+            <div class="mt-2">
+                @if($activePlan['payment_status'] === 'paid')
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-400/20 text-green-300">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    Paid
+                </span>
+                @elseif($activePlan['payment_status'] === 'unpaid' || $activePlan['payment_status'] === 'pending')
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    {{ ucfirst($activePlan['payment_status']) }}
+                </span>
+                @endif
             </div>
         </div>
+        @if($activePlan['status'] === 'active' && $activePlan['payment_status'] === 'paid')
         <div class="text-right">
             <div class="text-3xl font-bold">{{ $activePlan['mealsRemaining'] }}<span class="text-sm text-white/50">/{{ $activePlan['mealsTotal'] }}</span></div>
             <div class="text-xs text-white/50 mt-1">Meals remaining</div>
         </div>
+        @endif
     </div>
+    @if($activePlan['status'] === 'active' && $activePlan['payment_status'] === 'paid')
     @php $progressWidth = ($activePlan['mealsTotal'] ?? 0) > 0 ? round($activePlan['mealsRemaining'] / $activePlan['mealsTotal'] * 100) : 0; @endphp
     <div class="mt-4 h-2 bg-white/10 rounded-full overflow-hidden">
         <div class="h-full bg-white rounded-full transition-all duration-1000" style="width: {{ $progressWidth }}%"></div>
     </div>
+    @endif
 </div>
 
 {{-- Available Plans --}}
@@ -90,6 +120,7 @@
                     <th class="px-5 py-3 font-medium">Period</th>
                     <th class="px-5 py-3 font-medium">Amount</th>
                     <th class="px-5 py-3 font-medium">Status</th>
+                    <th class="px-5 py-3 font-medium">Payment</th>
                 </tr>
             </thead>
             <tbody>
@@ -99,7 +130,10 @@
                     <td class="px-5 py-3 text-xs text-gray-500">{{ $item['period'] }}</td>
                     <td class="px-5 py-3 text-xs font-bold text-gray-900">SAR {{ $item['amount'] }}</td>
                     <td class="px-5 py-3">
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $item['status'] === 'active' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500' }}">{{ ucfirst($item['status']) }}</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $item['status'] === 'active' ? 'bg-green-50 text-green-700' : ($item['status'] === 'cancelled' ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-500') }}">{{ ucfirst(str_replace('_', ' ', $item['status'])) }}</span>
+                    </td>
+                    <td class="px-5 py-3">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $item['payment_status'] === 'paid' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700' }}">{{ ucfirst($item['payment_status']) }}</span>
                     </td>
                 </tr>
                 @endforeach

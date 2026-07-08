@@ -11,6 +11,7 @@ use App\Services\Api\MealApiService;
 use App\Services\Api\PlanApiService;
 use App\Services\Api\SubscriptionApiService;
 use App\Services\Api\RbacApiService;
+use App\Services\Api\PaymentApiService;
 use App\Services\Api\ProfileApiService;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(PlanApiService::class);
         $this->app->singleton(SubscriptionApiService::class);
         $this->app->singleton(RbacApiService::class);
+        $this->app->singleton(PaymentApiService::class);
         $this->app->singleton(ProfileApiService::class);
     }
 
