@@ -373,9 +373,18 @@ class AdminController extends Controller
         return view('admin.meals', compact('meals', 'categories', 'stats'));
     }
 
-    public function orders(OrderApiService $orderApi)
+    public function orders(Request $request, OrderApiService $orderApi)
     {
-        $ordersData = $this->apiData($orderApi->list(['limit' => 100]), function () {
+        $page = (int) $request->input('page', 1);
+        $limit = (int) $request->input('limit', 20);
+        $status = $request->input('status');
+        $search = $request->input('search');
+
+        $query = ['limit' => $limit];
+        if ($status) $query['status'] = $status;
+        if ($search) $query['search'] = $search;
+
+        $ordersData = $this->apiData($orderApi->list($query), function () {
             return [];
         });
 
@@ -385,15 +394,20 @@ class AdminController extends Controller
                 $orders[] = [
                     'id' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
                     'customer' => trim(($order['user']['first_name'] ?? '') . ' ' . ($order['user']['last_name'] ?? '')) ?: 'Customer',
+                    'customer_email' => $order['user']['email'] ?? '',
                     'plan' => $order['plan_name'] ?? 'Plan',
                     'amount' => $order['total_amount'] ?? 0,
                     'status' => $order['status'] ?? 'pending',
+                    'payment_status' => $order['payment_status'] ?? 'unpaid',
+                    'payment_method' => $order['payment_method'] ?? 'N/A',
                     'date' => $order['created_at'] ?? date('Y-m-d'),
                     'delivery' => $order['delivery_date'] ?? 'N/A',
+                    'address' => $order['delivery_address'] ?? '',
+                    'driver' => $order['driver_name'] ?? 'Unassigned',
+                    'items' => $order['items'] ?? [],
                 ];
             }
         }
-
 
         $total = count($orders);
         $delivered = count(array_filter($orders, fn ($o) => $o['status'] === 'delivered'));
@@ -401,12 +415,21 @@ class AdminController extends Controller
         $revenue = array_sum(array_map(fn ($o) => $o['status'] !== 'cancelled' ? $o['amount'] : 0, $orders));
 
         $stats = [
-            'total' => $total,
-            'today' => count(array_filter($orders, fn ($o) => ($o['date'] ?? '') === date('Y-m-d'))),
-            'pending' => $pending,
-            'delivered' => $delivered,
-            'revenue' => $revenue,
+            ['label' => __('Total Orders'), 'value' => number_format($total), 'color' => 'text-gray-900'],
+            ['label' => __("Today's Orders"), 'value' => number_format(count(array_filter($orders, fn ($o) => ($o['date'] ?? '') === date('Y-m-d')))), 'color' => 'text-[#6E7A25]'],
+            ['label' => __('Pending'), 'value' => number_format($pending), 'color' => 'text-amber-600'],
+            ['label' => __('Revenue'), 'value' => 'SAR ' . number_format($revenue), 'color' => 'text-gray-900'],
         ];
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'orders' => $orders,
+                'stats' => $stats,
+                'has_more' => false,
+                'total' => $total,
+                'page' => $page,
+            ]);
+        }
 
         return view('admin.orders', compact('orders', 'stats'));
     }
