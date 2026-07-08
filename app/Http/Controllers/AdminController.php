@@ -411,7 +411,7 @@ class AdminController extends Controller
         return view('admin.orders', compact('orders', 'stats'));
     }
 
-    public function deliveries(DeliveryApiService $deliveryApi)
+    public function deliveries(DeliveryApiService $deliveryApi, AdminApiService $adminApi)
     {
         $deliveriesData = $this->apiData($deliveryApi->list(['limit' => 100]), function () {
             return [];
@@ -461,7 +461,52 @@ class AdminController extends Controller
             'onTimeRate' => $total > 0 ? round(($delivered / $total) * 100, 1) : 0,
         ];
 
-        return view('admin.deliveries', compact('deliveries', 'zones', 'stats'));
+        $driversData = $this->apiData($adminApi->usersList(['limit' => 100, 'role' => 'driver']), fn () => []);
+        $drivers = [];
+        foreach ($driversData as $d) {
+            $drivers[] = [
+                'id' => $d['id'] ?? 0,
+                'name' => trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? '')) ?: 'Driver',
+            ];
+        }
+
+        return view('admin.deliveries', compact('deliveries', 'zones', 'stats', 'drivers'));
+    }
+
+    public function assignDriver(Request $request, DeliveryApiService $deliveryApi, int $id)
+    {
+        $driverId = (int) $request->input('driver_id');
+        if ($driverId <= 0) {
+            return redirect()->route('admin.deliveries')->with('error', 'Invalid driver selected.');
+        }
+
+        $result = $this->apiData($deliveryApi->assignDriver($id, $driverId), function () {
+            return [];
+        });
+
+        if (empty($result)) {
+            return redirect()->route('admin.deliveries')->with('error', 'Failed to assign driver. Please try again.');
+        }
+
+        return redirect()->route('admin.deliveries')->with('success', 'Driver assigned successfully.');
+    }
+
+    public function updateDeliveryStatus(Request $request, DeliveryApiService $deliveryApi, int $id)
+    {
+        $status = $request->input('status');
+        if (empty($status)) {
+            return redirect()->route('admin.deliveries')->with('error', 'Invalid status.');
+        }
+
+        $result = $this->apiData($deliveryApi->updateStatus($id, $status), function () {
+            return [];
+        });
+
+        if (empty($result)) {
+            return redirect()->route('admin.deliveries')->with('error', 'Failed to update delivery status.');
+        }
+
+        return redirect()->route('admin.deliveries')->with('success', 'Delivery status updated.');
     }
 
     public function payments(PaymentApiService $paymentApi)
@@ -473,16 +518,17 @@ class AdminController extends Controller
         foreach ($rawList as $payment) {
             $payments[] = [
                 'id' => 'PAY-' . ($payment['id'] ?? 0),
-                'order' => $payment['subscription_id'] ?? ('SUB-' . ($payment['subscription_id'] ?? 0)),
+                'order' => $payment['subscription_id'] ? ('SUB-' . $payment['subscription_id']) : '—',
                 'customer' => $payment['user_name'] ?? 'Customer',
                 'amount' => $payment['amount'] ?? 0,
                 'method' => 'Credit Card',
-                'status' => $payment['status'] ?? 'completed',
-                'date' => $payment['created_at'] ?? $payment['paid_at'] ?? '',
+                'status' => $payment['status'] ?? 'pending',
+                'stripe_session_id' => $payment['stripe_checkout_session_id'] ?? '',
+                'date' => !empty($payment['paid_at']) ? date('Y-m-d H:i', strtotime($payment['paid_at'])) : (!empty($payment['created_at']) ? date('Y-m-d H:i', strtotime($payment['created_at'])) : ''),
             ];
         }
 
-        $completed = array_filter($payments, fn ($p) => $p['status'] === 'paid');
+        $completed = array_filter($payments, fn ($p) => in_array($p['status'], ['paid', 'completed']));
         $totalRevenue = array_sum(array_column($completed, 'amount'));
 
         $stats = [

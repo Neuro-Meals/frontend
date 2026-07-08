@@ -8,16 +8,38 @@
     $statusColors = [
         'delivered' => 'bg-green-50 text-green-700 border-green-200',
         'en_route' => 'bg-blue-50 text-blue-700 border-blue-200',
+        'out_for_delivery' => 'bg-blue-50 text-blue-700 border-blue-200',
         'preparing' => 'bg-amber-50 text-amber-700 border-amber-200',
+        'assigned' => 'bg-purple-50 text-purple-700 border-purple-200',
         'scheduled' => 'bg-gray-50 text-gray-600 border-gray-200',
+        'pending' => 'bg-gray-50 text-gray-600 border-gray-200',
+        'failed' => 'bg-red-50 text-red-600 border-red-200',
+        'cancelled' => 'bg-red-50 text-red-600 border-red-200',
     ];
     $statusLabels = [
         'delivered' => __('Delivered'),
         'en_route' => __('En Route'),
+        'out_for_delivery' => __('Out for Delivery'),
         'preparing' => __('Preparing'),
+        'assigned' => __('Assigned'),
         'scheduled' => __('Scheduled'),
+        'pending' => __('Pending'),
+        'failed' => __('Failed'),
+        'cancelled' => __('Cancelled'),
     ];
 @endphp
+
+{{-- Flash Messages --}}
+@if(session('success'))
+<div class="mb-4 bg-green-50 border border-green-100 text-green-700 rounded-xl px-4 py-3 text-sm">
+    {{ session('success') }}
+</div>
+@endif
+@if(session('error'))
+<div class="mb-4 bg-red-50 border border-red-100 text-red-700 rounded-xl px-4 py-3 text-sm">
+    {{ session('error') }}
+</div>
+@endif
 
 {{-- Stats Row --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -46,7 +68,7 @@
         <p class="text-xs text-gray-400 mb-5">{{ __("Today's performance by zone") }}</p>
         <div class="space-y-4">
             @foreach($zones as $zone)
-            @php $pct = round($zone['completed'] / $zone['orders'] * 100); @endphp
+            @php $pct = $zone['orders'] > 0 ? round($zone['completed'] / $zone['orders'] * 100) : 0; @endphp
             <div>
                 <div class="flex items-center justify-between mb-2">
                     <div>
@@ -65,9 +87,11 @@
 
     {{-- Deliveries Table --}}
     <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-50">
-            <h3 class="text-sm font-bold text-gray-900">{{ __('Live Deliveries') }}</h3>
-            <p class="text-xs text-gray-400 mt-0.5">{{ __('Real-time delivery tracking') }}</p>
+        <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
+            <div>
+                <h3 class="text-sm font-bold text-gray-900">{{ __('Live Deliveries') }}</h3>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Real-time delivery tracking') }}</p>
+            </div>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -79,6 +103,7 @@
                         <th class="px-6 py-3 font-medium">{{ __('Driver') }}</th>
                         <th class="px-6 py-3 font-medium">{{ __('ETA') }}</th>
                         <th class="px-6 py-3 font-medium">{{ __('Status') }}</th>
+                        <th class="px-6 py-3 font-medium">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -98,9 +123,39 @@
                             <p class="text-[10px] {{ $delivery['eta'] === 'On time' ? 'text-green-600' : ($delivery['eta'] === 'Pending' ? 'text-gray-400' : 'text-amber-600') }}">{{ $delivery['eta'] === 'On time' ? __('On time') : ($delivery['eta'] === 'Pending' ? __('Pending') : $delivery['eta']) }}</p>
                         </td>
                         <td class="px-6 py-3.5">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border {{ $statusColors[$delivery['status']] }}">
-                                {{ $statusLabels[$delivery['status']] }}
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border {{ $statusColors[$delivery['status']] ?? 'bg-gray-50 text-gray-600 border-gray-200' }}">
+                                {{ $statusLabels[$delivery['status']] ?? __(ucfirst($delivery['status'])) }}
                             </span>
+                        </td>
+                        <td class="px-6 py-3.5">
+                            <div class="flex items-center gap-2">
+                                @if(in_array($delivery['status'], ['pending', 'scheduled', 'assigned']))
+                                {{-- Assign Driver --}}
+                                <form action="{{ route('admin.deliveries.assign-driver', $delivery['id']) }}" method="POST" class="inline-flex items-center gap-1">
+                                    @csrf
+                                    <select name="driver_id" class="text-[10px] border border-gray-200 rounded-lg px-1.5 py-1 bg-gray-50 outline-none">
+                                        <option value="">{{ __('Assign...') }}</option>
+                                        @foreach($drivers as $driver)
+                                        <option value="{{ $driver['id'] }}">{{ $driver['name'] }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button type="submit" class="text-[10px] font-bold text-[#6E7A25] hover:underline whitespace-nowrap">{{ __('Go') }}</button>
+                                </form>
+                                @endif
+                                @if(in_array($delivery['status'], ['assigned', 'preparing', 'en_route']))
+                                {{-- Update Status --}}
+                                <form action="{{ route('admin.deliveries.update-status', $delivery['id']) }}" method="POST" class="inline-flex items-center gap-1">
+                                    @csrf
+                                    <select name="status" class="text-[10px] border border-gray-200 rounded-lg px-1.5 py-1 bg-gray-50 outline-none">
+                                        <option value="preparing">{{ __('Preparing') }}</option>
+                                        <option value="out_for_delivery">{{ __('Out for Delivery') }}</option>
+                                        <option value="delivered">{{ __('Delivered') }}</option>
+                                        <option value="failed">{{ __('Failed') }}</option>
+                                    </select>
+                                    <button type="submit" class="text-[10px] font-bold text-[#6E7A25] hover:underline whitespace-nowrap">{{ __('Update') }}</button>
+                                </form>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                     @endforeach
