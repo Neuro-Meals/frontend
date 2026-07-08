@@ -117,9 +117,20 @@ class AdminController extends Controller
         return view('admin.dashboard', compact('stats', 'revenueTrend', 'ordersTrend', 'planDistribution', 'recentOrders', 'topMeals', 'deliveryZones'));
     }
 
-    public function customers(AdminApiService $adminApi)
+    public function customers(Request $request, AdminApiService $adminApi)
     {
-        $usersData = $this->apiData($adminApi->usersList(['limit' => 100, 'role' => 'customer']), function () {
+        $page = (int) $request->input('page', 1);
+        $limit = (int) $request->input('limit', 20);
+        $status = $request->input('status');
+        $planId = $request->input('plan_id');
+        $search = $request->input('search');
+
+        $query = ['limit' => $limit, 'role' => 'customer'];
+        if ($status) $query['status'] = $status;
+        if ($planId) $query['plan_id'] = $planId;
+        if ($search) $query['search'] = $search;
+
+        $usersData = $this->apiData($adminApi->usersList($query), function () {
             return [];
         });
 
@@ -140,15 +151,114 @@ class AdminController extends Controller
             }
         }
 
+        $total = count($customers);
         $stats = [
-            'total' => count($customers),
-            'active' => count(array_filter($customers, fn ($c) => $c['status'] === 'active')),
-            'paused' => count(array_filter($customers, fn ($c) => $c['status'] === 'paused')),
-            'cancelled' => count(array_filter($customers, fn ($c) => $c['status'] === 'cancelled')),
-            'newThisWeek' => 0,
+            ['label' => __('Total Customers'), 'value' => number_format($total), 'color' => 'text-gray-900'],
+            ['label' => __('Active'), 'value' => number_format(count(array_filter($customers, fn ($c) => $c['status'] === 'active'))), 'color' => 'text-green-600'],
+            ['label' => __('Paused'), 'value' => number_format(count(array_filter($customers, fn ($c) => $c['status'] === 'paused'))), 'color' => 'text-amber-600'],
+            ['label' => __('Cancelled'), 'value' => number_format(count(array_filter($customers, fn ($c) => $c['status'] === 'cancelled'))), 'color' => 'text-red-600'],
         ];
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'customers' => $customers,
+                'stats' => $stats,
+                'has_more' => false,
+                'total' => $total,
+                'page' => $page,
+            ]);
+        }
+
         return view('admin.customers', compact('customers', 'stats'));
+    }
+
+    public function customerDetails(int $id, AdminApiService $adminApi, SubscriptionApiService $subscriptionApi, PaymentApiService $paymentApi, OrderApiService $orderApi)
+    {
+        $user = $this->apiData($adminApi->userShow($id), fn () => []);
+        $subscriptionsData = $this->apiData($subscriptionApi->list(['user_id' => $id, 'limit' => 50]), fn () => []);
+        $paymentsData = $this->apiData($paymentApi->list(['user_id' => $id, 'limit' => 50]), fn () => []);
+        $ordersData = $this->apiData($orderApi->list(['user_id' => $id, 'limit' => 50]), fn () => []);
+
+        $subscriptions = [];
+        foreach ($subscriptionsData as $sub) {
+            $subscriptions[] = [
+                'id' => $sub['id'] ?? 0,
+                'plan_name' => $sub['plan_name'] ?? 'Plan',
+                'plan' => $sub['plan_name'] ?? 'Plan',
+                'amount' => $sub['amount'] ?? 0,
+                'status' => $sub['status'] ?? 'active',
+                'start_date' => $sub['start_date'] ?? '',
+                'end_date' => $sub['end_date'] ?? '',
+                'payment_status' => $sub['payment_status'] ?? '',
+            ];
+        }
+
+        $currentSub = null;
+        foreach ($subscriptions as $sub) {
+            if ($sub['status'] === 'active') {
+                $currentSub = $sub;
+                break;
+            }
+        }
+
+        $payments = [];
+        foreach ($paymentsData as $payment) {
+            $payments[] = [
+                'id' => 'PAY-' . ($payment['id'] ?? 0),
+                'amount' => $payment['amount'] ?? 0,
+                'status' => $payment['status'] ?? 'pending',
+                'date' => !empty($payment['paid_at']) ? date('Y-m-d H:i', strtotime($payment['paid_at'])) : (!empty($payment['created_at']) ? date('Y-m-d H:i', strtotime($payment['created_at'])) : ''),
+            ];
+        }
+
+        $orders = [];
+        foreach ($ordersData as $order) {
+            $orders[] = [
+                'id' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
+                'amount' => $order['total_amount'] ?? 0,
+                'status' => $order['status'] ?? 'pending',
+                'date' => $order['created_at'] ?? date('Y-m-d'),
+            ];
+        }
+
+        $customer = [
+            'id' => $user['id'] ?? $id,
+            'name' => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: 'Unknown',
+            'email' => $user['email'] ?? '',
+            'phone' => $user['phone'] ?? '',
+            'plan' => $currentSub['plan_name'] ?? ($user['subscription']['plan_name'] ?? 'No Plan'),
+            'status' => $currentSub['status'] ?? ($user['subscription']['status'] ?? ($user['is_active'] ?? true ? 'active' : 'inactive')),
+            'joined' => $user['created_at'] ?? date('Y-m-d'),
+            'subscription' => $currentSub,
+            'subscriptions' => $subscriptions,
+            'payments' => $payments,
+            'orders' => $orders,
+        ];
+
+        return response()->json(['customer' => $customer]);
+    }
+
+    public function assignPlanToCustomer(Request $request, SubscriptionApiService $subscriptionApi, int $id)
+    {
+        $planId = (int) $request->input('plan_id');
+        if ($planId <= 0) {
+            return response()->json(['success' => false, 'error' => __('Invalid plan selected.')], 422);
+        }
+
+        $result = $this->apiData($subscriptionApi->create([
+            'user_id' => $id,
+            'plan_id' => $planId,
+        ]), function () {
+            return ['success' => false, 'message' => 'Failed to create subscription.'];
+        });
+
+        $success = isset($result['success']) ? $result['success'] !== false : true;
+        if ($success && isset($result['id'])) {
+            return response()->json(['success' => true, 'message' => __('Plan assigned successfully.')]);
+        }
+
+        $error = $result['message'] ?? __('Failed to assign plan.');
+        return response()->json(['success' => false, 'error' => $error], 422);
     }
 
     public function subscriptions(PlanApiService $planApi, SubscriptionApiService $subscriptionApi)
