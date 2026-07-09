@@ -1,5 +1,8 @@
 {{-- Report Filter Bar --}}
-@php $reportName = $reportName ?? 'Report'; @endphp
+@php
+    $reportName = $reportName ?? 'Report';
+    $ajaxMode = $ajaxMode ?? false;
+@endphp
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-6 no-print">
     {{-- Report Type Tabs --}}
     <div class="flex items-center gap-1 mb-4 pb-3 border-b border-gray-100 overflow-x-auto">
@@ -28,18 +31,18 @@
             {{ __('Audit & Compliance') }}
         </a>
     </div>
-    <div class="flex flex-col lg:flex-row items-start lg:items-center gap-3 lg:gap-4">
+    <form class="flex flex-col lg:flex-row items-start lg:items-center gap-3 lg:gap-4" {{ $ajaxMode ? 'x-data="reportFilterBar()" @submit.prevent="applyFilters()"' : 'method="GET"' }}>
         {{-- Date Range --}}
         <div class="flex items-center gap-2">
             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">{{ __('Date Range') }}</label>
-            <select class="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 bg-gray-50 focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all">
-                <option>{{ __('Today') }}</option>
-                <option>{{ __('Yesterday') }}</option>
-                <option selected>{{ __('Last 7 days') }}</option>
-                <option>{{ __('Last 30 days') }}</option>
-                <option>{{ __('This Month') }}</option>
-                <option>{{ __('Last 3 Months') }}</option>
-                <option>{{ __('Custom Range') }}</option>
+            <select name="range" {{ $ajaxMode ? 'x-model="filters.range" @change="applyFilters()"' : '' }} class="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 bg-gray-50 focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all">
+                <option value="today">{{ __('Today') }}</option>
+                <option value="yesterday">{{ __('Yesterday') }}</option>
+                <option value="7d" selected>{{ __('Last 7 days') }}</option>
+                <option value="30d">{{ __('Last 30 days') }}</option>
+                <option value="month">{{ __('This Month') }}</option>
+                <option value="3m">{{ __('Last 3 Months') }}</option>
+                <option value="custom">{{ __('Custom Range') }}</option>
             </select>
         </div>
 
@@ -47,44 +50,45 @@
         <div class="flex items-center gap-2">
             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">{{ __('Granularity') }}</label>
             <div class="inline-flex rounded-lg overflow-hidden border border-gray-200">
-                <button class="px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors">{{ __('Day') }}</button>
-                <button class="px-3 py-1.5 text-xs font-medium text-white bg-[#6E7A25] transition-colors">{{ __('Week') }}</button>
-                <button class="px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors">{{ __('Month') }}</button>
+                <button type="button" value="day" class="granularity-btn px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors {{ $ajaxMode ? '@click="setGranularity(\'day\')"' : '' }}">{{ __('Day') }}</button>
+                <button type="button" value="week" class="granularity-btn px-3 py-1.5 text-xs font-medium text-white bg-[#6E7A25] transition-colors {{ $ajaxMode ? '@click="setGranularity(\'week\')"' : '' }}">{{ __('Week') }}</button>
+                <button type="button" value="month" class="granularity-btn px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors {{ $ajaxMode ? '@click="setGranularity(\'month\')"' : '' }}">{{ __('Month') }}</button>
             </div>
+            <input type="hidden" name="granularity" value="week" {{ $ajaxMode ? 'x-model="filters.granularity"' : '' }}>
         </div>
 
         {{-- Zone --}}
         <div class="flex items-center gap-2">
             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">{{ __('Zone') }}</label>
-            <select class="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 bg-gray-50 focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all">
-                <option>{{ __('All Zones') }}</option>
-                <option>{{ __('Riyadh Central') }}</option>
-                <option>{{ __('Riyadh North') }}</option>
-                <option>{{ __('Riyadh South') }}</option>
-                <option>{{ __('Jeddah') }}</option>
+            <select name="zone" {{ $ajaxMode ? 'x-model="filters.zone" @change="applyFilters()"' : '' }} class="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 bg-gray-50 focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all">
+                <option value="all">{{ __('All Zones') }}</option>
+                <option value="riyadh-central">{{ __('Riyadh Central') }}</option>
+                <option value="riyadh-north">{{ __('Riyadh North') }}</option>
+                <option value="riyadh-south">{{ __('Riyadh South') }}</option>
+                <option value="jeddah">{{ __('Jeddah') }}</option>
             </select>
         </div>
 
         {{-- Segment --}}
         <div class="flex items-center gap-2">
             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">{{ __('Segment') }}</label>
-            <select class="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 bg-gray-50 focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all">
-                <option>{{ __('All Segments') }}</option>
-                <option>{{ __('Individual') }}</option>
-                <option>{{ __('Corporate') }}</option>
-                <option>{{ __('Trial') }}</option>
+            <select name="segment" {{ $ajaxMode ? 'x-model="filters.segment" @change="applyFilters()"' : '' }} class="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 bg-gray-50 focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all">
+                <option value="all">{{ __('All Segments') }}</option>
+                <option value="individual">{{ __('Individual') }}</option>
+                <option value="corporate">{{ __('Corporate') }}</option>
+                <option value="trial">{{ __('Trial') }}</option>
             </select>
         </div>
 
         {{-- Plan Type --}}
         <div class="flex items-center gap-2">
             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">{{ __('Plan') }}</label>
-            <select class="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 bg-gray-50 focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all">
-                <option>{{ __('All Plans') }}</option>
-                <option>{{ __('Weight Loss Pro') }}</option>
-                <option>{{ __('Muscle Gain') }}</option>
-                <option>{{ __('Maintenance') }}</option>
-                <option>{{ __('Keto Premium') }}</option>
+            <select name="plan" {{ $ajaxMode ? 'x-model="filters.plan" @change="applyFilters()"' : '' }} class="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 bg-gray-50 focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all">
+                <option value="all">{{ __('All Plans') }}</option>
+                <option value="weight-loss-pro">{{ __('Weight Loss Pro') }}</option>
+                <option value="muscle-gain">{{ __('Muscle Gain') }}</option>
+                <option value="maintenance">{{ __('Maintenance') }}</option>
+                <option value="keto-premium">{{ __('Keto Premium') }}</option>
             </select>
         </div>
 
@@ -105,7 +109,7 @@
                 {{ __('Export Excel') }}
             </button>
         </div>
-    </div>
+    </form>
     {{-- Meta row --}}
     <div class="flex items-center gap-4 mt-3 pt-3 border-t border-gray-50">
         <span class="text-[10px] text-gray-400">{{ __('Report') }}: <span class="font-semibold text-gray-600">{{ $reportName }}</span></span>
