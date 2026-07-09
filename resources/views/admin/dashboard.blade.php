@@ -166,6 +166,91 @@
 
     </div>
 
+{{-- Payment Success Rate Section --}}
+@php
+    $successRateMain = $stats['successRate'] ?? 0;
+    $claimRateMain = $stats['claimRate'] ?? 0;
+    $srMainRadius = 42;
+    $srMainCircumference = 2 * pi() * $srMainRadius;
+    $srMainDash = $srMainCircumference * ($successRateMain / 100);
+    $srMainGap = $srMainCircumference - $srMainDash;
+    $srMainColor = $successRateMain >= 80 ? '#22c55e' : ($successRateMain >= 50 ? '#f59e0b' : '#ef4444');
+    $totalPaymentCount = max(1, array_sum($stats['paymentCounts'] ?? []) - ($stats['paymentCounts']['other'] ?? 0));
+@endphp
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex items-center gap-5 animate__animated animate__fadeInUp" style="animation-delay: 0.45s;">
+        <div class="relative w-24 h-24 flex-shrink-0">
+            <svg class="w-24 h-24 transform -rotate-90">
+                <circle cx="48" cy="48" r="{{ $srMainRadius }}" stroke="#f3f4f6" stroke-width="10" fill="none"/>
+                <circle cx="48" cy="48" r="{{ $srMainRadius }}" stroke="{{ $srMainColor }}" stroke-width="10" fill="none" stroke-linecap="round"
+                    stroke-dasharray="{{ $srMainDash }} {{ $srMainGap }}"
+                    class="transition-all duration-700 ease-out"/>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-2xl font-bold text-gray-900">{{ $successRateMain }}%</span>
+                <span class="text-[10px] text-gray-400">{{ __('Success') }}</span>
+            </div>
+        </div>
+        <div class="flex-1 min-w-0">
+            <h4 class="text-sm font-bold text-gray-900 mb-1">{{ __('Payment Success Rate') }}</h4>
+            <p class="text-xs text-gray-400 mb-3">{{ __('Real rate from payment API data') }}</p>
+            <div class="flex items-center gap-2 mb-2">
+                <span class="px-2 py-1 rounded-full text-[10px] font-bold bg-green-50 text-green-700 border border-green-200">{{ $stats['paymentCounts']['paid'] + $stats['paymentCounts']['captured'] }} {{ __('paid') }}</span>
+                <span class="px-2 py-1 rounded-full text-[10px] font-bold bg-gray-50 text-gray-600 border border-gray-200">{{ $totalPaymentCount }} {{ __('total') }}</span>
+            </div>
+            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full" style="width: {{ $successRateMain }}%; background: {{ $srMainColor }}"></div>
+            </div>
+            <p class="text-[10px] text-gray-400 mt-1">{{ $claimRateMain }}% {{ __('claim rate') }}</p>
+        </div>
+    </div>
+
+    <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white shadow-lg shadow-[#6E7A25]/20 relative overflow-hidden animate__animated animate__fadeInUp" style="animation-delay: 0.5s;">
+        <div class="absolute -right-6 -top-6 w-28 h-28 bg-white/10 rounded-full"></div>
+        <div class="relative z-10">
+            <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <p class="text-xs text-white/70 mb-0.5">{{ __('Total Payment Revenue') }}</p>
+            <p class="text-2xl font-bold">SAR {{ number_format($stats['totalRevenue']) }}</p>
+            <div class="mt-3 flex items-center gap-2 text-[10px] text-white/60">
+                <span class="px-1.5 py-0.5 rounded bg-white/10">{{ __('This month') }} SAR {{ number_format($stats['monthlyRevenue']) }}</span>
+                <span class="px-1.5 py-0.5 rounded bg-white/10">{{ __('Last month') }} SAR {{ number_format($stats['lastMonthRevenue']) }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.55s;">
+        <h4 class="text-sm font-bold text-gray-900 mb-3">{{ __('Payment Status Summary') }}</h4>
+        <div class="space-y-2">
+            @php
+                $summaryStatuses = [
+                    ['key' => 'paid', 'label' => __('Paid'), 'color' => 'bg-green-500'],
+                    ['key' => 'pending', 'label' => __('Pending'), 'color' => 'bg-amber-500'],
+                    ['key' => 'failed', 'label' => __('Failed'), 'color' => 'bg-red-500'],
+                    ['key' => 'refunded', 'label' => __('Refunded'), 'color' => 'bg-orange-500'],
+                ];
+            @endphp
+            @foreach($summaryStatuses as $s)
+                @php
+                    $sCount = $stats['paymentCounts'][$s['key']] ?? 0;
+                    $sPct = $totalPaymentCount > 0 ? round(($sCount / $totalPaymentCount) * 100, 1) : 0;
+                @endphp
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-medium text-gray-600 w-16">{{ $s['label'] }}</span>
+                    <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full {{ $s['color'] }}" style="width: {{ $sPct }}%"></div>
+                    </div>
+                    <div class="text-right w-16">
+                        <span class="text-xs font-bold text-gray-900">{{ number_format($sCount) }}</span>
+                        <span class="text-[10px] text-gray-400">({{ $sPct }}%)</span>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+
 {{-- Secondary KPI Row --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
     <div class="kpi-card animate__animated animate__fadeInUp bg-white rounded-xl border border-gray-100 p-3 shadow-sm flex items-center gap-3" style="animation-delay: 0.5s;">
