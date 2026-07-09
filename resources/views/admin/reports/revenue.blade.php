@@ -45,23 +45,8 @@
                 <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-gray-300"></span> {{ __('Previous') }}</span>
             </div>
         </div>
-        @php
-            $revArrays = array_merge($revenueTrend['current'] ?? [], $revenueTrend['previous'] ?? []);
-            $revMax = !empty($revArrays) ? max($revArrays) : 500000;
-        @endphp
-        <div class="flex items-end gap-3 h-48">
-            @foreach($revenueTrend['labels'] as $i => $label)
-            @php $currPct = ($revenueTrend['current'][$i] / $revMax) * 100; $prevPct = ($revenueTrend['previous'][$i] / $revMax) * 100; @endphp
-            <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
-                <div class="w-full bg-gray-50 rounded-t-md relative h-40 overflow-hidden flex items-end justify-center gap-1">
-                    <div class="w-1/2 rounded-t-md transition-all duration-300 bg-gradient-to-t from-[#6E7A25] to-[#6E7A25]/70 group-hover:opacity-80" style="height: {{ max($currPct, 4) }}%">
-                        <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap z-10">SAR {{ number_format($revenueTrend['current'][$i]) }}</div>
-                    </div>
-                    <div class="w-1/2 rounded-t-md transition-all duration-300 bg-gray-300 group-hover:opacity-70" style="height: {{ max($prevPct, 4) }}%"></div>
-                </div>
-                <span class="text-[10px] text-gray-400 font-medium">{{ $label }}</span>
-            </div>
-            @endforeach
+        <div class="relative h-56">
+            <canvas id="revenueTrendChart"></canvas>
         </div>
     </div>
 
@@ -77,20 +62,8 @@
                 <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-red-400"></span> {{ __('Failure') }}</span>
             </div>
         </div>
-        @php $payMax = 100; @endphp
-        <div class="flex items-end gap-3 h-48">
-            @foreach($paymentTrends['labels'] as $i => $label)
-            @php $succPct = $paymentTrends['success'][$i]; $failPct = $paymentTrends['failure'][$i]; @endphp
-            <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
-                <div class="w-full bg-gray-50 rounded-t-md relative h-40 overflow-hidden flex items-end justify-center gap-0.5">
-                    <div class="w-1/2 rounded-t-md transition-all duration-300 bg-gradient-to-t from-[#6E7A25] to-[#6E7A25]/70 group-hover:opacity-80" style="height: {{ $succPct }}%">
-                        <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap z-10">{{ $succPct }}% {{ __('success') }}</div>
-                    </div>
-                    <div class="w-1/2 rounded-t-md transition-all duration-300 bg-gradient-to-t from-red-400 to-red-300 group-hover:opacity-80" style="height: {{ max($failPct * 10, 4) }}%"></div>
-                </div>
-                <span class="text-[10px] text-gray-400 font-medium">{{ $label }}</span>
-            </div>
-            @endforeach
+        <div class="relative h-56">
+            <canvas id="paymentTrendChart"></canvas>
         </div>
     </div>
 </div>
@@ -105,22 +78,8 @@
                 <span class="text-[10px] text-gray-400">SAR | {{ __('Monthly') }} | {{ __('Refund Ratio') }}: 1.4%</span>
             </div>
         </div>
-        @php
-            $refAmounts = $refundVolume['amount'] ?? [];
-            $refMax = !empty($refAmounts) ? max($refAmounts) : 7000;
-        @endphp
-        <div class="flex items-end gap-3 h-40">
-            @foreach($refundVolume['labels'] as $i => $label)
-            @php $rPct = ($refundVolume['amount'][$i] / $refMax) * 100; @endphp
-            <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
-                <div class="w-full bg-gray-50 rounded-t-md relative h-32 overflow-hidden">
-                    <div class="absolute bottom-0 left-0 right-0 rounded-t-md transition-all duration-300 bg-gradient-to-t from-red-500 to-red-400 group-hover:opacity-80" style="height: {{ max($rPct, 4) }}%">
-                        <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap">SAR {{ number_format($refundVolume['amount'][$i]) }} ({{ $refundVolume['count'][$i] }})</div>
-                    </div>
-                </div>
-                <span class="text-[10px] text-gray-400 font-medium">{{ $label }}</span>
-            </div>
-            @endforeach
+        <div class="relative h-56">
+            <canvas id="refundVolumeChart"></canvas>
         </div>
     </div>
 
@@ -190,5 +149,159 @@
         </table>
     </div>
 </div>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+    Chart.defaults.font.family = "'Nunito', sans-serif";
+    Chart.defaults.color = '#9ca3af';
+
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: '#173327',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                padding: 10,
+                cornerRadius: 8,
+                displayColors: true,
+            }
+        },
+        scales: {
+            x: {
+                grid: { display: false },
+                ticks: { font: { size: 10 } }
+            },
+            y: {
+                beginAtZero: true,
+                grid: { color: '#f3f4f6', borderDash: [4, 4] },
+                ticks: { font: { size: 10 } }
+            }
+        }
+    };
+
+    // Revenue Trend - smooth area/line chart
+    new Chart(document.getElementById('revenueTrendChart'), {
+        type: 'line',
+        data: {
+            labels: @json($revenueTrend['labels'] ?? []),
+            datasets: [
+                {
+                    label: '{{ __('Current') }}',
+                    data: @json($revenueTrend['current'] ?? []),
+                    borderColor: '#6E7A25',
+                    backgroundColor: 'rgba(110, 122, 37, 0.12)',
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#6E7A25',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                },
+                {
+                    label: '{{ __('Previous') }}',
+                    data: @json($revenueTrend['previous'] ?? []),
+                    borderColor: '#d1d5db',
+                    backgroundColor: 'transparent',
+                    tension: 0.4,
+                    borderDash: [5, 5],
+                    pointBackgroundColor: '#d1d5db',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                }
+            ]
+        },
+        options: {
+            ...commonOptions,
+            plugins: {
+                ...commonOptions.plugins,
+                tooltip: {
+                    ...commonOptions.plugins.tooltip,
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': SAR ' + Number(context.raw).toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Payment Success/Failure - stacked bar
+    new Chart(document.getElementById('paymentTrendChart'), {
+        type: 'bar',
+        data: {
+            labels: @json($paymentTrends['labels'] ?? []),
+            datasets: [
+                {
+                    label: '{{ __('Success') }}',
+                    data: @json($paymentTrends['success'] ?? []),
+                    backgroundColor: '#6E7A25',
+                    borderRadius: 4,
+                },
+                {
+                    label: '{{ __('Failure') }}',
+                    data: @json($paymentTrends['failure'] ?? []),
+                    backgroundColor: '#f87171',
+                    borderRadius: 4,
+                }
+            ]
+        },
+        options: {
+            ...commonOptions,
+            scales: {
+                ...commonOptions.scales,
+                y: { ...commonOptions.scales.y, max: 100, ticks: { callback: v => v + '%', font: { size: 10 } } }
+            },
+            plugins: {
+                ...commonOptions.plugins,
+                tooltip: {
+                    ...commonOptions.plugins.tooltip,
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.raw + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Refund Volume - bar chart
+    new Chart(document.getElementById('refundVolumeChart'), {
+        type: 'bar',
+        data: {
+            labels: @json($refundVolume['labels'] ?? []),
+            datasets: [{
+                label: '{{ __('Refund Amount') }}',
+                data: @json($refundVolume['amount'] ?? []),
+                backgroundColor: 'rgba(239, 68, 68, 0.85)',
+                hoverBackgroundColor: '#ef4444',
+                borderRadius: 6,
+            }]
+        },
+        options: {
+            ...commonOptions,
+            plugins: {
+                ...commonOptions.plugins,
+                tooltip: {
+                    ...commonOptions.plugins.tooltip,
+                    callbacks: {
+                        label: function(context) {
+                            return 'SAR ' + Number(context.raw).toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+@endpush
 
 @endsection
