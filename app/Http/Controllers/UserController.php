@@ -213,6 +213,7 @@ class UserController extends Controller
         $activePlanDetails = $activeSubscription ? ($plansById[$activeSubscription['plan_id'] ?? 0] ?? []) : [];
 
         $activePlan = [
+            'id' => $activeSubscription['id'] ?? null,
             'name' => $activePlanDetails['name_en'] ?? 'Active Plan',
             'price' => $activePlanDetails['price'] ?? ($activeSubscription['amount'] ?? 0),
             'duration' => ($activePlanDetails['duration_days'] ?? 28) . ' days',
@@ -307,6 +308,42 @@ class UserController extends Controller
         }
 
         return redirect()->route('user.subscriptions')->with('success', 'Subscription created! Please complete payment.');
+    }
+
+    public function pauseSubscription(int $subscriptionId, SubscriptionApiService $subscriptionApi)
+    {
+        if ($subscriptionId <= 0) {
+            return redirect()->route('user.subscriptions')->with('error', 'Invalid subscription.');
+        }
+
+        $result = $this->apiData($subscriptionApi->pause($subscriptionId), function () {
+            return [];
+        });
+
+        if (empty($result) || !empty($result['error']) || !isset($result['id'])) {
+            $message = $result['detail'] ?? $result['message'] ?? 'Failed to pause subscription. Please try again.';
+            return redirect()->route('user.subscriptions')->with('error', $message);
+        }
+
+        return redirect()->route('user.subscriptions')->with('success', 'Subscription paused successfully.');
+    }
+
+    public function resumeSubscription(int $subscriptionId, SubscriptionApiService $subscriptionApi)
+    {
+        if ($subscriptionId <= 0) {
+            return redirect()->route('user.subscriptions')->with('error', 'Invalid subscription.');
+        }
+
+        $result = $this->apiData($subscriptionApi->resume($subscriptionId), function () {
+            return [];
+        });
+
+        if (empty($result) || !empty($result['error']) || !isset($result['id'])) {
+            $message = $result['detail'] ?? $result['message'] ?? 'Failed to resume subscription. Please try again.';
+            return redirect()->route('user.subscriptions')->with('error', $message);
+        }
+
+        return redirect()->route('user.subscriptions')->with('success', 'Subscription resumed successfully.');
     }
 
     public function paymentSuccess(Request $request, PaymentApiService $paymentApi)

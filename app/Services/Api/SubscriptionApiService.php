@@ -33,4 +33,14 @@ class SubscriptionApiService extends BaseApiService
     {
         return $this->post('subscriptions.cancel', ['subscription_id' => $subscriptionId]);
     }
+
+    public function pause(int $subscriptionId): array
+    {
+        return $this->post('subscriptions.pause', ['subscription_id' => $subscriptionId]);
+    }
+
+    public function resume(int $subscriptionId): array
+    {
+        return $this->post('subscriptions.resume', ['subscription_id' => $subscriptionId]);
+    }
 }

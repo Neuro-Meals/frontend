@@ -23,7 +23,9 @@
     <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
             <span class="text-xs font-medium text-white/50">
-                @if($activePlan['payment_status'] === 'paid')
+                @if($activePlan['status'] === 'paused')
+                Paused Subscription
+                @elseif($activePlan['payment_status'] === 'paid')
                 Active Subscription
                 @elseif($activePlan['payment_status'] === 'unpaid' || $activePlan['payment_status'] === 'pending')
                 Pending Payment
@@ -44,7 +46,7 @@
                 @endif
             </div>
             {{-- Payment status badge --}}
-            <div class="mt-2">
+            <div class="mt-2 flex items-center gap-2">
                 @if($activePlan['payment_status'] === 'paid')
                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-400/20 text-green-300">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -56,12 +58,35 @@
                     {{ ucfirst($activePlan['payment_status']) }}
                 </span>
                 @endif
+                @if($activePlan['status'] === 'paused')
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Paused
+                </span>
+                @endif
             </div>
         </div>
-        @if($activePlan['status'] === 'active' && $activePlan['payment_status'] === 'paid')
-        <div class="text-right">
+        @if(($activePlan['status'] === 'active' || $activePlan['status'] === 'paused') && $activePlan['payment_status'] === 'paid' && !empty($activePlan['id']))
+        <div class="text-right flex flex-col items-end gap-2">
             <div class="text-3xl font-bold">{{ $activePlan['mealsRemaining'] }}<span class="text-sm text-white/50">/{{ $activePlan['mealsTotal'] }}</span></div>
-            <div class="text-xs text-white/50 mt-1">Meals remaining</div>
+            <div class="text-xs text-white/50">Meals remaining</div>
+            @if($activePlan['status'] === 'active')
+            <form action="{{ route('user.subscriptions.pause', $activePlan['id']) }}" method="POST" onsubmit="return confirm('Pause your subscription? Deliveries will be stopped until you resume.')">
+                @csrf
+                <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-400/20 text-amber-300 hover:bg-amber-400/30 text-xs font-bold transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Pause
+                </button>
+            </form>
+            @elseif($activePlan['status'] === 'paused')
+            <form action="{{ route('user.subscriptions.resume', $activePlan['id']) }}" method="POST" onsubmit="return confirm('Resume your subscription? Deliveries will start again.')">
+                @csrf
+                <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-400/20 text-green-300 hover:bg-green-400/30 text-xs font-bold transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Resume
+                </button>
+            </form>
+            @endif
         </div>
         @endif
     </div>
@@ -130,7 +155,10 @@
                     <td class="px-5 py-3 text-xs text-gray-500">{{ $item['period'] }}</td>
                     <td class="px-5 py-3 text-xs font-bold text-gray-900">SAR {{ $item['amount'] }}</td>
                     <td class="px-5 py-3">
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $item['status'] === 'active' ? 'bg-green-50 text-green-700' : ($item['status'] === 'cancelled' ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-500') }}">{{ ucfirst(str_replace('_', ' ', $item['status'])) }}</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold
+                            {{ $item['status'] === 'active' ? 'bg-green-50 text-green-700' : ($item['status'] === 'paused' ? 'bg-amber-50 text-amber-700' : ($item['status'] === 'cancelled' ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-500')) }}">
+                            {{ ucfirst(str_replace('_', ' ', $item['status'])) }}
+                        </span>
                     </td>
                     <td class="px-5 py-3">
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $item['payment_status'] === 'paid' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700' }}">{{ ucfirst($item['payment_status']) }}</span>

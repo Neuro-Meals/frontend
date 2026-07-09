@@ -183,6 +183,8 @@ Route::prefix('user')->name('user.')->middleware(['api.auth', 'api.customer'])->
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('dashboard');
     Route::get('/subscriptions', [UserController::class, 'subscriptions'])->name('subscriptions');
     Route::post('/subscriptions', [UserController::class, 'subscribe'])->name('subscriptions.subscribe');
+    Route::post('/subscriptions/{subscriptionId}/pause', [UserController::class, 'pauseSubscription'])->name('subscriptions.pause');
+    Route::post('/subscriptions/{subscriptionId}/resume', [UserController::class, 'resumeSubscription'])->name('subscriptions.resume');
     Route::get('/meals', [UserController::class, 'meals'])->name('meals');
     Route::get('/nutrition', [UserController::class, 'nutrition'])->name('nutrition');
     Route::get('/orders', [UserController::class, 'orders'])->name('orders');
