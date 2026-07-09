@@ -546,6 +546,27 @@ class UserController extends Controller
         $fitnessGoal = $user['fitness_goal'] ?? 'maintenance';
         $targets = $this->calculateNutritionTargets($fitnessGoal, $currentWeight);
 
+        // Prepare today's meals for display on the nutrition page
+        $todayMeals = [];
+        $slicedMeals = array_slice($meals, 0, 3);
+        foreach ($slicedMeals as $index => $meal) {
+            $todayMeals[] = [
+                'id' => $meal['id'] ?? 0,
+                'name' => $meal['name_en'] ?? ($meal['name'] ?? 'Meal'),
+                'time' => $meal['meal_time'] ?? (['Breakfast', 'Lunch', 'Dinner'][$index] ?? 'Meal'),
+                'image' => $meal['image_url'] ?? 'whitelogo.png',
+                'category' => $meal['category']['name_en'] ?? ($meal['category_name'] ?? 'Meal'),
+                'calories' => (int) ($meal['calories'] ?? 0),
+                'protein' => (int) ($meal['protein_g'] ?? 0),
+                'carbs' => (int) ($meal['carbs_g'] ?? 0),
+                'fat' => (int) ($meal['fat_g'] ?? 0),
+                'price' => $meal['price'] ?? 0,
+                'orders' => $meal['orders_count'] ?? 0,
+                'serving' => '1 serving',
+                'status' => 'pending',
+            ];
+        }
+
         // If API provides today's nutrition, use it; otherwise calculate from meals
         if (!empty($apiNutrition)) {
             $todayStats = [
@@ -629,7 +650,7 @@ class UserController extends Controller
             'adherenceRate' => $adherenceRate,
         ];
 
-        return view('user.nutrition', compact('todayStats', 'weeklyData', 'weightProgress', 'stats'));
+        return view('user.nutrition', compact('todayStats', 'weeklyData', 'weightProgress', 'stats', 'todayMeals'));
     }
 
     /**

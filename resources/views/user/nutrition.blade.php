@@ -57,6 +57,75 @@
     </div>
 </div>
 
+{{-- Today's Meals with Images, Orders & Serving Info --}}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6 mb-6">
+    <div class="flex items-center justify-between mb-5">
+        <h3 class="text-lg font-bold text-gray-900">Today's <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Meals</span></h3>
+        <a href="{{ route('user.meals') }}" class="text-xs font-bold text-[#6E7A25] hover:text-[#173327] transition-colors">{{ __('View all') }} →</a>
+    </div>
+
+    @if(!empty($todayMeals))
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        @foreach($todayMeals as $meal)
+        <div class="group bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+            <div class="h-44 sm:h-52 overflow-hidden bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 relative">
+                <img src="{{ $meal['image'] ?: asset('whitelogo.png') }}" alt="{{ $meal['name'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                <div class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur text-[10px] font-bold text-[#173327] shadow-sm">
+                    {{ $meal['time'] }}
+                </div>
+                <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-[#173327]/90 backdrop-blur text-[10px] font-bold text-white shadow-sm">
+                    {{ $meal['category'] }}
+                </div>
+            </div>
+            <div class="p-4 sm:p-5">
+                <h4 class="text-base font-bold text-gray-900 mb-2">{{ $meal['name'] }}</h4>
+
+                <div class="flex items-center justify-between text-xs text-gray-500 mb-4">
+                    <span class="font-medium text-[#6E7A25]">{{ number_format($meal['calories']) }} kcal</span>
+                    <span>P {{ $meal['protein'] }}g · C {{ $meal['carbs'] }}g · F {{ $meal['fat'] }}g</span>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 mb-4">
+                    <div class="text-center bg-gray-50 rounded-lg py-2">
+                        <p class="text-[10px] text-gray-400">{{ __('Price') }}</p>
+                        <p class="text-xs font-bold text-gray-900">SAR {{ number_format($meal['price'], 2) }}</p>
+                    </div>
+                    <div class="text-center bg-gray-50 rounded-lg py-2">
+                        <p class="text-[10px] text-gray-400">{{ __('Serving') }}</p>
+                        <p class="text-xs font-bold text-gray-900">{{ $meal['serving'] }}</p>
+                    </div>
+                    <div class="text-center bg-gray-50 rounded-lg py-2">
+                        <p class="text-[10px] text-gray-400">{{ __('Orders') }}</p>
+                        <p class="text-xs font-bold text-gray-900">{{ $meal['orders'] > 0 ? $meal['orders'] : __('None') }}</p>
+                    </div>
+                </div>
+
+                @if($meal['orders'] > 0)
+                <div class="flex items-center gap-2 text-[10px] font-medium text-emerald-600 bg-emerald-50 rounded-lg px-3 py-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>{{ $meal['orders'] }} {{ __('orders placed for this meal') }}</span>
+                </div>
+                @else
+                <div class="flex items-center gap-2 text-[10px] font-medium text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>{{ __('No orders yet for this meal') }}</span>
+                </div>
+                @endif
+            </div>
+        </div>
+        @endforeach
+    </div>
+    @else
+    <div class="flex flex-col items-center justify-center py-12 text-center">
+        <div class="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-4">
+            <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+        <h4 class="text-sm font-bold text-gray-900 mb-1">{{ __('No meals scheduled today') }}</h4>
+        <p class="text-xs text-gray-400 max-w-xs">{{ __('Your meal plan will appear here once your subscription is active.') }}</p>
+    </div>
+    @endif
+</div>
+
 {{-- Weekly Chart & Weight Progress --}}
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
     {{-- Weekly Nutrition Chart --}}
