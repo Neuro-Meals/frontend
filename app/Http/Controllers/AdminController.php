@@ -939,22 +939,29 @@ class AdminController extends Controller
         if (!empty($ordersData)) {
             foreach ($ordersData as $order) {
                 $customer = $order['customer'] ?? ($order['user'] ?? []);
-                $plan = $order['plan'] ?? [];
+                $plan = $order['plan'] ?? ($order['items'][0] ?? []);
+                $driver = $order['driver'] ?? [];
+                $payment = $order['payment'] ?? [];
                 $orders[] = [
                     'id' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
                     'customer' => trim($customer['full_name'] ?? (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) ?: 'Customer',
                     'customer_email' => $customer['email'] ?? ($order['user']['email'] ?? ''),
                     'customer_phone' => $customer['phone'] ?? ($order['user']['phone'] ?? ''),
-                    'plan' => $plan['name_en'] ?? ($order['plan_name'] ?? 'Plan'),
+                    'plan' => $plan['name_en'] ?? ($plan['plan_name'] ?? ($plan['name'] ?? 'Plan')),
                     'amount' => $order['total_amount'] ?? 0,
-                    'status' => $order['status'] ?? 'pending',
-                    'payment_status' => $order['payment_status'] ?? 'unpaid',
-                    'payment_method' => $order['payment_method'] ?? 'N/A',
+                    'status' => $order['order_status'] ?? 'pending',
+                    'payment_status' => $payment['status'] ?? ($order['payment_status'] ?? 'unpaid'),
+                    'payment_provider' => $payment['provider'] ?? ($order['payment_method'] ?? 'N/A'),
+                    'payment_method' => $payment['provider'] ?? ($order['payment_method'] ?? 'N/A'),
                     'date' => $order['created_at'] ?? date('Y-m-d'),
                     'delivery' => $order['delivery_date'] ?? 'N/A',
                     'address' => $order['delivery_address'] ?? '',
-                    'driver' => $order['driver_name'] ?? 'Unassigned',
+                    'driver' => $driver
+                        ? trim(($driver['first_name'] ?? '') . ' ' . ($driver['last_name'] ?? ''))
+                        : ($order['driver_name'] ?? 'Unassigned'),
                     'items' => $order['items'] ?? [],
+                    'subscription' => $order['subscription'] ?? [],
+                    'delivery_info' => $order['delivery'] ?? [],
                 ];
             }
         }
