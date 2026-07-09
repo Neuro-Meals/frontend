@@ -133,54 +133,160 @@
   </div>
 
   {{-- Receipt Modal --}}
-  <div x-show="receipt" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none">
-    <div class="absolute inset-0 bg-black/40" @click="receipt = null"></div>
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden" @click.outside="receipt = null">
-      <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] p-5 text-white text-center relative">
-        <div class="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-12 -mt-12 blur-2xl"></div>
-        <svg class="w-10 h-10 mx-auto mb-2 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        <h3 class="text-sm font-bold relative z-10">{{ __('Payment Receipt') }}</h3>
-        <p class="text-[10px] text-white/60 mt-0.5 relative z-10" x-text="receipt?.id"></p>
-      </div>
-      <div class="p-5 space-y-3">
-        <div class="flex justify-between items-center py-2 border-b border-gray-50">
-          <span class="text-[10px] text-gray-400">{{ __('Subscription') }}</span>
-          <span class="text-xs font-semibold text-gray-900" x-text="receipt?.order"></span>
-        </div>
-        <div class="flex justify-between items-center py-2 border-b border-gray-50">
-          <span class="text-[10px] text-gray-400">{{ __('Amount') }}</span>
-          <span class="text-sm font-bold text-gray-900" x-text="'SAR ' + receipt?.amount"></span>
-        </div>
-        <div class="flex justify-between items-center py-2 border-b border-gray-50">
-          <span class="text-[10px] text-gray-400">{{ __('Status') }}</span>
-          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border" :class="statusClass(receipt?.status)">
-            <span x-text="receipt?.status?.charAt(0).toUpperCase() + receipt?.status?.slice(1)"></span>
+  <div x-show="receipt" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none" x-cloak>
+    <div x-show="receipt" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="receipt = null"></div>
+    <div x-show="receipt" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 scale-100 translate-y-0" x-transition:leave-end="opacity-0 scale-95 translate-y-4" class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" @click.outside="receipt = null">
+      {{-- Header --}}
+      <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] p-6 text-white text-center relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+        <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12 blur-xl"></div>
+        <div class="relative z-10">
+          <div class="w-14 h-14 mx-auto mb-3 rounded-full bg-white/15 backdrop-blur flex items-center justify-center">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <h3 class="text-base font-bold">{{ __('Payment Receipt') }}</h3>
+          <p class="text-[10px] text-white/70 mt-1" x-text="receipt?.id"></p>
+          <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold mt-3 border border-white/20" :class="statusClass(receipt?.status)">
+            <span x-text="receipt?.status ? receipt.status.charAt(0).toUpperCase() + receipt.status.slice(1) : ''"></span>
           </span>
         </div>
-        <div class="flex justify-between items-center py-2 border-b border-gray-50">
-          <span class="text-[10px] text-gray-400">{{ __('Date') }}</span>
-          <span class="text-xs text-gray-600" x-text="receipt?.date"></span>
+      </div>
+
+      {{-- Receipt Body --}}
+      <div class="p-6 space-y-5">
+        {{-- Customer --}}
+        <div>
+          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Customer') }}</h4>
+          <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center text-white font-bold text-sm flex-shrink-0" x-text="receipt?.customer ? receipt.customer.charAt(0).toUpperCase() : 'C'"></div>
+            <div class="min-w-0">
+              <p class="text-sm font-bold text-gray-900 truncate" x-text="receipt?.customer"></p>
+              <p class="text-[10px] text-gray-500 truncate" x-text="receipt?.customer_email || receipt?.customer_phone || ''"></p>
+            </div>
+          </div>
         </div>
-        <div class="flex justify-between items-center py-2 border-b border-gray-50">
-          <span class="text-[10px] text-gray-400">{{ __('Stripe Session') }}</span>
-          <span class="text-[10px] text-gray-400 font-mono truncate max-w-[140px]" x-text="receipt?.stripe_session_id || '—'"></span>
+
+        {{-- Subscription --}}
+        <div>
+          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Subscription') }}</h4>
+          <div class="space-y-2">
+            <div class="flex justify-between items-center py-1.5 border-b border-gray-50">
+              <span class="text-[10px] text-gray-400">{{ __('Plan') }}</span>
+              <span class="text-xs font-semibold text-gray-900" x-text="receipt?.plan_name || '—'"></span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 border-b border-gray-50">
+              <span class="text-[10px] text-gray-400">{{ __('Subscription ID') }}</span>
+              <span class="text-xs font-mono text-gray-700" x-text="receipt?.order || '—'"></span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 border-b border-gray-50">
+              <span class="text-[10px] text-gray-400">{{ __('Status') }}</span>
+              <span class="text-xs font-semibold text-gray-900 capitalize" x-text="receipt?.subscription_status || '—'"></span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 border-b border-gray-50">
+              <span class="text-[10px] text-gray-400">{{ __('Period') }}</span>
+              <span class="text-xs text-gray-600" x-text="(receipt?.subscription_start ? new Date(receipt.subscription_start).toLocaleDateString() : '—') + ' - ' + (receipt?.subscription_end ? new Date(receipt.subscription_end).toLocaleDateString() : '—')"></span>
+            </div>
+          </div>
         </div>
-        <div class="flex justify-between items-center py-2">
-          <span class="text-[10px] text-gray-400">{{ __('Payment ID') }}</span>
-          <span class="text-[10px] text-gray-500 font-mono" x-text="receipt?.id"></span>
+
+        {{-- Payment --}}
+        <div>
+          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Payment Details') }}</h4>
+          <div class="space-y-2">
+            <div class="flex justify-between items-center py-1.5 border-b border-gray-50">
+              <span class="text-[10px] text-gray-400">{{ __('Amount') }}</span>
+              <span class="text-base font-bold text-[#6E7A25]" x-text="receipt?.currency + ' ' + Number(receipt?.amount || 0).toLocaleString()"></span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 border-b border-gray-50">
+              <span class="text-[10px] text-gray-400">{{ __('Method') }}</span>
+              <span class="text-xs font-semibold text-gray-900" x-text="receipt?.method || '—'"></span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 border-b border-gray-50">
+              <span class="text-[10px] text-gray-400">{{ __('Provider') }}</span>
+              <span class="text-xs font-semibold text-gray-900 capitalize" x-text="receipt?.provider || '—'"></span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 border-b border-gray-50">
+              <span class="text-[10px] text-gray-400">{{ __('Paid At') }}</span>
+              <span class="text-xs text-gray-600" x-text="receipt?.paid_at ? new Date(receipt.paid_at).toLocaleString() : '—'"></span>
+            </div>
+            <div class="flex justify-between items-center py-1.5">
+              <span class="text-[10px] text-gray-400">{{ __('Transaction ID') }}</span>
+              <span class="text-[10px] font-mono text-gray-500" x-text="receipt?.id"></span>
+            </div>
+          </div>
+        </div>
+
+        {{-- Brand Footer --}}
+        <div class="pt-4 border-t border-gray-100 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <img src="{{ asset('blackmodelogo.png') }}" alt="Nutrio Meals" class="h-6 w-auto" onerror="this.style.display='none'">
+            <span class="text-xs font-bold text-gray-900">{{ __('Nutrio Meals') }}</span>
+          </div>
+          <span class="text-[10px] text-gray-400" x-text="receipt?.created_at ? new Date(receipt.created_at).toLocaleDateString() : ''"></span>
         </div>
       </div>
-      <div class="px-5 pb-5 flex gap-2">
-        <button @click="receipt = null" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
+
+      {{-- Print-only version --}}
+      <div id="printReceipt" class="hidden print:block p-8">
+        <div class="text-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-900">{{ __('Nutrio Meals') }}</h2>
+          <p class="text-sm text-gray-500">{{ __('Payment Receipt') }}</p>
+        </div>
+        <div class="space-y-4 text-sm">
+          <div class="flex justify-between border-b border-gray-200 pb-2">
+            <span class="text-gray-600">{{ __('Transaction ID') }}</span>
+            <span class="font-mono" x-text="receipt?.id"></span>
+          </div>
+          <div class="flex justify-between border-b border-gray-200 pb-2">
+            <span class="text-gray-600">{{ __('Customer') }}</span>
+            <span class="font-bold" x-text="receipt?.customer"></span>
+          </div>
+          <div class="flex justify-between border-b border-gray-200 pb-2">
+            <span class="text-gray-600">{{ __('Plan') }}</span>
+            <span x-text="receipt?.plan_name"></span>
+          </div>
+          <div class="flex justify-between border-b border-gray-200 pb-2">
+            <span class="text-gray-600">{{ __('Amount') }}</span>
+            <span class="font-bold text-lg" x-text="receipt?.currency + ' ' + Number(receipt?.amount || 0).toLocaleString()"></span>
+          </div>
+          <div class="flex justify-between border-b border-gray-200 pb-2">
+            <span class="text-gray-600">{{ __('Status') }}</span>
+            <span class="capitalize" x-text="receipt?.status"></span>
+          </div>
+          <div class="flex justify-between border-b border-gray-200 pb-2">
+            <span class="text-gray-600">{{ __('Paid At') }}</span>
+            <span x-text="receipt?.paid_at ? new Date(receipt.paid_at).toLocaleString() : ''"></span>
+          </div>
+        </div>
+        <p class="text-center text-xs text-gray-400 mt-8">{{ __('Thank you for choosing Nutrio Meals') }}</p>
+      </div>
+
+      {{-- Actions --}}
+      <div class="px-6 pb-6 flex gap-2 print:hidden">
+        <button @click="receipt = null" class="flex-1 px-3 py-2.5 text-xs font-bold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
           {{ __('Close') }}
         </button>
-        <button @click="printReceipt" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-md transition-all">
+        <button @click="printReceipt" class="flex-1 px-3 py-2.5 text-xs font-bold rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-lg transition-all flex items-center justify-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
           {{ __('Print') }}
         </button>
       </div>
     </div>
   </div>
 </div>
+
+@push('styles')
+<style>
+@media print {
+  body > * { display: none !important; }
+  div[x-data="paymentsApp()"] { display: block !important; position: static !important; }
+  .fixed.inset-0 { position: static !important; display: block !important; }
+  .fixed.inset-0 > .relative { box-shadow: none !important; border-radius: 0 !important; max-width: 100% !important; width: 100% !important; }
+  #printReceipt { display: block !important; }
+  .print\:hidden { display: none !important; }
+}
+</style>
+@endpush
 
 @push('scripts')
 <script>
