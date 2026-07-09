@@ -90,6 +90,83 @@ class BaseApiService
     }
 
     /**
+     * POST multipart request for file uploads.
+     *
+     * @param array<int, array{name: string, contents: mixed, filename: string}> $files
+     */
+    protected function postMultipart(string $key, array $params = [], array $files = [], array $extraData = []): array
+    {
+        $url = $this->buildUrl($key, $params);
+        $attempt = 0;
+        $lastError = null;
+
+        while ($attempt < $this->retryAttempts) {
+            $attempt++;
+
+            try {
+                $http = Http::withHeaders([
+                    'Accept' => 'application/json',
+                    'Authorization' => 'Bearer ' . ($this->getAuthToken() ?? ''),
+                ])
+                    ->withOptions([
+                        'curl' => [
+                            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                            CURLOPT_CONNECTTIMEOUT => 10,
+                        ],
+                    ])
+                    ->timeout($this->timeout);
+
+                foreach ($files as $file) {
+                    $http = $http->attach($file['name'], $file['contents'], $file['filename']);
+                }
+
+                foreach ($extraData as $key => $value) {
+                    $http = $http->attach($key, $value);
+                }
+
+                $response = $http->post($url);
+
+                if ($response->successful()) {
+                    return $response->json() ?? ['success' => true];
+                }
+
+                if ($response->status() === 401) {
+                    Log::warning('API unauthorized', ['url' => $url]);
+                    return [
+                        'success' => false,
+                        'status' => 401,
+                        'message' => $response->json('message') ?? $response->json('detail') ?? 'Unauthorized',
+                    ];
+                }
+
+                $json = $response->json() ?? [];
+                return [
+                    'success' => false,
+                    'status' => $response->status(),
+                    'message' => $json['message'] ?? $json['detail'] ?? 'Upload failed',
+                ];
+            } catch (\Exception $e) {
+                Log::error('API upload failed', [
+                    'url' => $url,
+                    'attempt' => $attempt,
+                    'error' => $e->getMessage(),
+                ]);
+                $lastError = $e->getMessage();
+            }
+
+            if ($attempt < $this->retryAttempts) {
+                usleep(500000 * $attempt);
+            }
+        }
+
+        return [
+            'success' => false,
+            'status' => 500,
+            'message' => $lastError ?? 'Upload failed after retries',
+        ];
+    }
+
+    /**
      * PUT request.
      */
     protected function put(string $key, array $params = [], array $data = []): array

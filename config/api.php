@@ -181,5 +181,10 @@ return [
             'deliveries'    => '/reports/deliveries',
             'revenue'       => '/reports/revenue',
         ],
+
+        // ─── File Uploads ───
+        'uploads' => [
+            'images' => '/uploads/images',
+        ],
     ],
 ];

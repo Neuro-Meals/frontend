@@ -2,98 +2,69 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Api\UploadApiService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class UploadController extends Controller
 {
-    private const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
-    private const DISK = 'public';
-    private const UPLOAD_PATH = 'uploads';
-
-    public function uploadImage(Request $request)
+    public function uploadImage(Request $request, UploadApiService $uploadApi)
     {
         $request->validate([
             'file' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
 
-        $file = $request->file('file');
-        $url = $this->storeFile($file);
+        $result = $uploadApi->images([$request->file('file')]);
 
-        if (!$url) {
-            return response()->json(['success' => false, 'message' => 'Upload failed'], 500);
+        if (empty($result['images'][0]['image_url'])) {
+            $message = $result['message'] ?? 'Image upload failed.';
+            return response()->json(['success' => false, 'message' => $message], $result['status'] ?? 500);
         }
 
         return response()->json([
             'success' => true,
-            'image_url' => $url,
-            'original_name' => $file->getClientOriginalName(),
+            'image_url' => $result['images'][0]['image_url'],
+            'original_name' => $result['images'][0]['original_name'] ?? $request->file('file')->getClientOriginalName(),
         ]);
     }
 
-    public function uploadImages(Request $request)
+    public function uploadImages(Request $request, UploadApiService $uploadApi)
     {
         $request->validate([
             'files' => 'required|array',
             'files.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
 
-        $uploaded = [];
-        foreach ($request->file('files') as $file) {
-            $url = $this->storeFile($file);
-            if ($url) {
-                $uploaded[] = [
-                    'original_name' => $file->getClientOriginalName(),
-                    'image_url' => $url,
-                ];
-            }
+        $result = $uploadApi->images($request->file('files'));
+
+        if (empty($result['images'])) {
+            $message = $result['message'] ?? 'Image upload failed.';
+            return response()->json(['success' => false, 'message' => $message], $result['status'] ?? 500);
         }
 
         return response()->json([
             'success' => true,
-            'count' => count($uploaded),
-            'images' => $uploaded,
+            'count' => count($result['images']),
+            'images' => $result['images'],
         ]);
     }
 
-    public function uploadAvatar(Request $request)
+    public function uploadAvatar(Request $request, UploadApiService $uploadApi)
     {
         $request->validate([
             'file' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        $file = $request->file('file');
-        $url = $this->storeFile($file, 'avatars');
+        $result = $uploadApi->images([$request->file('file')]);
 
-        if (!$url) {
-            return response()->json(['success' => false, 'message' => 'Avatar upload failed'], 500);
+        if (empty($result['images'][0]['image_url'])) {
+            $message = $result['message'] ?? 'Avatar upload failed.';
+            return response()->json(['success' => false, 'message' => $message], $result['status'] ?? 500);
         }
 
         return response()->json([
             'success' => true,
-            'image_url' => $url,
-            'original_name' => $file->getClientOriginalName(),
+            'image_url' => $result['images'][0]['image_url'],
+            'original_name' => $result['images'][0]['original_name'] ?? $request->file('file')->getClientOriginalName(),
         ]);
-    }
-
-    private function storeFile($file, string $subFolder = ''): ?string
-    {
-        $extension = strtolower($file->getClientOriginalExtension());
-
-        if (!in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
-            return null;
-        }
-
-        $folder = self::UPLOAD_PATH . ($subFolder ? '/' . $subFolder : '');
-        $filename = Str::uuid()->toString() . '.' . $extension;
-
-        $stored = Storage::disk(self::DISK)->putFileAs($folder, $file, $filename);
-
-        if (!$stored) {
-            return null;
-        }
-
-        return '/storage/' . ltrim($stored, '/');
     }
 }
