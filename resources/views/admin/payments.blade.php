@@ -132,57 +132,82 @@
     </div>
   </div>
 
-  {{-- Receipt Modal --}}
-  <div x-show="receipt" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none" x-cloak>
+  {{-- Receipt Slide-over Sidebar --}}
+  <div x-show="receipt" class="fixed inset-0 z-50" style="display: none" x-cloak>
+    {{-- Backdrop --}}
     <div x-show="receipt" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="receipt = null"></div>
-    <div x-show="receipt" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 scale-100 translate-y-0" x-transition:leave-end="opacity-0 scale-95 translate-y-4" class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" @click.outside="receipt = null">
+
+    {{-- Panel --}}
+    <div x-show="receipt" x-transition:enter="transform ease-out duration-300" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transform ease-in duration-200" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full" class="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl overflow-y-auto print-panel">
       {{-- Header --}}
-      <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] p-6 text-white text-center relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+      <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] px-6 py-5 text-white relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20 blur-2xl"></div>
         <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12 blur-xl"></div>
-        <div class="relative z-10">
-          <div class="w-14 h-14 mx-auto mb-3 rounded-full bg-white/15 backdrop-blur flex items-center justify-center">
-            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div class="relative z-10 flex items-start justify-between">
+          <div>
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/15 backdrop-blur mb-3">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h3 class="text-lg font-bold">{{ __('Payment Receipt') }}</h3>
+            <p class="text-[10px] text-white/70 mt-0.5 font-mono" x-text="receipt?.id"></p>
           </div>
-          <h3 class="text-base font-bold">{{ __('Payment Receipt') }}</h3>
-          <p class="text-[10px] text-white/70 mt-1" x-text="receipt?.id"></p>
-          <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold mt-3 border border-white/20" :class="statusClass(receipt?.status)">
+          <button @click="receipt = null" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors print:hidden">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="relative z-10 mt-4 flex items-center gap-2">
+          <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border border-white/20" :class="statusClass(receipt?.status)">
             <span x-text="receipt?.status ? receipt.status.charAt(0).toUpperCase() + receipt.status.slice(1) : ''"></span>
           </span>
+          <span class="text-[10px] text-white/60" x-text="receipt?.date"></span>
         </div>
       </div>
 
       {{-- Receipt Body --}}
-      <div class="p-6 space-y-5">
+      <div class="p-6 space-y-6">
+        {{-- Amount Card --}}
+        <div class="p-4 rounded-2xl bg-gradient-to-br from-gray-50 to-white border border-gray-100 text-center">
+          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">{{ __('Amount Paid') }}</p>
+          <p class="text-3xl font-bold text-[#6E7A25]" x-text="receipt?.currency + ' ' + Number(receipt?.amount || 0).toLocaleString()"></p>
+        </div>
+
         {{-- Customer --}}
         <div>
           <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Customer') }}</h4>
           <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
             <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center text-white font-bold text-sm flex-shrink-0" x-text="receipt?.customer ? receipt.customer.charAt(0).toUpperCase() : 'C'"></div>
-            <div class="min-w-0">
+            <div class="min-w-0 flex-1">
               <p class="text-sm font-bold text-gray-900 truncate" x-text="receipt?.customer"></p>
               <p class="text-[10px] text-gray-500 truncate" x-text="receipt?.customer_email || receipt?.customer_phone || ''"></p>
             </div>
           </div>
         </div>
 
-        {{-- Subscription --}}
+        {{-- Order + Subscription --}}
         <div>
-          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Subscription') }}</h4>
+          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Order & Subscription') }}</h4>
           <div class="space-y-2">
-            <div class="flex justify-between items-center py-1.5 border-b border-gray-50">
-              <span class="text-[10px] text-gray-400">{{ __('Plan') }}</span>
-              <span class="text-xs font-semibold text-gray-900" x-text="receipt?.plan_name || '—'"></span>
+            <div class="flex justify-between items-center py-2 border-b border-gray-50">
+              <span class="text-[10px] text-gray-400">{{ __('Order ID') }}</span>
+              <span class="text-xs font-mono font-semibold text-gray-900" x-text="receipt?.order_id || '—'"></span>
             </div>
-            <div class="flex justify-between items-center py-1.5 border-b border-gray-50">
+            <div class="flex justify-between items-center py-2 border-b border-gray-50">
+              <span class="text-[10px] text-gray-400">{{ __('Order Number') }}</span>
+              <span class="text-xs font-mono text-gray-700" x-text="receipt?.order_number || '—'"></span>
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-gray-50">
               <span class="text-[10px] text-gray-400">{{ __('Subscription ID') }}</span>
               <span class="text-xs font-mono text-gray-700" x-text="receipt?.order || '—'"></span>
             </div>
-            <div class="flex justify-between items-center py-1.5 border-b border-gray-50">
-              <span class="text-[10px] text-gray-400">{{ __('Status') }}</span>
+            <div class="flex justify-between items-center py-2 border-b border-gray-50">
+              <span class="text-[10px] text-gray-400">{{ __('Plan') }}</span>
+              <span class="text-xs font-semibold text-gray-900" x-text="receipt?.plan_name || '—'"></span>
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-gray-50">
+              <span class="text-[10px] text-gray-400">{{ __('Subscription Status') }}</span>
               <span class="text-xs font-semibold text-gray-900 capitalize" x-text="receipt?.subscription_status || '—'"></span>
             </div>
-            <div class="flex justify-between items-center py-1.5 border-b border-gray-50">
+            <div class="flex justify-between items-center py-2">
               <span class="text-[10px] text-gray-400">{{ __('Period') }}</span>
               <span class="text-xs text-gray-600" x-text="(receipt?.subscription_start ? new Date(receipt.subscription_start).toLocaleDateString() : '—') + ' - ' + (receipt?.subscription_end ? new Date(receipt.subscription_end).toLocaleDateString() : '—')"></span>
             </div>
@@ -193,23 +218,27 @@
         <div>
           <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Payment Details') }}</h4>
           <div class="space-y-2">
-            <div class="flex justify-between items-center py-1.5 border-b border-gray-50">
-              <span class="text-[10px] text-gray-400">{{ __('Amount') }}</span>
-              <span class="text-base font-bold text-[#6E7A25]" x-text="receipt?.currency + ' ' + Number(receipt?.amount || 0).toLocaleString()"></span>
-            </div>
-            <div class="flex justify-between items-center py-1.5 border-b border-gray-50">
+            <div class="flex justify-between items-center py-2 border-b border-gray-50">
               <span class="text-[10px] text-gray-400">{{ __('Method') }}</span>
               <span class="text-xs font-semibold text-gray-900" x-text="receipt?.method || '—'"></span>
             </div>
-            <div class="flex justify-between items-center py-1.5 border-b border-gray-50">
+            <div class="flex justify-between items-center py-2 border-b border-gray-50">
               <span class="text-[10px] text-gray-400">{{ __('Provider') }}</span>
               <span class="text-xs font-semibold text-gray-900 capitalize" x-text="receipt?.provider || '—'"></span>
             </div>
-            <div class="flex justify-between items-center py-1.5 border-b border-gray-50">
+            <div class="flex justify-between items-center py-2 border-b border-gray-50">
+              <span class="text-[10px] text-gray-400">{{ __('Status') }}</span>
+              <span class="text-xs font-semibold text-gray-900 capitalize" x-text="receipt?.status || '—'"></span>
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-gray-50">
+              <span class="text-[10px] text-gray-400">{{ __('Date') }}</span>
+              <span class="text-xs text-gray-600" x-text="receipt?.date || '—'"></span>
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-gray-50">
               <span class="text-[10px] text-gray-400">{{ __('Paid At') }}</span>
               <span class="text-xs text-gray-600" x-text="receipt?.paid_at ? new Date(receipt.paid_at).toLocaleString() : '—'"></span>
             </div>
-            <div class="flex justify-between items-center py-1.5">
+            <div class="flex justify-between items-center py-2">
               <span class="text-[10px] text-gray-400">{{ __('Transaction ID') }}</span>
               <span class="text-[10px] font-mono text-gray-500" x-text="receipt?.id"></span>
             </div>
@@ -226,16 +255,37 @@
         </div>
       </div>
 
-      {{-- Print-only version --}}
+      {{-- Actions --}}
+      <div class="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4 flex flex-col gap-2 print:hidden">
+        <button @click="fullReceipt = true" class="w-full px-3 py-2.5 text-xs font-bold rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-lg transition-all flex items-center justify-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          {{ __('View Full Receipt') }}
+        </button>
+        <div class="flex gap-2">
+          <button @click="receipt = null" class="flex-1 px-3 py-2.5 text-xs font-bold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
+            {{ __('Close') }}
+          </button>
+          <button @click="printReceipt" class="flex-1 px-3 py-2.5 text-xs font-bold rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-lg transition-all flex items-center justify-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            {{ __('Print') }}
+          </button>
+        </div>
+      </div>
+
+      {{-- Print-only clean receipt --}}
       <div id="printReceipt" class="hidden print:block p-8">
         <div class="text-center mb-6">
           <h2 class="text-2xl font-bold text-gray-900">{{ __('Nutrio Meals') }}</h2>
           <p class="text-sm text-gray-500">{{ __('Payment Receipt') }}</p>
         </div>
-        <div class="space-y-4 text-sm">
+        <div class="space-y-3 text-sm">
           <div class="flex justify-between border-b border-gray-200 pb-2">
             <span class="text-gray-600">{{ __('Transaction ID') }}</span>
             <span class="font-mono" x-text="receipt?.id"></span>
+          </div>
+          <div class="flex justify-between border-b border-gray-200 pb-2">
+            <span class="text-gray-600">{{ __('Order ID') }}</span>
+            <span class="font-mono" x-text="receipt?.order_id"></span>
           </div>
           <div class="flex justify-between border-b border-gray-200 pb-2">
             <span class="text-gray-600">{{ __('Customer') }}</span>
@@ -244,6 +294,10 @@
           <div class="flex justify-between border-b border-gray-200 pb-2">
             <span class="text-gray-600">{{ __('Plan') }}</span>
             <span x-text="receipt?.plan_name"></span>
+          </div>
+          <div class="flex justify-between border-b border-gray-200 pb-2">
+            <span class="text-gray-600">{{ __('Method') }}</span>
+            <span x-text="receipt?.method"></span>
           </div>
           <div class="flex justify-between border-b border-gray-200 pb-2">
             <span class="text-gray-600">{{ __('Amount') }}</span>
@@ -260,16 +314,125 @@
         </div>
         <p class="text-center text-xs text-gray-400 mt-8">{{ __('Thank you for choosing Nutrio Meals') }}</p>
       </div>
+    </div>
+  </div>
 
-      {{-- Actions --}}
-      <div class="px-6 pb-6 flex gap-2 print:hidden">
-        <button @click="receipt = null" class="flex-1 px-3 py-2.5 text-xs font-bold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
-          {{ __('Close') }}
-        </button>
-        <button @click="printReceipt" class="flex-1 px-3 py-2.5 text-xs font-bold rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-lg transition-all flex items-center justify-center gap-1.5">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-          {{ __('Print') }}
-        </button>
+  {{-- Full-screen Official Receipt --}}
+  <div x-show="fullReceipt" class="fixed inset-0 z-[60]" style="display: none" x-cloak>
+    <div x-show="fullReceipt" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="fullReceipt = false"></div>
+    <div x-show="fullReceipt" x-transition:enter="transform ease-out duration-300" x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0" x-transition:leave="transform ease-in duration-200" x-transition:leave-start="translate-y-0" x-transition:leave-end="translate-y-full" class="absolute inset-0 flex items-center justify-center p-4 md:p-8 pointer-events-none">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-full overflow-y-auto pointer-events-auto full-receipt">
+        {{-- Header --}}
+        <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] px-8 py-6 text-white relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -mr-24 -mt-24 blur-2xl"></div>
+          <div class="relative z-10 flex items-start justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <div>
+                <h2 class="text-xl font-bold">{{ __('Nutrio Meals') }}</h2>
+                <p class="text-xs text-white/70">{{ __('Official Payment Receipt') }}</p>
+              </div>
+            </div>
+            <button @click="fullReceipt = false" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors print:hidden">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <div class="relative z-10 mt-6 flex items-center justify-between">
+            <div>
+              <p class="text-[10px] text-white/60 uppercase tracking-wider">{{ __('Receipt No.') }}</p>
+              <p class="text-sm font-mono font-bold" x-text="receipt?.id"></p>
+            </div>
+            <div class="text-right">
+              <p class="text-[10px] text-white/60 uppercase tracking-wider">{{ __('Date') }}</p>
+              <p class="text-sm font-bold" x-text="receipt?.date"></p>
+            </div>
+          </div>
+        </div>
+
+        {{-- Body --}}
+        <div class="p-8 space-y-6">
+          {{-- Bill To --}}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Billed To') }}</h4>
+              <p class="text-sm font-bold text-gray-900" x-text="receipt?.customer"></p>
+              <p class="text-xs text-gray-500" x-text="receipt?.customer_email || ''"></p>
+              <p class="text-xs text-gray-500" x-text="receipt?.customer_phone || ''"></p>
+            </div>
+            <div>
+              <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Payment Info') }}</h4>
+              <p class="text-xs text-gray-900"><span class="text-gray-400">{{ __('Method') }}:</span> <span x-text="receipt?.method"></span></p>
+              <p class="text-xs text-gray-900"><span class="text-gray-400">{{ __('Provider') }}:</span> <span class="capitalize" x-text="receipt?.provider"></span></p>
+              <p class="text-xs text-gray-900"><span class="text-gray-400">{{ __('Status') }}:</span> <span class="capitalize font-semibold" x-text="receipt?.status"></span></p>
+            </div>
+          </div>
+
+          {{-- Items --}}
+          <div class="border border-gray-100 rounded-xl overflow-hidden">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50/70">
+                <tr>
+                  <th class="px-4 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">{{ __('Description') }}</th>
+                  <th class="px-4 py-3 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">{{ __('Amount') }}</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr>
+                  <td class="px-4 py-3">
+                    <p class="text-xs font-semibold text-gray-900" x-text="receipt?.plan_name || '{{ __('Subscription Plan') }}'"></p>
+                    <p class="text-[10px] text-gray-400" x-text="(receipt?.subscription_start ? new Date(receipt.subscription_start).toLocaleDateString() : '') + ' - ' + (receipt?.subscription_end ? new Date(receipt.subscription_end).toLocaleDateString() : '')"></p>
+                  </td>
+                  <td class="px-4 py-3 text-right text-xs font-bold text-gray-900" x-text="receipt?.currency + ' ' + Number(receipt?.amount || 0).toLocaleString()"></td>
+                </tr>
+              </tbody>
+              <tfoot class="bg-gray-50/30 border-t border-gray-100">
+                <tr>
+                  <td class="px-4 py-3 text-right text-xs font-bold text-gray-500">{{ __('Total Paid') }}</td>
+                  <td class="px-4 py-3 text-right text-base font-bold text-[#6E7A25]" x-text="receipt?.currency + ' ' + Number(receipt?.amount || 0).toLocaleString()"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          {{-- Meta Grid --}}
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+              <p class="text-[10px] text-gray-400">{{ __('Order ID') }}</p>
+              <p class="text-xs font-mono font-semibold text-gray-900" x-text="receipt?.order_id || '—'"></p>
+            </div>
+            <div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+              <p class="text-[10px] text-gray-400">{{ __('Order Number') }}</p>
+              <p class="text-xs font-mono text-gray-700" x-text="receipt?.order_number || '—'"></p>
+            </div>
+            <div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+              <p class="text-[10px] text-gray-400">{{ __('Subscription ID') }}</p>
+              <p class="text-xs font-mono text-gray-700" x-text="receipt?.order || '—'"></p>
+            </div>
+            <div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+              <p class="text-[10px] text-gray-400">{{ __('Paid At') }}</p>
+              <p class="text-xs text-gray-700" x-text="receipt?.paid_at ? new Date(receipt.paid_at).toLocaleString() : '—'"></p>
+            </div>
+          </div>
+
+          {{-- Footer Note --}}
+          <div class="text-center p-4 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-100">
+            <p class="text-xs font-semibold text-gray-700">{{ __('Thank you for choosing Nutrio Meals') }}</p>
+            <p class="text-[10px] text-gray-400 mt-1">{{ __('If you have any questions, contact our support team.') }}</p>
+          </div>
+        </div>
+
+        {{-- Actions --}}
+        <div class="px-8 py-5 border-t border-gray-100 flex gap-2 print:hidden bg-gray-50/50">
+          <button @click="fullReceipt = false" class="px-4 py-2 text-xs font-bold rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+            {{ __('Close') }}
+          </button>
+          <button @click="printFullReceipt" class="flex-1 px-4 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-lg transition-all flex items-center justify-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            {{ __('Print Full Receipt') }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -280,10 +443,26 @@
 @media print {
   body > * { display: none !important; }
   div[x-data="paymentsApp()"] { display: block !important; position: static !important; }
-  .fixed.inset-0 { position: static !important; display: block !important; }
-  .fixed.inset-0 > .relative { box-shadow: none !important; border-radius: 0 !important; max-width: 100% !important; width: 100% !important; }
+  .print-panel { position: static !important; transform: none !important; max-width: 100% !important; width: 100% !important; box-shadow: none !important; overflow: visible !important; }
+  .print-panel > * { display: none !important; }
   #printReceipt { display: block !important; }
   .print\:hidden { display: none !important; }
+
+  body.full-receipt-mode #printReceipt { display: none !important; }
+  body.full-receipt-mode .full-receipt,
+  body.full-receipt-mode .full-receipt > div {
+    display: block !important;
+    position: static !important;
+    transform: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+  }
+  body.full-receipt-mode .full-receipt > * { display: block !important; }
+  body.full-receipt-mode .full-receipt .print\:hidden { display: none !important; }
 }
 </style>
 @endpush
@@ -295,6 +474,7 @@ function paymentsApp() {
     payments: [],
     stats: [],
     receipt: null,
+    fullReceipt: false,
     search: '',
     statusFilter: '',
     page: 1,
@@ -315,6 +495,9 @@ function paymentsApp() {
 
     init() {
       this.fetchPayments();
+      this.$watch('fullReceipt', value => {
+        document.body.classList.toggle('full-receipt-mode', value);
+      });
     },
 
     async fetchPayments() {
@@ -343,6 +526,11 @@ function paymentsApp() {
 
     printReceipt() {
       window.print();
+    },
+
+    printFullReceipt() {
+      this.fullReceipt = true;
+      this.$nextTick(() => window.print());
     },
 
     prevPage() {

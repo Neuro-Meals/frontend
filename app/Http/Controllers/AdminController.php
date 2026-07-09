@@ -1080,8 +1080,13 @@ class AdminController extends Controller
             $paidAt = $paymentInfo['paid_at'] ?? ($payment['paid_at'] ?? '');
             $createdAt = $paymentInfo['created_at'] ?? ($payment['created_at'] ?? '');
 
+            $orderId = $payment['order_id'] ?? ($payment['order']['id'] ?? null);
+            $orderNumber = $payment['order_number'] ?? ($payment['order']['order_number'] ?? null);
+
             $payments[] = [
                 'id' => 'PAY-' . ($payment['id'] ?? 0),
+                'order_id' => $orderId ? ('ORD-' . $orderId) : '—',
+                'order_number' => $orderNumber ?: '—',
                 'order' => $subscriptionId ? ('SUB-' . $subscriptionId) : '—',
                 'customer' => $customerName,
                 'customer_email' => $customerEmail,
