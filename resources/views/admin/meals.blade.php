@@ -158,19 +158,33 @@
     </template>
 </div>
 
-{{-- Meal Modal (Create / Edit) --}}
-<div x-show="modalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.5);">
-    <div @click.away="closeModal()" class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        <div class="sticky top-0 bg-white px-6 py-4 border-b border-gray-100 flex items-center justify-between z-10">
-            <h3 class="text-lg font-bold text-gray-900" x-text="editingId ? '{{ __('Edit Meal') }}' : '{{ __('Add Meal') }}'"></h3>
-            <button @click="closeModal()" class="text-gray-400 hover:text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
-        </div>
+{{-- Meal Sidebar (Create / Edit) --}}
+<div x-show="modalOpen" x-cloak class="fixed inset-0 z-50" aria-labelledby="meal-sidebar-title" role="dialog" aria-modal="true">
+    <div x-show="modalOpen" x-transition:enter="ease-in-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in-out duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" @click="closeModal()"></div>
 
-        <form :action="formAction" method="POST" class="p-6 space-y-5" @submit.prevent="submitForm">
-            @csrf
-            <template x-if="editingId">
-                <input type="hidden" name="_method" value="PUT">
-            </template>
+    <div x-show="modalOpen"
+         x-transition:enter="transform transition ease-in-out duration-300"
+         x-transition:enter-start="translate-x-full rtl:-translate-x-full"
+         x-transition:enter-end="translate-x-0"
+         x-transition:leave="transform transition ease-in-out duration-300"
+         x-transition:leave-start="translate-x-0"
+         x-transition:leave-end="translate-x-full rtl:-translate-x-full"
+         class="absolute inset-y-0 right-0 rtl:right-auto rtl:left-0 w-full sm:w-[32rem] lg:w-[36rem] bg-white shadow-2xl"
+         style="max-width: 100vw;">
+        <div class="h-full flex flex-col">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                <h3 id="meal-sidebar-title" class="text-lg font-bold text-gray-900" x-text="editingId ? '{{ __('Edit Meal') }}' : '{{ __('Add Meal') }}'"></h3>
+                <button @click="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6">
+                <form id="mealForm" :action="formAction" method="POST" class="space-y-5" @submit.prevent="submitForm">
+                    @csrf
+                    <template x-if="editingId">
+                        <input type="hidden" name="_method" value="PUT">
+                    </template>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
@@ -281,14 +295,16 @@
 
             <div x-show="formError" class="p-3 rounded-lg bg-red-50 border border-red-100 text-red-700 text-xs" x-text="formError"></div>
 
-            <div class="flex items-center justify-end gap-3 pt-2">
+            <div class="sticky bottom-0 -mx-6 -mb-6 px-6 py-4 bg-white border-t border-gray-100 flex items-center justify-end gap-3 z-10">
                 <button type="button" @click="closeModal()" class="px-4 py-2 rounded-lg border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">{{ __('Cancel') }}</button>
                 <button type="submit" :disabled="saving || uploading" class="px-4 py-2 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-sm font-bold shadow-md hover:shadow-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed">
                     <span x-show="!saving" x-text="editingId ? '{{ __('Update Meal') }}' : '{{ __('Create Meal') }}'"></span>
                     <span x-show="saving">{{ __('Saving...') }}</span>
                 </button>
             </div>
-        </form>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
