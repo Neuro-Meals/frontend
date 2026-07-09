@@ -30,7 +30,7 @@ class AdminController extends Controller
         });
     }
 
-    public function dashboard(AdminApiService $adminApi, OrderApiService $orderApi, SubscriptionApiService $subscriptionApi, MealApiService $mealApi)
+    public function dashboard(AdminApiService $adminApi, OrderApiService $orderApi, SubscriptionApiService $subscriptionApi, MealApiService $mealApi, ReportsApiService $reportsApi)
     {
         $usersResponse = $adminApi->usersList(['limit' => 1]);
         $subscriptionsResponse = $subscriptionApi->list(['limit' => 1, 'status' => 'active']);
@@ -81,8 +81,11 @@ class AdminController extends Controller
             }
         }
 
-        $revenueTrend = [];
-        $ordersTrend = [];
+        $revenueResponse = $this->apiData($reportsApi->revenue(), fn () => []);
+        $revenueTrend = $this->extractTrendValues($revenueResponse, 'revenue');
+
+        $ordersResponse = $this->apiData($reportsApi->orders(), fn () => []);
+        $ordersTrend = $this->extractTrendValues($ordersResponse, 'orders');
 
         $plansData = $this->apiData($adminApi->plansList(['limit' => 100]), function () {
             return [];
@@ -111,20 +114,6 @@ class AdminController extends Controller
                 'orders' => $meal['orders_count'] ?? 0,
                 'revenue' => $meal['revenue'] ?? 0,
             ];
-        }
-
-        // Fallback mock trend data for dashboard charts when API doesn't provide it
-        if (empty($revenueTrend)) {
-            $revenueTrend = [];
-            for ($i = 0; $i < 14; $i++) {
-                $revenueTrend[] = rand(8000, 25000);
-            }
-        }
-        if (empty($ordersTrend)) {
-            $ordersTrend = [];
-            for ($i = 0; $i < 7; $i++) {
-                $ordersTrend[] = rand(40, 180);
-            }
         }
 
         $deliveryZones = [];
@@ -1535,5 +1524,31 @@ class AdminController extends Controller
         $timezone = 'Asia/Riyadh (UTC+3)';
 
         return view('admin.reports.audit', compact('kpis', 'changeHotspots', 'auditEvents', 'exportHistory', 'lastUpdated', 'timezone'));
+    }
+
+    private function extractTrendValues(array $response, string $valueKey): array
+    {
+        $items = $response['data'] ?? ($response['trend'] ?? ($response['items'] ?? ($response['values'] ?? $response)));
+
+        if (!is_array($items) || empty($items)) {
+            return [];
+        }
+
+        $values = [];
+        foreach ($items as $item) {
+            if (is_numeric($item)) {
+                $values[] = (float) $item;
+            } elseif (is_array($item) && isset($item[$valueKey])) {
+                $values[] = (float) $item[$valueKey];
+            } elseif (is_array($item) && isset($item['value'])) {
+                $values[] = (float) $item['value'];
+            } elseif (is_array($item) && isset($item['total'])) {
+                $values[] = (float) $item['total'];
+            } elseif (is_array($item) && isset($item['count'])) {
+                $values[] = (float) $item['count'];
+            }
+        }
+
+        return $values;
     }
 }

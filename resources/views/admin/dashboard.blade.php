@@ -4,7 +4,11 @@
 @section('page_title', __('Dashboard Overview'))
 
 @section('content')
-<div class="space-y-4">
+<div
+    x-data="dashboardApp()"
+    x-init="init()"
+    class="space-y-4 relative"
+>
 
 @php
     $fmt = fn($n) => $n >= 1000000 ? number_format($n/1000000, 2).'M' : ($n >= 1000 ? number_format($n/1000, 1).'K' : number_format($n));
@@ -25,6 +29,35 @@
     ];
     $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 @endphp
+
+{{-- Skeleton Loading --}}
+<div x-show="loading" x-cloak class="space-y-4 animate-pulse">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <template x-for="i in 4" :key="i">
+            <div class="h-32 bg-gray-100 rounded-2xl"></div>
+        </template>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <template x-for="i in 4" :key="i">
+            <div class="h-16 bg-gray-100 rounded-xl"></div>
+        </template>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 h-80 bg-gray-100 rounded-2xl"></div>
+        <div class="h-80 bg-gray-100 rounded-2xl"></div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 h-64 bg-gray-100 rounded-2xl"></div>
+        <div class="h-64 bg-gray-100 rounded-2xl"></div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 h-64 bg-gray-100 rounded-2xl"></div>
+        <div class="h-64 bg-gray-100 rounded-2xl"></div>
+    </div>
+</div>
+
+{{-- Real Content --}}
+<div x-show="!loading" x-cloak>
 
 {{-- KPI Cards Row --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -160,9 +193,16 @@
                 $revenueLabels[] = \Carbon\Carbon::parse('now')->subDays(count($revenueTrend) - 1 - $i)->format('d/m');
             }
         @endphp
+        @if(!empty($revenueTrend))
         <div class="relative h-56 mb-4">
             <canvas id="dashboardRevenueChart"></canvas>
         </div>
+        @else
+        <div class="h-56 mb-4 flex flex-col items-center justify-center text-center rounded-xl bg-gray-50/50 border border-dashed border-gray-200">
+            <svg class="w-10 h-10 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+            <p class="text-xs text-gray-400">{{ __('No revenue data available') }}</p>
+        </div>
+        @endif
         <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between">
             <div>
                 <p class="text-xs text-gray-400">{{ __('Total (14 days)') }}</p>
@@ -186,9 +226,16 @@
             <p class="text-xs text-gray-400 mt-0.5">{{ __('Active subscriptions by plan') }}</p>
         </div>
         @php $totalPlans = array_sum(array_column($planDistribution, 'count')); @endphp
+        @if(!empty($planDistribution))
         <div class="relative h-52 mb-4">
             <canvas id="dashboardPlanChart"></canvas>
         </div>
+        @else
+        <div class="h-52 mb-4 flex flex-col items-center justify-center text-center rounded-xl bg-gray-50/50 border border-dashed border-gray-200">
+            <svg class="w-10 h-10 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+            <p class="text-xs text-gray-400">{{ __('No plan data available') }}</p>
+        </div>
+        @endif
         <div class="grid grid-cols-2 gap-2 max-h-24 overflow-y-auto pr-1">
             @foreach($planDistribution as $plan)
                 @php $pct = $totalPlans > 0 ? round($plan['count'] / $totalPlans * 100) : 0; @endphp
@@ -220,9 +267,16 @@
                 <span class="text-xs text-gray-500">{{ __('Orders') }}</span>
             </div>
         </div>
+        @if(!empty($ordersTrend))
         <div class="relative h-56">
             <canvas id="dashboardOrdersChart"></canvas>
         </div>
+        @else
+        <div class="h-56 flex flex-col items-center justify-center text-center rounded-xl bg-gray-50/50 border border-dashed border-gray-200">
+            <svg class="w-10 h-10 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6M19 19v-6a2 2 0 00-2-2h-2a2 2 0 00-2 2v6M9 19h6M7 11V7a2 2 0 012-2h6a2 2 0 012 2v4"/></svg>
+            <p class="text-xs text-gray-400">{{ __('No orders data available') }}</p>
+        </div>
+        @endif
     </div>
 
     {{-- Delivery Zones --}}
@@ -368,6 +422,8 @@
     </div>
 </div>
 
+</div>
+
 {{-- ═══════════════════════════════════════════════════════════════ --}}
 
 @push('scripts')
@@ -396,6 +452,7 @@
     };
 
     // Revenue Trend - gradient area chart
+    @if(!empty($revenueTrend))
     new Chart(document.getElementById('dashboardRevenueChart'), {
         type: 'line',
         data: {
@@ -433,8 +490,10 @@
             }
         }
     });
+    @endif
 
     // Plan Distribution - donut chart
+    @if(!empty($planDistribution))
     new Chart(document.getElementById('dashboardPlanChart'), {
         type: 'doughnut',
         data: {
@@ -462,8 +521,10 @@
             }
         }
     });
+    @endif
 
     // Orders This Week - rounded bar chart
+    @if(!empty($ordersTrend))
     new Chart(document.getElementById('dashboardOrdersChart'), {
         type: 'bar',
         data: {
@@ -478,6 +539,17 @@
         },
         options: commonChartOptions
     });
+    @endif
+
+    function dashboardApp() {
+        return {
+            loading: true,
+            init() {
+                // Small delay to show skeleton state even when server-rendered quickly
+                setTimeout(() => { this.loading = false; }, 400);
+            }
+        };
+    }
 </script>
 @endpush
 
