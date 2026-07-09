@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.auth' => \App\Http\Middleware\ApiAuthMiddleware::class,
             'api.admin' => \App\Http\Middleware\AdminApiMiddleware::class,
             'api.customer' => \App\Http\Middleware\CustomerApiMiddleware::class,
+            'api.verified' => \App\Http\Middleware\VerifyEmailMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

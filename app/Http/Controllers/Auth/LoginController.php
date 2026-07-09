@@ -50,7 +50,36 @@ class LoginController extends Controller
             // Backend returned an access token — login succeeded.
             if (isset($response['access_token'])) {
                 $user = $response['user'] ?? [];
-                session(['email_verified' => !empty($user['is_verified'])]);
+                $isVerified = !empty($user['is_verified']);
+
+                // Unverified users must complete OTP verification before accessing the app.
+                if (!$isVerified) {
+                    $authApi->logout();
+                    session([
+                        'pending_verification_email' => $request->email,
+                        'pending_verification_name' => $user['first_name'] ?? '',
+                    ]);
+                    $redirect = route('verify.email', ['email' => urlencode($request->email)]);
+
+                    Log::info('Login requires email verification', [
+                        'email' => $request->email,
+                    ]);
+
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json([
+                            'success' => false,
+                            'requires_verification' => true,
+                            'verified' => false,
+                            'message' => __('Please verify your email before continuing.'),
+                            'redirect' => $redirect,
+                        ]);
+                    }
+
+                    return redirect()->to($redirect)
+                        ->with('status', __('Please verify your email before continuing.'));
+                }
+
+                session(['email_verified' => true]);
 
                 $role = $authApi->role();
                 $redirect = $authApi->isAdmin() ? route('admin.dashboard') : route('user.dashboard');
@@ -65,7 +94,7 @@ class LoginController extends Controller
                 if ($request->ajax() || $request->wantsJson()) {
                     return response()->json([
                         'success' => true,
-                        'verified' => !empty($user['is_verified']),
+                        'verified' => true,
                         'message' => __('Login successful. Redirecting to your dashboard...'),
                         'redirect' => $redirect,
                     ]);

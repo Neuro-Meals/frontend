@@ -106,7 +106,7 @@ class AuthApiService extends BaseApiService
      */
     public function logout(): array
     {
-        session()->forget(['api_token', 'api_user']);
+        session()->forget(['api_token', 'api_user', 'api_user_verified_at', 'email_verified']);
 
         return ['success' => true];
     }
@@ -190,6 +190,48 @@ class AuthApiService extends BaseApiService
     public function isCustomer(): bool
     {
         return in_array($this->role(), ['customer', 'user', 'client', null]);
+    }
+
+    /**
+     * Refresh the authenticated user from the API and check whether the email is verified.
+     * This is used as a background verification check on protected routes.
+     */
+    public function isVerified(): bool
+    {
+        $user = $this->user();
+
+        if (!$user) {
+            return false;
+        }
+
+        // Refresh user data from the API periodically (max once per 60 seconds) so that
+        // a verification completed on another device or via email link is reflected here.
+        $lastCheck = session('api_user_verified_at', 0);
+        $now = now()->timestamp;
+        $verified = !empty($user['is_verified']);
+
+        if ($now - $lastCheck >= 60) {
+            $fresh = $this->me();
+            $verified = !empty($fresh['is_verified']);
+
+            // If the API refresh failed, keep the existing session value so a verified
+            // user is not locked out during a temporary API outage.
+            if (isset($fresh['success']) && $fresh['success'] === false) {
+                $verified = !empty($user['is_verified']);
+            }
+
+            session([
+                'api_user_verified_at' => $now,
+            ]);
+        }
+
+        // Sync the verified status back into the session so the dashboard always shows the latest state.
+        if (isset($user['is_verified']) && (bool) $user['is_verified'] !== $verified) {
+            $user['is_verified'] = $verified;
+            session(['api_user' => $user]);
+        }
+
+        return $verified;
     }
 
     /**

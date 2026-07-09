@@ -343,11 +343,21 @@ class AdminController extends Controller
                 $plans[] = [
                     'id' => $plan['id'] ?? 0,
                     'name' => $plan['name_en'] ?? 'Plan',
+                    'name_en' => $plan['name_en'] ?? '',
+                    'name_ar' => $plan['name_ar'] ?? '',
+                    'description_en' => $plan['description_en'] ?? '',
+                    'description_ar' => $plan['description_ar'] ?? '',
+                    'plan_type' => $plan['plan_type'] ?? 'monthly',
+                    'goal' => $plan['goal'] ?? '',
                     'price' => $plan['price'] ?? 0,
                     'duration' => ($plan['duration_days'] ?? 28) . ' days',
+                    'duration_days' => $plan['duration_days'] ?? 28,
                     'meals' => $plan['total_meals'] ?? 84,
+                    'meals_per_day' => $plan['meals_per_day'] ?? 3,
+                    'total_meals' => $plan['total_meals'] ?? 84,
                     'subscribers' => $subscriberCount,
                     'status' => ($plan['is_active'] ?? true) ? 'active' : 'draft',
+                    'is_active' => $plan['is_active'] ?? true,
                     'calories' => $plan['calories'] ?? '1500-1800',
                     'color' => $colors[$colorIndex % count($colors)],
                 ];
@@ -419,6 +429,99 @@ class AdminController extends Controller
         }
 
         return back()->withErrors(['general' => $message])->withInput();
+    }
+
+    public function showPlan(Request $request, int $id, PlanApiService $planApi)
+    {
+        $response = $this->apiData($planApi->show($id), function () {
+            return null;
+        });
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json($response ?: ['error' => 'Plan not found.'], $response ? 200 : 404);
+        }
+
+        if (!$response) {
+            abort(404, __('Plan not found.'));
+        }
+
+        return redirect()->route('admin.plans');
+    }
+
+    public function updatePlan(Request $request, int $id, PlanApiService $planApi)
+    {
+        $validator = validator($request->all(), [
+            'name_en' => ['required', 'string', 'min:2', 'max:150'],
+            'name_ar' => ['nullable', 'string', 'max:150'],
+            'description_en' => ['nullable', 'string'],
+            'description_ar' => ['nullable', 'string'],
+            'plan_type' => ['required', 'in:weekly,monthly,custom,corporate'],
+            'goal' => ['nullable', 'in:weight_loss,muscle_gain,maintenance'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'duration_days' => ['required', 'integer', 'min:1'],
+            'meals_per_day' => ['required', 'integer', 'min:1'],
+            'total_meals' => ['required', 'integer', 'min:1'],
+            'is_active' => ['boolean'],
+        ]);
+
+        if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('Please fix the errors in the form.'),
+                    'errors' => $validator->errors()->toArray(),
+                ], 422);
+            }
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $data = $validator->validated();
+        $data['is_active'] = $request->boolean('is_active', true);
+
+        $response = $this->apiData($planApi->update($id, $data), function () {
+            return ['success' => false, 'message' => 'Failed to update plan.'];
+        });
+
+        $success = is_array($response) && ($response['success'] ?? true) !== false && !isset($response['errors']);
+        $message = $response['message'] ?? ($success ? __('Plan updated successfully.') : __('Failed to update plan.'));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => $success,
+                'message' => $message,
+                'redirect' => route('admin.plans'),
+            ], $success ? 200 : 422);
+        }
+
+        if ($success) {
+            return redirect()->route('admin.plans')->with('status', $message);
+        }
+
+        return back()->withErrors(['general' => $message])->withInput();
+    }
+
+    public function destroyPlan(Request $request, int $id, PlanApiService $planApi)
+    {
+        $response = $this->apiData($planApi->destroy($id), function () {
+            return ['success' => false, 'message' => 'Failed to delete plan.'];
+        });
+
+        $success = is_array($response) && ($response['success'] ?? true) !== false && !isset($response['errors']);
+        $message = $response['message'] ?? ($success ? __('Plan deleted successfully.') : __('Failed to delete plan.'));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => $success,
+                'message' => $message,
+                'redirect' => route('admin.plans'),
+            ], $success ? 200 : 422);
+        }
+
+        if ($success) {
+            return redirect()->route('admin.plans')->with('status', $message);
+        }
+
+        return back()->withErrors(['general' => $message]);
     }
 
     public function meals(MealApiService $mealApi)

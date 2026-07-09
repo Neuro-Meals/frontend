@@ -139,7 +139,7 @@ Route::get('/home', function () {
 })->name('home');
 
 // Admin routes
-Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['api.admin', 'api.verified'])->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/dashboard/live', [AdminController::class, 'dashboardLive'])->name('dashboard.live');
     Route::get('/live', [AdminController::class, 'live'])->name('live');
@@ -149,6 +149,9 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
     Route::get('/subscriptions', [AdminController::class, 'subscriptions'])->name('subscriptions');
     Route::get('/plans', [AdminController::class, 'plans'])->name('plans');
     Route::post('/plans', [AdminController::class, 'storePlan'])->name('plans.store');
+    Route::get('/plans/{id}', [AdminController::class, 'showPlan'])->name('plans.show');
+    Route::put('/plans/{id}', [AdminController::class, 'updatePlan'])->name('plans.update');
+    Route::delete('/plans/{id}', [AdminController::class, 'destroyPlan'])->name('plans.destroy');
     Route::get('/meals', [AdminController::class, 'meals'])->name('meals');
     Route::get('/orders', [AdminController::class, 'orders'])->name('orders');
     Route::get('/deliveries', [AdminController::class, 'deliveries'])->name('deliveries');
@@ -176,7 +179,7 @@ Route::get('/payment-success', [UserController::class, 'paymentSuccess'])->name(
 Route::get('/payment-cancel', [UserController::class, 'paymentCancel'])->name('payment.cancel');
 
 // User routes (customer only)
-Route::prefix('user')->name('user.')->middleware(['api.auth', 'api.customer'])->group(function () {
+Route::prefix('user')->name('user.')->middleware(['api.auth', 'api.customer', 'api.verified'])->group(function () {
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('dashboard');
     Route::get('/subscriptions', [UserController::class, 'subscriptions'])->name('subscriptions');
     Route::post('/subscriptions', [UserController::class, 'subscribe'])->name('subscriptions.subscribe');

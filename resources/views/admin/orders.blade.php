@@ -102,87 +102,134 @@
 
   {{-- Order Detail Slide-Out Panel --}}
   <div x-show="selected" class="fixed inset-0 z-50 flex justify-end" style="display: none">
-    <div class="absolute inset-0 bg-black/30" @click="selected = null"></div>
-    <div class="relative w-full max-w-md bg-white shadow-2xl h-full overflow-y-auto" @click.outside="selected = null">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="selected = null"></div>
+    <div class="relative w-full max-w-lg bg-white shadow-2xl h-full overflow-y-auto" @click.outside="selected = null">
       {{-- Header --}}
-      <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] p-5 text-white sticky top-0 z-10">
-        <div class="flex items-center justify-between mb-1">
-          <h3 class="text-sm font-bold">{{ __('Order Details') }}</h3>
-          <button @click="selected = null" class="text-white/60 hover:text-white transition-colors">
+      <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] p-6 text-white sticky top-0 z-10">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <h3 class="text-base font-bold">{{ __('Order Details') }}</h3>
+            <p class="text-xs text-white/70" x-text="selected?.id"></p>
+          </div>
+          <button @click="selected = null" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
-        <p class="text-xs text-white/60" x-text="selected?.id"></p>
+        <div class="flex items-center gap-2 mt-3">
+          <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border border-white/20 bg-white/10" :class="statusClass(selected?.status)">
+            <span x-text="statusLabel(selected?.status)"></span>
+          </span>
+          <span class="text-xs text-white/70" x-text="selected?.date"></span>
+        </div>
       </div>
 
-      <div class="p-5 space-y-5">
+      <div class="p-6 space-y-6">
         {{-- Customer Info --}}
-        <div>
-          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Customer') }}</h4>
+        <div class="bg-gray-50 rounded-xl p-4">
+          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Customer') }}</h4>
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center text-white font-bold text-sm flex-shrink-0" x-text="selected?.customer?.charAt(0)?.toUpperCase()"></div>
-            <div>
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-md" x-text="selected?.customer?.charAt(0)?.toUpperCase()"></div>
+            <div class="flex-1">
               <p class="text-sm font-semibold text-gray-900" x-text="selected?.customer"></p>
-              <p class="text-xs text-gray-400" x-text="selected?.customer_email || ''"></p>
+              <p class="text-xs text-gray-500" x-text="selected?.customer_email || ''"></p>
+              <p class="text-xs text-gray-400 mt-0.5" x-text="selected?.customer_phone || ''"></p>
             </div>
           </div>
         </div>
 
-        <div class="border-t border-gray-50"></div>
-
-        {{-- Order Info --}}
-        <div>
-          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Order Info') }}</h4>
-          <div class="space-y-2.5">
-            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Order ID') }}</span><span class="text-xs font-semibold text-gray-900" x-text="selected?.id"></span></div>
-            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Plan') }}</span><span class="text-xs font-semibold text-gray-900" x-text="selected?.plan"></span></div>
-            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Amount') }}</span><span class="text-sm font-bold text-gray-900" x-text="'SAR ' + selected?.amount"></span></div>
-            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Status') }}</span><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border" :class="statusClass(selected?.status)"><span x-text="statusLabel(selected?.status)"></span></span></div>
-            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Date') }}</span><span class="text-xs text-gray-600" x-text="selected?.date"></span></div>
+        {{-- Order Summary --}}
+        <div class="bg-gray-50 rounded-xl p-4">
+          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Order Summary') }}</h4>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center pb-2 border-b border-gray-200">
+              <span class="text-xs text-gray-500">{{ __('Plan') }}</span>
+              <span class="text-xs font-semibold text-gray-900" x-text="selected?.plan"></span>
+            </div>
+            <div class="flex justify-between items-center pb-2 border-b border-gray-200">
+              <span class="text-xs text-gray-500">{{ __('Amount') }}</span>
+              <span class="text-sm font-bold text-[#6E7A25]" x-text="'SAR ' + selected?.amount"></span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-gray-500">{{ __('Payment') }}</span>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-semibold text-gray-900" x-text="selected?.payment_method || 'N/A'"></span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border" :class="paymentStatusClass(selected?.payment_status)">
+                  <span x-text="selected?.payment_status ? selected.payment_status.charAt(0).toUpperCase() + selected.payment_status.slice(1) : 'N/A'"></span>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="border-t border-gray-50"></div>
-
         {{-- Delivery Info --}}
-        <div>
-          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Delivery') }}</h4>
-          <div class="space-y-2.5">
-            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Window') }}</span><span class="text-xs font-semibold text-gray-900" x-text="selected?.delivery"></span></div>
-            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Address') }}</span><span class="text-xs text-gray-600 text-right max-w-[200px]" x-text="selected?.address || '—'"></span></div>
-            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Driver') }}</span><span class="text-xs font-semibold" :class="selected?.driver && selected?.driver !== 'Unassigned' ? 'text-gray-900' : 'text-red-500'" x-text="selected?.driver || 'Unassigned'"></span></div>
+        <div class="bg-gray-50 rounded-xl p-4">
+          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Delivery') }}</h4>
+          <div class="space-y-3">
+            <div class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <div>
+                <p class="text-xs text-gray-500">{{ __('Address') }}</p>
+                <p class="text-xs font-medium text-gray-900 mt-0.5" x-text="selected?.address || '—'"></p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <div>
+                <p class="text-xs text-gray-500">{{ __('Window') }}</p>
+                <p class="text-xs font-medium text-gray-900 mt-0.5" x-text="selected?.delivery"></p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+              <div>
+                <p class="text-xs text-gray-500">{{ __('Driver') }}</p>
+                <p class="text-xs font-medium mt-0.5" :class="selected?.driver && selected?.driver !== 'Unassigned' ? 'text-gray-900' : 'text-red-500'" x-text="selected?.driver || 'Unassigned'"></p>
+              </div>
+            </div>
           </div>
         </div>
 
         {{-- Items --}}
         <template x-if="selected?.items && selected.items.length > 0">
           <div>
-            <div class="border-t border-gray-50"></div>
-            <div class="mt-4">
-              <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Items') }}</h4>
-              <div class="space-y-1.5">
-                <template x-for="(item, i) in selected.items" :key="i">
-                  <div class="flex items-center justify-between py-1.5">
-                    <div class="flex items-center gap-2">
-                      <span class="w-1.5 h-1.5 rounded-full bg-[#6E7A25]"></span>
-                      <span class="text-xs text-gray-700" x-text="item.name || item.meal_name || 'Item'"></span>
+            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Items') }}</h4>
+            <div class="bg-gray-50 rounded-xl p-4 space-y-2">
+              <template x-for="(item, i) in selected.items" :key="i">
+                <div class="flex items-center justify-between py-2 border-b border-gray-200 last:border-0">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6E7A25]/20 to-[#173327]/20 flex items-center justify-center">
+                      <svg class="w-4 h-4 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                     </div>
-                    <span class="text-xs text-gray-500" x-text="'×' + (item.quantity || 1)"></span>
+                    <div>
+                      <p class="text-xs font-medium text-gray-900" x-text="item.name || item.meal_name || 'Item'"></p>
+                      <p class="text-[10px] text-gray-400" x-text="item.description || ''"></p>
+                    </div>
                   </div>
-                </template>
-              </div>
+                  <span class="text-xs font-bold text-[#6E7A25 bg-[#6E7A25]/10 px-2 py-1 rounded-full" x-text="'×' + (item.quantity || 1)"></span>
+                </div>
+              </template>
             </div>
           </div>
         </template>
 
-        {{-- Payment --}}
-        <div class="border-t border-gray-50"></div>
+        {{-- Notes --}}
         <div>
-          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Payment') }}</h4>
-          <div class="space-y-2.5">
-            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Method') }}</span><span class="text-xs font-semibold text-gray-900" x-text="selected?.payment_method || 'N/A'"></span></div>
-            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Status') }}</span><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border" :class="paymentStatusClass(selected?.payment_status)"><span x-text="selected?.payment_status ? selected.payment_status.charAt(0).toUpperCase() + selected.payment_status.slice(1) : 'N/A'"></span></span></div>
+          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Notes') }}</h4>
+          <div class="bg-gray-50 rounded-xl p-4">
+            <textarea class="w-full text-xs text-gray-700 bg-transparent outline-none resize-none h-20" placeholder="{{ __('Add notes about this order...') }}" x-model="selected?.notes"></textarea>
           </div>
+        </div>
+
+        {{-- Actions --}}
+        <div class="flex gap-2 pt-2">
+          <button @click="printOrder" class="flex-1 px-4 py-2.5 text-xs font-bold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            {{ __('Print') }}
+          </button>
+          <button class="flex-1 px-4 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            {{ __('Refresh') }}
+          </button>
         </div>
       </div>
     </div>
