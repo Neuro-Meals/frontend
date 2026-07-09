@@ -121,11 +121,18 @@
                 <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                 </div>
-                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">{{ $stats['successRate'] }}%</span>
+                <div class="flex flex-col items-end gap-1">
+                    <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">{{ $stats['successRate'] }}%</span>
+                    <span class="text-[10px] font-semibold text-white/70 bg-white/10 px-2 py-0.5 rounded-full">{{ $stats['claimRate'] }}% {{ __('claims') }}</span>
+                </div>
             </div>
             <p class="text-xs text-white/60 font-medium mb-1">{{ __('Payment Success') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ $stats['successRate'] }}%</p>
-            <p class="text-xs text-white/50 mt-1">{{ $stats['pendingPayments'] }} {{ __('pending payments') }}</p>
+            <div class="flex items-center gap-2 mt-2 text-[10px] text-white/60">
+                <span class="px-1.5 py-0.5 rounded bg-green-500/20 text-green-100">{{ $stats['paymentCounts']['paid'] + $stats['paymentCounts']['captured'] }} {{ __('paid') }}</span>
+                <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-100">{{ $stats['pendingPayments'] }} {{ __('pending') }}</span>
+                <span class="px-1.5 py-0.5 rounded bg-red-500/20 text-red-100">{{ $stats['paymentCounts']['refunded'] + $stats['paymentCounts']['disputed'] + $stats['paymentCounts']['failed'] + $stats['paymentCounts']['cancelled'] }} {{ __('claims') }}</span>
+            </div>
         </div>
     </div>
 
@@ -167,6 +174,72 @@
         <div>
             <p class="text-[10px] text-gray-400 font-medium">{{ __('Churn Rate') }}</p>
             <p class="text-base font-bold tracking-tight text-[#173327]">{{ $stats['churnRate'] }}%</p>
+        </div>
+    </div>
+</div>
+
+{{-- Payment Overview --}}
+@php
+    $pc = $stats['paymentCounts'] ?? [];
+    $paymentStatusList = [
+        ['key' => 'paid', 'label' => __('Paid'), 'color' => 'bg-green-500'],
+        ['key' => 'captured', 'label' => __('Captured'), 'color' => 'bg-green-400'],
+        ['key' => 'pending', 'label' => __('Pending'), 'color' => 'bg-amber-500'],
+        ['key' => 'unpaid', 'label' => __('Unpaid'), 'color' => 'bg-gray-400'],
+        ['key' => 'failed', 'label' => __('Failed'), 'color' => 'bg-red-500'],
+        ['key' => 'refunded', 'label' => __('Refunded'), 'color' => 'bg-orange-500'],
+        ['key' => 'disputed', 'label' => __('Disputed'), 'color' => 'bg-purple-500'],
+        ['key' => 'cancelled', 'label' => __('Cancelled'), 'color' => 'bg-red-400'],
+    ];
+    $totalPaymentItems = max(1, array_sum($pc) - ($pc['other'] ?? 0));
+@endphp
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+    <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-5 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.9s;">
+        <h4 class="text-sm font-bold text-gray-900 mb-4">{{ __('Payment Status Breakdown') }}</h4>
+        <div class="space-y-3">
+            @foreach($paymentStatusList as $item)
+                @php
+                    $count = $pc[$item['key']] ?? 0;
+                    $pct = round(($count / $totalPaymentItems) * 100, 1);
+                @endphp
+                @if($count > 0)
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-medium text-gray-600 w-24">{{ $item['label'] }}</span>
+                    <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full {{ $item['color'] }}" style="width: {{ $pct }}%"></div>
+                    </div>
+                    <div class="text-right w-20">
+                        <span class="text-xs font-bold text-gray-900">{{ number_format($count) }}</span>
+                        <span class="text-[10px] text-gray-400 ml-1">({{ $pct }}%)</span>
+                    </div>
+                </div>
+                @endif
+            @endforeach
+            @if($totalPaymentItems <= 1)
+                <p class="text-xs text-gray-400 text-center py-4">{{ __('No payment data available.') }}</p>
+            @endif
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 1s;">
+        <h4 class="text-sm font-bold text-gray-900 mb-4">{{ __('Revenue Overview') }}</h4>
+        <div class="space-y-4">
+            <div class="flex items-center justify-between p-3 rounded-xl bg-[#F6F3E9]">
+                <span class="text-xs text-gray-500">{{ __('Total Revenue') }}</span>
+                <span class="text-sm font-bold text-[#173327]">SAR {{ number_format($stats['totalRevenue']) }}</span>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50">
+                <span class="text-xs text-gray-500">{{ __('This Month') }}</span>
+                <span class="text-sm font-bold text-[#6E7A25]">SAR {{ number_format($stats['monthlyRevenue']) }}</span>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50">
+                <span class="text-xs text-gray-500">{{ __('Last Month') }}</span>
+                <span class="text-sm font-bold text-gray-600">SAR {{ number_format($stats['lastMonthRevenue']) }}</span>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50">
+                <span class="text-xs text-gray-500">{{ __('Avg Order Value') }}</span>
+                <span class="text-sm font-bold text-gray-600">SAR {{ number_format($stats['avgOrderValue'], 2) }}</span>
+            </div>
         </div>
     </div>
 </div>
@@ -220,15 +293,40 @@
     </div>
 
     {{-- Plan Distribution --}}
+    @php $totalPlans = array_sum(array_column($planDistribution, 'count')); @endphp
     <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 1.0s;">
-        <div class="mb-6">
+        <div class="mb-4">
             <h3 class="text-base font-bold text-gray-900">{{ __('Plan') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Distribution') }}</span></h3>
             <p class="text-xs text-gray-400 mt-0.5">{{ __('Active subscriptions by plan') }}</p>
         </div>
-        @php $totalPlans = array_sum(array_column($planDistribution, 'count')); @endphp
+
         @if(!empty($planDistribution))
-        <div class="relative h-52 mb-4">
-            <canvas id="dashboardPlanChart"></canvas>
+        <div class="grid grid-cols-2 gap-4 mb-4 max-h-[14.5rem] overflow-y-auto pr-1">
+            @foreach($planDistribution as $plan)
+                @php
+                    $pct = $totalPlans > 0 ? round($plan['count'] / $totalPlans * 100) : 0;
+                    $radius = 32;
+                    $circumference = 2 * pi() * $radius;
+                    $dash = $circumference * ($pct / 100);
+                    $gap = $circumference - $dash;
+                @endphp
+                <div class="flex flex-col items-center text-center p-3 rounded-xl bg-gray-50/50 border border-gray-100 hover:shadow-sm transition-all">
+                    <div class="relative w-20 h-20 mb-2">
+                        <svg class="w-20 h-20 transform -rotate-90">
+                            <circle cx="40" cy="40" r="{{ $radius }}" stroke="#f3f4f6" stroke-width="8" fill="none"/>
+                            <circle cx="40" cy="40" r="{{ $radius }}" stroke="{{ $plan['color'] }}" stroke-width="8" fill="none"
+                                stroke-linecap="round"
+                                stroke-dasharray="{{ $dash }} {{ $gap }}"
+                                class="transition-all duration-700 ease-out"/>
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span class="text-sm font-bold text-gray-900">{{ $pct }}%</span>
+                        </div>
+                    </div>
+                    <p class="text-xs font-bold text-gray-800 truncate w-full">{{ $plan['name'] }}</p>
+                    <p class="text-[10px] text-gray-400">{{ number_format($plan['count']) }} {{ __('subs') }}</p>
+                </div>
+            @endforeach
         </div>
         @else
         <div class="h-52 mb-4 flex flex-col items-center justify-center text-center rounded-xl bg-gray-50/50 border border-dashed border-gray-200">
@@ -236,19 +334,16 @@
             <p class="text-xs text-gray-400">{{ __('No plan data available') }}</p>
         </div>
         @endif
-        <div class="grid grid-cols-2 gap-2 max-h-24 overflow-y-auto pr-1">
-            @foreach($planDistribution as $plan)
-                @php $pct = $totalPlans > 0 ? round($plan['count'] / $totalPlans * 100) : 0; @endphp
-                <div class="flex items-center gap-2 text-xs">
-                    <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background: {{ $plan['color'] }}"></span>
-                    <span class="text-gray-600 truncate">{{ $plan['name'] }}</span>
-                    <span class="font-bold text-gray-900 ml-auto">{{ $pct }}%</span>
-                </div>
-            @endforeach
-        </div>
-        <div class="mt-4 pt-4 border-t border-gray-50">
-            <p class="text-xs text-gray-400">{{ __('Total Active') }}</p>
-            <p class="text-2xl font-bold text-gray-900">{{ $totalPlans }}</p>
+
+        <div class="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between">
+            <div>
+                <p class="text-xs text-gray-400">{{ __('Total Active') }}</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $totalPlans }}</p>
+            </div>
+            <div class="text-right">
+                <p class="text-xs text-gray-400">{{ __('Plans') }}</p>
+                <p class="text-lg font-bold text-[#6E7A25]">{{ count($planDistribution) }}</p>
+            </div>
         </div>
     </div>
 </div>
@@ -486,37 +581,6 @@
                     callbacks: {
                         label: (ctx) => 'SAR ' + Number(ctx.raw).toLocaleString()
                     }
-                }
-            }
-        }
-    });
-    @endif
-
-    // Plan Distribution - donut chart
-    @if(!empty($planDistribution))
-    new Chart(document.getElementById('dashboardPlanChart'), {
-        type: 'doughnut',
-        data: {
-            labels: @json(array_column($planDistribution, 'name')),
-            datasets: [{
-                data: @json(array_column($planDistribution, 'count')),
-                backgroundColor: @json(array_column($planDistribution, 'color')),
-                borderWidth: 0,
-                hoverOffset: 6,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '70%',
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#173327',
-                    titleColor: '#fff',
-                    bodyColor: '#fff',
-                    padding: 10,
-                    cornerRadius: 8,
                 }
             }
         }

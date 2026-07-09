@@ -33,7 +33,7 @@ class AdminController extends Controller
         });
     }
 
-    public function dashboard(AdminApiService $adminApi, OrderApiService $orderApi, SubscriptionApiService $subscriptionApi, MealApiService $mealApi, ReportsApiService $reportsApi)
+    public function dashboard(AdminApiService $adminApi, OrderApiService $orderApi, SubscriptionApiService $subscriptionApi, MealApiService $mealApi, ReportsApiService $reportsApi, PaymentApiService $paymentApi)
     {
         $usersResponse = $adminApi->usersList(['limit' => 1]);
         $subscriptionsResponse = $subscriptionApi->list(['limit' => 1, 'status' => 'active']);
@@ -48,23 +48,61 @@ class AdminController extends Controller
         $deliveriesResponse = app(DeliveryApiService::class)->list(['limit' => 1]);
         $totalDeliveries = $deliveriesResponse['meta']['total'] ?? 0;
 
+        $paymentsData = $this->apiData($paymentApi->list(['limit' => 1000]), function () {
+            return [];
+        });
+
+        $paymentCounts = ['paid' => 0, 'captured' => 0, 'pending' => 0, 'failed' => 0, 'refunded' => 0, 'disputed' => 0, 'cancelled' => 0, 'unpaid' => 0, 'other' => 0];
+        $totalRevenue = 0;
+        $monthlyRevenue = 0;
+        $lastMonthRevenue = 0;
+        $today = date('Y-m-d');
+        $thisMonth = date('Y-m');
+        $lastMonth = date('Y-m', strtotime('-1 month'));
+
+        foreach ($paymentsData as $payment) {
+            $status = $payment['status'] ?? 'other';
+            $status = array_key_exists($status, $paymentCounts) ? $status : 'other';
+            $paymentCounts[$status]++;
+
+            $amount = $payment['amount'] ?? 0;
+            if ($status === 'paid' || $status === 'captured') {
+                $totalRevenue += $amount;
+                $paymentMonth = !empty($payment['paid_at']) ? substr($payment['paid_at'], 0, 7) : (!empty($payment['created_at']) ? substr($payment['created_at'], 0, 7) : null);
+                if ($paymentMonth === $thisMonth) {
+                    $monthlyRevenue += $amount;
+                }
+                if ($paymentMonth === $lastMonth) {
+                    $lastMonthRevenue += $amount;
+                }
+            }
+        }
+
+        $totalPayments = array_sum($paymentCounts) - $paymentCounts['other'];
+        $completedPayments = $paymentCounts['paid'] + $paymentCounts['captured'];
+        $successRate = $totalPayments > 0 ? round(($completedPayments / $totalPayments) * 100, 1) : 0;
+        $claimCount = $paymentCounts['refunded'] + $paymentCounts['disputed'] + $paymentCounts['failed'] + $paymentCounts['cancelled'];
+        $claimRate = $totalPayments > 0 ? round(($claimCount / $totalPayments) * 100, 1) : 0;
+
         $stats = [
             'totalUsers' => $totalUsers,
             'newUsersThisWeek' => 0,
-            'totalRevenue' => 0,
+            'totalRevenue' => $totalRevenue,
             'activeSubscriptions' => $activeSubscriptions,
             'totalMeals' => $totalMeals,
-            'successRate' => 0,
+            'successRate' => $successRate,
+            'claimRate' => $claimRate,
             'ordersToday' => $totalOrders,
             'deliveriesToday' => $totalDeliveries,
-            'pendingPayments' => 0,
-            'avgOrderValue' => 0,
-            'monthlyRevenue' => 0,
-            'lastMonthRevenue' => 0,
+            'pendingPayments' => $paymentCounts['pending'] + $paymentCounts['unpaid'],
+            'avgOrderValue' => $totalOrders > 0 ? round($totalRevenue / $totalOrders, 2) : 0,
+            'monthlyRevenue' => $monthlyRevenue,
+            'lastMonthRevenue' => $lastMonthRevenue,
             'totalCustomers' => $totalUsers,
             'newCustomersThisWeek' => 0,
             'churnRate' => 0,
             'retentionRate' => 0,
+            'paymentCounts' => $paymentCounts,
         ];
 
         $recentOrdersData = $this->apiData($orderApi->list(['limit' => 6]), function () {
