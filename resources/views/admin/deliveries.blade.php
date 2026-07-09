@@ -220,8 +220,11 @@
                             <input type="tel" x-model="driverForm.phone" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
                         </div>
                         <div x-show="!driverForm.id" class="col-span-2">
-                            <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Password') }} <span class="text-red-500">*</span></label>
-                            <input type="password" x-model="driverForm.password" :required="!driverForm.id" minlength="6" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-bold text-gray-700">{{ __('Password') }}</label>
+                                <button type="button" @click="driverForm.password = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2, 4).toUpperCase()" class="text-[10px] font-bold text-[#6E7A25] hover:underline">{{ __('Generate') }}</button>
+                            </div>
+                            <input type="text" x-model="driverForm.password" placeholder="{{ __('Leave empty to auto-generate') }}" minlength="6" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Location') }}</label>
@@ -238,6 +241,26 @@
                     </div>
                     <div x-show="driverError" x-text="driverError" class="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2"></div>
                     <div x-show="driverSuccess" x-text="driverSuccess" class="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2"></div>
+
+                    {{-- Created Credentials --}}
+                    <div x-show="driverCredentials" x-cloak class="bg-[#F6F3E9] border border-[#d1cb9f] rounded-xl p-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <svg class="w-4 h-4 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2v4.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414L13 13.586V9a2 2 0 012-2zM5 9a2 2 0 012-2h2a2 2 0 012 2v.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 9.586V9a2 2 0 00-2-2H7a2 2 0 00-2 2v6a2 2 0 002 2h3a1 1 0 100-2H7V9z"/></svg>
+                            <p class="text-xs font-bold text-[#6E7A25]">{{ __('Driver Login Credentials') }}</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-[#e8e4d0]">
+                                <span class="text-[10px] text-gray-500">{{ __('Email') }}</span>
+                                <span class="text-xs font-mono font-semibold text-gray-800" x-text="driverCredentials?.email"></span>
+                            </div>
+                            <div class="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-[#e8e4d0]">
+                                <span class="text-[10px] text-gray-500">{{ __('Password') }}</span>
+                                <span class="text-xs font-mono font-semibold text-gray-800" x-text="driverCredentials?.password"></span>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-gray-500 mt-2">{{ __('These credentials have also been emailed to the driver.') }}</p>
+                    </div>
+
                     <div class="flex items-center justify-end gap-2 pt-2">
                         <button type="button" @click="resetDriverForm()" class="px-4 py-2 rounded-lg border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors">{{ __('Reset') }}</button>
                         <button type="submit" :disabled="driverSaving" class="px-4 py-2 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-xs font-bold shadow-sm hover:shadow-md transition-all disabled:opacity-60">
@@ -305,6 +328,7 @@
             driverSuccess: '',
             driverSearch: '',
             drivers: [],
+            driverCredentials: null,
             driverForm: {
                 id: null,
                 first_name: '',
@@ -338,11 +362,13 @@
                 this.resetDriverForm();
                 this.driverError = '';
                 this.driverSuccess = '';
+                this.driverCredentials = null;
             },
             resetDriverForm() {
                 this.driverForm = { id: null, first_name: '', last_name: '', email: '', phone: '', password: '', location: '', address: '', is_active: true };
                 this.driverError = '';
                 this.driverSuccess = '';
+                this.driverCredentials = null;
             },
             editDriver(driver) {
                 this.driverForm = { ...driver, password: '', is_active: driver.status === 'active' };
@@ -394,6 +420,9 @@
                         await this.loadDrivers();
                         this.resetDriverForm();
                         this.driverSuccess = data.message || '{{ __('Driver saved successfully.') }}';
+                        if (data.credentials) {
+                            this.driverCredentials = data.credentials;
+                        }
                     } else {
                         this.driverError = data.message || '{{ __('Failed to save driver.') }}';
                     }

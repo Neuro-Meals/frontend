@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\DriverCredentialsMail;
 use App\Services\Api\AuthApiService;
 use App\Services\Api\AdminApiService;
 use App\Services\Api\DeliveryApiService;
@@ -1094,17 +1096,24 @@ class AdminController extends Controller
         });
 
         $drivers = [];
+        $stats = ['total' => 0, 'active' => 0, 'inactive' => 0];
+
         if (!empty($driversData)) {
             foreach ($driversData as $d) {
+                $status = ($d['is_active'] ?? true) ? 'active' : 'inactive';
                 $drivers[] = [
                     'id' => $d['id'] ?? 0,
                     'name' => trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? '')) ?: 'Driver',
+                    'first_name' => $d['first_name'] ?? '',
+                    'last_name' => $d['last_name'] ?? '',
                     'email' => $d['email'] ?? '',
                     'phone' => $d['phone'] ?? '',
                     'location' => $d['location'] ?? '',
                     'address' => $d['address'] ?? '',
-                    'status' => ($d['is_active'] ?? true) ? 'active' : 'inactive',
+                    'status' => $status,
                 ];
+                $stats['total']++;
+                $stats[$status === 'active' ? 'active' : 'inactive']++;
             }
         }
 
@@ -1115,7 +1124,90 @@ class AdminController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.deliveries');
+        return view('admin.drivers', compact('drivers', 'stats'));
+    }
+
+    public function showDriver(int $id, DriverApiService $driverApi, DeliveryApiService $deliveryApi)
+    {
+        $driverData = $this->apiData($driverApi->show($id), function () {
+            return [];
+        });
+
+        if (empty($driverData)) {
+            return response()->json(['success' => false, 'message' => __('Driver not found.')], 404);
+        }
+
+        $driver = [
+            'id' => $driverData['id'] ?? $id,
+            'name' => trim(($driverData['first_name'] ?? '') . ' ' . ($driverData['last_name'] ?? '')) ?: 'Driver',
+            'first_name' => $driverData['first_name'] ?? '',
+            'last_name' => $driverData['last_name'] ?? '',
+            'email' => $driverData['email'] ?? '',
+            'phone' => $driverData['phone'] ?? '',
+            'location' => $driverData['location'] ?? '',
+            'address' => $driverData['address'] ?? '',
+            'status' => ($driverData['is_active'] ?? true) ? 'active' : 'inactive',
+            'created_at' => $driverData['created_at'] ?? '',
+        ];
+
+        $deliveriesData = $this->apiData($deliveryApi->list(['driver_id' => $id, 'limit' => 100]), function () {
+            return [];
+        });
+
+        $deliveries = [];
+        $statusCounts = [
+            'delivered' => 0,
+            'out_for_delivery' => 0,
+            'picked_up' => 0,
+            'assigned' => 0,
+            'failed' => 0,
+            'pending' => 0,
+            'cancelled' => 0,
+            'other' => 0,
+        ];
+
+        foreach ($deliveriesData as $delivery) {
+            $status = $delivery['status'] ?? 'pending';
+            if (array_key_exists($status, $statusCounts)) {
+                $statusCounts[$status]++;
+            } else {
+                $statusCounts['other']++;
+            }
+
+            $customer = $delivery['customer'] ?? ($delivery['user'] ?? []);
+            $deliveries[] = [
+                'id' => $delivery['id'] ?? 0,
+                'order_id' => $delivery['order_id'] ?? 0,
+                'order' => 'ORD-' . ($delivery['order_id'] ?? 0),
+                'customer' => trim($customer['full_name'] ?? (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) ?: 'Customer',
+                'address' => $delivery['delivery_address'] ?? '',
+                'status' => $status,
+                'scheduled_at' => $delivery['scheduled_at'] ?? '',
+                'delivered_at' => $delivery['delivered_at'] ?? '',
+                'date' => !empty($delivery['created_at']) ? date('Y-m-d', strtotime($delivery['created_at'])) : '',
+            ];
+        }
+
+        $total = count($deliveries);
+        $completed = $statusCounts['delivered'];
+        $completionRate = $total > 0 ? round(($completed / $total) * 100, 1) : 0;
+
+        $kpi = [
+            'total' => $total,
+            'completed' => $completed,
+            'completion_rate' => $completionRate,
+            'failed' => $statusCounts['failed'],
+            'in_progress' => $statusCounts['out_for_delivery'] + $statusCounts['picked_up'] + $statusCounts['assigned'],
+            'pending' => $statusCounts['pending'],
+        ];
+
+        return response()->json([
+            'success' => true,
+            'driver' => $driver,
+            'deliveries' => $deliveries,
+            'kpi' => $kpi,
+            'status_counts' => $statusCounts,
+        ]);
     }
 
     public function storeDriver(Request $request, DriverApiService $driverApi)
@@ -1125,10 +1217,13 @@ class AdminController extends Controller
             'last_name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['required', 'string', 'max:20'],
-            'password' => ['required', 'string', 'min:6', 'max:255'],
+            'password' => ['nullable', 'string', 'min:6', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string', 'max:255'],
         ]);
+
+        $generatedPassword = $validated['password'] ?? substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 10);
+        $validated['password'] = $generatedPassword;
 
         $response = $this->apiData($driverApi->create($validated), function () {
             return [];
@@ -1137,11 +1232,31 @@ class AdminController extends Controller
         $success = is_array($response) && !empty($response['id']);
         $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Driver created successfully.') : __('Failed to create driver. API not connected.')));
 
+        if ($success) {
+            try {
+                Mail::to($validated['email'])
+                    ->send(new DriverCredentialsMail(
+                        $validated['first_name'],
+                        $validated['email'],
+                        $generatedPassword,
+                        route('login')
+                    ));
+                $message .= ' ' . __('Credentials sent to driver email.');
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Driver credentials email failed', ['email' => $validated['email'], 'error' => $e->getMessage()]);
+                $message .= ' ' . __('Could not send credentials email.');
+            }
+        }
+
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => $success,
                 'message' => $message,
-                'driver' => $response['driver'] ?? null,
+                'driver' => $response ?? null,
+                'credentials' => $success ? [
+                    'email' => $validated['email'],
+                    'password' => $generatedPassword,
+                ] : null,
             ], $success ? 200 : 422);
         }
 

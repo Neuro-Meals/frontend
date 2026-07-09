@@ -172,6 +172,7 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
     Route::post('/deliveries/{id}/assign-driver', [AdminController::class, 'assignDriver'])->name('deliveries.assign-driver');
     Route::post('/deliveries/{id}/update-status', [AdminController::class, 'updateDeliveryStatus'])->name('deliveries.update-status');
     Route::get('/drivers', [AdminController::class, 'drivers'])->name('drivers');
+    Route::get('/drivers/{id}', [AdminController::class, 'showDriver'])->name('drivers.show');
     Route::post('/drivers', [AdminController::class, 'storeDriver'])->name('drivers.store');
     Route::put('/drivers/{id}', [AdminController::class, 'updateDriver'])->name('drivers.update');
     Route::delete('/drivers/{id}', [AdminController::class, 'destroyDriver'])->name('drivers.destroy');
