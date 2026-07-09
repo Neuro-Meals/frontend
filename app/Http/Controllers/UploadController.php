@@ -94,6 +94,6 @@ class UploadController extends Controller
             return null;
         }
 
-        return Storage::disk(self::DISK)->url($stored);
+        return '/storage/' . ltrim($stored, '/');
     }
 }
