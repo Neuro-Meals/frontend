@@ -121,25 +121,45 @@
     </div>
 
     {{-- Payment Success --}}
+    @php
+        $successPct = $stats['successRate'] ?? 0;
+        $claimPct = $stats['claimRate'] ?? 0;
+        $srRadius = 36;
+        $srCircumference = 2 * pi() * $srRadius;
+        $srDash = $srCircumference * ($successPct / 100);
+        $srGap = $srCircumference - $srDash;
+        $srColor = $successPct >= 80 ? '#22c55e' : ($successPct >= 50 ? '#f59e0b' : '#ef4444');
+    @endphp
     <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20" style="animation-delay: 0.4s;">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
         <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
         <div class="relative z-10">
-            <div class="flex items-center justify-between mb-3">
-                <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            <div class="flex items-center gap-4">
+                <div class="relative w-20 h-20 flex-shrink-0">
+                    <svg class="w-20 h-20 transform -rotate-90">
+                        <circle cx="40" cy="40" r="{{ $srRadius }}" stroke="rgba(255,255,255,0.15)" stroke-width="8" fill="none"/>
+                        <circle cx="40" cy="40" r="{{ $srRadius }}" stroke="{{ $srColor }}" stroke-width="8" fill="none"
+                            stroke-linecap="round"
+                            stroke-dasharray="{{ $srDash }} {{ $srGap }}"
+                            class="transition-all duration-700 ease-out"/>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span class="text-lg font-bold leading-none">{{ $successPct }}%</span>
+                        <span class="text-[9px] text-white/70">{{ __('success') }}</span>
+                    </div>
                 </div>
-                <div class="flex flex-col items-end gap-1">
-                    <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">{{ $stats['successRate'] }}%</span>
-                    <span class="text-[10px] font-semibold text-white/70 bg-white/10 px-2 py-0.5 rounded-full">{{ $stats['claimRate'] }}% {{ __('claims') }}</span>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs text-white/60 font-medium mb-0.5">{{ __('Payment Success') }}</p>
+                    <p class="text-2xl font-bold tracking-tight">{{ $successPct }}%</p>
+                    <div class="flex flex-wrap items-center gap-1.5 mt-2 text-[10px] text-white/80">
+                        <span class="px-1.5 py-0.5 rounded bg-white/10">{{ $stats['paymentCounts']['paid'] + $stats['paymentCounts']['captured'] }} {{ __('paid') }}</span>
+                        <span class="px-1.5 py-0.5 rounded bg-white/10">{{ $stats['pendingPayments'] }} {{ __('pending') }}</span>
+                    </div>
+                    <div class="mt-2 h-1 bg-white/10 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full bg-white/80" style="width: {{ $successPct }}%"></div>
+                    </div>
+                    <p class="text-[10px] text-white/50 mt-1">{{ $claimPct }}% {{ __('claim rate') }}</p>
                 </div>
-            </div>
-            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Payment Success') }}</p>
-            <p class="text-2xl font-bold tracking-tight">{{ $stats['successRate'] }}%</p>
-            <div class="flex items-center gap-2 mt-2 text-[10px] text-white/60">
-                <span class="px-1.5 py-0.5 rounded bg-green-500/20 text-green-100">{{ $stats['paymentCounts']['paid'] + $stats['paymentCounts']['captured'] }} {{ __('paid') }}</span>
-                <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-100">{{ $stats['pendingPayments'] }} {{ __('pending') }}</span>
-                <span class="px-1.5 py-0.5 rounded bg-red-500/20 text-red-100">{{ $stats['paymentCounts']['refunded'] + $stats['paymentCounts']['disputed'] + $stats['paymentCounts']['failed'] + $stats['paymentCounts']['cancelled'] }} {{ __('claims') }}</span>
             </div>
         </div>
     </div>
@@ -182,72 +202,6 @@
         <div>
             <p class="text-[10px] text-gray-400 font-medium">{{ __('Churn Rate') }}</p>
             <p class="text-base font-bold tracking-tight text-[#173327]">{{ $stats['churnRate'] }}%</p>
-        </div>
-    </div>
-</div>
-
-{{-- Payment Overview --}}
-@php
-    $pc = $stats['paymentCounts'] ?? [];
-    $paymentStatusList = [
-        ['key' => 'paid', 'label' => __('Paid'), 'color' => 'bg-green-500'],
-        ['key' => 'captured', 'label' => __('Captured'), 'color' => 'bg-green-400'],
-        ['key' => 'pending', 'label' => __('Pending'), 'color' => 'bg-amber-500'],
-        ['key' => 'unpaid', 'label' => __('Unpaid'), 'color' => 'bg-gray-400'],
-        ['key' => 'failed', 'label' => __('Failed'), 'color' => 'bg-red-500'],
-        ['key' => 'refunded', 'label' => __('Refunded'), 'color' => 'bg-orange-500'],
-        ['key' => 'disputed', 'label' => __('Disputed'), 'color' => 'bg-purple-500'],
-        ['key' => 'cancelled', 'label' => __('Cancelled'), 'color' => 'bg-red-400'],
-    ];
-    $totalPaymentItems = max(1, array_sum($pc) - ($pc['other'] ?? 0));
-@endphp
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-    <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-5 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.9s;">
-        <h4 class="text-sm font-bold text-gray-900 mb-4">{{ __('Payment Status Breakdown') }}</h4>
-        <div class="space-y-3">
-            @foreach($paymentStatusList as $item)
-                @php
-                    $count = $pc[$item['key']] ?? 0;
-                    $pct = round(($count / $totalPaymentItems) * 100, 1);
-                @endphp
-                @if($count > 0)
-                <div class="flex items-center gap-3">
-                    <span class="text-xs font-medium text-gray-600 w-24">{{ $item['label'] }}</span>
-                    <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div class="h-full rounded-full {{ $item['color'] }}" style="width: {{ $pct }}%"></div>
-                    </div>
-                    <div class="text-right w-20">
-                        <span class="text-xs font-bold text-gray-900">{{ number_format($count) }}</span>
-                        <span class="text-[10px] text-gray-400 ml-1">({{ $pct }}%)</span>
-                    </div>
-                </div>
-                @endif
-            @endforeach
-            @if($totalPaymentItems <= 1)
-                <p class="text-xs text-gray-400 text-center py-4">{{ __('No payment data available.') }}</p>
-            @endif
-        </div>
-    </div>
-
-    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 1s;">
-        <h4 class="text-sm font-bold text-gray-900 mb-4">{{ __('Revenue Overview') }}</h4>
-        <div class="space-y-4">
-            <div class="flex items-center justify-between p-3 rounded-xl bg-[#F6F3E9]">
-                <span class="text-xs text-gray-500">{{ __('Total Revenue') }}</span>
-                <span class="text-sm font-bold text-[#173327]">SAR {{ number_format($stats['totalRevenue']) }}</span>
-            </div>
-            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50">
-                <span class="text-xs text-gray-500">{{ __('This Month') }}</span>
-                <span class="text-sm font-bold text-[#6E7A25]">SAR {{ number_format($stats['monthlyRevenue']) }}</span>
-            </div>
-            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50">
-                <span class="text-xs text-gray-500">{{ __('Last Month') }}</span>
-                <span class="text-sm font-bold text-gray-600">SAR {{ number_format($stats['lastMonthRevenue']) }}</span>
-            </div>
-            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50">
-                <span class="text-xs text-gray-500">{{ __('Avg Order Value') }}</span>
-                <span class="text-sm font-bold text-gray-600">SAR {{ number_format($stats['avgOrderValue'], 2) }}</span>
-            </div>
         </div>
     </div>
 </div>
@@ -507,6 +461,41 @@
     ];
     $fmtDate = fn($d) => !empty($d) ? date('M d, H:i', strtotime($d)) : '—';
 @endphp
+
+{{-- Payment Status Summary Cards --}}
+@php
+    $pc = $stats['paymentCounts'] ?? [];
+    $paymentStatusCards = [
+        ['key' => 'paid', 'label' => __('Paid'), 'icon' => 'M9 12l2 2 4-4', 'color' => 'from-green-500 to-emerald-600', 'light' => 'bg-green-50'],
+        ['key' => 'pending', 'label' => __('Pending'), 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => 'from-amber-500 to-orange-500', 'light' => 'bg-amber-50'],
+        ['key' => 'failed', 'label' => __('Failed'), 'icon' => 'M6 18L18 6M6 6l12 12', 'color' => 'from-red-500 to-red-600', 'light' => 'bg-red-50'],
+        ['key' => 'refunded', 'label' => __('Refunded'), 'icon' => 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z', 'color' => 'from-orange-500 to-orange-600', 'light' => 'bg-orange-50'],
+        ['key' => 'disputed', 'label' => __('Disputed'), 'icon' => 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z', 'color' => 'from-purple-500 to-purple-600', 'light' => 'bg-purple-50'],
+        ['key' => 'cancelled', 'label' => __('Cancelled'), 'icon' => 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636', 'color' => 'from-gray-500 to-gray-600', 'light' => 'bg-gray-50'],
+    ];
+@endphp
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+    @foreach($paymentStatusCards as $card)
+        @php
+            $count = $pc[$card['key']] ?? 0;
+            $total = max(1, array_sum($pc) - ($pc['other'] ?? 0));
+            $pct = round(($count / $total) * 100, 1);
+        @endphp
+        <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm animate__animated animate__fadeInUp hover:shadow-md transition-all" style="animation-delay: {{ 0.9 + $loop->index * 0.05 }}s;">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br {{ $card['color'] }} flex items-center justify-center text-white shadow-md">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $card['icon'] }}"/></svg>
+                </div>
+                <span class="text-xs font-bold text-gray-700 bg-gray-50 px-2 py-1 rounded-full">{{ $pct }}%</span>
+            </div>
+            <p class="text-2xl font-bold text-gray-900">{{ number_format($count) }}</p>
+            <p class="text-[11px] text-gray-400 font-medium">{{ $card['label'] }}</p>
+            <div class="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full bg-gradient-to-r {{ $card['color'] }}" style="width: {{ $pct }}%"></div>
+            </div>
+        </div>
+    @endforeach
+</div>
 
 {{-- Recent Payments --}}
 <div class="grid grid-cols-1 gap-6 mb-6">

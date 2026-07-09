@@ -9,30 +9,108 @@
   x-init="init()"
   class="space-y-4"
 >
-  {{-- Stats Row --}}
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3" x-show="!loading">
-    <template x-for="stat in stats" :key="stat.label">
-      <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-        <div class="flex items-center justify-between mb-1.5">
-          <div class="w-9 h-9 rounded-lg flex items-center justify-center" :style="'background:'+stat.bg">
-            <svg class="w-4 h-4" :style="'color:'+stat.color" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="stat.icon"/></svg>
-          </div>
-          <span class="text-[10px] font-bold" :class="stat.trendClass" x-text="stat.trend"></span>
+  {{-- Powerful Payment Stats --}}
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-2" x-show="!loading">
+    {{-- Success Rate Circular Card --}}
+    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex items-center gap-5">
+      <div class="relative w-28 h-28 flex-shrink-0">
+        <svg class="w-28 h-28 transform -rotate-90">
+          <circle cx="56" cy="56" r="48" stroke="#f3f4f6" stroke-width="10" fill="none"/>
+          <circle cx="56" cy="56" r="48" :stroke="successRate >= 80 ? '#22c55e' : (successRate >= 50 ? '#f59e0b' : '#ef4444')" stroke-width="10" fill="none" stroke-linecap="round"
+            :stroke-dasharray="circumference * (successRate / 100) + ' ' + circumference * (1 - successRate / 100)"
+            class="transition-all duration-700 ease-out"/>
+        </svg>
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <span class="text-xl font-bold text-gray-900" x-text="successRate + '%'"></span>
+          <span class="text-[10px] text-gray-400">{{ __('Success') }}</span>
         </div>
-        <p class="text-[10px] text-gray-400 mb-0.5" x-text="stat.label"></p>
-        <p class="text-lg font-bold text-gray-900" x-text="stat.value"></p>
       </div>
-    </template>
+      <div class="flex-1 min-w-0">
+        <h3 class="text-sm font-bold text-gray-900 mb-1">{{ __('Payment Success Rate') }}</h3>
+        <p class="text-xs text-gray-400 mb-3">{{ __('Percentage of successful payments') }}</p>
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-1 rounded-full text-[10px] font-bold bg-green-50 text-green-700 border border-green-200" x-text="paidCount + ' {{ __('paid') }}'"></span>
+          <span class="px-2 py-1 rounded-full text-[10px] font-bold bg-gray-50 text-gray-600 border border-gray-200" x-text="payments.length + ' {{ __('total') }}'"></span>
+        </div>
+      </div>
+    </div>
+
+    {{-- Revenue & Claims Mini Cards --}}
+    <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-4 text-white shadow-lg shadow-[#6E7A25]/20 relative overflow-hidden">
+        <div class="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full"></div>
+        <div class="relative z-10">
+          <div class="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center mb-3">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <p class="text-[10px] text-white/70 mb-0.5">{{ __('Total Revenue') }}</p>
+          <p class="text-lg font-bold" x-text="totalRevenue"></p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+        <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center mb-3">
+          <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <p class="text-[10px] text-gray-400 mb-0.5">{{ __('Pending') }}</p>
+        <p class="text-lg font-bold text-gray-900" x-text="pendingCount"></p>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+        <div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center mb-3">
+          <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </div>
+        <p class="text-[10px] text-gray-400 mb-0.5">{{ __('Failed') }}</p>
+        <p class="text-lg font-bold text-gray-900" x-text="failedCount"></p>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+        <div class="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center mb-3">
+          <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+        </div>
+        <p class="text-[10px] text-gray-400 mb-0.5">{{ __('Refunded') }}</p>
+        <p class="text-lg font-bold text-gray-900" x-text="refundedCount"></p>
+      </div>
+    </div>
+  </div>
+
+  {{-- Payment Status Breakdown Bars --}}
+  <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm mb-2" x-show="!loading">
+    <h4 class="text-sm font-bold text-gray-900 mb-4">{{ __('Payment Status Breakdown') }}</h4>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <template x-for="item in statusBreakdown" :key="item.key">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" :class="item.light">
+            <svg class="w-4 h-4" :class="item.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="item.icon"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-medium text-gray-700" x-text="item.label"></span>
+              <div class="text-right">
+                <span class="text-xs font-bold text-gray-900" x-text="item.count"></span>
+                <span class="text-[10px] text-gray-400" x-text="'(' + item.pct + '%)'"></span>
+              </div>
+            </div>
+            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-700 ease-out" :class="item.color" :style="'width: ' + item.pct + '%'"></div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
   </div>
 
   {{-- Skeleton loader for stats --}}
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3" x-show="loading">
-    <template x-for="i in 4">
-      <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm animate-pulse">
-        <div class="h-3 bg-gray-100 rounded w-1/2 mb-2"></div>
-        <div class="h-6 bg-gray-100 rounded w-3/4"></div>
+  <div class="space-y-4" x-show="loading">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm animate-pulse h-36"></div>
+      <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <template x-for="i in 4">
+          <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm animate-pulse h-28"></div>
+        </template>
       </div>
-    </template>
+    </div>
+    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm animate-pulse h-40"></div>
   </div>
 
   {{-- Filter Bar --}}
@@ -480,14 +558,52 @@ function paymentsApp() {
     page: 1,
     hasMore: false,
     loading: true,
+    circumference: 2 * Math.PI * 48,
+
+    get paidCount() {
+      return this.payments.filter(p => ['paid', 'completed', 'captured'].includes(p.status)).length;
+    },
+    get successRate() {
+      return this.payments.length ? Math.round((this.paidCount / this.payments.length) * 100) : 0;
+    },
+    get totalRevenue() {
+      return 'SAR ' + this.payments.filter(p => ['paid', 'completed', 'captured'].includes(p.status)).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    },
+    get pendingCount() {
+      return this.payments.filter(p => p.status === 'pending').length;
+    },
+    get failedCount() {
+      return this.payments.filter(p => p.status === 'failed').length;
+    },
+    get refundedCount() {
+      return this.payments.filter(p => p.status === 'refunded').length;
+    },
+    get statusBreakdown() {
+      const total = this.payments.length || 1;
+      const items = [
+        { key: 'paid', label: '{{ __("Paid") }}', icon: 'M9 12l2 2 4-4', color: 'bg-green-500', light: 'bg-green-50', textColor: 'text-green-500' },
+        { key: 'pending', label: '{{ __("Pending") }}', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', color: 'bg-amber-500', light: 'bg-amber-50', textColor: 'text-amber-500' },
+        { key: 'failed', label: '{{ __("Failed") }}', icon: 'M6 18L18 6M6 6l12 12', color: 'bg-red-500', light: 'bg-red-50', textColor: 'text-red-500' },
+        { key: 'refunded', label: '{{ __("Refunded") }}', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z', color: 'bg-orange-500', light: 'bg-orange-50', textColor: 'text-orange-500' },
+        { key: 'disputed', label: '{{ __("Disputed") }}', icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z', color: 'bg-purple-500', light: 'bg-purple-50', textColor: 'text-purple-500' },
+        { key: 'cancelled', label: '{{ __("Cancelled") }}', icon: 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636', color: 'bg-gray-500', light: 'bg-gray-50', textColor: 'text-gray-500' },
+      ];
+      return items.map(item => {
+        const count = this.payments.filter(p => p.status === item.key).length;
+        return { ...item, count, pct: Math.round((count / total) * 100) };
+      }).filter(item => item.count > 0 || item.key === 'paid');
+    },
 
     statusClass(status) {
       const map = {
         paid: 'bg-green-50 text-green-700 border-green-200',
         completed: 'bg-green-50 text-green-700 border-green-200',
+        captured: 'bg-green-50 text-green-700 border-green-200',
         pending: 'bg-amber-50 text-amber-700 border-amber-200',
+        unpaid: 'bg-gray-50 text-gray-600 border-gray-200',
         failed: 'bg-red-50 text-red-600 border-red-200',
-        refunded: 'bg-purple-50 text-purple-700 border-purple-200',
+        refunded: 'bg-orange-50 text-orange-600 border-orange-200',
+        disputed: 'bg-purple-50 text-purple-700 border-purple-200',
         cancelled: 'bg-gray-50 text-gray-600 border-gray-200',
       };
       return map[status] || 'bg-gray-50 text-gray-600 border-gray-200';
