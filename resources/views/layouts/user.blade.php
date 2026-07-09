@@ -69,6 +69,15 @@
 
     @include('partials.loading')
 
+    @php
+        $notificationCount = 0;
+        try {
+            $notificationCount = app(\App\Services\Api\NotificationApiService::class)->unreadCount();
+        } catch (\Throwable $e) {
+            $notificationCount = 0;
+        }
+    @endphp
+
     {{-- Mobile Overlay --}}
     <div id="mobileOverlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
 
@@ -135,9 +144,14 @@
 
             {{-- Notifications --}}
             <div class="sidebar-group">
-                <a href="{{ route('user.notifications') }}" onclick="closeSidebar()" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.notifications*') ? 'active' : '' }}">
-                    <svg class="w-5 h-5 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                    <span>{{ __('Notifications') }}</span>
+                <a href="{{ route('user.notifications') }}" onclick="closeSidebar()" class="sidebar-link w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.notifications*') ? 'active' : '' }}">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        <span>{{ __('Notifications') }}</span>
+                    </div>
+                    <span class="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold {{ $notificationCount > 0 ? 'bg-red-500 text-white' : 'bg-white/10 text-brand-100' }}">
+                        {{ $notificationCount }}
+                    </span>
                 </a>
             </div>
 
@@ -190,10 +204,12 @@
                 {{-- Language Switcher --}}
                 @include('partials.language_switcher', ['isDark' => false])
                 {{-- Notifications --}}
-                <button class="relative p-2 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
+                <a href="{{ route('user.notifications') }}" class="relative p-2 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-                </button>
+                    <span class="absolute -top-0.5 -right-0.5 min-w-[1.25rem] h-5 px-1 flex items-center justify-center rounded-full text-[10px] font-bold {{ $notificationCount > 0 ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-500' }}">
+                        {{ $notificationCount }}
+                    </span>
+                </a>
             </div>
         </header>
 

@@ -33,4 +33,22 @@ class NotificationApiService extends BaseApiService
     {
         return $this->patch('notifications.read_all');
     }
+
+    /**
+     * Count unread notifications by fetching the list and filtering.
+     */
+    public function unreadCount(): int
+    {
+        $response = $this->my(['limit' => 100]);
+        $items = $response['data'] ?? ($response['notifications'] ?? []);
+
+        $count = 0;
+        foreach ($items as $item) {
+            if (empty($item['is_read']) && empty($item['read_at'])) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
 }
