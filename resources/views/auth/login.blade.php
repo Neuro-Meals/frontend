@@ -183,11 +183,6 @@
                         return;
                     }
 
-                    if (data.requires_verification) {
-                        window.location.href = data.redirect || @json(route('verify.email')) + '?email=' + encodeURIComponent(this.form.email);
-                        return;
-                    }
-
                     this.errors = data.errors || {};
                     const message = data.message || this.errorTitle;
                     this.showToast(message);

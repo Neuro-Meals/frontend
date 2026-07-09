@@ -106,21 +106,16 @@ class RegisterController extends Controller
                 ->withInput($request->except('password', 'password_confirmation'));
         }
 
-        session([
-            'pending_verification_email' => $request->email,
-            'pending_verification_name' => $request->first_name,
-        ]);
-
-        $redirect = route('verify.email', ['email' => urlencode($request->email)]);
+        $redirect = route('login');
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Account created! Please check your email for the verification OTP.',
+                'message' => 'Account created! You can now log in.',
                 'redirect' => $redirect,
             ]);
         }
 
-        return redirect($redirect)->with('status', 'Account created! Please check your email for the verification OTP.');
+        return redirect($redirect)->with('status', 'Account created! You can now log in.');
     }
 }
