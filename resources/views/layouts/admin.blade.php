@@ -135,6 +135,11 @@
                 <span>{{ __('Deliveries') }}</span>
             </a>
 
+            <a href="{{ route('admin.drivers') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.drivers*') ? 'active' : '' }}">
+                <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span>{{ __('Drivers') }}</span>
+            </a>
+
             <a href="{{ route('admin.live') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.live') ? 'active' : '' }}">
                 <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
                 <span>{{ __('Live') }}</span>
