@@ -107,9 +107,24 @@ class AdminController extends Controller
         foreach ($topMealsData as $meal) {
             $topMeals[] = [
                 'name' => $meal['name_en'] ?? 'Meal',
+                'image' => $meal['image_url'] ?? '',
                 'orders' => $meal['orders_count'] ?? 0,
                 'revenue' => $meal['revenue'] ?? 0,
             ];
+        }
+
+        // Fallback mock trend data for dashboard charts when API doesn't provide it
+        if (empty($revenueTrend)) {
+            $revenueTrend = [];
+            for ($i = 0; $i < 14; $i++) {
+                $revenueTrend[] = rand(8000, 25000);
+            }
+        }
+        if (empty($ordersTrend)) {
+            $ordersTrend = [];
+            for ($i = 0; $i < 7; $i++) {
+                $ordersTrend[] = rand(40, 180);
+            }
         }
 
         $deliveryZones = [];

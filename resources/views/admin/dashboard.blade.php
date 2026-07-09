@@ -155,20 +155,13 @@
         @php
             $revMax = !empty($revenueTrend) ? (max($revenueTrend) ?: 1) : 1;
             $revTotal = !empty($revenueTrend) ? array_sum($revenueTrend) : 0;
+            $revenueLabels = [];
+            for ($i = 0; $i < count($revenueTrend); $i++) {
+                $revenueLabels[] = \Carbon\Carbon::parse('now')->subDays(count($revenueTrend) - 1 - $i)->format('d/m');
+            }
         @endphp
-        <div class="flex items-end gap-2 h-48">
-            @foreach($revenueTrend as $i => $rev)
-                @php $pct = min(100, ($rev / $revMax) * 100); $isToday = $i === count($revenueTrend)-1; @endphp
-                <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
-                    <div class="w-full relative h-40 flex items-end">
-                        <div class="w-full rounded-t-lg transition-all duration-300 group-hover:opacity-80 {{ $isToday ? 'bg-gradient-to-t from-[#6E7A25] to-[#6E7A25]/70' : 'bg-gradient-to-t from-[#6E7A25]/60 to-[#6E7A25]/30' }}" style="height: {{ max($pct, 4) }}%"></div>
-                        <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap pointer-events-none">
-                            SAR {{ number_format($rev) }}
-                        </div>
-                    </div>
-                    <span class="text-[10px] text-gray-400 font-medium">{{ \Carbon\Carbon::parse('now')->subDays(13-$i)->format('d/m') }}</span>
-                </div>
-            @endforeach
+        <div class="relative h-56 mb-4">
+            <canvas id="dashboardRevenueChart"></canvas>
         </div>
         <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between">
             <div>
@@ -193,22 +186,20 @@
             <p class="text-xs text-gray-400 mt-0.5">{{ __('Active subscriptions by plan') }}</p>
         </div>
         @php $totalPlans = array_sum(array_column($planDistribution, 'count')); @endphp
-        <div class="space-y-4">
+        <div class="relative h-52 mb-4">
+            <canvas id="dashboardPlanChart"></canvas>
+        </div>
+        <div class="grid grid-cols-2 gap-2 max-h-24 overflow-y-auto pr-1">
             @foreach($planDistribution as $plan)
                 @php $pct = $totalPlans > 0 ? round($plan['count'] / $totalPlans * 100) : 0; @endphp
-                <div>
-                    <div class="flex items-center justify-between mb-1.5">
-                        <span class="text-xs font-medium text-gray-700">{{ $plan['name'] }}</span>
-                        <span class="text-xs font-bold text-gray-900">{{ $plan['count'] }}</span>
-                    </div>
-                    <div class="h-2.5 rounded-full bg-gray-100 overflow-hidden">
-                        <div class="h-full rounded-full transition-all duration-500 hover:opacity-80" style="width: {{ $pct }}%; background: {{ $plan['color'] }}; box-shadow: 0 0 8px {{ $plan['color'] }}40;"></div>
-                    </div>
-                    <p class="text-[10px] text-gray-400 mt-1">{{ $pct }}% {{ __('of total') }}</p>
+                <div class="flex items-center gap-2 text-xs">
+                    <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background: {{ $plan['color'] }}"></span>
+                    <span class="text-gray-600 truncate">{{ $plan['name'] }}</span>
+                    <span class="font-bold text-gray-900 ml-auto">{{ $pct }}%</span>
                 </div>
             @endforeach
         </div>
-        <div class="mt-5 pt-4 border-t border-gray-50">
+        <div class="mt-4 pt-4 border-t border-gray-50">
             <p class="text-xs text-gray-400">{{ __('Total Active') }}</p>
             <p class="text-2xl font-bold text-gray-900">{{ $totalPlans }}</p>
         </div>
@@ -229,20 +220,8 @@
                 <span class="text-xs text-gray-500">{{ __('Orders') }}</span>
             </div>
         </div>
-        @php $ordMax = !empty($ordersTrend) ? (max($ordersTrend) ?: 1) : 1; @endphp
-        <div class="flex items-end gap-3 h-40">
-            @foreach($ordersTrend as $i => $ord)
-                @php $pct = min(100, ($ord / $ordMax) * 100); @endphp
-                <div class="flex-1 flex flex-col items-center gap-2 group cursor-pointer">
-                    <div class="w-full relative h-32 flex items-end">
-                        <div class="w-full rounded-t-lg bg-gradient-to-t from-[#173327] to-[#173327]/70 transition-all duration-300 group-hover:opacity-80" style="height: {{ max($pct, 5) }}%"></div>
-                        <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md">
-                            {{ $ord }}
-                        </div>
-                    </div>
-                    <span class="text-[10px] text-gray-400 font-medium">{{ $days[$i] }}</span>
-                </div>
-            @endforeach
+        <div class="relative h-56">
+            <canvas id="dashboardOrdersChart"></canvas>
         </div>
     </div>
 
@@ -334,9 +313,15 @@
         <div class="space-y-3">
             @foreach($topMeals as $i => $meal)
                 <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors">
-                    <div class="w-9 h-9 rounded-xl {{ $i === 0 ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-white' : ($i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-white' : ($i === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white' : 'bg-gray-50 text-gray-400')) }} flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-sm">
+                    @if($meal['image'])
+                    <div class="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-gray-100 to-gray-200">
+                        <img src="{{ $meal['image'] }}" alt="{{ $meal['name'] }}" class="w-full h-full object-cover">
+                    </div>
+                    @else
+                    <div class="w-12 h-12 rounded-xl {{ $i === 0 ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-white' : ($i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-white' : ($i === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white' : 'bg-gray-50 text-gray-400')) }} flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-sm">
                         {{ $i + 1 }}
                     </div>
+                    @endif
                     <div class="flex-1 min-w-0">
                         <p class="text-xs font-semibold text-gray-900 truncate">{{ $meal['name'] }}</p>
                         <p class="text-[10px] text-gray-400">{{ $meal['orders'] }} {{ __('orders') }} · SAR {{ number_format($meal['revenue']) }}</p>
@@ -385,6 +370,116 @@
 
 {{-- ═══════════════════════════════════════════════════════════════ --}}
 
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+    Chart.defaults.font.family = "'Nunito', sans-serif";
+    Chart.defaults.color = '#9ca3af';
+
+    const commonChartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: '#173327',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                padding: 10,
+                cornerRadius: 8,
+            }
+        },
+        scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+            y: { beginAtZero: true, grid: { color: '#f3f4f6' }, ticks: { font: { size: 10 } } }
+        }
+    };
+
+    // Revenue Trend - gradient area chart
+    new Chart(document.getElementById('dashboardRevenueChart'), {
+        type: 'line',
+        data: {
+            labels: @json($revenueLabels ?? []),
+            datasets: [{
+                label: '{{ __('Daily Revenue') }}',
+                data: @json($revenueTrend ?? []),
+                borderColor: '#6E7A25',
+                backgroundColor: (ctx) => {
+                    const canvas = ctx.chart.ctx;
+                    const gradient = canvas.createLinearGradient(0, 0, 0, 220);
+                    gradient.addColorStop(0, 'rgba(110, 122, 37, 0.25)');
+                    gradient.addColorStop(1, 'rgba(110, 122, 37, 0.0)');
+                    return gradient;
+                },
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#6E7A25',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+            }]
+        },
+        options: {
+            ...commonChartOptions,
+            plugins: {
+                ...commonChartOptions.plugins,
+                tooltip: {
+                    ...commonChartOptions.plugins.tooltip,
+                    callbacks: {
+                        label: (ctx) => 'SAR ' + Number(ctx.raw).toLocaleString()
+                    }
+                }
+            }
+        }
+    });
+
+    // Plan Distribution - donut chart
+    new Chart(document.getElementById('dashboardPlanChart'), {
+        type: 'doughnut',
+        data: {
+            labels: @json(array_column($planDistribution, 'name')),
+            datasets: [{
+                data: @json(array_column($planDistribution, 'count')),
+                backgroundColor: @json(array_column($planDistribution, 'color')),
+                borderWidth: 0,
+                hoverOffset: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#173327',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    padding: 10,
+                    cornerRadius: 8,
+                }
+            }
+        }
+    });
+
+    // Orders This Week - rounded bar chart
+    new Chart(document.getElementById('dashboardOrdersChart'), {
+        type: 'bar',
+        data: {
+            labels: @json($days ?? []),
+            datasets: [{
+                label: '{{ __('Orders') }}',
+                data: @json($ordersTrend ?? []),
+                backgroundColor: '#173327',
+                hoverBackgroundColor: '#6E7A25',
+                borderRadius: 6,
+            }]
+        },
+        options: commonChartOptions
+    });
+</script>
+@endpush
 
 </div>
 
