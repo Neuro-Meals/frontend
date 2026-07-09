@@ -113,19 +113,32 @@
 </div>
 
 {{-- Action Bar --}}
-<div class="flex items-center justify-between mb-6">
+<div class="flex items-center justify-between mb-6 gap-3">
     <div class="flex items-center bg-white rounded-lg px-3 py-2 border border-gray-100 shadow-sm flex-1 max-w-xs">
         <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         <input type="text" x-model="search" placeholder="{{ __('Search meals...') }}" class="bg-transparent text-sm outline-none flex-1 text-gray-600 placeholder-gray-400">
     </div>
-    <button @click="openCreate()" class="px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-        {{ __('Add Meal') }}
-    </button>
+
+    <div class="flex items-center gap-2">
+        {{-- View Toggle --}}
+        <div class="bg-white rounded-lg border border-gray-100 shadow-sm p-1 flex items-center">
+            <button @click="viewMode = 'grid'" :class="viewMode === 'grid' ? 'bg-[#173327] text-white' : 'text-gray-500 hover:text-gray-700'" class="p-1.5 rounded-md transition-colors" title="{{ __('Grid view') }}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            </button>
+            <button @click="viewMode = 'list'" :class="viewMode === 'list' ? 'bg-[#173327] text-white' : 'text-gray-500 hover:text-gray-700'" class="p-1.5 rounded-md transition-colors" title="{{ __('List view') }}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+        </div>
+
+        <button @click="openCreate()" class="px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            {{ __('Add Meal') }}
+        </button>
+    </div>
 </div>
 
 {{-- Meals Grid --}}
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div x-show="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     <template x-for="meal in filteredMeals" :key="meal.id">
         <div class="kpi-card bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             {{-- Image --}}
@@ -185,6 +198,69 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </template>
+</div>
+
+{{-- Meals List --}}
+<div x-show="viewMode === 'list'" x-cloak class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead class="bg-gray-50 border-b border-gray-100">
+                <tr>
+                    <th class="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">{{ __('Meal') }}</th>
+                    <th class="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">{{ __('Category') }}</th>
+                    <th class="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">{{ __('Macros') }}</th>
+                    <th class="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">{{ __('Price') }}</th>
+                    <th class="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">{{ __('Status') }}</th>
+                    <th class="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide text-right">{{ __('Actions') }}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                <template x-for="meal in filteredMeals" :key="meal.id">
+                    <tr class="hover:bg-gray-50/50 transition-colors group">
+                        <td class="px-5 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-lg overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 flex-shrink-0 flex items-center justify-center">
+                                    <img x-show="meal.image" :src="meal.image" :alt="meal.name" class="w-full h-full object-cover">
+                                    <svg x-show="!meal.image" class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-gray-900" x-text="meal.name"></p>
+                                    <p class="text-[10px] text-gray-400" x-text="meal.calories + ' kcal · ' + meal.orders + ' {{ __('orders') }}'"></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-5 py-4">
+                            <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold" :class="categoryColor(meal.category)" x-text="meal.category"></span>
+                        </td>
+                        <td class="px-5 py-4">
+                            <div class="flex items-center gap-3 text-xs text-gray-600">
+                                <span class="font-medium text-green-700 bg-green-50 px-1.5 py-0.5 rounded" x-text="'P ' + meal.protein + 'g'"></span>
+                                <span class="font-medium text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded" x-text="'C ' + meal.carbs + 'g'"></span>
+                                <span class="font-medium text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded" x-text="'F ' + meal.fat + 'g'"></span>
+                            </div>
+                        </td>
+                        <td class="px-5 py-4">
+                            <span class="text-sm font-bold text-[#6E7A25]" x-text="'SAR ' + parseFloat(meal.price).toFixed(2)"></span>
+                        </td>
+                        <td class="px-5 py-4">
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-semibold border" :class="meal.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'" x-text="meal.status.charAt(0).toUpperCase() + meal.status.slice(1)"></span>
+                        </td>
+                        <td class="px-5 py-4 text-right">
+                            <div class="flex items-center justify-end gap-3 opacity-80 group-hover:opacity-100 transition-opacity">
+                                <button @click="openEdit(meal.id)" class="text-xs font-bold text-[#6E7A25] hover:text-[#173327] transition-colors">{{ __('Edit') }} →</button>
+                                <button @click="confirmDelete(meal.id)" class="text-xs font-bold text-red-600 hover:text-red-800 transition-colors">{{ __('Delete') }}</button>
+                            </div>
+                        </td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+    <template x-if="filteredMeals.length === 0">
+        <div class="p-8 text-center text-gray-400 text-sm">
+            {{ __('No meals found.') }}
         </div>
     </template>
 </div>
@@ -381,6 +457,7 @@
             uploadProgress: 0,
             uploadError: '',
             formError: '',
+            viewMode: localStorage.getItem('mealsViewMode') || 'grid',
             meals: @json($meals),
             categories: @json($categories),
             form: {
@@ -401,6 +478,7 @@
             },
             init() {
                 this.deleteId = null;
+                this.$watch('viewMode', value => localStorage.setItem('mealsViewMode', value));
             },
             categoryColor(category) {
                 const map = {

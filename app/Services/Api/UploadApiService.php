@@ -17,7 +17,7 @@ class UploadApiService extends BaseApiService
         foreach ($files as $file) {
             $prepared[] = [
                 'name' => 'files',
-                'contents' => $file->getPath() ? fopen($file->getPathname(), 'r') : $file->get(),
+                'contents' => $file->get(),
                 'filename' => $file->getClientOriginalName(),
             ];
         }
