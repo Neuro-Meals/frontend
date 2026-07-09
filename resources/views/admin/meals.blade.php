@@ -36,33 +36,64 @@
 
 {{-- KPI Cards --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div class="kpi-card bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20">
+    <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20" style="animation-delay: 0.1s;">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
         <div class="relative z-10">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">{{ $stats['active'] }} {{ __('active') }}</span>
+            </div>
             <p class="text-xs text-white/60 font-medium mb-1">{{ __('Total Meals') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ $stats['total'] }}</p>
             <p class="text-xs text-white/50 mt-1">{{ $stats['active'] }} {{ __('active') }} · {{ $stats['draft'] }} {{ __('draft') }}</p>
         </div>
     </div>
-    <div class="kpi-card bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-blue-500/20">
+    <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20" style="animation-delay: 0.2s;">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
         <div class="relative z-10">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+                </div>
+                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">{{ $stats['categories'] }}</span>
+            </div>
             <p class="text-xs text-white/60 font-medium mb-1">{{ __('Categories') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ $stats['categories'] }}</p>
+            <p class="text-xs text-white/50 mt-1">{{ __('meal categories') }}</p>
         </div>
     </div>
-    <div class="kpi-card bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-amber-500/20">
+    <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20" style="animation-delay: 0.3s;">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
         <div class="relative z-10">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                </div>
+                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">{{ number_format($stats['totalOrders']) }}</span>
+            </div>
             <p class="text-xs text-white/60 font-medium mb-1">{{ __('Total Orders') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ number_format($stats['totalOrders']) }}</p>
+            <p class="text-xs text-white/50 mt-1">{{ __('meals ordered') }}</p>
         </div>
     </div>
-    <div class="kpi-card bg-gradient-to-br from-violet-500 to-purple-700 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-violet-500/20">
+    <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20" style="animation-delay: 0.4s;">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
         <div class="relative z-10">
+            <div class="flex items-center justify-between mb-3">
+                <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                </div>
+                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">{{ $stats['avgRating'] }}/5</span>
+            </div>
             <p class="text-xs text-white/60 font-medium mb-1">{{ __('Avg Rating') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ $stats['avgRating'] }}<span class="text-lg">/5</span></p>
+            <p class="text-xs text-white/50 mt-1">{{ __('customer rating') }}</p>
         </div>
     </div>
 </div>
@@ -274,8 +305,16 @@
                     <input type="file" @change="uploadImage($event)" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#173327] file:text-white hover:file:bg-[#6E7A25] file:transition-all">
                 </div>
                 <input type="hidden" name="image_url" x-model="form.image_url">
-                <p x-show="uploadError" x-text="uploadError" class="text-xs text-red-600 mt-1"></p>
-                <p x-show="uploading" class="text-xs text-[#6E7A25] mt-1">{{ __('Uploading...') }}</p>
+                <div x-show="uploading" class="mt-3">
+                    <div class="flex items-center justify-between text-xs mb-1">
+                        <span class="text-gray-500">{{ __('Uploading') }}...</span>
+                        <span class="font-bold text-[#6E7A25]" x-text="uploadProgress + '%'"></span>
+                    </div>
+                    <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-full transition-all duration-150" :style="'width: ' + uploadProgress + '%'"></div>
+                    </div>
+                </div>
+                <p x-show="uploadError && !uploading" x-text="uploadError" class="text-xs text-red-600 mt-2"></p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -339,6 +378,7 @@
             editingId: null,
             saving: false,
             uploading: false,
+            uploadProgress: 0,
             uploadError: '',
             formError: '',
             meals: @json($meals),
@@ -423,30 +463,73 @@
                 this.deleteId = id;
                 this.deleteOpen = true;
             },
-            async uploadImage(e) {
+            uploadImage(e) {
                 const file = e.target.files[0];
                 if (!file) return;
+
+                // Validate file size early (5 MB)
+                const maxSize = 5 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    this.uploadError = 'Image is too large. Maximum size is 5 MB.';
+                    this.uploadProgress = 0;
+                    return;
+                }
+
                 this.uploading = true;
+                this.uploadProgress = 0;
                 this.uploadError = '';
+
                 const formData = new FormData();
                 formData.append('file', file);
-                try {
-                    const res = await fetch('{{ route('upload.image') }}', {
-                        method: 'POST',
-                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                        body: formData
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        this.form.image_url = data.image_url;
-                    } else {
-                        this.uploadError = data.message || 'Upload failed.';
+
+                const xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', (event) => {
+                    if (event.lengthComputable) {
+                        this.uploadProgress = Math.round((event.loaded / event.total) * 100);
                     }
-                } catch (err) {
-                    this.uploadError = 'Network error during upload.';
-                } finally {
+                });
+
+                xhr.addEventListener('load', () => {
                     this.uploading = false;
-                }
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            if (data.success) {
+                                this.form.image_url = data.image_url;
+                            } else {
+                                this.uploadError = data.message || data.errors?.file?.[0] || 'Upload failed.';
+                            }
+                        } catch (err) {
+                            this.uploadError = 'Unexpected server response.';
+                        }
+                    } else if (xhr.status === 401 || xhr.status === 419) {
+                        this.uploadError = 'Session expired. Please refresh the page and log in again.';
+                    } else if (xhr.status === 413) {
+                        this.uploadError = 'Image is too large. Maximum size is 5 MB.';
+                    } else {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            this.uploadError = data.message || data.errors?.file?.[0] || ('Upload failed (HTTP ' + xhr.status + ').');
+                        } catch (err) {
+                            this.uploadError = 'Upload failed (HTTP ' + xhr.status + '). Please try again.';
+                        }
+                    }
+                });
+
+                xhr.addEventListener('error', () => {
+                    this.uploading = false;
+                    this.uploadError = 'Network error during upload. Please check your connection and try again.';
+                });
+
+                xhr.addEventListener('abort', () => {
+                    this.uploading = false;
+                    this.uploadError = 'Upload was cancelled.';
+                });
+
+                xhr.open('POST', '{{ route('upload.image') }}', true);
+                xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+                xhr.send(formData);
             },
             async submitForm(e) {
                 this.saving = true;

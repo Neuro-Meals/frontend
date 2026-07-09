@@ -7,7 +7,8 @@
 
 {{-- Today's Summary --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-    <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-4 text-white shadow-lg shadow-[#6E7A25]/20">
+    <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-4 text-white shadow-lg shadow-[#6E7A25]/20 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8"></div>
         <span class="text-[10px] font-medium text-white/60">Calories Today</span>
         <div class="text-2xl font-bold mt-1">{{ number_format($todayStats['calories']) }}</div>
         <div class="mt-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
@@ -16,26 +17,41 @@
         <span class="text-[10px] text-white/50 mt-1 block">Target: {{ number_format($todayStats['calorieTarget']) }} kcal</span>
     </div>
     <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-        <span class="text-[10px] font-medium text-gray-400">Protein</span>
-        <div class="text-2xl font-bold text-gray-900 mt-1">{{ $todayStats['protein'] }}g</div>
+        <div class="flex items-center gap-2 mb-2">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center">
+                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <span class="text-[10px] font-medium text-gray-400">Protein</span>
+        </div>
+        <div class="text-2xl font-bold text-gray-900">{{ $todayStats['protein'] }}g</div>
         <div class="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
             <div class="h-full bg-[#6E7A25] rounded-full" style="width: {{ min(round($todayStats['protein'] / ($todayStats['proteinTarget'] ?: 1) * 100), 100) }}%"></div>
         </div>
         <span class="text-[10px] text-gray-400 mt-1 block">Target: {{ $todayStats['proteinTarget'] }}g</span>
     </div>
     <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-        <span class="text-[10px] font-medium text-gray-400">Carbs</span>
-        <div class="text-2xl font-bold text-gray-900 mt-1">{{ $todayStats['carbs'] }}g</div>
+        <div class="flex items-center gap-2 mb-2">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center">
+                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            </div>
+            <span class="text-[10px] font-medium text-gray-400">Carbs</span>
+        </div>
+        <div class="text-2xl font-bold text-gray-900">{{ $todayStats['carbs'] }}g</div>
         <div class="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div class="h-full bg-[#949B50] rounded-full" style="width: {{ min(round($todayStats['carbs'] / ($todayStats['carbsTarget'] ?: 1) * 100), 100) }}%"></div>
+            <div class="h-full bg-[#6E7A25] rounded-full" style="width: {{ min(round($todayStats['carbs'] / ($todayStats['carbsTarget'] ?: 1) * 100), 100) }}%"></div>
         </div>
         <span class="text-[10px] text-gray-400 mt-1 block">Target: {{ $todayStats['carbsTarget'] }}g</span>
     </div>
     <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-        <span class="text-[10px] font-medium text-gray-400">Fats</span>
-        <div class="text-2xl font-bold text-gray-900 mt-1">{{ $todayStats['fat'] }}g</div>
+        <div class="flex items-center gap-2 mb-2">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center">
+                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <span class="text-[10px] font-medium text-gray-400">Fats</span>
+        </div>
+        <div class="text-2xl font-bold text-gray-900">{{ $todayStats['fat'] }}g</div>
         <div class="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div class="h-full bg-[#025C5F] rounded-full" style="width: {{ min(round($todayStats['fat'] / ($todayStats['fatTarget'] ?: 1) * 100), 100) }}%"></div>
+            <div class="h-full bg-[#6E7A25] rounded-full" style="width: {{ min(round($todayStats['fat'] / ($todayStats['fatTarget'] ?: 1) * 100), 100) }}%"></div>
         </div>
         <span class="text-[10px] text-gray-400 mt-1 block">Target: {{ $todayStats['fatTarget'] }}g</span>
     </div>

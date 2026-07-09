@@ -22,7 +22,7 @@ Route::post('/ai/chat/landing', [ChatController::class, 'landing'])->name('ai.ch
 Route::middleware('auth')->post('/ai/chat/customer', [ChatController::class, 'customer'])->name('ai.chat.customer');
 
 // Image uploads (handled locally by Laravel)
-Route::middleware('auth')->group(function () {
+Route::middleware('api.auth')->group(function () {
     Route::post('/upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
     Route::post('/upload/images', [UploadController::class, 'uploadImages'])->name('upload.images');
     Route::post('/upload/avatar', [UploadController::class, 'uploadAvatar'])->name('upload.avatar');
