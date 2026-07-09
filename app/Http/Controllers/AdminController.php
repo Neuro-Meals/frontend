@@ -918,6 +918,128 @@ class AdminController extends Controller
         return redirect()->route('admin.deliveries')->with('success', 'Delivery status updated.');
     }
 
+    public function drivers(Request $request, AdminApiService $adminApi)
+    {
+        $driversData = $this->apiData($adminApi->usersList(['limit' => 100, 'role' => 'driver']), function () {
+            return [];
+        });
+
+        $drivers = [];
+        if (!empty($driversData)) {
+            foreach ($driversData as $d) {
+                $drivers[] = [
+                    'id' => $d['id'] ?? 0,
+                    'name' => trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? '')) ?: 'Driver',
+                    'email' => $d['email'] ?? '',
+                    'phone' => $d['phone'] ?? '',
+                    'location' => $d['location'] ?? '',
+                    'vehicle' => $d['vehicle'] ?? '',
+                    'license' => $d['license_number'] ?? '',
+                    'status' => ($d['is_active'] ?? true) ? 'active' : 'inactive',
+                ];
+            }
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'drivers' => $drivers,
+            ]);
+        }
+
+        return redirect()->route('admin.deliveries');
+    }
+
+    public function storeDriver(Request $request, DriverApiService $driverApi)
+    {
+        $validated = $request->validate([
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
+            'email' => ['required', 'email', 'max:255'],
+            'phone' => ['required', 'string', 'max:20'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'vehicle' => ['nullable', 'string', 'max:255'],
+            'license_number' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $response = $this->apiData($driverApi->create($validated), function () {
+            return [];
+        });
+
+        $success = is_array($response) && ($response['success'] ?? false) === true;
+        $message = $response['message'] ?? ($success ? __('Driver created successfully.') : __('Failed to create driver. API not connected.'));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => $success,
+                'message' => $message,
+                'driver' => $response['driver'] ?? null,
+            ], $success ? 200 : 422);
+        }
+
+        if ($success) {
+            return redirect()->route('admin.deliveries')->with('success', $message);
+        }
+
+        return redirect()->route('admin.deliveries')->with('error', $message);
+    }
+
+    public function updateDriver(Request $request, int $id, DriverApiService $driverApi)
+    {
+        $validated = $request->validate([
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
+            'email' => ['required', 'email', 'max:255'],
+            'phone' => ['required', 'string', 'max:20'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'vehicle' => ['nullable', 'string', 'max:255'],
+            'license_number' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $response = $this->apiData($driverApi->update($id, $validated), function () {
+            return [];
+        });
+
+        $success = is_array($response) && ($response['success'] ?? false) === true;
+        $message = $response['message'] ?? ($success ? __('Driver updated successfully.') : __('Failed to update driver. API not connected.'));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => $success,
+                'message' => $message,
+            ], $success ? 200 : 422);
+        }
+
+        if ($success) {
+            return redirect()->route('admin.deliveries')->with('success', $message);
+        }
+
+        return redirect()->route('admin.deliveries')->with('error', $message);
+    }
+
+    public function destroyDriver(int $id, DriverApiService $driverApi)
+    {
+        $response = $this->apiData($driverApi->destroy($id), function () {
+            return [];
+        });
+
+        $success = is_array($response) && ($response['success'] ?? false) === true;
+        $message = $response['message'] ?? ($success ? __('Driver deleted successfully.') : __('Failed to delete driver. API not connected.'));
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => $success,
+                'message' => $message,
+            ], $success ? 200 : 422);
+        }
+
+        if ($success) {
+            return redirect()->route('admin.deliveries')->with('success', $message);
+        }
+
+        return redirect()->route('admin.deliveries')->with('error', $message);
+    }
+
     public function payments(Request $request, PaymentApiService $paymentApi)
     {
         $page = (int) $request->input('page', 1);
