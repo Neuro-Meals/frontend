@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Services\Api\AuthApiService;
 use App\Services\Api\AdminApiService;
 use App\Services\Api\DeliveryApiService;
+use App\Services\Api\DriverApiService;
 use App\Services\Api\MealApiService;
 use App\Services\Api\NotificationApiService;
 use App\Services\Api\OrderApiService;
