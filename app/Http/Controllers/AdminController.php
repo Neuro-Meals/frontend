@@ -540,15 +540,28 @@ class AdminController extends Controller
                 $meals[] = [
                     'id' => $meal['id'] ?? 0,
                     'name' => $meal['name_en'] ?? 'Meal',
+                    'name_en' => $meal['name_en'] ?? '',
+                    'name_ar' => $meal['name_ar'] ?? '',
+                    'description_en' => $meal['description_en'] ?? '',
+                    'description_ar' => $meal['description_ar'] ?? '',
+                    'category_id' => $meal['category_id'] ?? 0,
                     'category' => $meal['category']['name_en'] ?? ($meal['category_name'] ?? 'Uncategorized'),
                     'calories' => $meal['calories'] ?? 0,
                     'protein' => $meal['protein_g'] ?? 0,
                     'carbs' => $meal['carbs_g'] ?? 0,
                     'fat' => $meal['fat_g'] ?? 0,
+                    'fiber' => $meal['fiber_g'] ?? 0,
+                    'sugar' => $meal['sugar_g'] ?? 0,
+                    'sodium' => $meal['sodium_mg'] ?? 0,
+                    'price' => $meal['price'] ?? 0,
                     'orders' => $meal['orders_count'] ?? 0,
                     'rating' => $meal['rating'] ?? 0,
                     'status' => ($meal['is_available'] ?? true) ? 'active' : 'draft',
+                    'is_available' => $meal['is_available'] ?? true,
                     'image' => $meal['image_url'] ?? '',
+                    'ingredients' => $meal['ingredients'] ?? [],
+                    'allergens' => $meal['allergens'] ?? [],
+                    'diet_tags' => $meal['diet_tags'] ?? [],
                 ];
             }
         }
@@ -560,6 +573,7 @@ class AdminController extends Controller
             $colorIndex = 0;
             foreach ($categoriesData as $category) {
                 $categories[] = [
+                    'id' => $category['id'] ?? 0,
                     'name' => $category['name_en'] ?? 'Category',
                     'count' => $category['meals_count'] ?? 0,
                     'color' => $colors[$colorIndex % count($colors)],
@@ -584,6 +598,165 @@ class AdminController extends Controller
         ];
 
         return view('admin.meals', compact('meals', 'categories', 'stats'));
+    }
+
+    public function showMeal(int $id, MealApiService $mealApi)
+    {
+        $meal = $this->apiData($mealApi->show($id), function () {
+            return [];
+        });
+
+        if (empty($meal)) {
+            return response()->json(['success' => false, 'message' => 'Meal not found.'], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'meal' => [
+                'id' => $meal['id'] ?? 0,
+                'name_en' => $meal['name_en'] ?? '',
+                'name_ar' => $meal['name_ar'] ?? '',
+                'description_en' => $meal['description_en'] ?? '',
+                'description_ar' => $meal['description_ar'] ?? '',
+                'category_id' => $meal['category_id'] ?? 0,
+                'calories' => $meal['calories'] ?? 0,
+                'protein_g' => $meal['protein_g'] ?? 0,
+                'carbs_g' => $meal['carbs_g'] ?? 0,
+                'fat_g' => $meal['fat_g'] ?? 0,
+                'fiber_g' => $meal['fiber_g'] ?? 0,
+                'sugar_g' => $meal['sugar_g'] ?? 0,
+                'sodium_mg' => $meal['sodium_mg'] ?? 0,
+                'price' => $meal['price'] ?? 0,
+                'image_url' => $meal['image_url'] ?? '',
+                'ingredients' => $meal['ingredients'] ?? [],
+                'allergens' => $meal['allergens'] ?? [],
+                'diet_tags' => $meal['diet_tags'] ?? [],
+                'is_available' => $meal['is_available'] ?? true,
+            ],
+        ]);
+    }
+
+    public function storeMeal(Request $request, MealApiService $mealApi)
+    {
+        $validated = $request->validate([
+            'name_en' => ['required', 'string', 'max:150'],
+            'name_ar' => ['nullable', 'string', 'max:150'],
+            'description_en' => ['nullable', 'string', 'max:500'],
+            'description_ar' => ['nullable', 'string', 'max:500'],
+            'category_id' => ['required', 'integer', 'min:1'],
+            'calories' => ['required', 'numeric', 'min:0'],
+            'protein_g' => ['required', 'numeric', 'min:0'],
+            'carbs_g' => ['required', 'numeric', 'min:0'],
+            'fat_g' => ['required', 'numeric', 'min:0'],
+            'fiber_g' => ['nullable', 'numeric', 'min:0'],
+            'sugar_g' => ['nullable', 'numeric', 'min:0'],
+            'sodium_mg' => ['nullable', 'numeric', 'min:0'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'image_url' => ['nullable', 'string', 'max:500'],
+            'ingredients' => ['nullable', 'string'],
+            'allergens' => ['nullable', 'string'],
+            'diet_tags' => ['nullable', 'string'],
+            'is_available' => ['nullable', 'boolean'],
+        ]);
+
+        $payload = $this->buildMealPayload($validated);
+
+        $response = $this->apiData($mealApi->create($payload), function () {
+            return [];
+        });
+
+        if (empty($response) || !empty($response['error']) || !isset($response['id'])) {
+            $message = $response['detail'] ?? $response['message'] ?? 'Failed to create meal.';
+            return back()->with('error', $message)->withInput();
+        }
+
+        return redirect()->route('admin.meals')->with('status', 'Meal created successfully.');
+    }
+
+    public function updateMeal(Request $request, int $id, MealApiService $mealApi)
+    {
+        $validated = $request->validate([
+            'name_en' => ['required', 'string', 'max:150'],
+            'name_ar' => ['nullable', 'string', 'max:150'],
+            'description_en' => ['nullable', 'string', 'max:500'],
+            'description_ar' => ['nullable', 'string', 'max:500'],
+            'category_id' => ['required', 'integer', 'min:1'],
+            'calories' => ['required', 'numeric', 'min:0'],
+            'protein_g' => ['required', 'numeric', 'min:0'],
+            'carbs_g' => ['required', 'numeric', 'min:0'],
+            'fat_g' => ['required', 'numeric', 'min:0'],
+            'fiber_g' => ['nullable', 'numeric', 'min:0'],
+            'sugar_g' => ['nullable', 'numeric', 'min:0'],
+            'sodium_mg' => ['nullable', 'numeric', 'min:0'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'image_url' => ['nullable', 'string', 'max:500'],
+            'ingredients' => ['nullable', 'string'],
+            'allergens' => ['nullable', 'string'],
+            'diet_tags' => ['nullable', 'string'],
+            'is_available' => ['nullable', 'boolean'],
+        ]);
+
+        $payload = $this->buildMealPayload($validated);
+
+        $response = $this->apiData($mealApi->update($id, $payload), function () {
+            return [];
+        });
+
+        if (empty($response) || !empty($response['error'])) {
+            $message = $response['detail'] ?? $response['message'] ?? 'Failed to update meal.';
+            return back()->with('error', $message)->withInput();
+        }
+
+        return redirect()->route('admin.meals')->with('status', 'Meal updated successfully.');
+    }
+
+    public function destroyMeal(int $id, MealApiService $mealApi)
+    {
+        $response = $this->apiData($mealApi->destroy($id), function () {
+            return [];
+        });
+
+        if (empty($response) || !empty($response['error'])) {
+            $message = $response['detail'] ?? $response['message'] ?? 'Failed to delete meal.';
+            return redirect()->route('admin.meals')->with('error', $message);
+        }
+
+        return redirect()->route('admin.meals')->with('status', 'Meal deleted successfully.');
+    }
+
+    private function buildMealPayload(array $validated): array
+    {
+        $payload = [
+            'name_en' => $validated['name_en'],
+            'category_id' => (int) $validated['category_id'],
+            'calories' => (float) $validated['calories'],
+            'protein_g' => (float) $validated['protein_g'],
+            'carbs_g' => (float) $validated['carbs_g'],
+            'fat_g' => (float) $validated['fat_g'],
+            'price' => (float) $validated['price'],
+            'is_available' => (bool) ($validated['is_available'] ?? true),
+        ];
+
+        foreach (['name_ar', 'description_en', 'description_ar', 'image_url'] as $key) {
+            if (array_key_exists($key, $validated) && $validated[$key] !== '') {
+                $payload[$key] = $validated[$key];
+            }
+        }
+
+        foreach (['fiber_g', 'sugar_g', 'sodium_mg'] as $key) {
+            if (isset($validated[$key]) && $validated[$key] !== '') {
+                $payload[$key] = (float) $validated[$key];
+            }
+        }
+
+        foreach (['ingredients', 'allergens', 'diet_tags'] as $key) {
+            $value = $validated[$key] ?? '';
+            if ($value !== '') {
+                $payload[$key] = array_map('trim', explode(',', $value));
+            }
+        }
+
+        return $payload;
     }
 
     public function orders(Request $request, OrderApiService $orderApi)

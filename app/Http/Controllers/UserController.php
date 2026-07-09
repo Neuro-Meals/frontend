@@ -349,17 +349,38 @@ class UserController extends Controller
     public function paymentSuccess(Request $request, PaymentApiService $paymentApi)
     {
         $sessionId = $request->input('session_id');
+        $paymentId = $request->input('payment_id');
+
+        $payment = [];
+        $verified = false;
+        $error = null;
+
         if ($sessionId) {
-            $this->apiData($paymentApi->verifySession($sessionId), function () {
+            $result = $this->apiData($paymentApi->verifySession($sessionId), function () {
                 return [];
             });
+
+            if (!empty($result['id'])) {
+                $payment = $result;
+                $verified = ($result['status'] ?? '') === 'paid';
+            } elseif (!empty($result['detail']) || !empty($result['message'])) {
+                $error = $result['detail'] ?? $result['message'] ?? 'Unable to confirm payment status.';
+            }
+        } elseif ($paymentId) {
+            // No session id to verify; surface a pending state so the user can retry later.
+            $payment = ['id' => $paymentId, 'status' => 'pending'];
+        } else {
+            $error = 'No payment information was received.';
         }
-        return redirect()->route('user.subscriptions')->with('success', 'Payment successful! Your subscription is now active.');
+
+        return view('payment.success', compact('payment', 'verified', 'error', 'sessionId'));
     }
 
     public function paymentCancel(Request $request)
     {
-        return redirect()->route('user.subscriptions')->with('error', 'Payment was cancelled. You can try again anytime.');
+        $paymentId = $request->input('payment_id');
+
+        return view('payment.cancel', compact('paymentId'));
     }
 
     public function meals(MealApiService $mealApi, MealScheduleApiService $scheduleApi, SubscriptionApiService $subscriptionApi, PlanApiService $planApi)
@@ -409,6 +430,7 @@ class UserController extends Controller
                     'fat' => (int) ($meal['fat_g'] ?? 0),
                     'status' => $meal['status'] ?? 'upcoming',
                     'image' => $meal['image_url'] ?? 'whitelogo.png',
+                    'price' => $meal['price'] ?? 0,
                 ];
             }
         }
