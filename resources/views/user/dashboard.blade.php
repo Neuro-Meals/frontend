@@ -5,6 +5,22 @@
 
 @section('content')
 
+{{-- Verification Reminder --}}
+@if (session('email_verified') === false)
+<div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm animate__animated animate__fadeInUp" style="animation-delay: 0s;">
+    <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div>
+            <p class="font-semibold">{{ __('Your email is not verified.') }}</p>
+            <p class="mt-0.5 text-amber-700/80">{{ __('Please verify your email to secure your account.') }}</p>
+            <a href="{{ route('verify.email', ['email' => (session('api_user') ?? [])['email'] ?? '']) }}" class="mt-2 inline-flex items-center gap-1 text-xs font-bold text-amber-900 underline hover:no-underline">
+                {{ __('Verify now') }} →
+            </a>
+        </div>
+    </div>
+</div>
+@endif
+
 {{-- Welcome --}}
 <div class="mb-6 flex flex-row items-start sm:items-center justify-between gap-3 flex-wrap animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
     <div class="min-w-0">

@@ -139,7 +139,7 @@ Route::get('/home', function () {
 })->name('home');
 
 // Admin routes
-Route::prefix('admin')->name('admin.')->middleware(['api.admin', 'api.verified'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/dashboard/live', [AdminController::class, 'dashboardLive'])->name('dashboard.live');
     Route::get('/live', [AdminController::class, 'live'])->name('live');
@@ -179,7 +179,7 @@ Route::get('/payment-success', [UserController::class, 'paymentSuccess'])->name(
 Route::get('/payment-cancel', [UserController::class, 'paymentCancel'])->name('payment.cancel');
 
 // User routes (customer only)
-Route::prefix('user')->name('user.')->middleware(['api.auth', 'api.customer', 'api.verified'])->group(function () {
+Route::prefix('user')->name('user.')->middleware(['api.auth', 'api.customer'])->group(function () {
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('dashboard');
     Route::get('/subscriptions', [UserController::class, 'subscriptions'])->name('subscriptions');
     Route::post('/subscriptions', [UserController::class, 'subscribe'])->name('subscriptions.subscribe');
