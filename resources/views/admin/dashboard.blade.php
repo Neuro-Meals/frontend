@@ -17,15 +17,23 @@
         : 0;
     $statusColors = [
         'delivered' => 'bg-green-50 text-green-700 border-green-200',
+        'confirmed' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        'out_for_delivery' => 'bg-blue-50 text-blue-700 border-blue-200',
         'en_route' => 'bg-blue-50 text-blue-700 border-blue-200',
+        'ready_for_delivery' => 'bg-indigo-50 text-indigo-700 border-indigo-200',
         'preparing' => 'bg-amber-50 text-amber-700 border-amber-200',
         'pending' => 'bg-gray-50 text-gray-600 border-gray-200',
+        'cancelled' => 'bg-red-50 text-red-700 border-red-200',
     ];
     $statusLabels = [
         'delivered' => __('Delivered'),
+        'confirmed' => __('Confirmed'),
+        'out_for_delivery' => __('Out for Delivery'),
         'en_route' => __('En Route'),
+        'ready_for_delivery' => __('Ready'),
         'preparing' => __('Preparing'),
         'pending' => __('Pending'),
+        'cancelled' => __('Cancelled'),
     ];
     $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 @endphp
@@ -477,6 +485,88 @@
                     </div>
                 </div>
             @endforeach
+        </div>
+    </div>
+</div>
+
+@php
+    $paymentStatusColors = [
+        'paid' => 'bg-green-50 text-green-700 border-green-200',
+        'captured' => 'bg-green-50 text-green-700 border-green-200',
+        'pending' => 'bg-amber-50 text-amber-700 border-amber-200',
+        'unpaid' => 'bg-gray-50 text-gray-600 border-gray-200',
+        'failed' => 'bg-red-50 text-red-600 border-red-200',
+        'refunded' => 'bg-orange-50 text-orange-600 border-orange-200',
+        'disputed' => 'bg-purple-50 text-purple-700 border-purple-200',
+        'cancelled' => 'bg-red-50 text-red-600 border-red-200',
+    ];
+    $paymentStatusLabels = [
+        'paid' => __('Paid'), 'captured' => __('Captured'), 'pending' => __('Pending'),
+        'unpaid' => __('Unpaid'), 'failed' => __('Failed'), 'refunded' => __('Refunded'),
+        'disputed' => __('Disputed'), 'cancelled' => __('Cancelled'),
+    ];
+    $fmtDate = fn($d) => !empty($d) ? date('M d, H:i', strtotime($d)) : '—';
+@endphp
+
+{{-- Recent Payments --}}
+<div class="grid grid-cols-1 gap-6 mb-6">
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate__animated animate__fadeInUp" style="animation-delay: 1.5s;">
+        <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
+            <div>
+                <h3 class="text-base font-bold text-gray-900">{{ __('Recent') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Payments') }}</span></h3>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Latest payments from payment API') }}</p>
+            </div>
+            <a href="{{ route('admin.payments') }}" class="text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] px-3 py-1.5 rounded-lg hover:shadow-md hover:shadow-[#6E7A25]/20 transition-all">{{ __('View All') }} →</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-xs text-gray-400 bg-gray-50/50 border-b border-gray-50">
+                        <th class="px-6 py-3 font-medium">{{ __('Payment ID') }}</th>
+                        <th class="px-6 py-3 font-medium">{{ __('Customer') }}</th>
+                        <th class="px-6 py-3 font-medium">{{ __('Plan') }}</th>
+                        <th class="px-6 py-3 font-medium">{{ __('Amount') }}</th>
+                        <th class="px-6 py-3 font-medium">{{ __('Provider') }}</th>
+                        <th class="px-6 py-3 font-medium">{{ __('Status') }}</th>
+                        <th class="px-6 py-3 font-medium">{{ __('Date') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($recentPayments as $payment)
+                    <tr class="border-b border-gray-50 hover:bg-gray-50/30 transition-colors">
+                        <td class="px-6 py-3">
+                            <span class="text-xs font-bold text-gray-900">#{{ $payment['id'] }}</span>
+                        </td>
+                        <td class="px-6 py-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0">
+                                    {{ strtoupper(substr($payment['customer'], 0, 1)) }}
+                                </div>
+                                <div>
+                                    <p class="text-xs font-medium text-gray-700">{{ $payment['customer'] }}</p>
+                                    <p class="text-[10px] text-gray-400">{{ $payment['customer_email'] }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-3 text-xs text-gray-500">{{ $payment['plan'] }}</td>
+                        <td class="px-6 py-3">
+                            <span class="text-xs font-bold text-gray-900">{{ $payment['currency'] }} {{ number_format($payment['amount'], 2) }}</span>
+                        </td>
+                        <td class="px-6 py-3 text-xs text-gray-500 capitalize">{{ $payment['provider'] }}</td>
+                        <td class="px-6 py-3">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border {{ $paymentStatusColors[$payment['status']] ?? 'bg-gray-50 text-gray-600 border-gray-200' }}">
+                                {{ $paymentStatusLabels[$payment['status']] ?? ucfirst($payment['status']) }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-3 text-xs text-gray-500">{{ $fmtDate($payment['paid_at']) }}</td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="7" class="px-6 py-8 text-center text-xs text-gray-400">{{ __('No recent payments found.') }}</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

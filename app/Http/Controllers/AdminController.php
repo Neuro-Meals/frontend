@@ -112,12 +112,34 @@ class AdminController extends Controller
         $recentOrders = [];
         if (!empty($recentOrdersData)) {
             foreach ($recentOrdersData as $order) {
+                $customer = $order['customer'] ?? ($order['user'] ?? []);
+                $plan = $order['plan'] ?? [];
                 $recentOrders[] = [
                     'id' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
-                    'customer' => ($order['user']['first_name'] ?? '') . ' ' . ($order['user']['last_name'] ?? '') ?: 'Customer',
-                    'plan' => $order['plan_name'] ?? 'Plan',
+                    'customer' => trim($customer['full_name'] ?? (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) ?: 'Customer',
+                    'plan' => $plan['name_en'] ?? ($plan['name'] ?? 'Plan'),
                     'amount' => $order['total_amount'] ?? 0,
                     'status' => $order['status'] ?? 'pending',
+                ];
+            }
+        }
+
+        $recentPayments = [];
+        if (!empty($paymentsData)) {
+            foreach (array_slice($paymentsData, 0, 6) as $payment) {
+                $customer = $payment['customer'] ?? [];
+                $paymentInfo = $payment['payment'] ?? $payment;
+                $recentPayments[] = [
+                    'id' => $payment['id'] ?? 0,
+                    'customer' => trim($customer['full_name'] ?? (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) ?: 'Customer',
+                    'customer_email' => $customer['email'] ?? '',
+                    'plan' => $payment['subscription']['plan_name'] ?? 'Plan',
+                    'amount' => $paymentInfo['amount'] ?? 0,
+                    'currency' => strtoupper($paymentInfo['currency'] ?? 'USD'),
+                    'status' => $paymentInfo['status'] ?? 'pending',
+                    'provider' => $paymentInfo['provider'] ?? 'N/A',
+                    'paid_at' => $paymentInfo['paid_at'] ?? ($paymentInfo['created_at'] ?? ''),
+                    'created_at' => $paymentInfo['created_at'] ?? '',
                 ];
             }
         }
@@ -159,7 +181,7 @@ class AdminController extends Controller
 
         $deliveryZones = [];
 
-        return view('admin.dashboard', compact('stats', 'revenueTrend', 'ordersTrend', 'planDistribution', 'recentOrders', 'topMeals', 'deliveryZones'));
+        return view('admin.dashboard', compact('stats', 'revenueTrend', 'ordersTrend', 'planDistribution', 'recentOrders', 'recentPayments', 'topMeals', 'deliveryZones'));
     }
 
     public function customers(Request $request, AdminApiService $adminApi)
