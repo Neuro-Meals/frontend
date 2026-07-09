@@ -185,10 +185,11 @@ class AdminController extends Controller
 
         $subscriptions = [];
         foreach ($subscriptionsData as $sub) {
+            $planName = $sub['plan']['name_en'] ?? ($sub['plan_name'] ?? 'Plan');
             $subscriptions[] = [
                 'id' => $sub['id'] ?? 0,
-                'plan_name' => $sub['plan_name'] ?? 'Plan',
-                'plan' => $sub['plan_name'] ?? 'Plan',
+                'plan_name' => $planName,
+                'plan' => $planName,
                 'amount' => $sub['amount'] ?? 0,
                 'status' => $sub['status'] ?? 'active',
                 'start_date' => $sub['start_date'] ?? '',
@@ -265,60 +266,105 @@ class AdminController extends Controller
         return response()->json(['success' => false, 'error' => $error], 422);
     }
 
-    public function subscriptions(PlanApiService $planApi, SubscriptionApiService $subscriptionApi)
+    public function subscriptions(Request $request, SubscriptionApiService $subscriptionApi)
     {
-        $plansData = $this->apiData($planApi->list(['limit' => 100]), function () {
+        $status = $request->input('status');
+        $paymentStatus = $request->input('payment_status');
+        $search = $request->input('search');
+        $page = (int) $request->input('page', 1);
+        $limit = (int) $request->input('limit', 20);
+
+        $query = ['page' => $page, 'limit' => $limit];
+        if ($status) $query['status'] = $status;
+        if ($paymentStatus) $query['payment_status'] = $paymentStatus;
+
+        $subscriptionsData = $this->apiData($subscriptionApi->list($query), function () {
             return [];
         });
 
-        $subscriptionsData = $this->apiData($subscriptionApi->list(['limit' => 100]), function () {
-            return [];
-        });
+        $subscriptions = [];
+        $meta = ['total' => 0, 'pages' => 1, 'page' => $page, 'limit' => $limit];
 
-        $plans = [];
-        if (!empty($plansData)) {
-            $colors = ['#173327', '#033133', '#f9ac00', '#3b82f6', '#8b5cf6', '#ef4444'];
-            $colorIndex = 0;
-            foreach ($plansData as $plan) {
-                $subscriberCount = 0;
-                if (!empty($subscriptionsData)) {
-                    foreach ($subscriptionsData as $sub) {
-                        if (($sub['plan_id'] ?? 0) === ($plan['id'] ?? 0)) {
-                            $subscriberCount++;
-                        }
-                    }
-                }
-                $plans[] = [
-                    'id' => $plan['id'] ?? 0,
-                    'name' => $plan['name_en'] ?? 'Plan',
-                    'price' => $plan['price'] ?? 0,
-                    'duration' => ($plan['duration_days'] ?? 28) . ' days',
-                    'meals' => $plan['total_meals'] ?? 84,
-                    'subscribers' => $subscriberCount,
-                    'status' => ($plan['is_active'] ?? true) ? 'active' : 'draft',
-                    'calories' => $plan['calories'] ?? '1500-1800',
-                    'color' => $colors[$colorIndex % count($colors)],
+        if (!empty($subscriptionsData) && is_array($subscriptionsData)) {
+            $meta = $subscriptionsData['meta'] ?? $meta;
+            foreach ($subscriptionsData['data'] ?? $subscriptionsData as $sub) {
+                $user = $sub['user'] ?? [];
+                $plan = $sub['plan'] ?? [];
+                $subscriptions[] = [
+                    'id' => $sub['id'] ?? 0,
+                    'user_id' => $sub['user_id'] ?? 0,
+                    'customer' => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: 'Customer',
+                    'customer_email' => $user['email'] ?? '',
+                    'plan_id' => $sub['plan_id'] ?? 0,
+                    'plan_name' => $plan['name_en'] ?? 'Plan',
+                    'duration_days' => $plan['duration_days'] ?? 0,
+                    'amount' => $sub['amount'] ?? 0,
+                    'status' => $sub['status'] ?? 'pending_payment',
+                    'payment_status' => $sub['payment_status'] ?? 'unpaid',
+                    'start_date' => $sub['start_date'] ?? null,
+                    'end_date' => $sub['end_date'] ?? null,
+                    'notes' => $sub['notes'] ?? '',
+                    'created_at' => $sub['created_at'] ?? null,
                 ];
-                $colorIndex++;
             }
         }
 
-        $totalSubscribers = array_sum(array_column($plans, 'subscribers'));
-        $activePlans = count(array_filter($plans, fn ($p) => $p['status'] === 'active'));
-        $avgPrice = count($plans) > 0 ? round(array_sum(array_column($plans, 'price')) / count($plans)) : 0;
+        if ($search) {
+            $term = strtolower($search);
+            $subscriptions = array_values(array_filter($subscriptions, fn ($s) =>
+                str_contains(strtolower($s['customer']), $term) ||
+                str_contains(strtolower($s['customer_email']), $term) ||
+                str_contains(strtolower($s['plan_name']), $term)
+            ));
+        }
+
+        $total = count($subscriptions);
+        $active = count(array_filter($subscriptions, fn ($s) => $s['status'] === 'active'));
+        $pending = count(array_filter($subscriptions, fn ($s) => in_array($s['status'], ['pending_payment', 'pending'])));
+        $cancelled = count(array_filter($subscriptions, fn ($s) => $s['status'] === 'cancelled'));
+        $paid = count(array_filter($subscriptions, fn ($s) => $s['payment_status'] === 'paid'));
+        $mrr = array_sum(array_map(fn ($s) => in_array($s['status'], ['active', 'paused']) ? $s['amount'] : 0, $subscriptions));
 
         $stats = [
-            'total' => count($plans),
-            'active' => $activePlans,
-            'draft' => count($plans) - $activePlans,
-            'totalSubscribers' => $totalSubscribers,
-            'avgRevenue' => $avgPrice,
-            'mrr' => $totalSubscribers * $avgPrice,
-            'churnRate' => 0,
-            'growthRate' => 0,
+            'total' => $total,
+            'active' => $active,
+            'pending' => $pending,
+            'cancelled' => $cancelled,
+            'paid' => $paid,
+            'mrr' => $mrr,
         ];
 
-        return view('admin.subscriptions', compact('plans', 'stats'));
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'subscriptions' => $subscriptions,
+                'stats' => $stats,
+                'meta' => $meta,
+            ]);
+        }
+
+        $plansData = $this->apiData(app(PlanApiService::class)->list(['limit' => 100, 'is_active' => true]), fn () => []);
+        $plans = [];
+        foreach ($plansData as $plan) {
+            $plans[] = [
+                'id' => $plan['id'] ?? 0,
+                'name' => $plan['name_en'] ?? 'Plan',
+                'price' => $plan['price'] ?? 0,
+                'duration_days' => $plan['duration_days'] ?? 28,
+            ];
+        }
+
+        $usersData = $this->apiData(app(AdminApiService::class)->usersList(['limit' => 100, 'role' => 'customer']), fn () => []);
+        $users = [];
+        foreach ($usersData as $user) {
+            $users[] = [
+                'id' => $user['id'] ?? 0,
+                'name' => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: ($user['email'] ?? 'User'),
+                'email' => $user['email'] ?? '',
+            ];
+        }
+
+        return view('admin.subscriptions', compact('subscriptions', 'stats', 'plans', 'users'));
     }
 
     public function plans(PlanApiService $planApi, SubscriptionApiService $subscriptionApi)
@@ -526,6 +572,113 @@ class AdminController extends Controller
         }
 
         return back()->withErrors(['general' => $message]);
+    }
+
+    public function showSubscription(int $id, SubscriptionApiService $subscriptionApi)
+    {
+        $sub = $this->apiData($subscriptionApi->show($id), function () {
+            return [];
+        });
+
+        if (empty($sub)) {
+            return response()->json(['success' => false, 'message' => __('Subscription not found.')], 404);
+        }
+
+        $user = $sub['user'] ?? [];
+        $plan = $sub['plan'] ?? [];
+
+        return response()->json([
+            'success' => true,
+            'subscription' => [
+                'id' => $sub['id'] ?? 0,
+                'user_id' => $sub['user_id'] ?? 0,
+                'customer' => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: 'Customer',
+                'customer_email' => $user['email'] ?? '',
+                'plan_id' => $sub['plan_id'] ?? 0,
+                'plan_name' => $plan['name_en'] ?? 'Plan',
+                'amount' => $sub['amount'] ?? 0,
+                'status' => $sub['status'] ?? 'pending_payment',
+                'payment_status' => $sub['payment_status'] ?? 'unpaid',
+                'start_date' => $sub['start_date'] ?? null,
+                'end_date' => $sub['end_date'] ?? null,
+                'paused_at' => $sub['paused_at'] ?? null,
+                'cancelled_at' => $sub['cancelled_at'] ?? null,
+                'notes' => $sub['notes'] ?? '',
+                'created_at' => $sub['created_at'] ?? null,
+            ],
+        ]);
+    }
+
+    public function storeSubscription(Request $request, SubscriptionApiService $subscriptionApi)
+    {
+        $validated = $request->validate([
+            'user_id' => ['required', 'integer', 'min:1'],
+            'plan_id' => ['required', 'integer', 'min:1'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $response = $this->apiData($subscriptionApi->adminCreate($validated), function () {
+            return [];
+        });
+
+        $success = is_array($response) && !empty($response['id']);
+        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Subscription created successfully.') : __('Failed to create subscription.')));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
+        }
+
+        if ($success) {
+            return redirect()->route('admin.subscriptions')->with('status', $message);
+        }
+
+        return back()->with('error', $message)->withInput();
+    }
+
+    public function updateSubscription(Request $request, int $id, SubscriptionApiService $subscriptionApi)
+    {
+        $validated = $request->validate([
+            'status' => ['required', 'in:active,paused,pending_payment,cancelled,expired'],
+            'payment_status' => ['required', 'in:unpaid,pending,paid,failed,refunded'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $response = $this->apiData($subscriptionApi->update($id, $validated), function () {
+            return [];
+        });
+
+        $success = is_array($response) && !empty($response['id']);
+        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Subscription updated successfully.') : __('Failed to update subscription.')));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
+        }
+
+        if ($success) {
+            return redirect()->route('admin.subscriptions')->with('status', $message);
+        }
+
+        return back()->with('error', $message)->withInput();
+    }
+
+    public function cancelSubscription(int $id, SubscriptionApiService $subscriptionApi)
+    {
+        $response = $this->apiData($subscriptionApi->cancel($id), function () {
+            return [];
+        });
+
+        $success = is_array($response) && !empty($response['id']);
+        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Subscription cancelled successfully.') : __('Failed to cancel subscription.')));
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
+        }
+
+        if ($success) {
+            return redirect()->route('admin.subscriptions')->with('status', $message);
+        }
+
+        return back()->with('error', $message);
     }
 
     public function meals(MealApiService $mealApi)
@@ -824,7 +977,7 @@ class AdminController extends Controller
         return view('admin.orders', compact('orders', 'stats'));
     }
 
-    public function deliveries(DeliveryApiService $deliveryApi, AdminApiService $adminApi)
+    public function deliveries(DeliveryApiService $deliveryApi, DriverApiService $driverApi)
     {
         $deliveriesData = $this->apiData($deliveryApi->list(['limit' => 100]), function () {
             return [];
@@ -834,10 +987,13 @@ class AdminController extends Controller
         if (!empty($deliveriesData)) {
             foreach ($deliveriesData as $delivery) {
                 $deliveries[] = [
-                    'id' => 'DLV-' . ($delivery['id'] ?? 0),
+                    'id' => $delivery['id'] ?? 0,
+                    'delivery_id' => 'DLV-' . ($delivery['id'] ?? 0),
+                    'order_id' => $delivery['order_id'] ?? 0,
                     'order' => 'ORD-' . ($delivery['order_id'] ?? 0),
                     'customer' => trim(($delivery['user']['first_name'] ?? '') . ' ' . ($delivery['user']['last_name'] ?? '')) ?: 'Customer',
                     'zone' => $delivery['zone'] ?? 'N/A',
+                    'driver_id' => $delivery['driver_id'] ?? null,
                     'driver' => $delivery['driver_name'] ?? 'Unassigned',
                     'status' => $delivery['status'] ?? 'pending',
                     'time' => !empty($delivery['scheduled_at']) ? date('H:i', strtotime($delivery['scheduled_at'])) : '--:--',
@@ -846,18 +1002,13 @@ class AdminController extends Controller
             }
         }
 
-        $zonesMap = [];
+        $busyDriverIds = [];
+        $finalStatuses = ['delivered', 'failed', 'cancelled'];
         foreach ($deliveries as $delivery) {
-            $zoneName = $delivery['zone'] ?? 'N/A';
-            if (!isset($zonesMap[$zoneName])) {
-                $zonesMap[$zoneName] = ['name' => $zoneName, 'orders' => 0, 'drivers' => 0, 'completed' => 0];
-            }
-            $zonesMap[$zoneName]['orders']++;
-            if (($delivery['status'] ?? '') === 'delivered') {
-                $zonesMap[$zoneName]['completed']++;
+            if (!empty($delivery['driver_id']) && !in_array($delivery['status'], $finalStatuses)) {
+                $busyDriverIds[$delivery['driver_id']] = true;
             }
         }
-        $zones = array_values($zonesMap);
 
         $total = count($deliveries);
         $delivered = count(array_filter($deliveries, fn ($d) => $d['status'] === 'delivered'));
@@ -874,16 +1025,22 @@ class AdminController extends Controller
             'onTimeRate' => $total > 0 ? round(($delivered / $total) * 100, 1) : 0,
         ];
 
-        $driversData = $this->apiData($adminApi->usersList(['limit' => 100, 'role' => 'driver']), fn () => []);
-        $drivers = [];
+        $driversData = $this->apiData($driverApi->list(), fn () => []);
+        $allDrivers = [];
+        $availableDrivers = [];
         foreach ($driversData as $d) {
-            $drivers[] = [
+            $driver = [
                 'id' => $d['id'] ?? 0,
                 'name' => trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? '')) ?: 'Driver',
+                'is_active' => $d['is_active'] ?? true,
             ];
+            $allDrivers[] = $driver;
+            if ($driver['is_active'] && !isset($busyDriverIds[$driver['id']])) {
+                $availableDrivers[] = $driver;
+            }
         }
 
-        return view('admin.deliveries', compact('deliveries', 'zones', 'stats', 'drivers'));
+        return view('admin.deliveries', compact('deliveries', 'stats', 'allDrivers', 'availableDrivers'));
     }
 
     public function assignDriver(Request $request, DeliveryApiService $deliveryApi, int $id)
@@ -922,9 +1079,9 @@ class AdminController extends Controller
         return redirect()->route('admin.deliveries')->with('success', 'Delivery status updated.');
     }
 
-    public function drivers(Request $request, AdminApiService $adminApi)
+    public function drivers(Request $request, DriverApiService $driverApi)
     {
-        $driversData = $this->apiData($adminApi->usersList(['limit' => 100, 'role' => 'driver']), function () {
+        $driversData = $this->apiData($driverApi->list(), function () {
             return [];
         });
 
@@ -937,8 +1094,7 @@ class AdminController extends Controller
                     'email' => $d['email'] ?? '',
                     'phone' => $d['phone'] ?? '',
                     'location' => $d['location'] ?? '',
-                    'vehicle' => $d['vehicle'] ?? '',
-                    'license' => $d['license_number'] ?? '',
+                    'address' => $d['address'] ?? '',
                     'status' => ($d['is_active'] ?? true) ? 'active' : 'inactive',
                 ];
             }
@@ -961,17 +1117,17 @@ class AdminController extends Controller
             'last_name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['required', 'string', 'max:20'],
+            'password' => ['required', 'string', 'min:6', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
-            'vehicle' => ['nullable', 'string', 'max:255'],
-            'license_number' => ['nullable', 'string', 'max:100'],
+            'address' => ['nullable', 'string', 'max:255'],
         ]);
 
         $response = $this->apiData($driverApi->create($validated), function () {
             return [];
         });
 
-        $success = is_array($response) && ($response['success'] ?? false) === true;
-        $message = $response['message'] ?? ($success ? __('Driver created successfully.') : __('Failed to create driver. API not connected.'));
+        $success = is_array($response) && !empty($response['id']);
+        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Driver created successfully.') : __('Failed to create driver. API not connected.')));
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
@@ -993,19 +1149,18 @@ class AdminController extends Controller
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email', 'max:255'],
             'phone' => ['required', 'string', 'max:20'],
             'location' => ['nullable', 'string', 'max:255'],
-            'vehicle' => ['nullable', 'string', 'max:255'],
-            'license_number' => ['nullable', 'string', 'max:100'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'is_active' => ['nullable', 'boolean'],
         ]);
 
         $response = $this->apiData($driverApi->update($id, $validated), function () {
             return [];
         });
 
-        $success = is_array($response) && ($response['success'] ?? false) === true;
-        $message = $response['message'] ?? ($success ? __('Driver updated successfully.') : __('Failed to update driver. API not connected.'));
+        $success = is_array($response) && !empty($response['id']);
+        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Driver updated successfully.') : __('Failed to update driver. API not connected.')));
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
@@ -1027,8 +1182,8 @@ class AdminController extends Controller
             return [];
         });
 
-        $success = is_array($response) && ($response['success'] ?? false) === true;
-        $message = $response['message'] ?? ($success ? __('Driver deleted successfully.') : __('Failed to delete driver. API not connected.'));
+        $success = is_array($response) && (str_contains($response['message'] ?? '', 'deactivated') || str_contains($response['message'] ?? '', 'success'));
+        $message = $response['message'] ?? ($success ? __('Driver deactivated successfully.') : __('Failed to deactivate driver. API not connected.'));
 
         if (request()->ajax() || request()->wantsJson()) {
             return response()->json([

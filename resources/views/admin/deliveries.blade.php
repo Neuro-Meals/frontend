@@ -44,50 +44,38 @@
 
 {{-- Stats Row --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-        <p class="text-xs text-gray-400 mb-1">{{ __('Total Today') }}</p>
-        <p class="text-2xl font-bold text-gray-900">{{ $stats['total'] }}</p>
+    <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white shadow-lg shadow-[#6E7A25]/20 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
+        <div class="w-10 h-10 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center mb-3">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 001 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
+        </div>
+        <p class="text-xs text-white/70 mb-1">{{ __('Total Today') }}</p>
+        <p class="text-2xl font-bold">{{ $stats['total'] }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+        <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center mb-3">
+            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        </div>
         <p class="text-xs text-gray-400 mb-1">{{ __('Delivered') }}</p>
         <p class="text-2xl font-bold text-green-600">{{ $stats['delivered'] }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+        <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mb-3">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
         <p class="text-xs text-gray-400 mb-1">{{ __('In Transit') }}</p>
         <p class="text-2xl font-bold text-blue-600">{{ $stats['enRoute'] }}</p>
     </div>
     <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+        <div class="w-10 h-10 rounded-xl bg-[#6E7A25]/10 flex items-center justify-center mb-3">
+            <svg class="w-5 h-5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
         <p class="text-xs text-gray-400 mb-1">{{ __('On-Time Rate') }}</p>
         <p class="text-2xl font-bold text-[#6E7A25]">{{ $stats['onTimeRate'] }}%</p>
     </div>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-    {{-- Zones Summary --}}
-    <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-        <h3 class="text-sm font-bold text-gray-900 mb-1">{{ __('Delivery Zones') }}</h3>
-        <p class="text-xs text-gray-400 mb-5">{{ __("Today's performance by zone") }}</p>
-        <div class="space-y-4">
-            @foreach($zones as $zone)
-            @php $pct = $zone['orders'] > 0 ? round($zone['completed'] / $zone['orders'] * 100) : 0; @endphp
-            <div>
-                <div class="flex items-center justify-between mb-2">
-                    <div>
-                        <p class="text-xs font-semibold text-gray-900">{{ $zone['name'] }}</p>
-                        <p class="text-[10px] text-gray-400">{{ $zone['drivers'] }} {{ __('drivers') }} · {{ $zone['completed'] }}/{{ $zone['orders'] }} {{ __('completed') }}</p>
-                    </div>
-                    <span class="text-xs font-bold {{ $pct >= 80 ? 'text-green-600' : 'text-amber-600' }}">{{ $pct }}%</span>
-                </div>
-                <div class="h-2 rounded-full bg-gray-100 overflow-hidden">
-                    <div class="h-full rounded-full {{ $pct >= 80 ? 'bg-green-500' : 'bg-amber-500' }} transition-all duration-500" style="width: {{ $pct }}%"></div>
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-
-    {{-- Deliveries Table --}}
-    <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
         <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
             <div>
                 <h3 class="text-sm font-bold text-gray-900">{{ __('Live Deliveries') }}</h3>
@@ -115,7 +103,7 @@
                     @foreach($deliveries as $delivery)
                     <tr class="border-b border-gray-50 hover:bg-gray-50/30 transition-colors">
                         <td class="px-6 py-3.5">
-                            <span class="text-xs font-bold text-gray-900">{{ $delivery['id'] }}</span>
+                            <span class="text-xs font-bold text-gray-900">{{ $delivery['delivery_id'] }}</span>
                             <p class="text-[10px] text-gray-400">{{ $delivery['order'] }}</p>
                         </td>
                         <td class="px-6 py-3.5 text-xs font-medium text-gray-700">{{ $delivery['customer'] }}</td>
@@ -138,13 +126,17 @@
                                 {{-- Assign Driver --}}
                                 <form action="{{ route('admin.deliveries.assign-driver', $delivery['id']) }}" method="POST" class="inline-flex items-center gap-1">
                                     @csrf
+                                    @if(count($availableDrivers) > 0)
                                     <select name="driver_id" class="text-[10px] border border-gray-200 rounded-lg px-1.5 py-1 bg-gray-50 outline-none">
                                         <option value="">{{ __('Assign...') }}</option>
-                                        @foreach($drivers as $driver)
+                                        @foreach($availableDrivers as $driver)
                                         <option value="{{ $driver['id'] }}">{{ $driver['name'] }}</option>
                                         @endforeach
                                     </select>
                                     <button type="submit" class="text-[10px] font-bold text-[#6E7A25] hover:underline whitespace-nowrap">{{ __('Go') }}</button>
+                                    @else
+                                    <span class="text-[10px] text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-2 py-1">{{ __('No free drivers') }}</span>
+                                    @endif
                                 </form>
                                 @endif
                                 @if(in_array($delivery['status'], ['assigned', 'preparing', 'en_route']))
@@ -168,7 +160,6 @@
             </table>
         </div>
     </div>
-</div>
 
 {{-- Driver Management Modal --}}
 <div x-show="driverModalOpen" x-cloak class="fixed inset-0 z-50" aria-labelledby="driver-modal-title" role="dialog" aria-modal="true">
@@ -192,6 +183,22 @@
             </div>
 
             <div class="flex-1 overflow-y-auto p-6">
+                {{-- Stats --}}
+                <div class="grid grid-cols-3 gap-3 mb-6">
+                    <div class="p-3 rounded-xl bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white text-center shadow-md">
+                        <p class="text-lg font-bold" x-text="drivers.length"></p>
+                        <p class="text-[10px] text-white/70">{{ __('Total') }}</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-white border border-gray-100 text-center">
+                        <p class="text-lg font-bold text-green-600" x-text="drivers.filter(d => d.status === 'active').length"></p>
+                        <p class="text-[10px] text-gray-400">{{ __('Active') }}</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-white border border-gray-100 text-center">
+                        <p class="text-lg font-bold text-gray-500" x-text="drivers.filter(d => d.status !== 'active').length"></p>
+                        <p class="text-[10px] text-gray-400">{{ __('Inactive') }}</p>
+                    </div>
+                </div>
+
                 {{-- Add / Edit Form --}}
                 <form class="space-y-4 mb-6" @submit.prevent="saveDriver">
                     <input type="hidden" x-model="driverForm.id">
@@ -206,26 +213,31 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Email') }} <span class="text-red-500">*</span></label>
-                            <input type="email" x-model="driverForm.email" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
+                            <input type="email" x-model="driverForm.email" :required="!driverForm.id" :disabled="!!driverForm.id" :class="driverForm.id ? 'bg-gray-50 text-gray-500' : ''" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none disabled:cursor-not-allowed">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Phone') }} <span class="text-red-500">*</span></label>
                             <input type="tel" x-model="driverForm.phone" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
+                        </div>
+                        <div x-show="!driverForm.id" class="col-span-2">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Password') }} <span class="text-red-500">*</span></label>
+                            <input type="password" x-model="driverForm.password" :required="!driverForm.id" minlength="6" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Location') }}</label>
                             <input type="text" x-model="driverForm.location" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Vehicle') }}</label>
-                            <input type="text" x-model="driverForm.vehicle" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Address') }}</label>
+                            <input type="text" x-model="driverForm.address" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
                         </div>
-                        <div class="col-span-2">
-                            <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('License Number') }}</label>
-                            <input type="text" x-model="driverForm.license_number" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
+                        <div class="col-span-2 flex items-center gap-2 p-3 rounded-lg bg-gray-50 border border-gray-100">
+                            <input type="checkbox" id="driverActive" x-model="driverForm.is_active" class="w-4 h-4 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]">
+                            <label for="driverActive" class="text-xs font-bold text-gray-700">{{ __('Active driver account') }}</label>
                         </div>
                     </div>
                     <div x-show="driverError" x-text="driverError" class="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2"></div>
+                    <div x-show="driverSuccess" x-text="driverSuccess" class="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2"></div>
                     <div class="flex items-center justify-end gap-2 pt-2">
                         <button type="button" @click="resetDriverForm()" class="px-4 py-2 rounded-lg border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors">{{ __('Reset') }}</button>
                         <button type="submit" :disabled="driverSaving" class="px-4 py-2 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-xs font-bold shadow-sm hover:shadow-md transition-all disabled:opacity-60">
@@ -235,35 +247,45 @@
                     </div>
                 </form>
 
+                {{-- Search --}}
+                <div class="mb-4">
+                    <div class="flex items-center bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
+                        <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <input type="text" x-model="driverSearch" placeholder="{{ __('Search drivers...') }}" class="bg-transparent text-xs outline-none flex-1 text-gray-600 placeholder-gray-400">
+                    </div>
+                </div>
+
                 {{-- Driver List --}}
                 <h4 class="text-sm font-bold text-gray-900 mb-3">{{ __('Driver List') }}</h4>
                 <div class="space-y-3">
-                    <template x-for="driver in drivers" :key="driver.id">
+                    <template x-for="driver in filteredDrivers" :key="driver.id">
                         <div class="flex items-center justify-between p-3 rounded-xl border border-gray-100 hover:shadow-sm transition-all bg-white">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center text-white font-bold text-xs" x-text="(driver.name || 'D').charAt(0)"></div>
-                                <div>
-                                    <p class="text-sm font-bold text-gray-900" x-text="driver.name"></p>
-                                    <p class="text-[10px] text-gray-400" x-text="driver.email + ' · ' + driver.phone"></p>
-                                    <p class="text-[10px] text-gray-400" x-show="driver.vehicle || driver.license" x-text="(driver.vehicle ? driver.vehicle + ' · ' : '') + (driver.license || '')"></p>
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center text-white font-bold text-xs flex-shrink-0" x-text="(driver.name || 'D').charAt(0)"></div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-bold text-gray-900 truncate" x-text="driver.name"></p>
+                                    <p class="text-[10px] text-gray-400 truncate" x-text="driver.email + ' · ' + driver.phone"></p>
+                                    <p class="text-[10px] text-gray-400 truncate" x-show="driver.location || driver.address" x-text="(driver.location ? driver.location + (driver.address ? ' · ' : '') : '') + (driver.address || '')"></p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 flex-shrink-0">
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border" :class="driver.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'" x-text="driver.status === 'active' ? '{{ __('Active') }}' : '{{ __('Inactive') }}'"></span>
                                 <button @click="editDriver(driver)" class="p-1.5 text-[#6E7A25] hover:bg-[#6E7A25]/10 rounded-lg transition-colors" title="{{ __('Edit') }}">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.43-9.121a2.948 2.948 0 00-4.172 0L11.879 5.88a2.948 2.948 0 000 4.172l5.586 5.586a2.948 2.948 0 004.172 0l.586-.586a2.948 2.948 0 000-4.172l-5.586-5.586z"/></svg>
                                 </button>
-                                <button @click="deleteDriver(driver.id)" class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="{{ __('Delete') }}">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                <button @click="toggleDriverStatus(driver)" class="p-1.5 rounded-lg transition-colors" :class="driver.status === 'active' ? 'text-amber-600 hover:bg-amber-50' : 'text-green-600 hover:bg-green-50'" :title="driver.status === 'active' ? '{{ __('Deactivate') }}' : '{{ __('Activate') }}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                                 </button>
                             </div>
                         </div>
                     </template>
-                    <div x-show="drivers.length === 0 && !driverLoading" class="p-8 text-center text-gray-400 text-sm">
-                        {{ __('No drivers found. Add your first driver above.') }}
+                    <div x-show="filteredDrivers.length === 0 && !driverLoading" class="p-8 text-center text-gray-400 text-sm">
+                        {{ __('No drivers found matching your search.') }}
                     </div>
-                    <div x-show="driverLoading" class="p-8 text-center text-gray-400 text-sm">
-                        {{ __('Loading drivers...') }}
+                    <div x-show="driverLoading" class="space-y-3 animate-pulse">
+                        <template x-for="i in 3">
+                            <div class="h-14 bg-gray-100 rounded-xl"></div>
+                        </template>
                     </div>
                 </div>
             </div>
@@ -280,6 +302,8 @@
             driverLoading: false,
             driverSaving: false,
             driverError: '',
+            driverSuccess: '',
+            driverSearch: '',
             drivers: [],
             driverForm: {
                 id: null,
@@ -287,24 +311,41 @@
                 last_name: '',
                 email: '',
                 phone: '',
+                password: '',
                 location: '',
-                vehicle: '',
-                license_number: '',
+                address: '',
+                is_active: true,
             },
+
+            get filteredDrivers() {
+                const term = this.driverSearch.toLowerCase().trim();
+                if (!term) return this.drivers;
+                return this.drivers.filter(d =>
+                    (d.name || '').toLowerCase().includes(term) ||
+                    (d.email || '').toLowerCase().includes(term) ||
+                    (d.phone || '').toLowerCase().includes(term) ||
+                    (d.location || '').toLowerCase().includes(term)
+                );
+            },
+
             openDriverManager() {
                 this.driverModalOpen = true;
+                this.driverSearch = '';
                 this.loadDrivers();
             },
             closeDriverModal() {
                 this.driverModalOpen = false;
                 this.resetDriverForm();
                 this.driverError = '';
+                this.driverSuccess = '';
             },
             resetDriverForm() {
-                this.driverForm = { id: null, first_name: '', last_name: '', email: '', phone: '', location: '', vehicle: '', license_number: '' };
+                this.driverForm = { id: null, first_name: '', last_name: '', email: '', phone: '', password: '', location: '', address: '', is_active: true };
+                this.driverError = '';
+                this.driverSuccess = '';
             },
             editDriver(driver) {
-                this.driverForm = { ...driver, license_number: driver.license || '' };
+                this.driverForm = { ...driver, password: '', is_active: driver.status === 'active' };
             },
             async loadDrivers() {
                 this.driverLoading = true;
@@ -325,13 +366,20 @@
             async saveDriver() {
                 this.driverSaving = true;
                 this.driverError = '';
+                this.driverSuccess = '';
                 const isEdit = !!this.driverForm.id;
                 const url = isEdit ? '{{ url('admin/drivers') }}/' + this.driverForm.id : '{{ route('admin.drivers.store') }}';
-                const method = isEdit ? 'PUT' : 'POST';
                 const formData = new FormData();
-                for (const [key, value] of Object.entries(this.driverForm)) {
+
+                const fields = isEdit
+                    ? ['id', 'first_name', 'last_name', 'phone', 'location', 'address', 'is_active']
+                    : ['first_name', 'last_name', 'email', 'phone', 'password', 'location', 'address'];
+
+                fields.forEach(key => {
+                    const value = this.driverForm[key];
                     if (value !== null && value !== undefined) formData.append(key, value);
-                }
+                });
+
                 if (isEdit) {
                     formData.append('_method', 'PUT');
                 }
@@ -345,6 +393,7 @@
                     if (data.success) {
                         await this.loadDrivers();
                         this.resetDriverForm();
+                        this.driverSuccess = data.message || '{{ __('Driver saved successfully.') }}';
                     } else {
                         this.driverError = data.message || '{{ __('Failed to save driver.') }}';
                     }
@@ -354,19 +403,24 @@
                     this.driverSaving = false;
                 }
             },
-            async deleteDriver(id) {
-                if (!confirm('{{ __('Are you sure you want to delete this driver?') }}')) return;
+            async toggleDriverStatus(driver) {
+                const action = driver.status === 'active' ? '{{ __('deactivate') }}' : '{{ __('activate') }}';
+                if (!confirm(`{{ __('Are you sure you want to') }} ${action} ${driver.name}?`)) return;
                 try {
-                    const res = await fetch('{{ url('admin/drivers') }}/' + id, {
+                    const formData = new FormData();
+                    formData.append('is_active', driver.status !== 'active');
+                    formData.append('_method', 'PUT');
+                    const res = await fetch('{{ url('admin/drivers') }}/' + driver.id, {
                         method: 'POST',
                         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                        body: new URLSearchParams({ _method: 'DELETE' })
+                        body: formData
                     });
                     const data = await res.json();
                     if (data.success) {
                         await this.loadDrivers();
+                        this.driverSuccess = data.message || '{{ __('Driver status updated.') }}';
                     } else {
-                        this.driverError = data.message || '{{ __('Failed to delete driver.') }}';
+                        this.driverError = data.message || '{{ __('Failed to update driver status.') }}';
                     }
                 } catch (e) {
                     this.driverError = '{{ __('Network error. Please try again.') }}';

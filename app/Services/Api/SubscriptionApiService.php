@@ -14,6 +14,11 @@ class SubscriptionApiService extends BaseApiService
         return $this->post('subscriptions.create', [], $data);
     }
 
+    public function adminCreate(array $data): array
+    {
+        return $this->post('subscriptions.admin_create', [], $data);
+    }
+
     public function my(): array
     {
         return $this->get('subscriptions.my');

@@ -111,12 +111,13 @@ return [
 
         // ─── Subscriptions ───
         'subscriptions' => [
-            'list'   => '/subscriptions/',
-            'create' => '/subscriptions/',
-            'my'     => '/subscriptions/my',
-            'show'   => '/subscriptions/{subscription_id}',
-            'update' => '/subscriptions/{subscription_id}',
-            'cancel' => '/subscriptions/{subscription_id}/cancel',
+            'list'         => '/subscriptions/',
+            'create'       => '/subscriptions/',
+            'admin_create' => '/subscriptions/admin',
+            'my'           => '/subscriptions/my',
+            'show'         => '/subscriptions/{subscription_id}',
+            'update'       => '/subscriptions/{subscription_id}',
+            'cancel'       => '/subscriptions/{subscription_id}/cancel',
         ],
 
         // ─── Orders ───
@@ -157,6 +158,15 @@ return [
             'my'              => '/payments/my',
             'list'            => '/payments/',
             'verify_session'  => '/payments/verify-session/{session_id}',
+        ],
+
+        // ─── Drivers ───
+        'drivers' => [
+            'list'   => '/driver/admin',
+            'create' => '/driver/admin',
+            'show'   => '/driver/admin/{driver_id}',
+            'update' => '/driver/admin/{driver_id}',
+            'delete' => '/driver/admin/{driver_id}',
         ],
 
         // ─── Meal Schedule (not in OpenAPI spec — customer dashboard requirement) ───
