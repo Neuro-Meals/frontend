@@ -129,126 +129,20 @@
 </div>
 
 <script>
-    (function() {
-        const palette = ['#6E7A25', '#3b82f6', '#949B50', '#173327', '#f59e0b', '#ef4444'];
-
-        const commonOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#173327',
-                    titleColor: '#fff',
-                    bodyColor: '#fff',
-                    padding: 10,
-                    cornerRadius: 8,
-                }
-            },
-            scales: {
-                x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-                y: { beginAtZero: true, grid: { color: '#f3f4f6' }, ticks: { font: { size: 10 } } }
-            }
-        };
-
-        new Chart(document.getElementById('reportRevenueChart'), {
-            type: 'line',
-            data: {
-                labels: @json($revenueTrend['labels'] ?? []),
-                datasets: [
-                    {
-                        label: '{{ __('Current') }}',
-                        data: @json($revenueTrend['current'] ?? []),
-                        borderColor: '#6E7A25',
-                        backgroundColor: 'rgba(110, 122, 37, 0.12)',
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#6E7A25',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                    },
-                    {
-                        label: '{{ __('Previous') }}',
-                        data: @json($revenueTrend['previous'] ?? []),
-                        borderColor: '#d1d5db',
-                        backgroundColor: 'transparent',
-                        tension: 0.4,
-                        borderDash: [5, 5],
-                        pointBackgroundColor: '#d1d5db',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                    }
-                ]
-            },
-            options: {
-                ...commonOptions,
-                plugins: {
-                    ...commonOptions.plugins,
-                    tooltip: {
-                        ...commonOptions.plugins.tooltip,
-                        callbacks: {
-                            label: (ctx) => ctx.dataset.label + ': SAR ' + Number(ctx.raw).toLocaleString()
-                        }
-                    }
-                }
-            }
-        });
-
-        new Chart(document.getElementById('reportFunnelChart'), {
-            type: 'bar',
-            data: {
-                labels: @json(array_column($subscriptionFunnel, 'stage')),
-                datasets: [{
-                    label: '{{ __('Subscribers') }}',
-                    data: @json(array_column($subscriptionFunnel, 'count')),
-                    backgroundColor: @json(array_column($subscriptionFunnel, 'color')) ?: palette,
-                    borderRadius: 6,
-                }]
-            },
-            options: {
-                ...commonOptions,
-                indexAxis: 'y',
-                plugins: {
-                    ...commonOptions.plugins,
-                    tooltip: {
-                        ...commonOptions.plugins.tooltip,
-                        callbacks: {
-                            label: (ctx) => ctx.raw + ' {{ __('subscribers') }}'
-                        }
-                    }
-                }
-            }
-        });
-
-        new Chart(document.getElementById('reportSlaChart'), {
-            type: 'bar',
-            data: {
-                labels: @json(array_column($deliverySla, 'zone')),
-                datasets: [{
-                    label: '{{ __('On-time %') }}',
-                    data: @json(array_column($deliverySla, 'onTime')),
-                    backgroundColor: (ctx) => ctx.raw >= 92 ? '#6E7A25' : '#f59e0b',
-                    borderRadius: 6,
-                }]
-            },
-            options: {
-                ...commonOptions,
-                plugins: {
-                    ...commonOptions.plugins,
-                    tooltip: {
-                        ...commonOptions.plugins.tooltip,
-                        callbacks: {
-                            label: (ctx) => ctx.raw + '% {{ __('on-time') }}'
-                        }
-                    }
-                },
-                scales: {
-                    ...commonOptions.scales,
-                    y: { ...commonOptions.scales.y, max: 100, ticks: { callback: v => v + '%', font: { size: 10 } } }
-                }
-            }
-        });
-    })();
+    window.reportChartData = {
+        revenue: {
+            labels: @json($revenueTrend['labels'] ?? []),
+            current: @json($revenueTrend['current'] ?? []),
+            previous: @json($revenueTrend['previous'] ?? []),
+        },
+        funnel: {
+            labels: @json(array_column($subscriptionFunnel, 'stage')),
+            counts: @json(array_column($subscriptionFunnel, 'count')),
+            colors: @json(!empty(array_column($subscriptionFunnel, 'color')) ? array_column($subscriptionFunnel, 'color') : ['#6E7A25', '#3b82f6', '#949B50', '#173327']),
+        },
+        sla: {
+            labels: @json(array_column($deliverySla, 'zone')),
+            values: @json(array_column($deliverySla, 'onTime')),
+        }
+    };
 </script>

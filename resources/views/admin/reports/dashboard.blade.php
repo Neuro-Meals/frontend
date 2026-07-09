@@ -24,8 +24,7 @@
         <p class="text-xs font-bold text-gray-400">{{ __('Updating report...') }}</p>
     </div>
 
-    <div id="reportContentWrapper" x-html="content" x-show="!loading" class="transition-opacity duration-300" :class="loading ? 'opacity-50' : 'opacity-100'">
-
+    <div id="reportContentWrapper" x-show="!loading" class="transition-opacity duration-300" :class="loading ? 'opacity-50' : 'opacity-100'">
         @include('admin.reports._report_content')
     </div>
 </div>
@@ -64,14 +63,135 @@
         };
     }
 
+    function initReportCharts() {
+        const data = window.reportChartData;
+        if (!data) return;
+
+        const palette = ['#6E7A25', '#3b82f6', '#949B50', '#173327', '#f59e0b', '#ef4444'];
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#173327',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    padding: 10,
+                    cornerRadius: 8,
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                y: { beginAtZero: true, grid: { color: '#f3f4f6' }, ticks: { font: { size: 10 } } }
+            }
+        };
+
+        new Chart(document.getElementById('reportRevenueChart'), {
+            type: 'line',
+            data: {
+                labels: data.revenue.labels,
+                datasets: [
+                    {
+                        label: '{{ __('Current') }}',
+                        data: data.revenue.current,
+                        borderColor: '#6E7A25',
+                        backgroundColor: 'rgba(110, 122, 37, 0.12)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#6E7A25',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                    },
+                    {
+                        label: '{{ __('Previous') }}',
+                        data: data.revenue.previous,
+                        borderColor: '#d1d5db',
+                        backgroundColor: 'transparent',
+                        tension: 0.4,
+                        borderDash: [5, 5],
+                        pointBackgroundColor: '#d1d5db',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                    }
+                ]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    tooltip: {
+                        ...commonOptions.plugins.tooltip,
+                        callbacks: {
+                            label: (ctx) => ctx.dataset.label + ': SAR ' + Number(ctx.raw).toLocaleString()
+                        }
+                    }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('reportFunnelChart'), {
+            type: 'bar',
+            data: {
+                labels: data.funnel.labels,
+                datasets: [{
+                    label: '{{ __('Subscribers') }}',
+                    data: data.funnel.counts,
+                    backgroundColor: data.funnel.colors,
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                ...commonOptions,
+                indexAxis: 'y',
+                plugins: {
+                    ...commonOptions.plugins,
+                    tooltip: {
+                        ...commonOptions.plugins.tooltip,
+                        callbacks: {
+                            label: (ctx) => ctx.raw + ' {{ __('subscribers') }}'
+                        }
+                    }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('reportSlaChart'), {
+            type: 'bar',
+            data: {
+                labels: data.sla.labels,
+                datasets: [{
+                    label: '{{ __('On-time %') }}',
+                    data: data.sla.values,
+                    backgroundColor: (ctx) => ctx.raw >= 92 ? '#6E7A25' : '#f59e0b',
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                ...commonOptions,
+                plugins: {
+                    ...commonOptions.plugins,
+                    tooltip: {
+                        ...commonOptions.plugins.tooltip,
+                        callbacks: {
+                            label: (ctx) => ctx.raw + '% {{ __('on-time') }}'
+                        }
+                    }
+                },
+                scales: {
+                    ...commonOptions.scales,
+                    y: { ...commonOptions.scales.y, max: 100, ticks: { callback: v => v + '%', font: { size: 10 } } }
+                }
+            }
+        });
+    }
+
     function reportDashboard() {
         return {
             loading: false,
             lastUpdated: '{{ $lastUpdated }}',
-            content: '',
-            init() {
-                this.content = document.getElementById('reportContentWrapper').innerHTML;
-            },
             async reload(filters) {
                 this.loading = true;
                 const params = new URLSearchParams(filters || {});
@@ -84,18 +204,16 @@
                     });
                     const data = await res.json();
                     if (data.html) {
-                        this.content = data.html;
+                        const wrapper = document.getElementById('reportContentWrapper');
+                        wrapper.innerHTML = data.html;
                         this.lastUpdated = data.lastUpdated;
-                        this.$nextTick(() => {
-                            const wrapper = document.getElementById('reportContentWrapper');
-                            const scripts = wrapper.querySelectorAll('script');
-                            scripts.forEach(s => {
-                                const newScript = document.createElement('script');
-                                newScript.textContent = s.textContent;
-                                document.body.appendChild(newScript);
-                                newScript.remove();
-                            });
+                        wrapper.querySelectorAll('script').forEach(s => {
+                            const newScript = document.createElement('script');
+                            newScript.textContent = s.textContent;
+                            document.body.appendChild(newScript);
+                            newScript.remove();
                         });
+                        initReportCharts();
                     }
                 } catch (e) {
                     console.error('Report reload failed', e);
@@ -105,5 +223,7 @@
             }
         };
     }
+
+    document.addEventListener('DOMContentLoaded', initReportCharts);
 </script>
 @endpush

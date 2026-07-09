@@ -1070,15 +1070,46 @@ class AdminController extends Controller
         $payments = [];
         $rawList = $paymentsData['data'] ?? $paymentsData;
         foreach ($rawList as $payment) {
+            $customer = $payment['customer'] ?? [];
+            $subscription = $payment['subscription'] ?? [];
+            $paymentInfo = $payment['payment'] ?? $payment;
+
+            $customerName = $customer['full_name'] ?? (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')) ?: 'Customer';
+            $customerEmail = $customer['email'] ?? '';
+            $customerPhone = $customer['phone'] ?? '';
+
+            $planName = $subscription['plan_name'] ?? 'Plan';
+            $subscriptionId = $subscription['id'] ?? ($payment['subscription_id'] ?? 0);
+            $subscriptionStatus = $subscription['status'] ?? '';
+            $subscriptionStart = $subscription['start_date'] ?? '';
+            $subscriptionEnd = $subscription['end_date'] ?? '';
+
+            $amount = $paymentInfo['amount'] ?? ($payment['amount'] ?? 0);
+            $currency = strtoupper($paymentInfo['currency'] ?? 'SAR');
+            $provider = $paymentInfo['provider'] ?? 'stripe';
+            $status = $paymentInfo['status'] ?? ($payment['status'] ?? 'pending');
+            $paidAt = $paymentInfo['paid_at'] ?? ($payment['paid_at'] ?? '');
+            $createdAt = $paymentInfo['created_at'] ?? ($payment['created_at'] ?? '');
+
             $payments[] = [
                 'id' => 'PAY-' . ($payment['id'] ?? 0),
-                'order' => $payment['subscription_id'] ? ('SUB-' . $payment['subscription_id']) : '—',
-                'customer' => $payment['user_name'] ?? 'Customer',
-                'amount' => $payment['amount'] ?? 0,
-                'method' => 'Credit Card',
-                'status' => $payment['status'] ?? 'pending',
+                'order' => $subscriptionId ? ('SUB-' . $subscriptionId) : '—',
+                'customer' => $customerName,
+                'customer_email' => $customerEmail,
+                'customer_phone' => $customerPhone,
+                'plan_name' => $planName,
+                'subscription_status' => $subscriptionStatus,
+                'subscription_start' => $subscriptionStart,
+                'subscription_end' => $subscriptionEnd,
+                'amount' => $amount,
+                'currency' => $currency,
+                'method' => ucfirst($provider),
+                'provider' => $provider,
+                'status' => $status,
                 'stripe_session_id' => $payment['stripe_checkout_session_id'] ?? '',
-                'date' => !empty($payment['paid_at']) ? date('Y-m-d H:i', strtotime($payment['paid_at'])) : (!empty($payment['created_at']) ? date('Y-m-d H:i', strtotime($payment['created_at'])) : ''),
+                'date' => !empty($paidAt) ? date('Y-m-d H:i', strtotime($paidAt)) : (!empty($createdAt) ? date('Y-m-d H:i', strtotime($createdAt)) : ''),
+                'paid_at' => $paidAt,
+                'created_at' => $createdAt,
             ];
         }
 

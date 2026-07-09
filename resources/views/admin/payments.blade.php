@@ -61,9 +61,10 @@
         <thead>
           <tr class="text-left text-[10px] text-gray-400 bg-gray-50/50 border-b border-gray-100">
             <th class="px-4 py-2.5 font-medium">{{ __('ID') }}</th>
+            <th class="px-4 py-2.5 font-medium">{{ __('Customer') }}</th>
             <th class="px-4 py-2.5 font-medium">{{ __('Subscription') }}</th>
             <th class="px-4 py-2.5 font-medium">{{ __('Amount') }}</th>
-            <th class="px-4 py-2.5 font-medium">{{ __('Session') }}</th>
+            <th class="px-4 py-2.5 font-medium">{{ __('Method') }}</th>
             <th class="px-4 py-2.5 font-medium">{{ __('Date') }}</th>
             <th class="px-4 py-2.5 font-medium">{{ __('Status') }}</th>
             <th class="px-4 py-2.5 font-medium"></th>
@@ -72,7 +73,7 @@
         <tbody>
           <template x-if="loading && payments.length === 0">
             <tr>
-              <td colspan="7" class="px-4 py-8">
+              <td colspan="8" class="px-4 py-8">
                 <div class="space-y-2 animate-pulse">
                   <template x-for="i in 4">
                     <div class="h-8 bg-gray-50 rounded"></div>
@@ -83,7 +84,7 @@
           </template>
           <template x-if="!loading && payments.length === 0">
             <tr>
-              <td colspan="7" class="px-4 py-8 text-center text-xs text-gray-400">{{ __('No payments found.') }}</td>
+              <td colspan="8" class="px-4 py-8 text-center text-xs text-gray-400">{{ __('No payments found.') }}</td>
             </tr>
           </template>
           <template x-for="payment in payments" :key="payment.id">
@@ -91,13 +92,20 @@
               <td class="px-4 py-2.5">
                 <span class="text-xs font-bold text-gray-900" x-text="payment.id"></span>
               </td>
-              <td class="px-4 py-2.5 text-xs text-gray-500" x-text="payment.order"></td>
               <td class="px-4 py-2.5">
-                <span class="text-xs font-bold text-gray-900" x-text="'SAR ' + payment.amount"></span>
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0" x-text="payment.customer ? payment.customer.charAt(0).toUpperCase() : 'C'"></div>
+                  <div>
+                    <p class="text-xs font-semibold text-gray-900" x-text="payment.customer"></p>
+                    <p class="text-[10px] text-gray-400" x-text="payment.customer_email || payment.customer_phone || ''"></p>
+                  </div>
+                </div>
               </td>
+              <td class="px-4 py-2.5 text-xs text-gray-500" x-text="payment.order + (payment.plan_name ? ' · ' + payment.plan_name : '')"></td>
               <td class="px-4 py-2.5">
-                <span class="text-[10px] text-gray-400 font-mono" x-text="payment.stripe_session_id || '—'"></span>
+                <span class="text-xs font-bold text-gray-900" x-text="payment.currency + ' ' + payment.amount"></span>
               </td>
+              <td class="px-4 py-2.5 text-xs text-gray-500" x-text="payment.method"></td>
               <td class="px-4 py-2.5 text-xs text-gray-400" x-text="payment.date"></td>
               <td class="px-4 py-2.5">
                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border" :class="statusClass(payment.status)">
@@ -105,7 +113,7 @@
                 </span>
               </td>
               <td class="px-4 py-2.5 text-right">
-                <button @click.stop="showReceipt(payment)" class="text-[10px] font-bold text-[#6E7A25] hover:underline">
+                <button @click.stop="showReceipt(payment)" class="text-[10px] font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] px-2.5 py-1 rounded-lg hover:shadow-md transition-all">
                   {{ __('Receipt') }}
                 </button>
               </td>
