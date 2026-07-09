@@ -53,7 +53,13 @@ class LoginController extends Controller
                 session(['email_verified' => !empty($user['is_verified'])]);
 
                 $role = $authApi->role();
-                $redirect = $authApi->isAdmin() ? route('admin.dashboard') : route('user.dashboard');
+                if ($authApi->isAdmin()) {
+                    $redirect = route('admin.dashboard');
+                } elseif ($authApi->hasRole('driver')) {
+                    $redirect = route('driver.dashboard');
+                } else {
+                    $redirect = route('user.dashboard');
+                }
 
                 Log::info('Login role redirect', [
                     'email' => $request->email,

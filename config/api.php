@@ -169,6 +169,17 @@ return [
             'delete' => '/driver/admin/{driver_id}',
         ],
 
+        // ─── Driver App ───
+        'driver' => [
+            'my_deliveries'      => '/driver/deliveries',
+            'show_delivery'      => '/driver/deliveries/{delivery_id}',
+            'pickup'             => '/driver/deliveries/{delivery_id}/pickup',
+            'out_for_delivery'   => '/driver/deliveries/{delivery_id}/out-for-delivery',
+            'complete'           => '/driver/deliveries/{delivery_id}/complete',
+            'fail'               => '/driver/deliveries/{delivery_id}/fail',
+            'update_location'    => '/driver/deliveries/{delivery_id}/location',
+        ],
+
         // ─── Meal Schedule (not in OpenAPI spec — customer dashboard requirement) ───
         'meal_schedule' => [
             'my'       => '/meal-schedule/my',

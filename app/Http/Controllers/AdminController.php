@@ -288,15 +288,16 @@ class AdminController extends Controller
         if (!empty($subscriptionsData) && is_array($subscriptionsData)) {
             $meta = $subscriptionsData['meta'] ?? $meta;
             foreach ($subscriptionsData['data'] ?? $subscriptionsData as $sub) {
-                $user = $sub['user'] ?? [];
+                $customer = $sub['customer'] ?? ($sub['user'] ?? []);
                 $plan = $sub['plan'] ?? [];
                 $subscriptions[] = [
                     'id' => $sub['id'] ?? 0,
-                    'user_id' => $sub['user_id'] ?? 0,
-                    'customer' => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: 'Customer',
-                    'customer_email' => $user['email'] ?? '',
-                    'plan_id' => $sub['plan_id'] ?? 0,
-                    'plan_name' => $plan['name_en'] ?? 'Plan',
+                    'user_id' => $sub['user_id'] ?? ($customer['id'] ?? 0),
+                    'customer' => trim($customer['full_name'] ?? (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) ?: 'Customer',
+                    'customer_email' => $customer['email'] ?? '',
+                    'customer_phone' => $customer['phone'] ?? '',
+                    'plan_id' => $sub['plan_id'] ?? ($plan['id'] ?? 0),
+                    'plan_name' => $plan['name_en'] ?? ($sub['plan_name'] ?? 'Plan'),
                     'duration_days' => $plan['duration_days'] ?? 0,
                     'amount' => $sub['amount'] ?? 0,
                     'status' => $sub['status'] ?? 'pending_payment',
@@ -934,11 +935,14 @@ class AdminController extends Controller
         $orders = [];
         if (!empty($ordersData)) {
             foreach ($ordersData as $order) {
+                $customer = $order['customer'] ?? ($order['user'] ?? []);
+                $plan = $order['plan'] ?? [];
                 $orders[] = [
                     'id' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
-                    'customer' => trim(($order['user']['first_name'] ?? '') . ' ' . ($order['user']['last_name'] ?? '')) ?: 'Customer',
-                    'customer_email' => $order['user']['email'] ?? '',
-                    'plan' => $order['plan_name'] ?? 'Plan',
+                    'customer' => trim($customer['full_name'] ?? (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) ?: 'Customer',
+                    'customer_email' => $customer['email'] ?? ($order['user']['email'] ?? ''),
+                    'customer_phone' => $customer['phone'] ?? ($order['user']['phone'] ?? ''),
+                    'plan' => $plan['name_en'] ?? ($order['plan_name'] ?? 'Plan'),
                     'amount' => $order['total_amount'] ?? 0,
                     'status' => $order['status'] ?? 'pending',
                     'payment_status' => $order['payment_status'] ?? 'unpaid',
@@ -986,12 +990,15 @@ class AdminController extends Controller
         $deliveries = [];
         if (!empty($deliveriesData)) {
             foreach ($deliveriesData as $delivery) {
+                $customer = $delivery['customer'] ?? ($delivery['user'] ?? []);
                 $deliveries[] = [
                     'id' => $delivery['id'] ?? 0,
                     'delivery_id' => 'DLV-' . ($delivery['id'] ?? 0),
                     'order_id' => $delivery['order_id'] ?? 0,
                     'order' => 'ORD-' . ($delivery['order_id'] ?? 0),
-                    'customer' => trim(($delivery['user']['first_name'] ?? '') . ' ' . ($delivery['user']['last_name'] ?? '')) ?: 'Customer',
+                    'customer' => trim($customer['full_name'] ?? (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) ?: 'Customer',
+                    'customer_email' => $customer['email'] ?? '',
+                    'customer_phone' => $customer['phone'] ?? '',
                     'zone' => $delivery['zone'] ?? 'N/A',
                     'driver_id' => $delivery['driver_id'] ?? null,
                     'driver' => $delivery['driver_name'] ?? 'Unassigned',

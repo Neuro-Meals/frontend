@@ -132,8 +132,14 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 // Role-based redirect after login
 Route::get('/home', function () {
     $authApi = app(\App\Services\Api\AuthApiService::class);
-    if ($authApi->check() && $authApi->isAdmin()) {
+    if (!$authApi->check()) {
+        return redirect()->route('login');
+    }
+    if ($authApi->isAdmin()) {
         return redirect()->route('admin.dashboard');
+    }
+    if ($authApi->hasRole('driver')) {
+        return redirect()->route('driver.dashboard');
     }
     return redirect()->route('user.dashboard');
 })->name('home');
@@ -189,6 +195,15 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
 // Payment / Checkout callbacks (no auth middleware - Stripe redirects without session)
 Route::get('/payment-success', [UserController::class, 'paymentSuccess'])->name('payment.success');
 Route::get('/payment-cancel', [UserController::class, 'paymentCancel'])->name('payment.cancel');
+
+// Driver routes
+Route::prefix('driver')->name('driver.')->middleware(['api.auth', 'api.driver'])->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\DriverController::class, 'dashboard'])->name('dashboard');
+    Route::get('/deliveries', [\App\Http\Controllers\DriverController::class, 'deliveries'])->name('deliveries');
+    Route::get('/deliveries/{id}', [\App\Http\Controllers\DriverController::class, 'showDelivery'])->name('deliveries.show');
+    Route::post('/deliveries/{id}/status', [\App\Http\Controllers\DriverController::class, 'updateStatus'])->name('deliveries.status');
+    Route::post('/deliveries/{id}/location', [\App\Http\Controllers\DriverController::class, 'updateLocation'])->name('deliveries.location');
+});
 
 // User routes (customer only)
 Route::prefix('user')->name('user.')->middleware(['api.auth', 'api.customer'])->group(function () {
