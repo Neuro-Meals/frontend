@@ -429,7 +429,7 @@ class UserController extends Controller
                     'carbs' => (int) ($meal['carbs_g'] ?? 0),
                     'fat' => (int) ($meal['fat_g'] ?? 0),
                     'status' => $meal['status'] ?? 'upcoming',
-                    'image' => $meal['image_url'] ?? 'whitelogo.png',
+                    'image' => $meal['image_url'] ?? null,
                     'price' => $meal['price'] ?? 0,
                 ];
             }
@@ -554,7 +554,7 @@ class UserController extends Controller
                 'id' => $meal['id'] ?? 0,
                 'name' => $meal['name_en'] ?? ($meal['name'] ?? 'Meal'),
                 'time' => $meal['meal_time'] ?? (['Breakfast', 'Lunch', 'Dinner'][$index] ?? 'Meal'),
-                'image' => $meal['image_url'] ?? 'whitelogo.png',
+                'image' => $meal['image_url'] ?? null,
                 'category' => $meal['category']['name_en'] ?? ($meal['category_name'] ?? 'Meal'),
                 'calories' => (int) ($meal['calories'] ?? 0),
                 'protein' => (int) ($meal['protein_g'] ?? 0),

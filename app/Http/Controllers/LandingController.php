@@ -24,7 +24,7 @@ class LandingController extends Controller
                 'protein' => $meal['protein_g'] ?? 0,
                 'carbs' => $meal['carbs_g'] ?? 0,
                 'fat' => $meal['fat_g'] ?? 0,
-                'image' => $meal['image_url'] ?? 'whitelogo.png',
+                'image' => $meal['image_url'] ?? null,
                 'category' => $meal['category']['name_en'] ?? ($meal['category_name'] ?? 'Meal'),
                 'tags' => $meal['diet_tags'] ?? [],
             ];

@@ -27,7 +27,7 @@
 @php $heroMeal = $upcomingMeals[0] ?? null; @endphp
 @if ($heroMeal)
 <div class="relative rounded-2xl overflow-hidden shadow-xl mb-6 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
-    <img src="{{ asset($heroMeal['image'] ?? 'whitelogo.png') }}" alt="{{ $heroMeal['name'] ?? 'Meal' }}" class="absolute inset-0 w-full h-full object-cover">
+    <img src="{{ meal_image_url($heroMeal['image'] ?? null) }}" alt="{{ $heroMeal['name'] ?? 'Meal' }}" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.src='{{ asset('whitelogo.png') }}'">
     <div class="absolute inset-0 bg-gradient-to-r from-[#173327]/95 via-[#173327]/70 to-[#6E7A25]/40"></div>
     <div class="relative z-10 p-5 sm:p-8 lg:p-10 flex flex-col justify-center min-h-[200px] sm:min-h-[240px]">
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#6E7A25]/30 backdrop-blur-sm text-[#949B50] text-[10px] font-bold uppercase tracking-wider w-fit mb-3">

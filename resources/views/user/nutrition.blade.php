@@ -69,7 +69,7 @@
         @foreach($todayMeals as $meal)
         <div class="group bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
             <div class="h-44 sm:h-52 overflow-hidden bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 relative">
-                <img src="{{ ($meal['image'] ?? '') ?: asset('whitelogo.png') }}" alt="{{ $meal['name'] ?? __('Meal') }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                <img src="{{ meal_image_url($meal['image'] ?? null) }}" alt="{{ $meal['name'] ?? __('Meal') }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" onerror="this.src='{{ asset('whitelogo.png') }}'">
                 <div class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur text-[10px] font-bold text-[#173327] shadow-sm">
                     {{ $meal['time'] ?? '' }}
                 </div>

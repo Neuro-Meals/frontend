@@ -435,7 +435,7 @@
                 <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors">
                     @if($meal['image'])
                     <div class="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-gray-100 to-gray-200">
-                        <img src="{{ $meal['image'] }}" alt="{{ $meal['name'] }}" class="w-full h-full object-cover">
+                        <img src="{{ meal_image_url($meal['image']) }}" alt="{{ $meal['name'] }}" class="w-full h-full object-cover" loading="lazy">
                     </div>
                     @else
                     <div class="w-12 h-12 rounded-xl {{ $i === 0 ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-white' : ($i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-white' : ($i === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white' : 'bg-gray-50 text-gray-400')) }} flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-sm">
