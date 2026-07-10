@@ -23,6 +23,36 @@
     </div>
 </div>
 
+{{-- Subscription Status Banner --}}
+@if(!empty($activeSubscription) && ($activeSubscription['status'] ?? 'none') !== 'none')
+<div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-xl p-4 sm:p-5 text-white shadow-lg mb-6 animate__animated animate__fadeInUp" style="animation-delay: 0.15s;">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div>
+                <p class="text-sm font-bold">{{ $stats['activePlan'] }}</p>
+                <p class="text-xs text-white/70">{{ $stats['remainingMeals'] }} {{ __('meals remaining') }} · {{ $stats['planRenewal'] }}</p>
+            </div>
+        </div>
+        <a href="{{ route('user.meals') }}" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-white/20 text-white text-xs font-bold hover:bg-white/30 transition-all w-fit">
+            {{ __('View My Meals') }} →
+        </a>
+    </div>
+</div>
+@else
+<div class="bg-white border border-gray-100 rounded-xl p-5 sm:p-6 shadow-sm mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate__animated animate__fadeInUp" style="animation-delay: 0.15s;">
+    <div>
+        <p class="text-sm font-bold text-gray-900">{{ __('No active subscription') }}</p>
+        <p class="text-xs text-gray-500 mt-0.5">{{ __('Subscribe to a plan to start your nutrition journey.') }}</p>
+    </div>
+    <a href="{{ route('user.subscriptions') }}" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-xs font-bold hover:shadow-lg transition-all w-fit">
+        {{ __('Subscribe Now') }}
+    </a>
+</div>
+@endif
+
 {{-- Hero Card --}}
 @php $heroMeal = $upcomingMeals[0] ?? null; @endphp
 @if ($heroMeal)
