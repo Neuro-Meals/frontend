@@ -69,41 +69,41 @@
         @foreach($todayMeals as $meal)
         <div class="group bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
             <div class="h-44 sm:h-52 overflow-hidden bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 relative">
-                <img src="{{ $meal['image'] ?: asset('whitelogo.png') }}" alt="{{ $meal['name'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                <img src="{{ ($meal['image'] ?? '') ?: asset('whitelogo.png') }}" alt="{{ $meal['name'] ?? __('Meal') }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
                 <div class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur text-[10px] font-bold text-[#173327] shadow-sm">
-                    {{ $meal['time'] }}
+                    {{ $meal['time'] ?? '' }}
                 </div>
                 <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-[#173327]/90 backdrop-blur text-[10px] font-bold text-white shadow-sm">
-                    {{ $meal['category'] }}
+                    {{ $meal['category'] ?? '' }}
                 </div>
             </div>
             <div class="p-4 sm:p-5">
-                <h4 class="text-base font-bold text-gray-900 mb-2">{{ $meal['name'] }}</h4>
+                <h4 class="text-base font-bold text-gray-900 mb-2">{{ $meal['name'] ?? '' }}</h4>
 
                 <div class="flex items-center justify-between text-xs text-gray-500 mb-4">
-                    <span class="font-medium text-[#6E7A25]">{{ number_format($meal['calories']) }} kcal</span>
-                    <span>P {{ $meal['protein'] }}g · C {{ $meal['carbs'] }}g · F {{ $meal['fat'] }}g</span>
+                    <span class="font-medium text-[#6E7A25]">{{ number_format($meal['calories'] ?? 0) }} kcal</span>
+                    <span>P {{ $meal['protein'] ?? 0 }}g · C {{ $meal['carbs'] ?? 0 }}g · F {{ $meal['fat'] ?? 0 }}g</span>
                 </div>
 
                 <div class="grid grid-cols-3 gap-2 mb-4">
                     <div class="text-center bg-gray-50 rounded-lg py-2">
                         <p class="text-[10px] text-gray-400">{{ __('Price') }}</p>
-                        <p class="text-xs font-bold text-gray-900">SAR {{ number_format($meal['price'], 2) }}</p>
+                        <p class="text-xs font-bold text-gray-900">SAR {{ number_format($meal['price'] ?? 0, 2) }}</p>
                     </div>
                     <div class="text-center bg-gray-50 rounded-lg py-2">
                         <p class="text-[10px] text-gray-400">{{ __('Serving') }}</p>
-                        <p class="text-xs font-bold text-gray-900">{{ $meal['serving'] }}</p>
+                        <p class="text-xs font-bold text-gray-900">{{ $meal['serving'] ?? '-' }}</p>
                     </div>
                     <div class="text-center bg-gray-50 rounded-lg py-2">
                         <p class="text-[10px] text-gray-400">{{ __('Orders') }}</p>
-                        <p class="text-xs font-bold text-gray-900">{{ $meal['orders'] > 0 ? $meal['orders'] : __('None') }}</p>
+                        <p class="text-xs font-bold text-gray-900">{{ ($meal['orders'] ?? 0) > 0 ? ($meal['orders'] ?? 0) : __('None') }}</p>
                     </div>
                 </div>
 
-                @if($meal['orders'] > 0)
+                @if(($meal['orders'] ?? 0) > 0)
                 <div class="flex items-center gap-2 text-[10px] font-medium text-emerald-600 bg-emerald-50 rounded-lg px-3 py-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>{{ $meal['orders'] }} {{ __('orders placed for this meal') }}</span>
+                    <span>{{ $meal['orders'] ?? 0 }} {{ __('orders placed for this meal') }}</span>
                 </div>
                 @else
                 <div class="flex items-center gap-2 text-[10px] font-medium text-gray-500 bg-gray-50 rounded-lg px-3 py-2">

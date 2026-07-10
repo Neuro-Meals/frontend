@@ -125,6 +125,71 @@
         </div>
     </div>
 
+    {{-- Email Verification Modal --}}
+    <div x-show="verificationRequired" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-center justify-center p-4" x-cloak>
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="verificationRequired = false"></div>
+        <div class="relative bg-white rounded-3xl shadow-2xl border border-emerald-100 max-w-md w-full p-8 transform transition-all scale-100" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100 translate-y-0" x-transition:leave-end="opacity-0 scale-95 translate-y-4">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 mx-auto bg-emerald-100 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-extrabold text-gray-900">{{ __('Verify Your Email') }}</h3>
+                <p class="text-gray-500 text-sm mt-1">{{ __('Enter the 6-digit code sent to') }}</p>
+                <p class="inline-flex items-center gap-2 px-3 py-1 mt-2 bg-emerald-50 text-emerald-700 text-sm font-semibold rounded-full" x-text="verificationEmail"></p>
+            </div>
+
+            <form class="space-y-5" @submit.prevent="verifyOtp">
+                <div>
+                    <label class="block text-sm font-bold text-gray-800 mb-3 text-center tracking-wide uppercase">{{ __('Verification Code') }}</label>
+                    <div class="flex justify-center gap-2 sm:gap-3" @paste="handleOtpPaste($event)">
+                        <template x-for="(digit, index) in otpDigits" :key="index">
+                            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]"
+                                class="otp-input w-11 h-13 sm:w-13 sm:h-14 text-center text-2xl font-bold rounded-xl border-2 bg-gray-50 outline-none transition-all duration-200 focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                                :class="verificationError ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-100' : 'border-gray-200'"
+                                x-model="otpDigits[index]"
+                                @input="handleOtpInput(index, $event)"
+                                @keydown.backspace="handleOtpBackspace(index, $event)"
+                                @keydown.left="focusOtpPrev(index)"
+                                @keydown.right="focusOtpNext(index)">
+                        </template>
+                    </div>
+                    <input type="hidden" x-model="otp">
+                    <div x-show="verificationError && verificationError.length > 0" x-transition class="mt-3 flex items-center justify-center gap-2 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg py-2 px-3" x-cloak>
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span x-text="verificationError"></span>
+                    </div>
+                </div>
+
+                <button type="submit" :disabled="verifying || otp.length !== 6"
+                    class="w-full py-3.5 text-sm font-bold text-white rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed hover:-translate-y-0.5 hover:shadow-xl"
+                    :class="verifying ? 'bg-gray-400' : 'bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600'">
+                    <svg x-show="!verifying" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <svg x-show="verifying" class="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span x-text="verifying ? pleaseWait : verifyText"></span>
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-gray-500 text-sm mb-2">{{ __('Didn\'t receive the code?') }}</p>
+                <button type="button" @click="resendOtp" :disabled="resending"
+                    class="inline-flex items-center gap-2 text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    :class="resending ? 'text-gray-400' : 'text-emerald-600 hover:text-emerald-700'">
+                    <svg x-show="!resending" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <svg x-show="resending" class="animate-spin w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span x-text="resending ? pleaseWait : resendText"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     {{-- Footer --}}
     <p class="mt-6 text-center text-xs text-gray-300">&copy; {{ date('Y') }} {{ config('app.name', 'Nutrio Meals') }}. All rights reserved.</p>
 </div>
@@ -136,15 +201,30 @@
             loading: false,
             errors: {},
             toast: { show: false, message: '', type: 'error', title: '' },
+            verificationRequired: false,
+            verificationEmail: '',
+            verifying: false,
+            resending: false,
+            verificationError: '',
+            otpDigits: ['', '', '', '', '', ''],
             pleaseWait: @json(__('Please wait...')),
             loginText: @json(__('Login')),
             successTitle: @json(__('Success')),
             errorTitle: @json(__('Login failed')),
+            verifyText: @json(__('Verify Email')),
+            resendText: @json(__('Resend OTP')),
             networkError: @json(__('Network error. Please try again.')),
+            invalidOtpMessage: @json(__('Please enter the 6-digit code.')),
+            resendFailed: @json(__('Failed to resend OTP.')),
             loginUrl: @json(route('login')),
+            verifyUrl: @json(route('verify.email.verify')),
+            resendUrl: @json(route('verification.resend')),
             form: {
                 email: @json(old('email') ?? session('verified_email') ?? ''),
                 password: ''
+            },
+            get otp() {
+                return this.otpDigits.join('');
             },
             showToast(message, type = 'error') {
                 this.toast = {
@@ -184,10 +264,10 @@
                     }
 
                     if (data.requires_verification) {
-                        this.showToast(data.message || @json(__('Please verify your email first.')), 'error');
-                        setTimeout(() => {
-                            window.location.href = @json(route('verify.email')) + '?email=' + encodeURIComponent(data.email || this.form.email);
-                        }, 1500);
+                        this.verificationEmail = data.email || this.form.email;
+                        this.verificationRequired = true;
+                        this.showToast(data.message || @json(__('Please verify your email to continue.')), 'error');
+                        this.$nextTick(() => this.focusOtpInput(0));
                         return;
                     }
 
@@ -197,6 +277,132 @@
                 } catch (error) {
                     this.loading = false;
                     this.showToast(error.message || this.networkError);
+                }
+            },
+            focusOtpInput(index) {
+                const inputs = document.querySelectorAll('.otp-input');
+                if (inputs[index]) inputs[index].focus();
+            },
+            focusOtpNext(index) {
+                if (index < 5) this.focusOtpInput(index + 1);
+            },
+            focusOtpPrev(index) {
+                if (index > 0) this.focusOtpInput(index - 1);
+            },
+            handleOtpInput(index, event) {
+                const value = event.target.value;
+                if (!/^\d*$/.test(value)) {
+                    this.otpDigits[index] = '';
+                    return;
+                }
+                if (value.length > 1) {
+                    const digits = value.replace(/\D/g, '').split('');
+                    for (let i = 0; i < digits.length && index + i < 6; i++) {
+                        this.otpDigits[index + i] = digits[i];
+                    }
+                    this.focusOtpInput(Math.min(index + digits.length, 5));
+                    return;
+                }
+                this.otpDigits[index] = value.slice(-1);
+                if (value && index < 5) {
+                    this.focusOtpNext(index);
+                }
+            },
+            handleOtpBackspace(index, event) {
+                if (!this.otpDigits[index] && index > 0) {
+                    this.focusOtpPrev(index);
+                }
+            },
+            handleOtpPaste(event) {
+                event.preventDefault();
+                const pasted = (event.clipboardData || window.clipboardData).getData('text');
+                const digits = pasted.replace(/\D/g, '').split('').slice(0, 6);
+                for (let i = 0; i < 6; i++) {
+                    this.otpDigits[i] = digits[i] || '';
+                }
+                this.focusOtpInput(Math.min(digits.length, 5));
+            },
+            resetOtp() {
+                this.otpDigits = ['', '', '', '', '', ''];
+                this.verificationError = '';
+            },
+            async verifyOtp() {
+                if (this.otp.length !== 6) {
+                    this.verificationError = this.invalidOtpMessage;
+                    this.showToast(this.invalidOtpMessage);
+                    return;
+                }
+
+                this.verifying = true;
+                this.verificationError = '';
+                this.toast.show = false;
+
+                try {
+                    const response = await fetch(this.verifyUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email: this.verificationEmail, otp: this.otp })
+                    });
+
+                    const data = await response.json();
+                    this.verifying = false;
+
+                    if (data.success) {
+                        this.showToast(data.message || @json(__('Email verified successfully. Please log in.')), 'success');
+                        this.verificationRequired = false;
+                        this.resetOtp();
+                        this.form.password = '';
+                        return;
+                    }
+
+                    this.verificationError = data.message || this.invalidOtpMessage;
+                    this.showToast(this.verificationError);
+                } catch (error) {
+                    this.verifying = false;
+                    this.verificationError = error.message || this.networkError;
+                    this.showToast(this.verificationError);
+                }
+            },
+            async resendOtp() {
+                this.resending = true;
+                this.verificationError = '';
+                this.toast.show = false;
+
+                try {
+                    const response = await fetch(this.resendUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email: this.verificationEmail })
+                    });
+
+                    const data = await response.json();
+                    this.resending = false;
+
+                    if (data.success) {
+                        this.showToast(data.message || @json(__('A new verification code has been sent.')), 'success');
+                        if (data.already_verified) {
+                            this.verificationRequired = false;
+                            this.resetOtp();
+                        }
+                        return;
+                    }
+
+                    this.verificationError = data.message || this.resendFailed;
+                    this.showToast(this.verificationError);
+                } catch (error) {
+                    this.resending = false;
+                    this.verificationError = error.message || this.networkError;
+                    this.showToast(this.verificationError);
                 }
             }
         };
