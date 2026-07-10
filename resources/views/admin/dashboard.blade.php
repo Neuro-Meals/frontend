@@ -195,13 +195,22 @@
             <p class="text-base font-bold tracking-tight text-[#173327]">{{ $stats['totalMeals'] }}</p>
         </div>
     </div>
-    <div class="kpi-card animate__animated animate__fadeInUp bg-white rounded-xl border border-gray-100 p-3 shadow-sm flex items-center gap-3" style="animation-delay: 0.8s;">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center flex-shrink-0">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+    {{-- Retention & Churn Mini Card --}}
+    @php
+        $churnPct = $stats['churnRate'] ?? 0;
+        $retPct = $stats['retentionRate'] ?? 0;
+        $churnColor = $churnPct > 20 ? 'text-red-600' : ($churnPct > 10 ? 'text-amber-600' : 'text-green-600');
+    @endphp
+    <div class="kpi-card animate__animated animate__fadeInUp bg-white rounded-xl border border-gray-100 p-3 shadow-sm flex flex-col justify-center gap-1" style="animation-delay: 0.8s;">
+        <div class="flex items-center justify-between">
+            <p class="text-[10px] text-gray-400 font-medium">{{ __('Retention') }}</p>
+            <span class="text-[10px] font-bold {{ $churnColor }}">{{ $churnPct }}% {{ __('churn') }}</span>
         </div>
-        <div>
-            <p class="text-[10px] text-gray-400 font-medium">{{ __('Churn Rate') }}</p>
-            <p class="text-base font-bold tracking-tight text-[#173327]">{{ $stats['churnRate'] }}%</p>
+        <div class="flex items-center gap-2">
+            <div class="w-12 h-1.5 bg-gray-100 rounded-full overflow-hidden flex-1">
+                <div class="h-full rounded-full bg-gradient-to-r from-[#173327] to-[#6E7A25]" style="width: {{ $retPct }}%"></div>
+            </div>
+            <p class="text-base font-bold tracking-tight text-[#173327]">{{ $retPct }}%</p>
         </div>
     </div>
 </div>

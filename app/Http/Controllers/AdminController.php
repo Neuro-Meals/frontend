@@ -101,9 +101,10 @@ class AdminController extends Controller
             'lastMonthRevenue' => $lastMonthRevenue,
             'totalCustomers' => $totalUsers,
             'newCustomersThisWeek' => 0,
-            'churnRate' => 0,
-            'retentionRate' => 0,
+            'churnRate' => $churnRate,
+            'retentionRate' => $retentionRate,
             'paymentCounts' => $paymentCounts,
+            'subscriptionStatusCounts' => $subscriptionStatusCounts,
         ];
 
         $recentOrdersData = $this->apiData($orderApi->list(['limit' => 6]), function () {
@@ -150,6 +151,19 @@ class AdminController extends Controller
 
         $ordersResponse = $this->apiData($reportsApi->orders(), fn () => []);
         $ordersTrend = $this->extractTrendValues($ordersResponse, 'orders');
+
+        $subscriptionsReport = $this->apiData($reportsApi->subscriptions(), fn () => []);
+        $subscriptionStatusCounts = [];
+        foreach ($subscriptionsReport['subscriptions_by_status'] ?? [] as $item) {
+            $subscriptionStatusCounts[$item['status']] = $item['count'] ?? 0;
+        }
+        $activeSubsCount = $subscriptionStatusCounts['active'] ?? 0;
+        $cancelledSubsCount = $subscriptionStatusCounts['cancelled'] ?? 0;
+        $expiredSubsCount = $subscriptionStatusCounts['expired'] ?? 0;
+        $pausedSubsCount = $subscriptionStatusCounts['paused'] ?? 0;
+        $totalEngagedSubs = $activeSubsCount + $cancelledSubsCount + $expiredSubsCount + $pausedSubsCount;
+        $churnRate = $totalEngagedSubs > 0 ? round((($cancelledSubsCount + $expiredSubsCount) / $totalEngagedSubs) * 100, 1) : 0;
+        $retentionRate = $totalEngagedSubs > 0 ? round(($activeSubsCount / $totalEngagedSubs) * 100, 1) : 0;
 
         $plansData = $this->apiData($adminApi->plansList(['limit' => 100]), function () {
             return [];
