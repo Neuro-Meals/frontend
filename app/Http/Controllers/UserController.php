@@ -383,15 +383,24 @@ class UserController extends Controller
         return view('payment.cancel', compact('paymentId'));
     }
 
-    public function meals(MealApiService $mealApi, MealScheduleApiService $scheduleApi, SubscriptionApiService $subscriptionApi, PlanApiService $planApi)
-    {
+    public function meals(
+        MealApiService $mealApi,
+        MealScheduleApiService $scheduleApi,
+        SubscriptionApiService $subscriptionApi,
+        PlanApiService $planApi,
+        MealSelectionApiService $selectionApi
+    ) {
         $meals = $this->apiData($mealApi->list(['limit' => 100, 'is_available' => true]), function () {
             return [];
         });
 
-        $apiSchedule = $this->apiData($scheduleApi->myToday(), function () {
-            return [];
-        });
+        $mealsById = [];
+        foreach ($meals as $meal) {
+            $id = $meal['id'] ?? 0;
+            if ($id) {
+                $mealsById[$id] = $meal;
+            }
+        }
 
         $mySubscriptions = $this->apiData($subscriptionApi->my(), function () {
             return [];
@@ -399,7 +408,7 @@ class UserController extends Controller
 
         $activeSubscription = null;
         foreach ($mySubscriptions as $sub) {
-            if (($sub['status'] ?? '') === 'active') {
+            if (($sub['status'] ?? '') === 'active' || ($sub['status'] ?? '') === 'pending_payment') {
                 $activeSubscription = $sub;
                 break;
             }
@@ -417,35 +426,30 @@ class UserController extends Controller
         $mealsPerDay = $planDetails['meals_per_day'] ?? 3;
         $mealsConsumed = $activeSubscription['meals_consumed'] ?? 0;
 
-        // Use meal schedule API for today's meals if available
-        $todayMeals = [];
-        if (!empty($apiSchedule['today']) && is_array($apiSchedule['today'])) {
-            foreach ($apiSchedule['today'] as $meal) {
-                $todayMeals[] = [
-                    'name' => $meal['name'] ?? $meal['name_en'] ?? 'Meal',
-                    'time' => $meal['meal_time'] ?? 'Meal',
-                    'calories' => (int) ($meal['calories'] ?? 0),
-                    'protein' => (int) ($meal['protein_g'] ?? 0),
-                    'carbs' => (int) ($meal['carbs_g'] ?? 0),
-                    'fat' => (int) ($meal['fat_g'] ?? 0),
-                    'status' => $meal['status'] ?? 'upcoming',
-                    'image' => $meal['image_url'] ?? null,
-                    'price' => $meal['price'] ?? 0,
-                ];
-            }
+        // Fetch the user's plan items and their meal selections
+        $planItems = [];
+        $selections = [];
+        if ($activeSubscription && !empty($activeSubscription['plan_id'])) {
+            $planItems = $this->apiData($planApi->listPlanItems($activeSubscription['plan_id']), function () {
+                return [];
+            });
+            $selections = $this->apiData($selectionApi->my((int) $activeSubscription['id']), function () {
+                return [];
+            });
         }
 
-        // Build weekly schedule from meal schedule API or meals
-        $apiWeekly = $apiSchedule['weekly'] ?? [];
-        if (!empty($apiWeekly) && is_array($apiWeekly)) {
-            $weekMeals = array_map(fn ($day) => [
-                'day' => $day['day'] ?? '',
-                'meals' => count($day['meals'] ?? []),
-                'calories' => $day['calories'] ?? 0,
-                'completed' => ($day['calories'] ?? 0) > 0,
-            ], $apiWeekly);
-        } else {
-            $weekMeals = $this->buildWeeklyMeals($meals, $mealsPerDay, $totalPlanMeals);
+        // Build weekly schedule from plan items, applying user selections as overrides
+        $weekMeals = $this->buildWeeklyScheduleFromPlan($planItems, $selections, $mealsById);
+
+        // Today's meals are the meals scheduled for the current day
+        $todayNumber = (int) date('N');
+        $todayMeals = $weekMeals[$todayNumber - 1]['meals'] ?? [];
+
+        // Fallback to first available meals if nothing is scheduled yet
+        if (empty($todayMeals)) {
+            foreach (array_slice($meals, 0, $mealsPerDay) as $meal) {
+                $todayMeals[] = $this->normalizeMealForView($meal);
+            }
         }
 
         // Calculate stats
@@ -462,28 +466,83 @@ class UserController extends Controller
             'favoriteCount' => $favoriteMeal['count'] ?? 0,
         ];
 
-        return view('user.meals', compact('todayMeals', 'weekMeals', 'stats'));
+        $hasActiveSubscription = $activeSubscription !== null;
+
+        return view('user.meals', compact('todayMeals', 'weekMeals', 'stats', 'activeSubscription', 'hasActiveSubscription'));
     }
 
     /**
-     * Build weekly meal schedule from API meals.
+     * Normalize a meal array from the API for view rendering.
      */
-    private function buildWeeklyMeals(array $meals, int $mealsPerDay, int $totalPlanMeals): array
+    private function normalizeMealForView(array $meal): array
+    {
+        return [
+            'id' => $meal['id'] ?? 0,
+            'name' => $meal['name'] ?? $meal['name_en'] ?? 'Meal',
+            'time' => $meal['meal_time'] ?? $meal['time'] ?? 'Meal',
+            'calories' => (int) ($meal['calories'] ?? 0),
+            'protein' => (int) ($meal['protein_g'] ?? $meal['protein'] ?? 0),
+            'carbs' => (int) ($meal['carbs_g'] ?? $meal['carbs'] ?? 0),
+            'fat' => (int) ($meal['fat_g'] ?? $meal['fat'] ?? 0),
+            'status' => $meal['status'] ?? 'upcoming',
+            'image' => $meal['image_url'] ?? $meal['image'] ?? null,
+            'price' => $meal['price'] ?? 0,
+            'category' => $meal['category']['name_en'] ?? ($meal['category_name'] ?? 'Meal'),
+        ];
+    }
+
+    /**
+     * Build weekly schedule from plan items, applying user selections as overrides.
+     */
+    private function buildWeeklyScheduleFromPlan(array $planItems, array $selections, array $mealsById): array
     {
         $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         $weekly = [];
 
-        foreach ($days as $index => $day) {
-            $dayMeals = array_slice($meals, $index * $mealsPerDay, $mealsPerDay);
-            $calories = 0;
-            foreach ($dayMeals as $meal) {
-                $calories += (int) ($meal['calories'] ?? 0);
+        // Index selections by day_number + meal_time for quick lookup
+        $selectionsBySlot = [];
+        foreach ($selections as $selection) {
+            $key = ($selection['day_number'] ?? 1) . '|' . ($selection['meal_time'] ?? 'Meal');
+            $selectionsBySlot[$key] = $selection;
+        }
+
+        // Group plan items by day_number
+        $planItemsByDay = [];
+        foreach ($planItems as $item) {
+            $dayNumber = (int) ($item['day_number'] ?? 1);
+            $planItemsByDay[$dayNumber][] = $item;
+        }
+
+        for ($dayNumber = 1; $dayNumber <= 7; $dayNumber++) {
+            $dayMeals = [];
+            $items = $planItemsByDay[$dayNumber] ?? [];
+
+            foreach ($items as $item) {
+                $mealTime = $item['meal_time'] ?? 'Meal';
+                $slotKey = $dayNumber . '|' . $mealTime;
+                $selection = $selectionsBySlot[$slotKey] ?? null;
+
+                $mealId = $selection['meal_id'] ?? $item['meal_id'] ?? 0;
+                $meal = $mealsById[$mealId] ?? [];
+                if (empty($meal)) {
+                    continue;
+                }
+
+                $normalized = $this->normalizeMealForView($meal);
+                $normalized['time'] = $mealTime;
+                $normalized['status'] = ($selection['is_skipped'] ?? false) ? 'skipped' : ($selection ? 'selected' : 'scheduled');
+                $normalized['selection_id'] = $selection['id'] ?? null;
+                $dayMeals[] = $normalized;
             }
+
+            $calories = array_sum(array_column($dayMeals, 'calories'));
             $weekly[] = [
-                'day' => $day,
-                'meals' => count($dayMeals),
+                'day' => $days[$dayNumber - 1],
+                'date' => null,
+                'meals' => $dayMeals,
+                'mealCount' => count($dayMeals),
                 'calories' => $calories,
-                'completed' => count($dayMeals) >= $mealsPerDay && $calories > 0,
+                'completed' => $calories > 0 && count($dayMeals) > 0,
             ];
         }
 

@@ -186,6 +186,14 @@ return [
             'my_today' => '/meal-schedule/my/today',
         ],
 
+        // ─── Meal Selections ───
+        'meal_selections' => [
+            'my'     => '/meal-selections/my',
+            'create' => '/meal-selections/',
+            'update' => '/meal-selections/{selection_id}',
+            'delete' => '/meal-selections/{selection_id}',
+        ],
+
         // ─── Nutrition / Tracking (not in OpenAPI spec — customer dashboard requirement) ───
         'nutrition' => [
             'today'         => '/nutrition/today',
