@@ -8,6 +8,7 @@ use App\Services\Api\DeliveryApiService;
 use App\Services\Api\HasApiData;
 use App\Services\Api\MealApiService;
 use App\Services\Api\MealScheduleApiService;
+use App\Services\Api\MealSelectionApiService;
 use App\Services\Api\NotificationApiService;
 use App\Services\Api\NutritionApiService;
 use App\Services\Api\OrderApiService;
