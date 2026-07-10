@@ -29,7 +29,7 @@ class UserController extends Controller
                 return redirect()->route('login');
             }
             return $next($request);
-        });
+        })->except(['paymentSuccess', 'paymentCancel']);
     }
 
     public function dashboard(
@@ -398,16 +398,17 @@ class UserController extends Controller
         return redirect()->route('user.subscriptions')->with('success', 'Subscription resumed successfully.');
     }
 
-    public function paymentSuccess(Request $request, PaymentApiService $paymentApi)
+    public function paymentSuccess(Request $request, PaymentApiService $paymentApi, AuthApiService $authApi)
     {
         $sessionId = $request->input('session_id');
         $paymentId = $request->input('payment_id');
+        $isLoggedIn = $authApi->check();
 
         $payment = [];
         $verified = false;
         $error = null;
 
-        if ($sessionId) {
+        if ($isLoggedIn && $sessionId) {
             $result = $this->apiData($paymentApi->verifySession($sessionId), function () {
                 return [];
             });
@@ -421,11 +422,15 @@ class UserController extends Controller
         } elseif ($paymentId) {
             // No session id to verify; surface a pending state so the user can retry later.
             $payment = ['id' => $paymentId, 'status' => 'pending'];
+        } elseif ($sessionId && !$isLoggedIn) {
+            // Guest returning from Stripe cannot verify the session because the API requires auth.
+            $payment = ['id' => $paymentId ?? 'pending', 'status' => 'pending'];
+            $error = 'Please log in or create an account so we can confirm your payment and activate your subscription.';
         } else {
             $error = 'No payment information was received.';
         }
 
-        return view('payment.success', compact('payment', 'verified', 'error', 'sessionId'));
+        return view('payment.success', compact('payment', 'verified', 'error', 'sessionId', 'isLoggedIn'));
     }
 
     public function paymentCancel(Request $request)
