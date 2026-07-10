@@ -244,9 +244,16 @@ class BaseApiService
                 if ($response->status() >= 400 && $response->status() < 500) {
                     $json = $response->json() ?? [];
                     // FastAPI validation errors come as {detail: [{loc, msg, type}]}
-                    if (isset($json['detail']) && is_array($json['detail'])) {
+                    $detail = $json['detail'] ?? null;
+                    $isValidationList = is_array($detail)
+                        && array_is_list($detail)
+                        && isset($detail[0])
+                        && is_array($detail[0])
+                        && isset($detail[0]['loc']);
+
+                    if ($isValidationList) {
                         $errors = [];
-                        foreach ($json['detail'] as $err) {
+                        foreach ($detail as $err) {
                             $field = is_array($err['loc'] ?? []) ? implode('.', array_slice($err['loc'], 1)) : ($err['loc'][0] ?? 'error');
                             $errors[$field] = $err['msg'] ?? 'Validation error';
                         }
