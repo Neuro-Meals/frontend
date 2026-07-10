@@ -183,6 +183,14 @@
                         return;
                     }
 
+                    if (data.requires_verification) {
+                        this.showToast(data.message || @json(__('Please verify your email first.')), 'error');
+                        setTimeout(() => {
+                            window.location.href = @json(route('verify.email')) + '?email=' + encodeURIComponent(data.email || this.form.email);
+                        }, 1500);
+                        return;
+                    }
+
                     this.errors = data.errors || {};
                     const message = data.message || this.errorTitle;
                     this.showToast(message);

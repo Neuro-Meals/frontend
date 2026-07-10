@@ -47,6 +47,30 @@ class LoginController extends Controller
 
             $response = $authApi->login($request->email, $request->password);
 
+            // Backend requires email verification before login.
+            $verificationPayload = is_array($response['message'] ?? null) ? $response['message'] : [];
+            $requiresVerification = !empty($response['requires_verification'])
+                || (!empty($response['status']) && $response['status'] === 403 && !empty($verificationPayload['requires_verification']));
+
+            if ($requiresVerification) {
+                $verificationEmail = $response['email'] ?? ($verificationPayload['email'] ?? $request->email);
+                $authApi->logout();
+
+                $message = $verificationPayload['message'] ?? __('Please verify your email before logging in.');
+
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'requires_verification' => true,
+                        'email' => $verificationEmail,
+                        'message' => $message,
+                    ], 403);
+                }
+
+                return redirect()->route('verify.email', ['email' => urlencode($verificationEmail)])
+                    ->with('status', $message);
+            }
+
             // Backend returned an access token — login succeeded.
             if (isset($response['access_token'])) {
                 $user = $response['user'] ?? [];

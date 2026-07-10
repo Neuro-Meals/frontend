@@ -106,16 +106,17 @@ class RegisterController extends Controller
                 ->withInput($request->except('password', 'password_confirmation'));
         }
 
-        $redirect = route('login');
+        $redirect = route('verify.email', ['email' => urlencode($request->email)]);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Account created! You can now log in.',
+                'requires_verification' => true,
+                'message' => 'Account created! Please verify your email to continue.',
                 'redirect' => $redirect,
             ]);
         }
 
-        return redirect($redirect)->with('status', 'Account created! You can now log in.');
+        return redirect($redirect)->with('status', 'Account created! Please verify your email to continue.');
     }
 }

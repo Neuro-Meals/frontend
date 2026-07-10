@@ -367,6 +367,12 @@
 
                     if (data.success) {
                         this.showToast(data.message, 'success');
+                        if (data.requires_verification) {
+                            setTimeout(() => {
+                                window.location.href = data.redirect || (@json(route('verify.email')) + '?email=' + encodeURIComponent(this.form.email));
+                            }, 1500);
+                            return;
+                        }
                         if (data.redirect) {
                             window.location.href = data.redirect;
                         }
