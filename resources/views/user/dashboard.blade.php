@@ -102,7 +102,7 @@
             <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
         </div>
         <div class="mt-2 sm:mt-3 text-xl sm:text-3xl font-bold tracking-tight text-white relative z-10">{{ $stats['mealsThisWeek'] }}<span class="text-sm text-white/50">/{{ $stats['mealsTotal'] }}</span></div>
-        <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">{{ $stats['mealsTotal'] - $stats['mealsThisWeek'] }} {{ __('remaining') }}</div>
+        <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">{{ $stats['remainingMeals'] }} {{ __('remaining') }}</div>
     </div>
 
     <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#6E7A25] to-[#949B50] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#949B50]/20" style="animation-delay: 0.5s;">
@@ -211,13 +211,17 @@
         <div class="divide-y divide-gray-50">
             @foreach($upcomingMeals as $meal)
             <div class="px-5 py-3 flex items-center gap-3 hover:bg-gray-50/30 transition-colors">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6E7A25]/20 to-[#173327]/20 flex items-center justify-center flex-shrink-0">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#6E7A25]/20 to-[#173327]/20 flex items-center justify-center flex-shrink-0 overflow-hidden relative">
+                    <img src="{{ meal_image_url($meal['image'] ?? null) }}" alt="{{ $meal['name'] ?? 'Meal' }}" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
                     <svg class="w-5 h-5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-xs font-semibold text-gray-900 truncate">{{ $meal['name'] }}</p>
                     <p class="text-[10px] text-gray-400">{{ $meal['time'] }} · {{ $meal['calories'] }} {{ __('kcal') }}</p>
                 </div>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold {{ ($meal['status'] ?? 'upcoming') === 'delivered' ? 'bg-green-50 text-green-700' : 'bg-[#949B50]/10 text-[#949B50]' }}">
+                    {{ ucfirst($meal['status'] ?? 'upcoming') }}
+                </span>
             </div>
             @endforeach
         </div>
@@ -285,6 +289,49 @@
             <a href="{{ route('user.delivery') }}" class="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#6E7A25] hover:text-white transition-colors">
                 {{ __('Track delivery') }} →
             </a>
+        </div>
+    </div>
+</div>
+
+{{-- Health Stats --}}
+@php
+    $weight = (float) ($user['weight_kg'] ?? 0);
+    $height = (float) ($user['height_cm'] ?? 0);
+    $bmi = 0;
+    if ($weight > 0 && $height > 0) {
+        $bmi = $weight / (($height / 100) ** 2);
+    }
+    $age = $user['age'] ?? null;
+    $goal = ucfirst(str_replace('_', ' ', $user['fitness_goal'] ?? 'maintenance'));
+@endphp
+<div class="bg-white rounded-xl border border-gray-100 p-5 sm:p-6 shadow-sm mb-6 animate__animated animate__fadeInUp" style="animation-delay: 1.3s;">
+    <div class="flex items-center justify-between mb-5">
+        <div>
+            <h3 class="text-sm font-bold text-gray-900">{{ __('My') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Health Stats') }}</span></h3>
+            <p class="text-xs text-gray-400">{{ __('Personal data from your profile') }}</p>
+        </div>
+        <a href="{{ route('user.settings') }}" class="text-xs font-bold text-[#6E7A25] hover:text-[#173327] transition-colors">{{ __('Update') }} →</a>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div class="bg-gray-50 rounded-xl p-4 text-center">
+            <p class="text-[10px] text-gray-400 uppercase tracking-wide">{{ __('Weight') }}</p>
+            <p class="text-lg font-bold text-gray-900 mt-1">{{ $weight > 0 ? number_format($weight, 1) . ' kg' : '-' }}</p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 text-center">
+            <p class="text-[10px] text-gray-400 uppercase tracking-wide">{{ __('Height') }}</p>
+            <p class="text-lg font-bold text-gray-900 mt-1">{{ $height > 0 ? number_format($height, 0) . ' cm' : '-' }}</p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 text-center">
+            <p class="text-[10px] text-gray-400 uppercase tracking-wide">{{ __('BMI') }}</p>
+            <p class="text-lg font-bold text-gray-900 mt-1">{{ $bmi > 0 ? number_format($bmi, 1) : '-' }}</p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 text-center">
+            <p class="text-[10px] text-gray-400 uppercase tracking-wide">{{ __('Age') }}</p>
+            <p class="text-lg font-bold text-gray-900 mt-1">{{ $age ? $age . ' yrs' : '-' }}</p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 text-center col-span-2 sm:col-span-1">
+            <p class="text-[10px] text-gray-400 uppercase tracking-wide">{{ __('Goal') }}</p>
+            <p class="text-lg font-bold text-gray-900 mt-1 truncate">{{ $goal }}</p>
         </div>
     </div>
 </div>

@@ -142,11 +142,20 @@ class UserController extends Controller
         $mealsConsumed = $activeSubscription['meals_consumed'] ?? 0;
         $remainingMeals = max(0, $totalPlanMeals - $mealsConsumed);
 
+        $mealsThisWeek = 0;
+        foreach ($weekMeals as $day) {
+            foreach ($day['meals'] ?? [] as $meal) {
+                if (($meal['status'] ?? '') !== 'skipped') {
+                    $mealsThisWeek++;
+                }
+            }
+        }
+
         $stats = [
             'activePlan' => $planName,
             'planPrice' => $planDetails['price'] ?? $activeSubscription['amount'] ?? 0,
             'planRenewal' => !empty($activeSubscription['end_date']) ? date('M d, Y', strtotime($activeSubscription['end_date'])) : 'N/A',
-            'mealsThisWeek' => min(count($todayMeals) * 7, $totalPlanMeals),
+            'mealsThisWeek' => $mealsThisWeek,
             'mealsTotal' => $totalPlanMeals,
             'remainingMeals' => $remainingMeals,
             'totalOrders' => $activeSubscription['orders_count'] ?? 0,
