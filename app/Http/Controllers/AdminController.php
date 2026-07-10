@@ -48,7 +48,7 @@ class AdminController extends Controller
         $deliveriesResponse = app(DeliveryApiService::class)->list(['limit' => 1]);
         $totalDeliveries = $deliveriesResponse['meta']['total'] ?? 0;
 
-        $paymentsData = $this->apiData($paymentApi->list(['limit' => 1000]), function () {
+        $paymentsData = $this->apiData($paymentApi->list(['limit' => 100]), function () {
             return [];
         });
 
@@ -61,14 +61,15 @@ class AdminController extends Controller
         $lastMonth = date('Y-m', strtotime('-1 month'));
 
         foreach ($paymentsData as $payment) {
-            $status = $payment['status'] ?? 'other';
+            $paymentInfo = $payment['payment'] ?? $payment;
+            $status = $paymentInfo['status'] ?? 'other';
             $status = array_key_exists($status, $paymentCounts) ? $status : 'other';
             $paymentCounts[$status]++;
 
-            $amount = $payment['amount'] ?? 0;
+            $amount = $paymentInfo['amount'] ?? 0;
             if ($status === 'paid' || $status === 'captured') {
                 $totalRevenue += $amount;
-                $paymentMonth = !empty($payment['paid_at']) ? substr($payment['paid_at'], 0, 7) : (!empty($payment['created_at']) ? substr($payment['created_at'], 0, 7) : null);
+                $paymentMonth = !empty($paymentInfo['paid_at']) ? substr($paymentInfo['paid_at'], 0, 7) : (!empty($paymentInfo['created_at']) ? substr($paymentInfo['created_at'], 0, 7) : null);
                 if ($paymentMonth === $thisMonth) {
                     $monthlyRevenue += $amount;
                 }
