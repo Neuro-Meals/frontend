@@ -27,8 +27,8 @@
         <p class="text-sm font-bold text-gray-900">{{ __('No active subscription') }}</p>
         <p class="text-xs text-gray-500 mt-0.5">{{ __('Subscribe to a plan to start scheduling your meals.') }}</p>
     </div>
-    <a href="{{ route('plans') }}" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-xs font-bold hover:shadow-lg transition-all w-fit">
-        {{ __('Browse Plans') }}
+    <a href="{{ route('user.subscriptions') }}" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-xs font-bold hover:shadow-lg transition-all w-fit">
+        {{ __('Subscribe to a Plan') }}
     </a>
 </div>
 @endif
