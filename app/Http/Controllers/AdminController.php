@@ -85,6 +85,19 @@ class AdminController extends Controller
         $claimCount = $paymentCounts['refunded'] + $paymentCounts['disputed'] + $paymentCounts['failed'] + $paymentCounts['cancelled'];
         $claimRate = $totalPayments > 0 ? round(($claimCount / $totalPayments) * 100, 1) : 0;
 
+        $subscriptionsReport = $this->apiData($reportsApi->subscriptions(), fn () => []);
+        $subscriptionStatusCounts = [];
+        foreach ($subscriptionsReport['subscriptions_by_status'] ?? [] as $item) {
+            $subscriptionStatusCounts[$item['status']] = $item['count'] ?? 0;
+        }
+        $activeSubsCount = $subscriptionStatusCounts['active'] ?? 0;
+        $cancelledSubsCount = $subscriptionStatusCounts['cancelled'] ?? 0;
+        $expiredSubsCount = $subscriptionStatusCounts['expired'] ?? 0;
+        $pausedSubsCount = $subscriptionStatusCounts['paused'] ?? 0;
+        $totalEngagedSubs = $activeSubsCount + $cancelledSubsCount + $expiredSubsCount + $pausedSubsCount;
+        $churnRate = $totalEngagedSubs > 0 ? round((($cancelledSubsCount + $expiredSubsCount) / $totalEngagedSubs) * 100, 1) : 0;
+        $retentionRate = $totalEngagedSubs > 0 ? round(($activeSubsCount / $totalEngagedSubs) * 100, 1) : 0;
+
         $stats = [
             'totalUsers' => $totalUsers,
             'newUsersThisWeek' => 0,
@@ -151,19 +164,6 @@ class AdminController extends Controller
 
         $ordersResponse = $this->apiData($reportsApi->orders(), fn () => []);
         $ordersTrend = $this->extractTrendValues($ordersResponse, 'orders');
-
-        $subscriptionsReport = $this->apiData($reportsApi->subscriptions(), fn () => []);
-        $subscriptionStatusCounts = [];
-        foreach ($subscriptionsReport['subscriptions_by_status'] ?? [] as $item) {
-            $subscriptionStatusCounts[$item['status']] = $item['count'] ?? 0;
-        }
-        $activeSubsCount = $subscriptionStatusCounts['active'] ?? 0;
-        $cancelledSubsCount = $subscriptionStatusCounts['cancelled'] ?? 0;
-        $expiredSubsCount = $subscriptionStatusCounts['expired'] ?? 0;
-        $pausedSubsCount = $subscriptionStatusCounts['paused'] ?? 0;
-        $totalEngagedSubs = $activeSubsCount + $cancelledSubsCount + $expiredSubsCount + $pausedSubsCount;
-        $churnRate = $totalEngagedSubs > 0 ? round((($cancelledSubsCount + $expiredSubsCount) / $totalEngagedSubs) * 100, 1) : 0;
-        $retentionRate = $totalEngagedSubs > 0 ? round(($activeSubsCount / $totalEngagedSubs) * 100, 1) : 0;
 
         $plansData = $this->apiData($adminApi->plansList(['limit' => 100]), function () {
             return [];
