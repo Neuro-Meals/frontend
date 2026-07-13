@@ -8,7 +8,7 @@
         <div class="text-center max-w-3xl mx-auto mb-12 scroll-reveal">
             <span class="inline-block px-4 py-1.5 rounded-full bg-brand-light/10 text-brand-light text-xs font-bold uppercase tracking-wider mb-4">{{ __('Nutrition Tool') }}</span>
             <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">{{ __('Calculate Your Nutrition Needs') }}</h2>
-            <p class="text-gray-600 dark:text-gray-300 text-lg">{{ __('Get a quick estimate of your daily calorie and protein targets.') }}</p>
+            <p class="text-gray-600 dark:text-gray-300 text-lg">{{ __('Get a quick estimate of your daily calorie and macro targets.') }}</p>
         </div>
 
         {{-- Calculator card --}}
@@ -48,21 +48,35 @@
                         </div>
                     </div>
                     <div class="relative">
-                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">{{ __('Activity Level') }}</label>
-                        <select id="calc-activity" class="calc-input w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:border-brand-light focus:ring-2 focus:ring-brand-light/20 outline-none transition-all text-sm font-medium">
-                            <option value="sedentary">{{ __('Sedentary') }}</option>
-                            <option value="light">{{ __('Light') }}</option>
-                            <option value="moderate" selected>{{ __('Moderate') }}</option>
-                            <option value="active">{{ __('Active') }}</option>
-                            <option value="very_active">{{ __('Very Active') }}</option>
-                        </select>
+                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">{{ __('Body Fat') }} <span class="normal-case text-gray-400 font-medium">({{ __('optional') }})</span></label>
+                        <div class="relative">
+                            <input type="number" id="calc-bodyfat" placeholder="20" min="1" max="60" step="0.1" class="calc-input w-full pl-4 pr-10 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:border-brand-light focus:ring-2 focus:ring-brand-light/20 outline-none transition-all text-sm font-medium">
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">%</span>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">{{ __('Daily Steps') }}</label>
+                        <div class="relative">
+                            <input type="number" id="calc-steps" placeholder="8000" min="0" max="50000" class="calc-input w-full pl-4 pr-10 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:border-brand-light focus:ring-2 focus:ring-brand-light/20 outline-none transition-all text-sm font-medium">
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">steps</span>
+                        </div>
                     </div>
                     <div class="relative">
                         <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">{{ __('Goal') }}</label>
                         <select id="calc-goal" class="calc-input w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:border-brand-light focus:ring-2 focus:ring-brand-light/20 outline-none transition-all text-sm font-medium">
                             <option value="loss">{{ __('Weight Loss') }}</option>
-                            <option value="gain">{{ __('Muscle Gain') }}</option>
+                            <option value="cut">{{ __('Cutting') }}</option>
                             <option value="maintain">{{ __('Maintenance') }}</option>
+                            <option value="skinnyfat">{{ __('Skinny Fat Recomp') }}</option>
+                            <option value="gain">{{ __('Weight Gain') }}</option>
+                            <option value="bulk">{{ __('Muscle Gain') }}</option>
+                        </select>
+                    </div>
+                    <div class="relative">
+                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">{{ __('Experience') }}</label>
+                        <select id="calc-subgoal" class="calc-input w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:border-brand-light focus:ring-2 focus:ring-brand-light/20 outline-none transition-all text-sm font-medium">
+                            <option value="beginner">{{ __('Beginner') }}</option>
+                            <option value="advanced">{{ __('Advanced') }}</option>
                         </select>
                     </div>
                 </div>
@@ -74,46 +88,74 @@
                 </button>
 
                 {{-- Results --}}
-                <div id="calc-results" class="mt-8 grid sm:grid-cols-2 gap-4" style="display: none;">
-                    <div class="calc-result p-5 rounded-2xl bg-gradient-to-br from-brand-light/10 to-brand-light/5 border border-brand-light/20 text-center">
-                        <div class="w-10 h-10 mx-auto rounded-full bg-brand-light/15 flex items-center justify-center mb-3">
-                            <svg class="w-5 h-5 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">{{ __('Daily Calories') }}</p>
-                        <p id="result-calories" class="text-3xl font-extrabold text-brand-light">0</p>
-                        <p class="text-xs text-gray-400 mt-1">{{ __('kcal / day') }}</p>
+                <div id="calc-results" class="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4" style="display: none;">
+                    <div class="calc-result p-4 rounded-2xl bg-gradient-to-br from-brand-light/10 to-brand-light/5 border border-brand-light/20 text-center">
+                        <p class="text-[10px] text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">{{ __('Maintenance') }}</p>
+                        <p id="result-maintenance" class="text-2xl font-extrabold text-brand-light">0</p>
+                        <p class="text-[10px] text-gray-400 mt-1">{{ __('kcal') }}</p>
                     </div>
-                    <div class="calc-result p-5 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-700 dark:to-gray-800 border border-gray-200 dark:border-gray-600 text-center">
-                        <div class="w-10 h-10 mx-auto rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center mb-3">
-                            <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                        </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">{{ __('Recommended Plan') }}</p>
-                        <p id="result-plan" class="text-xl font-extrabold text-gray-900 dark:text-white">-</p>
-                        <p class="text-xs text-gray-400 mt-1">{{ __('best match') }}</p>
+                    <div class="calc-result p-4 rounded-2xl bg-gradient-to-br from-[#173327]/10 to-[#173327]/5 border border-[#173327]/20 text-center">
+                        <p class="text-[10px] text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">{{ __('Goal Calories') }}</p>
+                        <p id="result-calories" class="text-2xl font-extrabold text-[#173327] dark:text-brand-light">0</p>
+                        <p class="text-[10px] text-gray-400 mt-1">{{ __('kcal') }}</p>
+                    </div>
+                    <div class="calc-result p-4 rounded-2xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-center">
+                        <p class="text-[10px] text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">{{ __('Protein') }}</p>
+                        <p id="result-protein" class="text-2xl font-extrabold text-gray-900 dark:text-white">0</p>
+                        <p class="text-[10px] text-gray-400 mt-1">{{ __('g') }}</p>
+                    </div>
+                    <div class="calc-result p-4 rounded-2xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-center">
+                        <p class="text-[10px] text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">{{ __('Fat') }}</p>
+                        <p id="result-fat" class="text-2xl font-extrabold text-gray-900 dark:text-white">0</p>
+                        <p class="text-[10px] text-gray-400 mt-1">{{ __('g') }}</p>
+                    </div>
+                    <div class="calc-result p-4 rounded-2xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-center">
+                        <p class="text-[10px] text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">{{ __('Carbs') }}</p>
+                        <p id="result-carbs" class="text-2xl font-extrabold text-gray-900 dark:text-white">0</p>
+                        <p class="text-[10px] text-gray-400 mt-1">{{ __('g') }}</p>
+                    </div>
+                    <div class="calc-result p-4 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-700 dark:to-gray-800 border border-gray-200 dark:border-gray-600 text-center">
+                        <p class="text-[10px] text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">{{ __('Recommended Plan') }}</p>
+                        <p id="result-plan" class="text-lg font-extrabold text-gray-900 dark:text-white leading-tight">-</p>
+                        <p class="text-[10px] text-gray-400 mt-1">{{ __('best match') }}</p>
                     </div>
                 </div>
 
                 {{-- Default placeholder results --}}
-                <div id="calc-placeholder" class="mt-8 grid sm:grid-cols-2 gap-4">
-                    <div class="p-5 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-dashed border-gray-200 dark:border-gray-700 text-center">
-                        <div class="w-10 h-10 mx-auto rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3">
-                            <svg class="w-5 h-5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        </div>
-                        <p class="text-xs text-gray-400 dark:text-gray-500 mb-1 uppercase tracking-wider">{{ __('Daily Calories') }}</p>
-                        <p class="text-3xl font-extrabold text-gray-300 dark:text-gray-700">---</p>
-                        <p class="text-xs text-gray-400 mt-1">{{ __('kcal / day') }}</p>
+                <div id="calc-placeholder" class="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-dashed border-gray-200 dark:border-gray-700 text-center">
+                        <p class="text-[10px] text-gray-400 dark:text-gray-500 mb-1 uppercase tracking-wider">{{ __('Maintenance') }}</p>
+                        <p class="text-2xl font-extrabold text-gray-300 dark:text-gray-700">---</p>
+                        <p class="text-[10px] text-gray-400 mt-1">{{ __('kcal') }}</p>
                     </div>
-                    <div class="p-5 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-dashed border-gray-200 dark:border-gray-700 text-center">
-                        <div class="w-10 h-10 mx-auto rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3">
-                            <svg class="w-5 h-5 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                        </div>
-                        <p class="text-xs text-gray-400 dark:text-gray-500 mb-1 uppercase tracking-wider">{{ __('Recommended Plan') }}</p>
-                        <p class="text-xl font-extrabold text-gray-300 dark:text-gray-700">---</p>
-                        <p class="text-xs text-gray-400 mt-1">{{ __('best match') }}</p>
+                    <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-dashed border-gray-200 dark:border-gray-700 text-center">
+                        <p class="text-[10px] text-gray-400 dark:text-gray-500 mb-1 uppercase tracking-wider">{{ __('Goal Calories') }}</p>
+                        <p class="text-2xl font-extrabold text-gray-300 dark:text-gray-700">---</p>
+                        <p class="text-[10px] text-gray-400 mt-1">{{ __('kcal') }}</p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-dashed border-gray-200 dark:border-gray-700 text-center">
+                        <p class="text-[10px] text-gray-400 dark:text-gray-500 mb-1 uppercase tracking-wider">{{ __('Protein') }}</p>
+                        <p class="text-2xl font-extrabold text-gray-300 dark:text-gray-700">---</p>
+                        <p class="text-[10px] text-gray-400 mt-1">{{ __('g') }}</p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-dashed border-gray-200 dark:border-gray-700 text-center">
+                        <p class="text-[10px] text-gray-400 dark:text-gray-500 mb-1 uppercase tracking-wider">{{ __('Fat') }}</p>
+                        <p class="text-2xl font-extrabold text-gray-300 dark:text-gray-700">---</p>
+                        <p class="text-[10px] text-gray-400 mt-1">{{ __('g') }}</p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-dashed border-gray-200 dark:border-gray-700 text-center">
+                        <p class="text-[10px] text-gray-400 dark:text-gray-500 mb-1 uppercase tracking-wider">{{ __('Carbs') }}</p>
+                        <p class="text-2xl font-extrabold text-gray-300 dark:text-gray-700">---</p>
+                        <p class="text-[10px] text-gray-400 mt-1">{{ __('g') }}</p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-dashed border-gray-200 dark:border-gray-700 text-center">
+                        <p class="text-[10px] text-gray-400 dark:text-gray-500 mb-1 uppercase tracking-wider">{{ __('Recommended Plan') }}</p>
+                        <p class="text-lg font-extrabold text-gray-300 dark:text-gray-700">---</p>
+                        <p class="text-[10px] text-gray-400 mt-1">{{ __('best match') }}</p>
                     </div>
                 </div>
 
-                <p class="text-center text-xs text-gray-400 mt-6">{{ __('Results are an estimate based on the Mifflin-St Jeor equation and standard activity multipliers.') }}</p>
+                <p class="text-center text-xs text-gray-400 mt-6">{{ __('Results are an estimate based on the Saudi Fit methodology; body fat percentage gives the most accurate result.') }}</p>
             </div>
         </div>
     </div>
@@ -135,28 +177,86 @@
             });
         });
 
-        const activityMultipliers = {
-            sedentary: 1.2,
-            light: 1.375,
-            moderate: 1.55,
-            active: 1.725,
-            very_active: 1.9
+        const CONFIG = {
+            stepTiers: [
+                { max: 3999, factor: 1.2 },
+                { max: 7999, factor: 1.375 },
+                { max: 11999, factor: 1.55 },
+                { max: 14999, factor: 1.725 },
+                { max: Infinity, factor: 1.9 },
+            ],
+            goalAdjust: {
+                gain: { beginner: 0.10, advanced: 0.08 },
+                bulk: { beginner: 0.15, advanced: 0.10 },
+                loss: { beginner: -0.20, advanced: -0.20 },
+                cut: { beginner: -0.15, advanced: -0.20 },
+                maintain: { beginner: 0.00, advanced: 0.00 },
+                skinnyfat: { beginner: -0.10, advanced: -0.10 },
+            },
+            proteinPerKgLBM: 2.2,
+            proteinPerKgBW: 1.8,
+            fatPctOfCalories: 0.25,
+            minFatPerKg: 0.6,
         };
 
-        const goalAdjustments = {
-            loss: 0.85,
-            gain: 1.10,
-            maintain: 1.0
+        function stepFactor(steps) {
+            return CONFIG.stepTiers.find(t => steps <= t.max).factor;
+        }
+
+        function calculateNutrition({ gender, age, weight, height, bodyFat, steps, goal, subGoal }) {
+            const hasBodyFat = bodyFat != null && bodyFat > 0;
+            let bmr, lbm = null;
+            if (hasBodyFat) {
+                lbm = weight * (1 - bodyFat / 100);
+                bmr = 370 + 21.6 * lbm;
+            } else {
+                bmr = gender === 'male'
+                    ? 10 * weight + 6.25 * height - 5 * age + 5
+                    : 10 * weight + 6.25 * height - 5 * age - 161;
+            }
+
+            const maintenance = bmr * stepFactor(steps);
+            const goalCalories = maintenance * (1 + CONFIG.goalAdjust[goal][subGoal]);
+
+            const protein = hasBodyFat
+                ? lbm * CONFIG.proteinPerKgLBM
+                : weight * CONFIG.proteinPerKgBW;
+
+            const fat = Math.max(
+                (goalCalories * CONFIG.fatPctOfCalories) / 9,
+                weight * CONFIG.minFatPerKg
+            );
+
+            const carbs = Math.max((goalCalories - protein * 4 - fat * 9) / 4, 0);
+
+            return {
+                maintenance: Math.round(maintenance),
+                goalCalories: Math.round(goalCalories),
+                protein: Math.round(protein),
+                fat: Math.round(fat),
+                carbs: Math.round(carbs),
+            };
+        }
+
+        const planLabels = {
+            loss: '{{ __('Weight Loss') }}',
+            cut: '{{ __('Cutting') }}',
+            maintain: '{{ __('Maintenance') }}',
+            skinnyfat: '{{ __('Skinny Fat Recomp') }}',
+            gain: '{{ __('Weight Gain') }}',
+            bulk: '{{ __('Muscle Gain') }}',
         };
 
         document.getElementById('calc-btn').addEventListener('click', function() {
             const age = parseFloat(document.getElementById('calc-age').value) || 0;
             const weight = parseFloat(document.getElementById('calc-weight').value) || 0;
             const height = parseFloat(document.getElementById('calc-height').value) || 0;
-            const activity = document.getElementById('calc-activity').value;
+            const bodyFat = parseFloat(document.getElementById('calc-bodyfat').value) || null;
+            const steps = parseFloat(document.getElementById('calc-steps').value) || 0;
             const goal = document.getElementById('calc-goal').value;
+            const subGoal = document.getElementById('calc-subgoal').value;
 
-            if (!age || !weight || !height) {
+            if (!age || !weight || !height || !steps) {
                 document.querySelectorAll('.calc-input').forEach(el => {
                     if (!el.value && el.tagName !== 'SELECT') {
                         el.classList.add('border-red-400', 'ring-2', 'ring-red-200');
@@ -166,26 +266,27 @@
                 return;
             }
 
-            const base = 10 * weight + 6.25 * height - 5 * age;
-            const bmr = selectedGender === 'male' ? base + 5 : base - 161;
-            const tdee = bmr * (activityMultipliers[activity] || 1.55);
-            const calories = Math.round(tdee * (goalAdjustments[goal] || 1.0));
-
-            let plan;
-            if (goal === 'loss') {
-                plan = '{{ __('Weight Loss') }}';
-            } else if (goal === 'gain') {
-                plan = '{{ __('Muscle Gain') }}';
-            } else {
-                plan = '{{ __('Maintenance') }}';
-            }
+            const result = calculateNutrition({
+                gender: selectedGender,
+                age,
+                weight,
+                height,
+                bodyFat,
+                steps,
+                goal,
+                subGoal,
+            });
 
             document.getElementById('calc-placeholder').style.display = 'none';
             const results = document.getElementById('calc-results');
             results.style.display = 'grid';
 
-            animateNumber('result-calories', calories);
-            document.getElementById('result-plan').textContent = plan;
+            animateNumber('result-maintenance', result.maintenance);
+            animateNumber('result-calories', result.goalCalories);
+            animateNumber('result-protein', result.protein);
+            animateNumber('result-fat', result.fat);
+            animateNumber('result-carbs', result.carbs);
+            document.getElementById('result-plan').textContent = planLabels[goal] || goal;
 
             results.querySelectorAll('.calc-result').forEach((el, i) => {
                 el.style.opacity = '0';
@@ -194,7 +295,7 @@
                     el.style.transition = 'all 0.5s ease';
                     el.style.opacity = '1';
                     el.style.transform = 'translateY(0)';
-                }, i * 150);
+                }, i * 100);
             });
         });
 
