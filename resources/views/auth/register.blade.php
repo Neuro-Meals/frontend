@@ -38,6 +38,9 @@
 
             <form class="space-y-5" method="POST" action="{{ route('register') }}" @submit.prevent="submit">
 
+                {{-- Step 1: Account Details --}}
+                <div x-show="step === 1" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100 translate-x-0" x-transition:leave-end="opacity-0 -translate-x-4">
+
                 {{-- First Name --}}
                 <div>
                     <label for="first_name" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('First Name') }}</label>
@@ -155,6 +158,12 @@
                         </button>
                     </div>
                 </div>
+
+                    </div>
+                </div>
+
+                {{-- Step 2: Profile & Location --}}
+                <div x-show="step === 2" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100 translate-x-0" x-transition:leave-end="opacity-0 -translate-x-4">
 
                 {{-- Location --}}
                 <div x-data="locationPicker()" @click.away="open = false">
@@ -358,19 +367,38 @@
                     </div>
                 </div>
 
-                {{-- Submit --}}
-                <button type="submit" :disabled="loading"
-                    class="w-full py-3 text-sm font-bold text-white rounded-lg shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                    :class="loading ? 'bg-gray-400' : 'bg-gradient-to-r from-brand-light to-brand-dark hover:from-brand-dark hover:to-brand-light hover:shadow-lg'">
-                    <svg x-show="!loading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-                    </svg>
-                    <svg x-show="loading" class="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {{-- Step Actions --}}
+                <div class="flex flex-col gap-3 pt-2" x-show="!loading">
+                    <button type="button" x-show="step === 1" @click="nextStep()"
+                        class="w-full py-3 text-sm font-bold text-white rounded-lg shadow-md transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-brand-light to-brand-dark hover:from-brand-dark hover:to-brand-light hover:shadow-lg">
+                        <span x-text="nextStepLabel"></span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+
+                    <div x-show="step === 2" class="flex flex-col gap-3">
+                        <button type="submit" :disabled="loading"
+                            class="w-full py-3 text-sm font-bold text-white rounded-lg shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed bg-gradient-to-r from-brand-light to-brand-dark hover:from-brand-dark hover:to-brand-light hover:shadow-lg">
+                            <svg x-show="!loading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                            </svg>
+                            <span x-text="createAccount"></span>
+                        </button>
+                        <button type="button" @click="prevStep()"
+                            class="w-full py-3 text-sm font-bold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            <span x-text="backStepLabel"></span>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Loading --}}
+                <div x-show="loading" class="w-full py-3 text-sm font-bold text-white rounded-lg shadow-md bg-gray-400 flex items-center justify-center gap-2">
+                    <svg class="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <span x-text="loading ? pleaseWait : createAccount"></span>
-                </button>
+                    <span x-text="pleaseWait"></span>
+                </div>
             </form>
 
             {{-- Divider --}}
@@ -465,15 +493,21 @@
 
     function registerForm() {
         return {
+            step: 1,
+            totalSteps: 2,
             loading: false,
             toast: { show: false, message: '', type: 'error', title: '' },
             errors: {},
             pleaseWait: @json(__('Please wait...')),
             createAccount: @json(__('Create Account')),
+            nextStepLabel: @json(__('Next Step')),
+            backStepLabel: @json(__('Back')),
             registrationFailed: @json(__('Registration failed')),
             successTitle: @json(__('Success')),
             networkError: @json(__('Network error. Please try again.')),
             registerUrl: @json(route('register')),
+            step1Fields: ['first_name', 'last_name', 'phone', 'email', 'password', 'password_confirmation'],
+            step2Fields: ['location', 'address', 'gender', 'age', 'height_cm', 'weight_kg', 'fitness_goal', 'dietary_preference'],
             form: {
                 first_name: '',
                 last_name: '',
@@ -500,7 +534,47 @@
                 };
                 setTimeout(() => { this.toast.show = false }, 7000);
             },
+            validateStep1() {
+                this.errors = {};
+                const f = this.form;
+                if (!f.first_name || f.first_name.trim().length < 2) this.errors.first_name = ['{{ __('First name is required.') }}'];
+                if (!f.last_name || f.last_name.trim().length < 2) this.errors.last_name = ['{{ __('Last name is required.') }}'];
+                if (!f.phone || f.phone.trim().length < 8) this.errors.phone = ['{{ __('Phone must be at least 8 characters.') }}'];
+                if (!f.email || !f.email.includes('@')) this.errors.email = ['{{ __('Please enter a valid email address.') }}'];
+                if (!f.password || f.password.length < 6) this.errors.password = ['{{ __('Password must be at least 6 characters.') }}'];
+                if (f.password !== f.password_confirmation) this.errors.password_confirmation = ['{{ __('Passwords do not match.') }}'];
+                return Object.keys(this.errors).length === 0;
+            },
+            validateStep2() {
+                this.errors = {};
+                const f = this.form;
+                if (!f.location || f.location.trim().length < 2) this.errors.location = ['{{ __('Please select your city from the location picker.') }}'];
+                if (!f.address || f.address.trim().length < 3) this.errors.address = ['{{ __('Address is required.') }}'];
+                if (!f.gender) this.errors.gender = ['{{ __('Please select your gender.') }}'];
+                if (!f.age || f.age < 10 || f.age > 120) this.errors.age = ['{{ __('Age must be between 10 and 120.') }}'];
+                if (!f.height_cm || f.height_cm < 50 || f.height_cm > 300) this.errors.height_cm = ['{{ __('Height must be between 50 and 300 cm.') }}'];
+                if (!f.weight_kg || f.weight_kg < 20 || f.weight_kg > 500) this.errors.weight_kg = ['{{ __('Weight must be between 20 and 500 kg.') }}'];
+                if (!f.fitness_goal) this.errors.fitness_goal = ['{{ __('Please select a fitness goal.') }}'];
+                if (!f.dietary_preference) this.errors.dietary_preference = ['{{ __('Please select a dietary preference.') }}'];
+                return Object.keys(this.errors).length === 0;
+            },
+            nextStep() {
+                if (this.step === 1 && this.validateStep1()) {
+                    this.step = 2;
+                }
+            },
+            prevStep() {
+                if (this.step > 1) {
+                    this.step--;
+                    this.errors = {};
+                }
+            },
             async submit() {
+                if (!this.validateStep2()) {
+                    this.showToast('{{ __('Please complete all required fields.') }}');
+                    return;
+                }
+
                 this.loading = true;
                 this.errors = {};
                 this.toast.show = false;
