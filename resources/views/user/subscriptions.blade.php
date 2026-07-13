@@ -91,19 +91,27 @@
             </button>
             @endif
             @if($activePlan['status'] === 'active')
-            <form action="{{ route('user.subscriptions.pause', $activePlan['id']) }}" method="POST" onsubmit="return confirm('Pause your subscription? Deliveries will be stopped until you resume.')">
+            <form action="{{ route('user.subscriptions.pause', $activePlan['id']) }}" method="POST" class="swal-confirm-form"
+                data-title="{{ __('Pause Subscription?') }}"
+                data-text="{{ __('Deliveries will be stopped until you resume your subscription.') }}"
+                data-confirm-text="{{ __('Pause') }}"
+                data-cancel-text="{{ __('Cancel') }}">
                 @csrf
                 <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-400/20 text-amber-300 hover:bg-amber-400/30 text-xs font-bold transition-colors">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Pause
+                    {{ __('Pause') }}
                 </button>
             </form>
             @elseif($activePlan['status'] === 'paused')
-            <form action="{{ route('user.subscriptions.resume', $activePlan['id']) }}" method="POST" onsubmit="return confirm('Resume your subscription? Deliveries will start again.')">
+            <form action="{{ route('user.subscriptions.resume', $activePlan['id']) }}" method="POST" class="swal-confirm-form"
+                data-title="{{ __('Resume Subscription?') }}"
+                data-text="{{ __('Deliveries will start again once you resume your subscription.') }}"
+                data-confirm-text="{{ __('Resume') }}"
+                data-cancel-text="{{ __('Cancel') }}">
                 @csrf
                 <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-400/20 text-green-300 hover:bg-green-400/30 text-xs font-bold transition-colors">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Resume
+                    {{ __('Resume') }}
                 </button>
             </form>
             @endif
@@ -273,7 +281,38 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    document.querySelectorAll('.swal-confirm-form').forEach(form => {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const title = this.getAttribute('data-title') || 'Are you sure?';
+            const text = this.getAttribute('data-text') || '';
+            const confirmText = this.getAttribute('data-confirm-text') || 'Confirm';
+            const cancelText = this.getAttribute('data-cancel-text') || 'Cancel';
+            Swal.fire({
+                title: title,
+                text: text,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#173327',
+                cancelButtonColor: '#d1d5db',
+                confirmButtonText: confirmText,
+                cancelButtonText: cancelText,
+                reverseButtons: true,
+                customClass: {
+                    popup: 'rounded-2xl',
+                    confirmButton: 'px-4 py-2 text-xs font-bold rounded-lg',
+                    cancelButton: 'px-4 py-2 text-xs font-bold rounded-lg'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit();
+                }
+            });
+        });
+    });
+
     function getCsrfToken() {
         return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     }
@@ -401,9 +440,35 @@
         currentReceipt = item;
         const content = document.getElementById('receipt-content');
         const paidAt = item.paid_at || 'N/A';
-        const transactionId = item.transaction_id || 'N/A';
+        const createdAt = item.created_at || 'N/A';
         const provider = item.payment_provider || 'Tap';
+        const currency = item.currency || 'SAR';
         const amount = parseFloat(item.amount || 0).toFixed(2);
+        const serviceId = item.transaction_id || item.tap_charge_id || 'N/A';
+
+        const extraRefs = [];
+        if (item.tap_charge_id && item.tap_charge_id !== serviceId) extraRefs.push({ label: 'Tap Charge ID', value: item.tap_charge_id });
+        if (item.tap_payment_reference) extraRefs.push({ label: 'Tap Payment Ref', value: item.tap_payment_reference });
+        if (item.tap_gateway_reference) extraRefs.push({ label: 'Tap Gateway Ref', value: item.tap_gateway_reference });
+
+        const extraRefsHtml = extraRefs.length
+            ? extraRefs.map(r => `
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">${escapeHtml(r.label)}</span>
+                    <span class="font-semibold text-gray-900 text-[10px] truncate max-w-[180px]">${escapeHtml(r.value)}</span>
+                </div>
+            `).join('')
+            : '';
+
+        const responseHtml = (item.tap_response_code || item.tap_response_message)
+            ? `
+                <div class="bg-gray-50 rounded-lg p-3 mt-3">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Payment Response') }}</p>
+                    ${item.tap_response_code ? `<div class="flex justify-between text-sm"><span class="text-gray-500">{{ __('Response Code') }}</span><span class="font-semibold text-gray-900">${escapeHtml(item.tap_response_code)}</span></div>` : ''}
+                    ${item.tap_response_message ? `<div class="flex justify-between text-sm mt-1"><span class="text-gray-500">{{ __('Response Message') }}</span><span class="font-semibold text-gray-900 text-[10px] text-right max-w-[180px]">${escapeHtml(item.tap_response_message)}</span></div>` : ''}
+                </div>
+            `
+            : '';
 
         content.innerHTML = `
             <div class="text-center mb-6">
@@ -411,7 +476,7 @@
                     <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 </div>
                 <h2 class="text-xl font-bold text-gray-900 mb-1">{{ __('Payment Receipt') }}</h2>
-                <p class="text-xs text-gray-500">${provider}</p>
+                <p class="text-xs text-gray-500">${provider.toUpperCase()}</p>
             </div>
             <div class="space-y-3 border-t border-gray-100 pt-4">
                 <div class="flex justify-between text-sm">
@@ -424,21 +489,27 @@
                 </div>
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-500">{{ __('Amount') }}</span>
-                    <span class="font-semibold text-gray-900">SAR ${amount}</span>
+                    <span class="font-semibold text-[#6E7A25]">${currency} ${amount}</span>
                 </div>
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-500">{{ __('Status') }}</span>
-                    <span class="font-semibold text-green-600">${escapeHtml(item.payment_status || 'paid')}</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-50 text-green-700">${escapeHtml(item.payment_status || 'paid')}</span>
                 </div>
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-500">{{ __('Paid on') }}</span>
                     <span class="font-semibold text-gray-900">${escapeHtml(paidAt)}</span>
                 </div>
                 <div class="flex justify-between text-sm">
-                    <span class="text-gray-500">{{ __('Transaction ID') }}</span>
-                    <span class="font-semibold text-gray-900 text-[10px]">${escapeHtml(transactionId)}</span>
+                    <span class="text-gray-500">{{ __('Created on') }}</span>
+                    <span class="font-semibold text-gray-900">${escapeHtml(createdAt)}</span>
                 </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">{{ __('Service ID') }}</span>
+                    <span class="font-semibold text-gray-900 text-[10px] truncate max-w-[180px]" title="${escapeHtml(serviceId)}">${escapeHtml(serviceId)}</span>
+                </div>
+                ${extraRefsHtml}
             </div>
+            ${responseHtml}
             <div class="mt-6 text-center text-[10px] text-gray-400">
                 {{ __('Thank you for choosing Nutrio Meals') }}
             </div>

@@ -293,8 +293,15 @@ class UserController extends Controller
             'color' => '#259B00',
             'period' => !empty($activeSubscription['start_date']) ? date('M Y', strtotime($activeSubscription['start_date'])) : 'N/A',
             'paid_at' => !empty($activePayment['paid_at']) ? date('M d, Y', strtotime($activePayment['paid_at'])) : (!empty($activeSubscription['start_date']) ? date('M d, Y', strtotime($activeSubscription['start_date'])) : 'N/A'),
+            'created_at' => !empty($activePayment['created_at']) ? date('M d, Y', strtotime($activePayment['created_at'])) : (!empty($activeSubscription['created_at']) ? date('M d, Y', strtotime($activeSubscription['created_at'])) : 'N/A'),
             'transaction_id' => $activePayment['tap_charge_id'] ?? $activePayment['tap_payment_reference'] ?? $activePayment['tap_gateway_reference'] ?? null,
+            'tap_charge_id' => $activePayment['tap_charge_id'] ?? null,
+            'tap_payment_reference' => $activePayment['tap_payment_reference'] ?? null,
+            'tap_gateway_reference' => $activePayment['tap_gateway_reference'] ?? null,
+            'tap_response_code' => $activePayment['tap_response_code'] ?? null,
+            'tap_response_message' => $activePayment['tap_response_message'] ?? null,
             'payment_provider' => $activePayment['provider'] ?? 'Tap',
+            'currency' => $activePayment['currency'] ?? 'SAR',
             'receipt' => !empty($activePayment) && ($activeSubscription['payment_status'] ?? 'unpaid') === 'paid',
         ];
 
@@ -314,8 +321,15 @@ class UserController extends Controller
                 'color' => '#6b7280',
                 'period' => 'N/A',
                 'paid_at' => 'N/A',
+                'created_at' => 'N/A',
                 'transaction_id' => null,
+                'tap_charge_id' => null,
+                'tap_payment_reference' => null,
+                'tap_gateway_reference' => null,
+                'tap_response_code' => null,
+                'tap_response_message' => null,
                 'payment_provider' => 'Tap',
+                'currency' => 'SAR',
                 'receipt' => false,
             ];
         }
@@ -355,8 +369,15 @@ class UserController extends Controller
                 'payment_status' => $sub['payment_status'] ?? 'unpaid',
                 'amount' => $sub['amount'] ?? 0,
                 'paid_at' => !empty($payment['paid_at']) ? date('M d, Y', strtotime($payment['paid_at'])) : (!empty($sub['start_date']) ? date('M d, Y', strtotime($sub['start_date'])) : 'N/A'),
+                'created_at' => !empty($payment['created_at']) ? date('M d, Y', strtotime($payment['created_at'])) : (!empty($sub['created_at']) ? date('M d, Y', strtotime($sub['created_at'])) : 'N/A'),
                 'transaction_id' => $payment['tap_charge_id'] ?? $payment['tap_payment_reference'] ?? $payment['tap_gateway_reference'] ?? null,
+                'tap_charge_id' => $payment['tap_charge_id'] ?? null,
+                'tap_payment_reference' => $payment['tap_payment_reference'] ?? null,
+                'tap_gateway_reference' => $payment['tap_gateway_reference'] ?? null,
+                'tap_response_code' => $payment['tap_response_code'] ?? null,
+                'tap_response_message' => $payment['tap_response_message'] ?? null,
                 'payment_provider' => $payment['provider'] ?? 'Tap',
+                'currency' => $payment['currency'] ?? 'SAR',
                 'receipt' => !empty($payment) && ($sub['payment_status'] ?? 'unpaid') === 'paid',
             ];
         }
