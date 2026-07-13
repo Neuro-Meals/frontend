@@ -70,10 +70,11 @@
                 </div>
             </div>
 
-            <form class="space-y-5" method="POST" action="{{ route('register') }}" @submit.prevent="submit">
+            <form class="relative space-y-5 min-h-[520px]" method="POST" action="{{ route('register') }}" @submit.prevent="submit">
 
                 {{-- Step 1: Account Information --}}
-                <div x-show="step === 1" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-x-0" x-transition:leave-end="opacity-0 -translate-x-4" class="space-y-5">
+                <div class="absolute top-0 left-0 w-full transition-all duration-500 ease-in-out space-y-5"
+                     :class="step === 1 ? 'translate-x-0 opacity-100 z-10' : '-translate-x-full opacity-0 z-0'">
 
                 {{-- First Name --}}
                 <div>
@@ -194,7 +195,8 @@
                 </div>
 
                 {{-- Step 2: Location & Health --}}
-                <div x-show="step === 2" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-x-0" x-transition:leave-end="opacity-0 -translate-x-4" class="space-y-5" x-cloak>
+                <div class="absolute top-0 left-0 w-full transition-all duration-500 ease-in-out space-y-5"
+                     :class="step === 2 ? 'translate-x-0 opacity-100 z-10' : 'translate-x-full opacity-0 z-0'">
 
                 {{-- Location --}}
                 <div x-data="locationPicker()" @click.away="open = false" class="relative">
