@@ -211,16 +211,14 @@ class DriverController extends Controller
 
         $status = $delivery['status'] ?? 'pending';
         $order = $orderData ?: ($delivery['order'] ?? []);
-        $customer = $delivery['customer']
-            ?? ($order['customer'] ?? ($order['user'] ?? []));
-        $address = $delivery['delivery_address']
-            ?? ($order['delivery_address'] ?? ($customer['address'] ?? ''));
+        $customer = $delivery['customer'] ?? ($order['customer'] ?? ($order['user'] ?? []));
+        $address = $delivery['delivery_address'] ?? ($order['delivery_address'] ?? ($customer['address'] ?? ''));
 
         return [
             'id' => $delivery['id'] ?? 0,
             'order_id' => $delivery['order_id'] ?? ($order['id'] ?? 0),
-            'order_number' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
-            'customer' => trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')) ?: 'Customer',
+            'order_number' => $order['order_number'] ?? ($delivery['order_number'] ?? ('ORD-' . ($order['id'] ?? 0))),
+            'customer' => trim($customer['full_name'] ?? (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) ?: 'Customer',
             'customer_id' => $customer['id'] ?? null,
             'customer_email' => $customer['email'] ?? '',
             'customer_phone' => $customer['phone'] ?? ($customer['mobile'] ?? ''),
@@ -228,7 +226,8 @@ class DriverController extends Controller
             'customer_location' => $customer['location'] ?? '',
             'customer_address' => $customer['address'] ?? '',
             'address' => $address,
-            'zone' => $delivery['zone'] ?? 'N/A',
+            'notes' => $delivery['delivery_notes'] ?? ($order['delivery_notes'] ?? ''),
+            'zone' => $delivery['zone'] ?? ($customer['location'] ?? 'N/A'),
             'status' => $status,
             'status_label' => $statusLabels[$status] ?? __(ucfirst($status)),
             'eta' => $delivery['eta'] ?? 'On time',
@@ -238,6 +237,7 @@ class DriverController extends Controller
             'delivered_at' => $delivery['delivered_at'] ?? null,
             'failure_reason' => $delivery['failure_reason'] ?? '',
             'items' => $order['items'] ?? [],
+            'amount' => $order['total_amount'] ?? 0,
             'lat' => $delivery['latitude'] ?? ($delivery['current_latitude'] ?? null),
             'lng' => $delivery['longitude'] ?? ($delivery['current_longitude'] ?? null),
         ];

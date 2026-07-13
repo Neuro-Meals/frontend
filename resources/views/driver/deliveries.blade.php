@@ -50,13 +50,25 @@
                     <svg class="w-4 h-4 text-brand-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     <p class="text-xs text-gray-700 leading-relaxed flex-1">{{ $delivery['address'] ?: __('No address provided') }}</p>
                 </div>
-                @if($delivery['address'])
-                <a href="{{ route('driver.deliveries.map', $delivery['id']) }}"
-                    class="mb-4 flex items-center justify-center gap-1.5 w-full py-2 rounded-xl border border-brand-200 bg-brand-50 text-brand-700 text-xs font-bold hover:bg-brand-100 transition-colors">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
-                    {{ __('Get Directions') }}
-                </a>
+                @if($delivery['notes'])
+                <div class="flex items-start gap-2 mb-3 bg-amber-50 p-2 rounded-lg border border-amber-100">
+                    <svg class="w-3.5 h-3.5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <p class="text-[10px] text-amber-800 leading-tight flex-1 italic">{{ $delivery['notes'] }}</p>
+                </div>
                 @endif
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span class="text-[10px] font-bold text-gray-700">SAR {{ number_format($delivery['amount'], 2) }}</span>
+                    </div>
+                    @if($delivery['address'])
+                    <a href="{{ route('driver.deliveries.map', $delivery['id']) }}"
+                        class="flex items-center justify-center gap-1 w-24 py-1.5 rounded-lg border border-brand-200 bg-brand-50 text-brand-700 text-[10px] font-bold hover:bg-brand-100 transition-colors">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                        {{ __('Map') }}
+                    </a>
+                    @endif
+                </div>
                 <div class="grid grid-cols-2 gap-2">
                     @if(in_array($delivery['status'], ['assigned', 'pending']))
                     <button type="button"
@@ -236,6 +248,23 @@
                             @endif
                         </div>
                         @endif
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mt-4">
+                        @if($delivery['notes'])
+                        <div class="col-span-2 bg-amber-50 rounded-xl p-3 border border-amber-100">
+                            <p class="text-[9px] font-bold text-amber-800 uppercase mb-1">{{ __('Delivery Notes') }}</p>
+                            <p class="text-xs text-amber-900 leading-relaxed">{{ $delivery['notes'] }}</p>
+                        </div>
+                        @endif
+                        <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                            <p class="text-[9px] font-bold text-gray-400 uppercase mb-1">{{ __('Order Total') }}</p>
+                            <p class="text-xs font-bold text-gray-900">SAR {{ number_format($delivery['amount'], 2) }}</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                            <p class="text-[9px] font-bold text-gray-400 uppercase mb-1">{{ __('Delivery ID') }}</p>
+                            <p class="text-xs font-bold text-gray-900">#{{ $delivery['id'] }}</p>
+                        </div>
                     </div>
 
                     <a href="{{ route('driver.deliveries.detail', $delivery['id']) }}" class="mt-4 flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl border border-brand-200 bg-brand-50 text-brand-700 text-xs font-bold hover:bg-brand-100 transition-colors">
