@@ -400,15 +400,30 @@ class UserController extends Controller
 
     public function paymentSuccess(Request $request, PaymentApiService $paymentApi, AuthApiService $authApi)
     {
-        $sessionId = $request->input('session_id');
+        $chargeId = $request->input('tap_id') ?? $request->input('charge_id');
         $paymentId = $request->input('payment_id');
+        $sessionId = $request->input('session_id'); // kept for backwards compatibility with old Stripe URLs
         $isLoggedIn = $authApi->check();
 
         $payment = [];
         $verified = false;
         $error = null;
 
-        if ($isLoggedIn && $sessionId) {
+        // Tap gateway: verify by charge_id (tap_id) if available.
+        if ($isLoggedIn && $chargeId) {
+            $result = $this->apiData($paymentApi->verifyCharge($chargeId), function () {
+                return [];
+            });
+
+            if (!empty($result['id'])) {
+                $payment = $result;
+                $verified = ($result['status'] ?? '') === 'paid';
+            } elseif (!empty($result['detail']) || !empty($result['message'])) {
+                $error = $result['detail'] ?? $result['message'] ?? 'Unable to confirm payment status.';
+            }
+        }
+        // Legacy Stripe fallback
+        elseif ($isLoggedIn && $sessionId) {
             $result = $this->apiData($paymentApi->verifySession($sessionId), function () {
                 return [];
             });
@@ -420,17 +435,17 @@ class UserController extends Controller
                 $error = $result['detail'] ?? $result['message'] ?? 'Unable to confirm payment status.';
             }
         } elseif ($paymentId) {
-            // No session id to verify; surface a pending state so the user can retry later.
+            // No charge/session id to verify; surface a pending state so the user can retry later.
             $payment = ['id' => $paymentId, 'status' => 'pending'];
-        } elseif ($sessionId && !$isLoggedIn) {
-            // Guest returning from Stripe cannot verify the session because the API requires auth.
+        } elseif ($chargeId && !$isLoggedIn) {
+            // Guest returning from Tap cannot verify because the API requires auth.
             $payment = ['id' => $paymentId ?? 'pending', 'status' => 'pending'];
             $error = 'Please log in or create an account so we can confirm your payment and activate your subscription.';
         } else {
             $error = 'No payment information was received.';
         }
 
-        return view('payment.success', compact('payment', 'verified', 'error', 'sessionId', 'isLoggedIn'));
+        return view('payment.success', compact('payment', 'verified', 'error', 'chargeId', 'paymentId', 'sessionId', 'isLoggedIn'));
     }
 
     public function paymentCancel(Request $request)

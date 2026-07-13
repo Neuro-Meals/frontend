@@ -154,10 +154,12 @@ return [
 
         // ─── Payments / Checkout ───
         'payments' => [
-            'create_checkout' => '/payments/create-checkout',
-            'my'              => '/payments/my',
-            'list'            => '/payments/',
-            'verify_session'  => '/payments/verify-session/{session_id}',
+            'create_checkout'              => '/payments/create-checkout',
+            'create_plan_change_checkout' => '/payments/create-plan-change-checkout',
+            'my'                           => '/payments/my',
+            'list'                         => '/payments/',
+            'verify_session'               => '/payments/verify-session/{session_id}',
+            'verify_charge'                => '/payments/verify-charge/{charge_id}',
         ],
 
         // ─── Drivers ───
