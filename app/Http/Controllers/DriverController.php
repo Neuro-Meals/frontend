@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\Api\AuthApiService;
 use App\Services\Api\DriverApiService;
+use App\Services\Api\HasApiData;
 use App\Services\Api\NotificationApiService;
 use Illuminate\Http\Request;
 
