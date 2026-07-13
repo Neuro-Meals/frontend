@@ -1002,13 +1002,14 @@ class AdminController extends Controller
         $status = $request->input('status');
         $search = $request->input('search');
         $today = $request->input('today') === '1';
+        $todayDate = date('Y-m-d');
 
-        $query = ['limit' => $limit];
+        // The backend /orders/ endpoint only supports search, status, user_id and
+        // subscription_id filters (no delivery_date param), so when filtering for
+        // "today" we fetch a larger page and filter client-side instead.
+        $query = ['limit' => $today ? 100 : $limit];
         if ($status) $query['status'] = $status;
         if ($search) $query['search'] = $search;
-        if ($today) {
-            $query['delivery_date'] = date('Y-m-d');
-        }
 
         $ordersData = $this->apiData($orderApi->list($query), function () {
             return [];
@@ -1022,6 +1023,7 @@ class AdminController extends Controller
                 $driver = $order['driver'] ?? [];
                 $payment = $order['payment'] ?? [];
                 $delivery = $order['delivery'] ?? [];
+                $deliveryDate = $order['delivery_date'] ?? null;
                 $orders[] = [
                     'order_id' => $order['id'] ?? 0,
                     'id' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
@@ -1035,7 +1037,8 @@ class AdminController extends Controller
                     'payment_provider' => $payment['provider'] ?? ($order['payment_method'] ?? 'N/A'),
                     'payment_method' => $payment['provider'] ?? ($order['payment_method'] ?? 'N/A'),
                     'date' => $order['created_at'] ?? date('Y-m-d'),
-                    'delivery' => $order['delivery_date'] ?? 'N/A',
+                    'delivery_date_raw' => $deliveryDate,
+                    'delivery' => $deliveryDate ? date('M d, Y', strtotime($deliveryDate)) : 'N/A',
                     'address' => $order['delivery_address'] ?? '',
                     'driver' => $driver
                         ? trim(($driver['first_name'] ?? '') . ' ' . ($driver['last_name'] ?? ''))
@@ -1050,12 +1053,25 @@ class AdminController extends Controller
             }
         }
 
+        // Count today's orders (by delivery date) before applying the today filter,
+        // so the stats card is always accurate regardless of the active filter.
+        $todayCount = count(array_filter($orders, function ($o) use ($todayDate) {
+            $d = $o['delivery_date_raw'] ?? null;
+            return $d && date('Y-m-d', strtotime($d)) === $todayDate;
+        }));
+
+        if ($today) {
+            $orders = array_values(array_filter($orders, function ($o) use ($todayDate) {
+                $d = $o['delivery_date_raw'] ?? null;
+                return $d && date('Y-m-d', strtotime($d)) === $todayDate;
+            }));
+            $orders = array_slice($orders, 0, $limit);
+        }
+
         $total = count($orders);
         $delivered = count(array_filter($orders, fn ($o) => $o['status'] === 'delivered'));
         $pending = count(array_filter($orders, fn ($o) => in_array($o['status'], ['pending', 'preparing'])));
         $revenue = array_sum(array_map(fn ($o) => $o['status'] !== 'cancelled' ? $o['amount'] : 0, $orders));
-
-        $todayCount = count(array_filter($orders, fn ($o) => ($o['date'] ?? '') === date('Y-m-d')));
 
         $stats = [
             ['label' => __('Total Orders'), 'value' => number_format($total), 'color' => 'text-gray-900'],
@@ -1114,7 +1130,14 @@ class AdminController extends Controller
     public function assignDriverToOrder(int $id, Request $request, OrderApiService $orderApi, DeliveryApiService $deliveryApi)
     {
         $driverId = (int) $request->input('driver_id');
-        $scheduledAt = $request->input('scheduled_at');
+
+        if ($driverId <= 0) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Please select a driver.'], 422);
+            }
+            return redirect()->route('admin.orders')->with('error', 'Please select a driver.');
+        }
+
         $order = $this->apiData($orderApi->show($id), fn () => []);
 
         if (empty($order)) {
@@ -1124,21 +1147,31 @@ class AdminController extends Controller
             return redirect()->route('admin.orders')->with('error', 'Order not found.');
         }
 
-        $deliveryAddress = $order['delivery_address'] ?? $request->input('delivery_address');
-        $deliveryNotes = $order['delivery_notes'] ?? $request->input('delivery_notes');
+        // The backend rejects creating a second delivery for the same order,
+        // so check whether one already exists and assign the driver to it instead.
+        $existingDeliveries = $this->apiData($deliveryApi->list(['order_id' => $id, 'limit' => 1]), fn () => []);
+        $existingDelivery = $existingDeliveries[0] ?? null;
 
-        $payload = [
-            'order_id' => $id,
-            'driver_id' => $driverId > 0 ? $driverId : null,
-            'delivery_address' => $deliveryAddress,
-            'delivery_notes' => $deliveryNotes,
-        ];
+        if (!empty($existingDelivery['id'])) {
+            $result = $this->apiData($deliveryApi->assignDriver((int) $existingDelivery['id'], $driverId), fn () => []);
+        } else {
+            $scheduledAt = $request->input('scheduled_at');
+            $deliveryAddress = $order['delivery_address'] ?? $request->input('delivery_address');
+            $deliveryNotes = $order['delivery_notes'] ?? $request->input('delivery_notes');
 
-        if (!empty($scheduledAt)) {
-            $payload['scheduled_at'] = date('c', strtotime($scheduledAt));
+            $payload = [
+                'order_id' => $id,
+                'driver_id' => $driverId,
+                'delivery_address' => $deliveryAddress,
+                'delivery_notes' => $deliveryNotes,
+            ];
+
+            if (!empty($scheduledAt)) {
+                $payload['scheduled_at'] = date('c', strtotime($scheduledAt));
+            }
+
+            $result = $this->apiData($deliveryApi->create($payload), fn () => []);
         }
-
-        $result = $this->apiData($deliveryApi->create($payload), fn () => []);
 
         if (empty($result)) {
             if ($request->ajax() || $request->wantsJson()) {

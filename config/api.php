@@ -118,6 +118,12 @@ return [
             'show'         => '/subscriptions/{subscription_id}',
             'update'       => '/subscriptions/{subscription_id}',
             'cancel'       => '/subscriptions/{subscription_id}/cancel',
+            'pause'        => '/subscriptions/{subscription_id}/pause',
+            'resume'       => '/subscriptions/{subscription_id}/resume',
+            'pauses'       => '/subscriptions/{subscription_id}/pauses',
+            'change_plan'  => '/subscriptions/{subscription_id}/change-plan',
+            'plan_changes' => '/subscriptions/{subscription_id}/plan-changes',
+            'cancel_plan_change' => '/subscriptions/{subscription_id}/plan-changes/{change_id}/cancel',
         ],
 
         // ─── Orders ───
