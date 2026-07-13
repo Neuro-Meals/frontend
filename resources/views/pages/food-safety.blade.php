@@ -41,7 +41,7 @@
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">Allergen Information</h2>
         <p class="text-gray-600 dark:text-gray-300 leading-relaxed text-base sm:text-lg">
-            All meals are labeled with allergen information. If you have specific allergies or dietary restrictions, please note them in your account settings. Our team takes every precaution to prevent cross-contamination.
+            All meals are labeled with allergen information. If you have specific allergies, please note them in your account settings. Our team takes every precaution to prevent cross-contamination.
         </p>
     </div>
 </section>

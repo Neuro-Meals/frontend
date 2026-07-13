@@ -19,7 +19,7 @@
                     'img' => '236.jpg',
                     'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
                     'title' => __('Personalized Nutrition'),
-                    'text' => __('Every meal is crafted based on your fitness goals, dietary preferences, and body composition. Our system calculates your exact needs and builds a plan just for you.'),
+                    'text' => __('Every meal is crafted based on your fitness goals, allergies, and body composition. Our system calculates your exact needs and builds a plan just for you.'),
                     'stage' => '01',
                     'is_fi' => false,
                 ],

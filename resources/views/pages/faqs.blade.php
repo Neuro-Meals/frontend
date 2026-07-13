@@ -11,7 +11,7 @@
         ['heading' => 'General Questions', 'items' => [
             ['q' => 'How does Nutrio Meals work?', 'a' => 'Choose a meal plan that fits your goals, select your preferred meals from our weekly menu, and we deliver fresh meals to your door daily or weekly depending on your plan.'],
             ['q' => 'What areas do you deliver to?', 'a' => 'We currently deliver to Riyadh, Jeddah, and Dammam. We are expanding to more cities soon — follow us on social media for updates.'],
-            ['q' => 'Can I customize my meals?', 'a' => 'Yes! You can customize your meals each week from our menu. We offer options for different dietary preferences including keto, vegetarian, and high-protein.'],
+            ['q' => 'Can I customize my meals?', 'a' => 'Yes! You can customize your meals each week from our menu. We offer options for different goals including keto-friendly, vegetarian, and high-protein choices.'],
             ['q' => 'How fresh are the meals?', 'a' => 'All meals are prepared fresh daily by our chefs and delivered in insulated packaging to maintain temperature and quality.'],
         ]],
         ['heading' => 'Subscription & Billing', 'items' => [

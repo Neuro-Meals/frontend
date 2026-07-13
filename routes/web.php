@@ -89,13 +89,6 @@ Route::get('/test-register', function () {
         'password' => 'password123',
         'location' => 'Riyadh',
         'address' => 'King Fahd Road',
-        'gender' => 'male',
-        'age' => 30,
-        'height_cm' => 175,
-        'weight_kg' => 70,
-        'fitness_goal' => 'weight_loss',
-        'dietary_preference' => 'standard',
-        'allergies' => [],
     ]);
 
     return response()->json([

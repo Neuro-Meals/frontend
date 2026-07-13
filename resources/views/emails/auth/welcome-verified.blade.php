@@ -11,7 +11,7 @@
 
 - **{{ __('Explore your meal plan') }}** — {{ __('Check your dashboard to see today\'s meals and upcoming deliveries.') }}
 - **{{ __('Track your nutrition') }}** — {{ __('Log water, steps, and calories from the Nutrition Tracker.') }}
-- **{{ __('Update your preferences') }}** — {{ __('Set dietary preferences, allergies, and goals in your profile.') }}
+- **{{ __('Update your preferences') }}** — {{ __('Set allergies and goals in your profile.') }}
 - **{{ __('Get support anytime') }}** — {{ __('Use the AI assistant on your dashboard for quick help with meals and plans.') }}
 
 ## {{ __('Your account details') }}
