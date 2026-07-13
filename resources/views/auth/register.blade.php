@@ -197,7 +197,7 @@
                 <div x-show="step === 2" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-x-0" x-transition:leave-end="opacity-0 -translate-x-4" class="space-y-5" x-cloak>
 
                 {{-- Location --}}
-                <div x-data="locationPicker()" @click.away="open = false">
+                <div x-data="locationPicker()" @click.away="open = false" class="relative">
                     <label for="location" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Location') }}</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
