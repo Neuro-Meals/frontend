@@ -24,7 +24,7 @@ class DriverController extends Controller
         });
     }
 
-    public function dashboard(DriverApiService $driverApi, NotificationApiService $notificationApi)
+    public function dashboard(DriverApiService $driverApi, NotificationApiService $notificationApi, OrderApiService $orderApi)
     {
         $deliveriesData = $this->apiData($driverApi->myDeliveries(), fn () => []);
 
@@ -42,7 +42,8 @@ class DriverController extends Controller
         $today = date('Y-m-d');
 
         foreach ($deliveriesData as $delivery) {
-            $item = $this->formatDelivery($delivery);
+            $orderData = $this->enrichOrderData($delivery, $orderApi);
+            $item = $this->formatDelivery($delivery, $orderData);
 
             $status = $item['status'];
             if (in_array($status, ['assigned', 'pending'])) {
@@ -83,12 +84,13 @@ class DriverController extends Controller
         return view('driver.dashboard', compact('currentDeliveries', 'history', 'stats', 'notifications'));
     }
 
-    public function deliveries(DriverApiService $driverApi)
+    public function deliveries(DriverApiService $driverApi, OrderApiService $orderApi)
     {
         $deliveriesData = $this->apiData($driverApi->myDeliveries(), fn () => []);
         $deliveries = [];
         foreach ($deliveriesData as $delivery) {
-            $deliveries[] = $this->formatDelivery($delivery);
+            $orderData = $this->enrichOrderData($delivery, $orderApi);
+            $deliveries[] = $this->formatDelivery($delivery, $orderData);
         }
         return view('driver.deliveries', compact('deliveries'));
     }
@@ -136,17 +138,23 @@ class DriverController extends Controller
     {
         // The delivery response sometimes omits the customer/order details.
         // In that case, fetch the order directly and use it as the source of truth.
-        $orderId = $deliveryData['order_id'] ?? null;
+        $orderId = $deliveryData['order_id'] ?? ($deliveryData['order']['id'] ?? null);
         if (!$orderId) {
             return $deliveryData['order'] ?? [];
         }
 
+        $hasOrder = !empty($deliveryData['order']) && is_array($deliveryData['order']);
         $hasCustomer = !empty($deliveryData['customer']) || !empty($deliveryData['order']['customer'] ?? $deliveryData['order']['user'] ?? []);
-        if ($hasCustomer) {
-            return $deliveryData['order'] ?? [];
+        if ($hasOrder && $hasCustomer) {
+            return $deliveryData['order'];
         }
 
-        return $this->apiData($orderApi->show((int) $orderId), fn () => []);
+        $order = $this->apiData($orderApi->show((int) $orderId), fn () => []);
+        if (!empty($order)) {
+            return $order;
+        }
+
+        return $deliveryData['order'] ?? [];
     }
 
     private function cleanPhoneForWhatsApp(?string $phone): string
@@ -217,7 +225,7 @@ class DriverController extends Controller
         return [
             'id' => $delivery['id'] ?? 0,
             'order_id' => $delivery['order_id'] ?? ($order['id'] ?? 0),
-            'order_number' => $order['order_number'] ?? ($delivery['order_number'] ?? ('ORD-' . ($order['id'] ?? 0))),
+            'order_number' => $order['order_number'] ?? ($delivery['order_number'] ?? ('ORD-' . ($order['id'] ?? ($delivery['order_id'] ?? ($delivery['id'] ?? 0))))),
             'customer' => trim($customer['full_name'] ?? (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) ?: 'Customer',
             'customer_id' => $customer['id'] ?? null,
             'customer_email' => $customer['email'] ?? '',
