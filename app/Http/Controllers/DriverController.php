@@ -6,6 +6,7 @@ use App\Services\Api\AuthApiService;
 use App\Services\Api\DriverApiService;
 use App\Services\Api\HasApiData;
 use App\Services\Api\NotificationApiService;
+use App\Services\Api\OrderApiService;
 use Illuminate\Http\Request;
 
 class DriverController extends Controller
@@ -101,7 +102,7 @@ class DriverController extends Controller
         return response()->json(['success' => true, 'delivery' => $this->formatDelivery($delivery)]);
     }
 
-    public function mapView(int $id, DriverApiService $driverApi)
+    public function mapView(int $id, DriverApiService $driverApi, OrderApiService $orderApi)
     {
         $deliveryData = $this->apiData($driverApi->showDelivery($id), fn () => []);
 
@@ -109,13 +110,14 @@ class DriverController extends Controller
             abort(404, __('Delivery not found.'));
         }
 
-        $delivery = $this->formatDelivery($deliveryData);
+        $orderData = $this->enrichOrderData($deliveryData, $orderApi);
+        $delivery = $this->formatDelivery($deliveryData, $orderData);
         $delivery['whatsapp_phone'] = $this->cleanPhoneForWhatsApp($delivery['customer_phone']);
 
         return view('driver.map', compact('delivery'));
     }
 
-    public function detailView(int $id, DriverApiService $driverApi)
+    public function detailView(int $id, DriverApiService $driverApi, OrderApiService $orderApi)
     {
         $deliveryData = $this->apiData($driverApi->showDelivery($id), fn () => []);
 
@@ -123,10 +125,28 @@ class DriverController extends Controller
             abort(404, __('Delivery not found.'));
         }
 
-        $delivery = $this->formatDelivery($deliveryData);
+        $orderData = $this->enrichOrderData($deliveryData, $orderApi);
+        $delivery = $this->formatDelivery($deliveryData, $orderData);
         $delivery['whatsapp_phone'] = $this->cleanPhoneForWhatsApp($delivery['customer_phone']);
 
         return view('driver.delivery-detail', compact('delivery'));
+    }
+
+    private function enrichOrderData(array $deliveryData, OrderApiService $orderApi): array
+    {
+        // The delivery response sometimes omits the customer/order details.
+        // In that case, fetch the order directly and use it as the source of truth.
+        $orderId = $deliveryData['order_id'] ?? null;
+        if (!$orderId) {
+            return $deliveryData['order'] ?? [];
+        }
+
+        $hasCustomer = !empty($deliveryData['customer']) || !empty($deliveryData['order']['customer'] ?? $deliveryData['order']['user'] ?? []);
+        if ($hasCustomer) {
+            return $deliveryData['order'] ?? [];
+        }
+
+        return $this->apiData($orderApi->show((int) $orderId), fn () => []);
     }
 
     private function cleanPhoneForWhatsApp(?string $phone): string
@@ -177,7 +197,7 @@ class DriverController extends Controller
         ], $success ? 200 : 422);
     }
 
-    private function formatDelivery(array $delivery): array
+    private function formatDelivery(array $delivery, array $orderData = []): array
     {
         $statusLabels = [
             'pending' => __('Pending'),
@@ -190,16 +210,18 @@ class DriverController extends Controller
         ];
 
         $status = $delivery['status'] ?? 'pending';
-        $customer = $delivery['customer'] ?? [];
-        $order = $delivery['order'] ?? [];
-        $address = $delivery['delivery_address'] ?? ($order['delivery_address'] ?? ($customer['address'] ?? ''));
+        $order = $orderData ?: ($delivery['order'] ?? []);
+        $customer = $delivery['customer']
+            ?? ($order['customer'] ?? ($order['user'] ?? []));
+        $address = $delivery['delivery_address']
+            ?? ($order['delivery_address'] ?? ($customer['address'] ?? ''));
 
         return [
             'id' => $delivery['id'] ?? 0,
             'order_id' => $delivery['order_id'] ?? ($order['id'] ?? 0),
             'order_number' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
             'customer' => trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')) ?: 'Customer',
-            'customer_phone' => $customer['phone'] ?? '',
+            'customer_phone' => $customer['phone'] ?? ($customer['mobile'] ?? ''),
             'address' => $address,
             'zone' => $delivery['zone'] ?? 'N/A',
             'status' => $status,
