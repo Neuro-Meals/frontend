@@ -524,10 +524,14 @@
 
     function registerForm() {
         return {
+            step: 1,
+            totalSteps: 2,
             loading: false,
             toast: { show: false, message: '', type: 'error', title: '' },
             errors: {},
             pleaseWait: @json(__('Please wait...')),
+            nextAccount: @json(__('Next: Location & Health')),
+            backAccount: @json(__('Back: Account')),
             createAccount: @json(__('Create Account')),
             registrationFailed: @json(__('Registration failed')),
             successTitle: @json(__('Success')),
@@ -549,6 +553,74 @@
                 fitness_goal: '',
                 dietary_preference: '',
                 allergies: ''
+            },
+            validateStep(step) {
+                this.errors = {};
+                const step1Fields = ['first_name', 'last_name', 'phone', 'email', 'password', 'password_confirmation'];
+                const step2Fields = ['location', 'address', 'gender', 'age', 'height_cm', 'weight_kg', 'fitness_goal', 'dietary_preference'];
+                const fields = step === 1 ? step1Fields : step2Fields;
+                let valid = true;
+
+                fields.forEach(field => {
+                    const value = this.form[field];
+                    if (value === '' || value === null || value === undefined) {
+                        this.errors[field] = ['{{ __('This field is required.') }}'];
+                        valid = false;
+                    }
+                });
+
+                if (step === 1) {
+                    if (this.form.password && this.form.password.length < 6) {
+                        this.errors.password = ['{{ __('Password must be at least 6 characters.') }}'];
+                        valid = false;
+                    }
+                    if (this.form.password !== this.form.password_confirmation) {
+                        this.errors.password_confirmation = ['{{ __('Passwords do not match.') }}'];
+                        valid = false;
+                    }
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (this.form.email && !emailRegex.test(this.form.email)) {
+                        this.errors.email = ['{{ __('Please enter a valid email address.') }}'];
+                        valid = false;
+                    }
+                    if (this.form.phone && this.form.phone.length < 8) {
+                        this.errors.phone = ['{{ __('Phone must be at least 8 characters.') }}'];
+                        valid = false;
+                    }
+                }
+
+                if (step === 2) {
+                    if (this.form.age && (this.form.age < 10 || this.form.age > 120)) {
+                        this.errors.age = ['{{ __('Age must be between 10 and 120.') }}'];
+                        valid = false;
+                    }
+                    if (this.form.height_cm && (this.form.height_cm < 50 || this.form.height_cm > 300)) {
+                        this.errors.height_cm = ['{{ __('Height must be between 50 and 300 cm.') }}'];
+                        valid = false;
+                    }
+                    if (this.form.weight_kg && (this.form.weight_kg < 20 || this.form.weight_kg > 500)) {
+                        this.errors.weight_kg = ['{{ __('Weight must be between 20 and 500 kg.') }}'];
+                        valid = false;
+                    }
+                }
+
+                return valid;
+            },
+            nextStep() {
+                if (this.validateStep(1)) {
+                    this.step = 2;
+                    this.errors = {};
+                } else {
+                    this.showToast('{{ __('Please fix the errors before continuing.') }}');
+                }
+            },
+            prevStep() {
+                this.step = 1;
+                this.errors = {};
+            },
+            goToStep(step) {
+                this.step = step;
+                this.errors = {};
             },
             showToast(message, type = 'error') {
                 this.toast = {
