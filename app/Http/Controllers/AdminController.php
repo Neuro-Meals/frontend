@@ -995,16 +995,20 @@ class AdminController extends Controller
         return $payload;
     }
 
-    public function orders(Request $request, OrderApiService $orderApi)
+    public function orders(Request $request, OrderApiService $orderApi, DriverApiService $driverApi)
     {
         $page = (int) $request->input('page', 1);
         $limit = (int) $request->input('limit', 20);
         $status = $request->input('status');
         $search = $request->input('search');
+        $today = $request->input('today') === '1';
 
         $query = ['limit' => $limit];
         if ($status) $query['status'] = $status;
         if ($search) $query['search'] = $search;
+        if ($today) {
+            $query['delivery_date'] = date('Y-m-d');
+        }
 
         $ordersData = $this->apiData($orderApi->list($query), function () {
             return [];
@@ -1017,7 +1021,9 @@ class AdminController extends Controller
                 $plan = $order['plan'] ?? ($order['items'][0] ?? []);
                 $driver = $order['driver'] ?? [];
                 $payment = $order['payment'] ?? [];
+                $delivery = $order['delivery'] ?? [];
                 $orders[] = [
+                    'order_id' => $order['id'] ?? 0,
                     'id' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
                     'customer' => trim($customer['full_name'] ?? (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) ?: 'Customer',
                     'customer_email' => $customer['email'] ?? ($order['user']['email'] ?? ''),
@@ -1034,9 +1040,12 @@ class AdminController extends Controller
                     'driver' => $driver
                         ? trim(($driver['first_name'] ?? '') . ' ' . ($driver['last_name'] ?? ''))
                         : ($order['driver_name'] ?? 'Unassigned'),
+                    'driver_id' => $driver['id'] ?? null,
+                    'delivery_id' => $delivery['id'] ?? null,
+                    'scheduled_at' => !empty($delivery['scheduled_at']) ? date('H:i', strtotime($delivery['scheduled_at'])) : null,
                     'items' => $order['items'] ?? [],
                     'subscription' => $order['subscription'] ?? [],
-                    'delivery_info' => $order['delivery'] ?? [],
+                    'delivery_info' => $delivery,
                 ];
             }
         }
@@ -1046,24 +1055,102 @@ class AdminController extends Controller
         $pending = count(array_filter($orders, fn ($o) => in_array($o['status'], ['pending', 'preparing'])));
         $revenue = array_sum(array_map(fn ($o) => $o['status'] !== 'cancelled' ? $o['amount'] : 0, $orders));
 
+        $todayCount = count(array_filter($orders, fn ($o) => ($o['date'] ?? '') === date('Y-m-d')));
+
         $stats = [
             ['label' => __('Total Orders'), 'value' => number_format($total), 'color' => 'text-gray-900'],
-            ['label' => __("Today's Orders"), 'value' => number_format(count(array_filter($orders, fn ($o) => ($o['date'] ?? '') === date('Y-m-d')))), 'color' => 'text-[#6E7A25]'],
+            ['label' => __("Today's Orders"), 'value' => number_format($todayCount), 'color' => 'text-[#6E7A25]'],
             ['label' => __('Pending'), 'value' => number_format($pending), 'color' => 'text-amber-600'],
             ['label' => __('Revenue'), 'value' => 'SAR ' . number_format($revenue), 'color' => 'text-gray-900'],
         ];
+
+        $driversData = $this->apiData($driverApi->list(), fn () => []);
+        $drivers = [];
+        foreach ($driversData as $d) {
+            $drivers[] = [
+                'id' => $d['id'] ?? 0,
+                'name' => trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? '')) ?: 'Driver',
+                'is_active' => $d['is_active'] ?? true,
+            ];
+        }
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'orders' => $orders,
                 'stats' => $stats,
+                'drivers' => $drivers,
                 'has_more' => false,
                 'total' => $total,
                 'page' => $page,
             ]);
         }
 
-        return view('admin.orders', compact('orders', 'stats'));
+        return view('admin.orders', compact('orders', 'stats', 'drivers', 'todayCount'));
+    }
+
+    public function approveOrder(int $id, OrderApiService $orderApi, Request $request)
+    {
+        $status = $request->input('status', 'preparing');
+        $allowed = ['preparing', 'ready_for_delivery', 'out_for_delivery', 'delivered', 'cancelled'];
+        if (!in_array($status, $allowed, true)) {
+            $status = 'preparing';
+        }
+
+        $result = $this->apiData($orderApi->updateStatus($id, $status), fn () => []);
+
+        if (empty($result)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Failed to update order status.'], 400);
+            }
+            return redirect()->route('admin.orders')->with('error', 'Failed to update order status.');
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Order status updated.']);
+        }
+        return redirect()->route('admin.orders')->with('success', 'Order status updated.');
+    }
+
+    public function assignDriverToOrder(int $id, Request $request, OrderApiService $orderApi, DeliveryApiService $deliveryApi)
+    {
+        $driverId = (int) $request->input('driver_id');
+        $scheduledAt = $request->input('scheduled_at');
+        $order = $this->apiData($orderApi->show($id), fn () => []);
+
+        if (empty($order)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Order not found.'], 404);
+            }
+            return redirect()->route('admin.orders')->with('error', 'Order not found.');
+        }
+
+        $deliveryAddress = $order['delivery_address'] ?? $request->input('delivery_address');
+        $deliveryNotes = $order['delivery_notes'] ?? $request->input('delivery_notes');
+
+        $payload = [
+            'order_id' => $id,
+            'driver_id' => $driverId > 0 ? $driverId : null,
+            'delivery_address' => $deliveryAddress,
+            'delivery_notes' => $deliveryNotes,
+        ];
+
+        if (!empty($scheduledAt)) {
+            $payload['scheduled_at'] = date('c', strtotime($scheduledAt));
+        }
+
+        $result = $this->apiData($deliveryApi->create($payload), fn () => []);
+
+        if (empty($result)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Failed to assign driver.'], 400);
+            }
+            return redirect()->route('admin.orders')->with('error', 'Failed to assign driver.');
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Driver assigned successfully.', 'delivery' => $result]);
+        }
+        return redirect()->route('admin.orders')->with('success', 'Driver assigned successfully.');
     }
 
     public function deliveries(DeliveryApiService $deliveryApi, DriverApiService $driverApi)

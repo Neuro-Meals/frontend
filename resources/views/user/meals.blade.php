@@ -93,12 +93,6 @@
                     <span>C: {{ $meal['carbs'] ?? 0 }}g</span>
                     <span>F: {{ $meal['fat'] ?? 0 }}g</span>
                 </div>
-                @if(!empty($meal['price']))
-                <div class="mt-3 flex items-center justify-between">
-                    <span class="text-[10px] text-gray-400">{{ __('Price') }}</span>
-                    <span class="text-sm font-bold text-[#6E7A25]">SAR {{ number_format($meal['price'], 2) }}</span>
-                </div>
-                @endif
             </div>
         </div>
         @empty

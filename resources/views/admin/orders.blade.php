@@ -35,6 +35,12 @@
       <option value="delivered">{{ __('Delivered') }}</option>
       <option value="cancelled">{{ __('Cancelled') }}</option>
     </select>
+    <button @click="toggleToday()"
+      :class="todayFilter ? 'bg-[#173327] text-white' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'"
+      class="px-3 py-1.5 text-xs font-bold border border-gray-100 rounded-lg transition-all whitespace-nowrap">
+      {{ __("Today's Orders") }}
+      <span x-show="todayFilter" class="ml-1">×</span>
+    </button>
     <button @click="fetchOrders()" class="px-3 py-1.5 text-xs font-bold text-white bg-[#6E7A25] rounded-lg hover:bg-[#5a6820] transition-all shadow-sm whitespace-nowrap">
       <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
       {{ __('Refresh') }}
@@ -52,6 +58,7 @@
             <th class="px-4 py-2.5 font-medium">{{ __('Plan') }}</th>
             <th class="px-4 py-2.5 font-medium">{{ __('Amount') }}</th>
             <th class="px-4 py-2.5 font-medium">{{ __('Delivery') }}</th>
+            <th class="px-4 py-2.5 font-medium">{{ __('Time') }}</th>
             <th class="px-4 py-2.5 font-medium">{{ __('Date') }}</th>
             <th class="px-4 py-2.5 font-medium">{{ __('Status') }}</th>
             <th class="px-4 py-2.5 font-medium"></th>
@@ -59,10 +66,10 @@
         </thead>
         <tbody>
           <template x-if="loading && orders.length === 0">
-            <tr><td colspan="8" class="px-4 py-8"><div class="space-y-2 animate-pulse"><template x-for="i in 4"><div class="h-8 bg-gray-50 rounded"></div></template></div></td></tr>
+            <tr><td colspan="9" class="px-4 py-8"><div class="space-y-2 animate-pulse"><template x-for="i in 4"><div class="h-8 bg-gray-50 rounded"></div></template></div></td></tr>
           </template>
           <template x-if="!loading && orders.length === 0">
-            <tr><td colspan="8" class="px-4 py-8 text-center text-xs text-gray-400">{{ __('No orders found.') }}</td></tr>
+            <tr><td colspan="9" class="px-4 py-8 text-center text-xs text-gray-400">{{ __('No orders found.') }}</td></tr>
           </template>
           <template x-for="order in orders" :key="order.id">
             <tr class="border-b border-gray-50 hover:bg-gray-50/30 transition-colors cursor-pointer" @click="showDetail(order)">
@@ -76,6 +83,7 @@
               <td class="px-4 py-2.5 text-xs text-gray-500" x-text="order.plan"></td>
               <td class="px-4 py-2.5"><span class="text-xs font-bold text-gray-900" x-text="'SAR ' + order.amount"></span></td>
               <td class="px-4 py-2.5 text-xs text-gray-500" x-text="order.delivery"></td>
+              <td class="px-4 py-2.5 text-xs font-medium text-[#6E7A25]" x-text="order.scheduled_at || '--:--'"></td>
               <td class="px-4 py-2.5 text-xs text-gray-400" x-text="order.date"></td>
               <td class="px-4 py-2.5">
                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border whitespace-nowrap" :class="statusClass(order.status)">
@@ -123,7 +131,7 @@
         </div>
       </div>
 
-      <div class="p-6 space-y-6">
+      <div id="order-detail-content" class="p-6 space-y-6">
         {{-- Customer Info --}}
         <div class="bg-gray-50 rounded-xl p-4">
           <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Customer') }}</h4>
@@ -220,16 +228,62 @@
           </div>
         </div>
 
-        {{-- Actions --}}
-        <div class="flex gap-2 pt-2">
-          <button @click="printOrder" class="flex-1 px-4 py-2.5 text-xs font-bold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-            {{ __('Print') }}
-          </button>
-          <button class="flex-1 px-4 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-            {{ __('Refresh') }}
-          </button>
+        {{-- Management Actions --}}
+        <div class="space-y-3 pt-2">
+          <div x-show="selected?.status === 'pending'" class="flex gap-2">
+            <button @click="approveOrder('preparing')" :disabled="actionLoading"
+              class="flex-1 px-4 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-60">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {{ __('Approve Order') }}
+            </button>
+          </div>
+
+          <div class="bg-gray-50 rounded-xl p-4 space-y-3">
+            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ __('Update Status') }}</h4>
+            <div class="flex gap-2">
+              <select x-model="selectedStatus" class="flex-1 text-xs border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 outline-none">
+                <option value="preparing">{{ __('Preparing') }}</option>
+                <option value="ready_for_delivery">{{ __('Ready for Delivery') }}</option>
+                <option value="out_for_delivery">{{ __('Out for Delivery') }}</option>
+                <option value="delivered">{{ __('Delivered') }}</option>
+              </select>
+              <button @click="updateStatus()" :disabled="actionLoading"
+                class="px-4 py-2 text-xs font-bold text-white bg-[#6E7A25] rounded-lg hover:bg-[#5a6820] transition-all disabled:opacity-60">
+                {{ __('Update') }}
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-gray-50 rounded-xl p-4 space-y-3">
+            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ __('Assign Driver') }}</h4>
+            <div class="space-y-2">
+              <select x-model="assignDriverId" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 outline-none">
+                <option value="">{{ __('Select Driver') }}</option>
+                <template x-for="driver in drivers" :key="driver.id">
+                  <option :value="driver.id" x-text="driver.name" :disabled="!driver.is_active"></option>
+                </template>
+              </select>
+              <div class="flex gap-2">
+                <input type="time" x-model="assignTime" class="flex-1 text-xs border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 outline-none">
+                <button @click="assignDriver()" :disabled="actionLoading || !assignDriverId"
+                  class="px-4 py-2 text-xs font-bold text-white bg-[#173327] rounded-lg hover:bg-[#1a4a3a] transition-all disabled:opacity-60">
+                  {{ __('Assign') }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-2">
+            <button @click="printOrder" class="flex-1 px-4 py-2.5 text-xs font-bold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+              {{ __('Print') }}
+            </button>
+            <button @click="cancelOrder()" :disabled="actionLoading || selected?.status === 'cancelled' || selected?.status === 'delivered'"
+              class="flex-1 px-4 py-2.5 text-xs font-bold text-red-700 bg-red-50 rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2 disabled:opacity-60">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              {{ __('Cancel') }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -240,17 +294,23 @@
 <script>
 function ordersApp() {
   return {
-    orders: [],
-    stats: [],
+    orders: @json($orders),
+    stats: @json($stats),
+    drivers: @json($drivers),
     selected: null,
+    selectedStatus: '',
     search: '',
     statusFilter: '',
+    todayFilter: false,
     page: 1,
     hasMore: false,
-    loading: true,
+    loading: false,
+    actionLoading: false,
+    assignDriverId: '',
+    assignTime: '',
 
     statusClass(s) {
-      const m = { delivered:'bg-green-50 text-green-700 border-green-200', out_for_delivery:'bg-blue-50 text-blue-700 border-blue-200', en_route:'bg-blue-50 text-blue-700 border-blue-200', preparing:'bg-amber-50 text-amber-700 border-amber-200', pending:'bg-gray-50 text-gray-600 border-gray-200', cancelled:'bg-red-50 text-red-600 border-red-200' };
+      const m = { delivered:'bg-green-50 text-green-700 border-green-200', out_for_delivery:'bg-blue-50 text-blue-700 border-blue-200', en_route:'bg-blue-50 text-blue-700 border-blue-200', ready_for_delivery:'bg-indigo-50 text-indigo-700 border-indigo-200', preparing:'bg-amber-50 text-amber-700 border-amber-200', pending:'bg-gray-50 text-gray-600 border-gray-200', cancelled:'bg-red-50 text-red-600 border-red-200' };
       return m[s] || 'bg-gray-50 text-gray-600 border-gray-200';
     },
     paymentStatusClass(s) {
@@ -258,11 +318,26 @@ function ordersApp() {
       return m[s] || 'bg-gray-50 text-gray-600 border-gray-200';
     },
     statusLabel(s) {
-      const m = { delivered:'Delivered', out_for_delivery:'Out for Delivery', en_route:'En Route', preparing:'Preparing', pending:'Pending', cancelled:'Cancelled' };
+      const m = { delivered:'Delivered', out_for_delivery:'Out for Delivery', en_route:'En Route', ready_for_delivery:'Ready for Delivery', preparing:'Preparing', pending:'Pending', cancelled:'Cancelled' };
       return m[s] || s;
     },
 
-    init() { this.fetchOrders(); },
+    init() {
+      this.fetchOrders();
+    },
+
+    showDetail(order) {
+      this.selected = order;
+      this.selectedStatus = order.status || 'preparing';
+      this.assignDriverId = order.driver_id || '';
+      this.assignTime = order.scheduled_at || '';
+    },
+
+    toggleToday() {
+      this.todayFilter = !this.todayFilter;
+      this.page = 1;
+      this.fetchOrders();
+    },
 
     async fetchOrders() {
       this.loading = true;
@@ -270,16 +345,104 @@ function ordersApp() {
         const p = new URLSearchParams({ page: this.page, limit: 20 });
         if (this.statusFilter) p.set('status', this.statusFilter);
         if (this.search) p.set('search', this.search);
+        if (this.todayFilter) p.set('today', '1');
         const r = await fetch(`{{ route('admin.orders') }}?${p.toString()}`, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
         const d = await r.json();
         this.orders = d.orders || [];
         this.stats = d.stats || [];
+        this.drivers = d.drivers || this.drivers;
         this.hasMore = d.has_more || false;
       } catch(e) { console.error('Failed to fetch orders', e); }
       finally { this.loading = false; }
     },
 
-    showDetail(order) { this.selected = order; },
+    async approveOrder(status) {
+      if (!this.selected?.order_id) return;
+      this.actionLoading = true;
+      try {
+        const r = await fetch(`{{ route('admin.orders.approve', '__ID__') }}`.replace('__ID__', this.selected.order_id), {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+          },
+          body: JSON.stringify({ status })
+        });
+        const d = await r.json();
+        if (d.success) {
+          this.selected.status = status;
+          this.fetchOrders();
+        } else {
+          alert(d.message || 'Failed to update order status.');
+        }
+      } catch(e) { console.error(e); alert('Network error.'); }
+      finally { this.actionLoading = false; }
+    },
+
+    async updateStatus() {
+      await this.approveOrder(this.selectedStatus);
+    },
+
+    async assignDriver() {
+      if (!this.selected?.order_id || !this.assignDriverId) return;
+      this.actionLoading = true;
+      try {
+        const scheduledAt = this.assignTime ? `{{ date('Y-m-d') }}T${this.assignTime}:00` : null;
+        const r = await fetch(`{{ route('admin.orders.assign-driver', '__ID__') }}`.replace('__ID__', this.selected.order_id), {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+          },
+          body: JSON.stringify({ driver_id: this.assignDriverId, scheduled_at: scheduledAt })
+        });
+        const d = await r.json();
+        if (d.success) {
+          const driver = this.drivers.find(drv => drv.id == this.assignDriverId);
+          this.selected.driver = driver?.name || 'Assigned';
+          this.selected.driver_id = this.assignDriverId;
+          this.selected.scheduled_at = this.assignTime || null;
+          this.selected.status = 'ready_for_delivery';
+          this.fetchOrders();
+        } else {
+          alert(d.message || 'Failed to assign driver.');
+        }
+      } catch(e) { console.error(e); alert('Network error.'); }
+      finally { this.actionLoading = false; }
+    },
+
+    async cancelOrder() {
+      if (!this.selected?.order_id) return;
+      if (!confirm('{{ __('Are you sure you want to cancel this order?') }}')) return;
+      this.actionLoading = true;
+      try {
+        const r = await fetch(`{{ route('admin.orders.approve', '__ID__') }}`.replace('__ID__', this.selected.order_id), {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+          },
+          body: JSON.stringify({ status: 'cancelled' })
+        });
+        const d = await r.json();
+        if (d.success) {
+          this.selected.status = 'cancelled';
+          this.fetchOrders();
+        } else {
+          alert(d.message || 'Failed to cancel order.');
+        }
+      } catch(e) { console.error(e); alert('Network error.'); }
+      finally { this.actionLoading = false; }
+    },
+
+    printOrder() {
+      const w = window.open('', '_blank');
+      w.document.write(`<html><head><title>Order ${this.selected?.id}</title><script src="https://cdn.tailwindcss.com"><\/script></head><body class="p-8"><div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-lg">${document.getElementById('order-detail-content')?.innerHTML || ''}</div><script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);
+      w.document.close();
+    },
 
     prevPage() { if (this.page > 1) { this.page--; this.fetchOrders(); } },
     nextPage() { if (this.hasMore) { this.page++; this.fetchOrders(); } }
