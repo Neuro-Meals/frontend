@@ -52,32 +52,45 @@
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     @if(in_array($delivery['status'], ['assigned', 'pending']))
-                    <form action="{{ route('driver.deliveries.status', $delivery['id']) }}" method="POST" class="col-span-2">
-                        @csrf
-                        <input type="hidden" name="status" value="picked_up">
-                        <button type="submit" class="btn-action w-full py-2.5 rounded-xl bg-brand-700 text-white text-xs font-bold shadow-md shadow-brand-700/20 flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            {{ __('Pick Up') }}
-                        </button>
-                    </form>
+                    <button type="button"
+                        onclick="confirmDeliveryAction('{{ route('driver.deliveries.status', $delivery['id']) }}', 'picked_up', {
+                            title: '{{ __('Pick up this order?') }}',
+                            text: '{{ __('Confirm that you have picked up the order from the kitchen.') }}',
+                            confirmText: '{{ __('Yes, Pick Up') }}',
+                            icon: 'question',
+                            confirmColor: '#173327'
+                        })"
+                        class="btn-action col-span-2 w-full py-2.5 rounded-xl bg-brand-700 text-white text-xs font-bold shadow-md shadow-brand-700/20 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        {{ __('Pick Up') }}
+                    </button>
                     @elseif($delivery['status'] === 'picked_up')
-                    <form action="{{ route('driver.deliveries.status', $delivery['id']) }}" method="POST" class="col-span-2">
-                        @csrf
-                        <input type="hidden" name="status" value="out_for_delivery">
-                        <button type="submit" class="btn-action w-full py-2.5 rounded-xl bg-purple-600 text-white text-xs font-bold shadow-md shadow-purple-600/20 flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                            {{ __('Out for Delivery') }}
-                        </button>
-                    </form>
+                    <button type="button"
+                        onclick="confirmDeliveryAction('{{ route('driver.deliveries.status', $delivery['id']) }}', 'out_for_delivery', {
+                            title: '{{ __('Head out for delivery?') }}',
+                            text: '{{ __('This will notify the customer that their order is on the way.') }}',
+                            confirmText: '{{ __('Yes, Go') }}',
+                            icon: 'question',
+                            confirmColor: '#7c3aed'
+                        })"
+                        class="btn-action col-span-2 w-full py-2.5 rounded-xl bg-purple-600 text-white text-xs font-bold shadow-md shadow-purple-600/20 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        {{ __('Out for Delivery') }}
+                    </button>
                     @elseif($delivery['status'] === 'out_for_delivery')
-                    <form action="{{ route('driver.deliveries.status', $delivery['id']) }}" method="POST" class="col-span-1">
-                        @csrf
-                        <input type="hidden" name="status" value="delivered">
-                        <button type="submit" class="btn-action w-full py-2.5 rounded-xl bg-green-600 text-white text-xs font-bold shadow-md shadow-green-600/20 flex items-center justify-center gap-1">
-                            {{ __('Delivered') }}
-                        </button>
-                    </form>
-                    <button onclick="openFailModal({{ $delivery['id'] }})" class="btn-action w-full py-2.5 rounded-xl bg-red-50 text-red-600 border border-red-100 text-xs font-bold flex items-center justify-center gap-1">
+                    <button type="button"
+                        onclick="confirmDeliveryAction('{{ route('driver.deliveries.status', $delivery['id']) }}', 'delivered', {
+                            title: '{{ __('Confirm Delivery?') }}',
+                            text: '{{ __('Only confirm once you have arrived and handed the order to the customer.') }}',
+                            confirmText: '{{ __('Yes, Delivered') }}',
+                            icon: 'success',
+                            confirmColor: '#16a34a'
+                        })"
+                        class="btn-action col-span-1 w-full py-2.5 rounded-xl bg-green-600 text-white text-xs font-bold shadow-md shadow-green-600/20 flex items-center justify-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        {{ __('Delivered') }}
+                    </button>
+                    <button type="button" onclick="confirmFailDelivery('{{ route('driver.deliveries.status', $delivery['id']) }}')" class="btn-action w-full py-2.5 rounded-xl bg-red-50 text-red-600 border border-red-100 text-xs font-bold flex items-center justify-center gap-1">
                         {{ __('Failed') }}
                     </button>
                     @endif
@@ -117,41 +130,4 @@
         </div>
     </div>
 </div>
-
-<div id="failModal" class="fixed inset-0 z-50 hidden flex items-end justify-center" style="background: rgba(0,0,0,0.5);">
-    <div class="bg-white rounded-t-3xl w-full max-w-md p-5 pb-8 animate-slide-up">
-        <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5"></div>
-        <h3 class="text-base font-bold text-gray-900 mb-1">{{ __('Mark Delivery as Failed') }}</h3>
-        <p class="text-xs text-gray-400 mb-4">{{ __('Please tell us why the delivery could not be completed.') }}</p>
-        <form id="failForm" action="" method="POST" class="space-y-3">
-            @csrf
-            <input type="hidden" name="status" value="failed">
-            <textarea name="reason" rows="3" placeholder="{{ __('Reason...') }}" class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 outline-none resize-none" required></textarea>
-            <div class="flex gap-2">
-                <button type="button" onclick="closeFailModal()" class="flex-1 py-3 rounded-xl border border-gray-200 text-xs font-bold text-gray-600">{{ __('Cancel') }}</button>
-                <button type="submit" class="flex-1 py-3 rounded-xl bg-red-600 text-white text-xs font-bold shadow-md shadow-red-600/20">{{ __('Submit') }}</button>
-            </div>
-        </form>
-    </div>
-</div>
 @endsection
-
-@push('scripts')
-<script>
-function openFailModal(id) {
-    const form = document.getElementById('failForm');
-    form.action = `{{ url('driver/deliveries') }}/${id}/status`;
-    document.getElementById('failModal').classList.remove('hidden');
-}
-
-function closeFailModal() {
-    document.getElementById('failModal').classList.add('hidden');
-}
-
-// Close modal when clicking outside
-const failModal = document.getElementById('failModal');
-failModal.addEventListener('click', function(e) {
-    if (e.target === failModal) closeFailModal();
-});
-</script>
-@endpush

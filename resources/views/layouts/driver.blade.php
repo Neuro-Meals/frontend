@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <script>
         tailwind.config = {
@@ -68,6 +69,113 @@
         </nav>
         <div class="h-16"></div>
     </div>
+    <script>
+        function confirmDeliveryAction(url, status, opts = {}) {
+            const {
+                title = 'Are you sure?',
+                text = '',
+                confirmText = 'Confirm',
+                icon = 'question',
+                confirmColor = '#173327',
+                reason = null,
+            } = opts;
+
+            Swal.fire({
+                title: title,
+                text: text,
+                icon: icon,
+                showCancelButton: true,
+                confirmButtonColor: confirmColor,
+                cancelButtonColor: '#d1d5db',
+                confirmButtonText: confirmText,
+                cancelButtonText: '{{ __('Cancel') }}',
+                reverseButtons: true,
+                customClass: { popup: 'rounded-2xl' },
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                const body = new URLSearchParams({ status });
+                if (reason) body.append('reason', reason);
+
+                Swal.fire({
+                    title: '{{ __('Updating...') }}',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: () => Swal.showLoading(),
+                });
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                    },
+                    body,
+                })
+                    .then((res) => res.json())
+                    .then((data) => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: '{{ __('Success!') }}',
+                                text: data.message || '{{ __('Status updated.') }}',
+                                icon: 'success',
+                                confirmButtonColor: '#173327',
+                                customClass: { popup: 'rounded-2xl' },
+                                timer: 1400,
+                                showConfirmButton: false,
+                            }).then(() => window.location.reload());
+                        } else {
+                            Swal.fire({
+                                title: '{{ __('Oops!') }}',
+                                text: data.message || '{{ __('Something went wrong.') }}',
+                                icon: 'error',
+                                confirmButtonColor: '#173327',
+                                customClass: { popup: 'rounded-2xl' },
+                            });
+                        }
+                    })
+                    .catch(() => {
+                        Swal.fire({
+                            title: '{{ __('Network Error') }}',
+                            text: '{{ __('Please check your connection and try again.') }}',
+                            icon: 'error',
+                            confirmButtonColor: '#173327',
+                            customClass: { popup: 'rounded-2xl' },
+                        });
+                    });
+            });
+        }
+
+        function confirmFailDelivery(url) {
+            Swal.fire({
+                title: '{{ __('Mark Delivery as Failed') }}',
+                input: 'textarea',
+                inputPlaceholder: '{{ __('Please tell us why the delivery could not be completed...') }}',
+                inputAttributes: { 'aria-label': 'Reason' },
+                showCancelButton: true,
+                confirmButtonText: '{{ __('Submit') }}',
+                cancelButtonText: '{{ __('Cancel') }}',
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#d1d5db',
+                reverseButtons: true,
+                customClass: { popup: 'rounded-2xl' },
+                inputValidator: (value) => {
+                    if (!value) return '{{ __('Please provide a reason.') }}';
+                },
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    confirmDeliveryAction(url, 'failed', {
+                        title: '{{ __('Confirm Failed Delivery?') }}',
+                        text: '{{ __('This will mark the delivery as failed with your reason.') }}',
+                        confirmText: '{{ __('Yes, mark as failed') }}',
+                        icon: 'warning',
+                        confirmColor: '#dc2626',
+                        reason: result.value,
+                    });
+                }
+            });
+        }
+    </script>
     @stack('scripts')
 </body>
 </html>
