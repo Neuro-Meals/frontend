@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Services\Api\AuthApiService;
+use App\Services\Api\LocationApiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -41,6 +42,25 @@ class RegisterController extends Controller
     public function showRegistrationForm()
     {
         return view('auth.register');
+    }
+
+    public function locations(Request $request, LocationApiService $locationApi)
+    {
+        $type = $request->input('type', 'regions');
+        $regionCode = $request->input('region_code');
+
+        if ($type === 'regions') {
+            $data = $locationApi->regions();
+        } elseif ($type === 'cities' && $regionCode) {
+            $data = $locationApi->regionCities($regionCode);
+        } else {
+            $data = $locationApi->list();
+        }
+
+        return response()->json([
+            'success' => !empty($data) && !isset($data['error']),
+            'data' => $data ?? [],
+        ]);
     }
 
     public function register(Request $request, AuthApiService $authApi)

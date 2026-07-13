@@ -142,6 +142,15 @@ return [
             'update_location' => '/deliveries/{delivery_id}/location',
         ],
 
+        // ─── Locations ───
+        'locations' => [
+            'list'              => '/locations/',
+            'regions'           => '/locations/regions',
+            'region'            => '/locations/regions/{region_code}',
+            'region_cities'     => '/locations/regions/{region_code}/cities',
+            'validate'          => '/locations/validate',
+        ],
+
         // ─── Notifications ───
         'notifications' => [
             'list'     => '/notifications/',

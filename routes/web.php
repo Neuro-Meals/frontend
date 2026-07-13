@@ -112,6 +112,7 @@ Route::post('login', [LoginController::class, 'login']);
 // Register
 Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('register', [RegisterController::class, 'register']);
+Route::get('register/locations', [RegisterController::class, 'locations'])->name('register.locations');
 
 // Forgot Password
 Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
