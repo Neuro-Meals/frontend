@@ -17,6 +17,7 @@ $resolvedPlaceholder = $placeholder ?? __('Ask here...');
 $wrapperId = 'ai-chat-' . uniqid();
 $positionClass = $position === 'bottom-left' ? 'left-4' : 'right-4';
 $logoUrl = asset('whitelogo.png');
+$isRtl = app()->getLocale() === 'ar';
 @endphp
 
 <style>
@@ -77,7 +78,7 @@ $logoUrl = asset('whitelogo.png');
     }
 </style>
 
-<div id="{{ $wrapperId }}" class="ai-chat-widget fixed {{ $positionClass }} bottom-4 z-50 w-full max-w-sm font-sans" data-endpoint="{{ $resolvedEndpoint }}" data-context="{{ $context }}">
+<div id="{{ $wrapperId }}" class="ai-chat-widget fixed {{ $positionClass }} bottom-4 z-50 w-full max-w-sm font-sans" data-endpoint="{{ $resolvedEndpoint }}" data-context="{{ $context }}" data-error-process="{{ __('Sorry, I could not process that. Please try again.') }}" data-error-network="{{ __('Sorry, I\'m having trouble connecting right now. Please try again later.') }}" dir="{{ $isRtl ? 'rtl' : 'ltr' }}" lang="{{ app()->getLocale() }}">
     {{-- Toggle Button --}}
     <button type="button" class="ai-chat-toggle relative w-14 h-14 rounded-full bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white shadow-2xl shadow-[#6E7A25]/40 flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300 ml-auto ai-chat-float ai-chat-pulse"
             aria-label="{{ __('Open AI chat') }}">
@@ -85,7 +86,7 @@ $logoUrl = asset('whitelogo.png');
     </button>
 
     {{-- Chat Window --}}
-    <div class="ai-chat-window hidden absolute bottom-16 {{ $position === 'bottom-left' ? 'left-0' : 'right-0' }} w-full bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col origin-bottom-right" style="height: 460px;">
+    <div class="ai-chat-window hidden absolute bottom-16 {{ $position === 'bottom-left' ? 'left-0' : 'right-0' }} w-full bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col origin-bottom-right {{ $isRtl ? 'rtl' : '' }}" style="height: 460px;" dir="{{ $isRtl ? 'rtl' : 'ltr' }}">
         {{-- Header --}}
         <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white p-4 flex items-center justify-between shrink-0">
             <div class="flex items-center gap-3">
@@ -148,6 +149,8 @@ $logoUrl = asset('whitelogo.png');
             const messages = widget.querySelector('.ai-chat-messages');
             const endpoint = widget.dataset.endpoint || '/ai/chat';
             const logoUrl = '{{ $logoUrl }}';
+            const errorProcess = widget.dataset.errorProcess || 'Sorry, I could not process that. Please try again.';
+            const errorNetwork = widget.dataset.errorNetwork || 'Sorry, I\'m having trouble connecting right now. Please try again later.';
 
             function scrollToBottom() {
                 messages.scrollTop = messages.scrollHeight;
@@ -235,14 +238,14 @@ $logoUrl = asset('whitelogo.png');
                     removeTyping(typingId);
 
                     if (!response.ok || result.success === false) {
-                        appendMessage(result.message || 'Sorry, I could not process that. Please try again.', 'bot');
+                        appendMessage(result.message || errorProcess, 'bot');
                         return;
                     }
 
                     appendMessage(result.reply || 'Here is what I found.', 'bot');
                 } catch (err) {
                     removeTyping(typingId);
-                    appendMessage('Sorry, I\'m having trouble connecting right now. Please try again later.', 'bot');
+                    appendMessage(errorNetwork, 'bot');
                 }
             });
         });

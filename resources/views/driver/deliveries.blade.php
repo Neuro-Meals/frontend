@@ -3,7 +3,7 @@
 @section('title', __('My Deliveries') . ' - ' . __('Nutrio Meals'))
 
 @section('content')
-<div x-data="{ tab: 'active' }" class="pb-4">
+<div x-data="{ tab: 'active', selectedHistory: null }" class="pb-4">
     {{-- Header --}}
     <div class="bg-gradient-to-br from-brand-700 to-brand-600 text-white p-5 rounded-b-3xl shadow-lg shadow-brand-700/20">
         <div class="flex items-center gap-3 mb-2">

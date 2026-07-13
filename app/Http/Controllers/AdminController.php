@@ -1027,6 +1027,7 @@ class AdminController extends Controller
                 $orders[] = [
                     'order_id' => $order['id'] ?? 0,
                     'id' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
+                    'customer_id' => $customer['id'] ?? ($order['user_id'] ?? null),
                     'customer' => trim($customer['full_name'] ?? (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) ?: 'Customer',
                     'customer_email' => $customer['email'] ?? ($order['user']['email'] ?? ''),
                     'customer_phone' => $customer['phone'] ?? ($order['user']['phone'] ?? ''),
