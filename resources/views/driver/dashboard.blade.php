@@ -102,10 +102,17 @@ $driverName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''
                         @endphp
                         <span class="px-2 py-1 rounded-full text-[10px] font-semibold border {{ $statusColor }}">{{ __($delivery['status_label']) }}</span>
                     </div>
-                    <div class="flex items-start gap-2 mb-4">
+                    <div class="flex items-start gap-2 mb-2">
                         <svg class="w-4 h-4 text-brand-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        <p class="text-xs text-gray-700 leading-relaxed">{{ $delivery['address'] ?: __('No address provided') }}</p>
+                        <p class="text-xs text-gray-700 leading-relaxed flex-1">{{ $delivery['address'] ?: __('No address provided') }}</p>
                     </div>
+                    @if($delivery['address'])
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($delivery['address']) }}" target="_blank" rel="noopener"
+                        class="mb-4 flex items-center justify-center gap-1.5 w-full py-2 rounded-xl border border-brand-200 bg-brand-50 text-brand-700 text-xs font-bold hover:bg-brand-100 transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                        {{ __('Get Directions') }}
+                    </a>
+                    @endif
                     <div class="grid grid-cols-2 gap-2">
                         @if(in_array($delivery['status'], ['assigned', 'pending']))
                         <button type="button"
