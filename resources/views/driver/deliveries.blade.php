@@ -102,6 +102,10 @@
                     </button>
                     @endif
                 </div>
+                <a href="{{ route('driver.deliveries.detail', $delivery['id']) }}" class="mt-3 flex items-center justify-between pt-3 border-t border-gray-50 hover:text-brand-700 transition-colors">
+                    <span class="text-[10px] text-gray-400 font-semibold">{{ __('View full details') }}</span>
+                    <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </a>
             </div>
             @empty
             <div class="bg-white rounded-2xl p-8 text-center border border-gray-100 shadow-sm">
