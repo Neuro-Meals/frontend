@@ -234,7 +234,7 @@ class UserController extends Controller
         return $stats;
     }
 
-    public function subscriptions(PlanApiService $planApi, SubscriptionApiService $subscriptionApi)
+    public function subscriptions(PlanApiService $planApi, SubscriptionApiService $subscriptionApi, PaymentApiService $paymentApi)
     {
         $mySubscriptions = $this->apiData($subscriptionApi->my(), function () {
             return [];
@@ -244,10 +244,23 @@ class UserController extends Controller
             return [];
         });
 
+        $myPayments = $this->apiData($paymentApi->my(), function () {
+            return [];
+        });
+
         // Index plans by ID for quick lookup
         $plansById = [];
         foreach ($plans as $plan) {
             $plansById[$plan['id'] ?? 0] = $plan;
+        }
+
+        // Index payments by subscription ID for receipt lookup
+        $paymentsBySubscription = [];
+        foreach ($myPayments as $payment) {
+            $subId = $payment['subscription_id'] ?? 0;
+            if ($subId && !isset($paymentsBySubscription[$subId])) {
+                $paymentsBySubscription[$subId] = $payment;
+            }
         }
 
         // Build active plan from the first active subscription
@@ -264,6 +277,7 @@ class UserController extends Controller
 
         $activePlanDetails = $activeSubscription ? ($plansById[$activeSubscription['plan_id'] ?? 0] ?? []) : [];
 
+        $activePayment = $paymentsBySubscription[$activeSubscription['id'] ?? 0] ?? [];
         $activePlan = [
             'id' => $activeSubscription['id'] ?? null,
             'name' => $activePlanDetails['name_en'] ?? 'Active Plan',
@@ -277,6 +291,11 @@ class UserController extends Controller
             'mealsTotal' => max(1, $activePlanDetails['total_meals'] ?? 0),
             'calories' => $activePlanDetails['calories'] ?? '1500-1800',
             'color' => '#259B00',
+            'period' => !empty($activeSubscription['start_date']) ? date('M Y', strtotime($activeSubscription['start_date'])) : 'N/A',
+            'paid_at' => !empty($activePayment['paid_at']) ? date('M d, Y', strtotime($activePayment['paid_at'])) : (!empty($activeSubscription['start_date']) ? date('M d, Y', strtotime($activeSubscription['start_date'])) : 'N/A'),
+            'transaction_id' => $activePayment['tap_charge_id'] ?? $activePayment['tap_payment_reference'] ?? $activePayment['tap_gateway_reference'] ?? null,
+            'payment_provider' => $activePayment['provider'] ?? 'Tap',
+            'receipt' => !empty($activePayment) && ($activeSubscription['payment_status'] ?? 'unpaid') === 'paid',
         ];
 
         // Fallback if no active subscription
@@ -293,6 +312,11 @@ class UserController extends Controller
                 'mealsTotal' => 1,
                 'calories' => '-',
                 'color' => '#6b7280',
+                'period' => 'N/A',
+                'paid_at' => 'N/A',
+                'transaction_id' => null,
+                'payment_provider' => 'Tap',
+                'receipt' => false,
             ];
         }
 
@@ -322,6 +346,7 @@ class UserController extends Controller
         $history = [];
         foreach ($mySubscriptions as $sub) {
             $plan = $plansById[$sub['plan_id'] ?? 0] ?? [];
+            $payment = $paymentsBySubscription[$sub['id'] ?? 0] ?? [];
             $history[] = [
                 'id' => $sub['id'] ?? null,
                 'plan' => $plan['name_en'] ?? 'Unknown Plan',
@@ -329,6 +354,10 @@ class UserController extends Controller
                 'status' => $sub['status'] ?? 'unknown',
                 'payment_status' => $sub['payment_status'] ?? 'unpaid',
                 'amount' => $sub['amount'] ?? 0,
+                'paid_at' => !empty($payment['paid_at']) ? date('M d, Y', strtotime($payment['paid_at'])) : (!empty($sub['start_date']) ? date('M d, Y', strtotime($sub['start_date'])) : 'N/A'),
+                'transaction_id' => $payment['tap_charge_id'] ?? $payment['tap_payment_reference'] ?? $payment['tap_gateway_reference'] ?? null,
+                'payment_provider' => $payment['provider'] ?? 'Tap',
+                'receipt' => !empty($payment) && ($sub['payment_status'] ?? 'unpaid') === 'paid',
             ];
         }
 

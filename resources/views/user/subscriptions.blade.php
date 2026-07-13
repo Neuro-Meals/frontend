@@ -83,6 +83,13 @@
             @if($activePlan['payment_status'] === 'paid')
             <div class="text-3xl font-bold">{{ $activePlan['mealsRemaining'] }}<span class="text-sm text-white/50">/{{ $activePlan['mealsTotal'] }}</span></div>
             <div class="text-xs text-white/50">Meals remaining</div>
+            @if(!empty($activePlan['receipt']))
+            <button type="button" onclick="showReceipt({{ json_encode($activePlan) }})"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 text-white hover:bg-white/20 text-xs font-bold transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                {{ __('View Receipt') }}
+            </button>
+            @endif
             @if($activePlan['status'] === 'active')
             <form action="{{ route('user.subscriptions.pause', $activePlan['id']) }}" method="POST" onsubmit="return confirm('Pause your subscription? Deliveries will be stopped until you resume.')">
                 @csrf
@@ -139,14 +146,16 @@
             <p class="text-[10px] text-gray-400 mt-2">{{ $plan['subscribers'] }} subscribers</p>
             @if($plan['current'])
             <button type="button" class="mt-4 w-full px-3 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-400 cursor-default">
-                Active
+                {{ __('Active') }}
             </button>
             @else
-            <button type="button" onclick="openTapSubscribe(this)"
+            <button type="button" onclick="confirmSwitchPlan(this)"
                 data-plan-id="{{ $plan['id'] }}"
+                data-plan-name="{{ $plan['name'] }}"
+                data-plan-price="{{ $plan['price'] }}"
                 data-subscribe-url="{{ route('user.subscriptions.subscribe') }}"
                 class="w-full px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-md transition-all mt-4">
-                <span class="pay-label">Switch Plan</span>
+                <span class="pay-label">{{ __('Switch Plan') }}</span>
                 <svg class="pay-spinner hidden w-3 h-3 animate-spin inline-block align-middle" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             </button>
             @endif
@@ -188,22 +197,76 @@
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $item['payment_status'] === 'paid' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700' }}">{{ ucfirst($item['payment_status']) }}</span>
                     </td>
                     <td class="px-5 py-3">
-                        @if($item['payment_status'] !== 'paid' && !empty($item['id']))
-                        <button type="button" onclick="openTapCheckout(this)"
-                            data-checkout-url="{{ route('user.subscriptions.checkout', $item['id']) }}"
-                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-[10px] font-bold hover:shadow-md transition-all">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                            <span class="pay-label">{{ __('Pay') }}</span>
-                            <svg class="pay-spinner hidden w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        </button>
-                        @else
-                        <span class="text-xs text-gray-400">-</span>
-                        @endif
+                        <div class="flex items-center gap-2">
+                            @if($item['payment_status'] !== 'paid' && !empty($item['id']))
+                            <button type="button" onclick="openTapCheckout(this)"
+                                data-checkout-url="{{ route('user.subscriptions.checkout', $item['id']) }}"
+                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-[10px] font-bold hover:shadow-md transition-all">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                <span class="pay-label">{{ __('Pay') }}</span>
+                                <svg class="pay-spinner hidden w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            </button>
+                            @elseif($item['receipt'])
+                            <button type="button" onclick="showReceipt({{ json_encode($item) }})"
+                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-green-50 text-green-700 text-[10px] font-bold hover:bg-green-100 transition-all">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                {{ __('View Receipt') }}
+                            </button>
+                            @else
+                            <span class="text-xs text-gray-400">-</span>
+                            @endif
+                        </div>
                     </td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
+    </div>
+</div>
+
+{{-- Receipt Modal --}}
+<div id="receipt-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="receipt-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onclick="closeReceipt()"></div>
+    <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full pointer-events-auto transform transition-all" id="receipt-panel">
+            <div id="receipt-content" class="p-6">
+                {{-- Content injected by JS --}}
+            </div>
+            <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between gap-3">
+                <button type="button" onclick="downloadReceipt()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#173327] text-white text-xs font-bold hover:bg-[#1a4a3a] transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    {{ __('Download') }}
+                </button>
+                <button type="button" onclick="closeReceipt()" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-xs font-bold hover:bg-gray-200 transition-colors">
+                    {{ __('Close') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Switch Plan Confirmation Modal --}}
+<div id="switch-plan-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="switch-plan-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onclick="closeSwitchPlanModal()"></div>
+    <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
+        <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full pointer-events-auto transform transition-all p-6">
+            <div class="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h3 id="switch-plan-title" class="text-base font-bold text-gray-900 mb-2">{{ __('Switch Plan') }}?</h3>
+            <p class="text-sm text-gray-600 mb-6">
+                {{ __('You are about to switch to') }} <strong id="switch-plan-name" class="text-gray-900"></strong> {{ __('at') }} SAR <strong id="switch-plan-price" class="text-gray-900"></strong>.
+                {{ __('This will create a new subscription and open a payment checkout in a new tab.') }}
+            </p>
+            <div class="flex items-center gap-3 justify-end">
+                <button type="button" onclick="closeSwitchPlanModal()" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-xs font-bold hover:bg-gray-200 transition-colors">
+                    {{ __('Cancel') }}
+                </button>
+                <button type="button" id="switch-plan-confirm-btn" class="px-4 py-2 rounded-lg bg-[#173327] text-white text-xs font-bold hover:bg-[#1a4a3a] transition-colors">
+                    {{ __('Confirm') }}
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -272,6 +335,31 @@
         }
     }
 
+    let selectedSwitchPlanButton = null;
+    let currentReceipt = null;
+
+    function confirmSwitchPlan(button) {
+        selectedSwitchPlanButton = button;
+        const name = button?.getAttribute('data-plan-name') || 'this plan';
+        const price = button?.getAttribute('data-plan-price') || '0';
+
+        document.getElementById('switch-plan-name').textContent = name;
+        document.getElementById('switch-plan-price').textContent = price;
+        document.getElementById('switch-plan-modal').classList.remove('hidden');
+    }
+
+    function closeSwitchPlanModal() {
+        selectedSwitchPlanButton = null;
+        document.getElementById('switch-plan-modal').classList.add('hidden');
+    }
+
+    document.getElementById('switch-plan-confirm-btn')?.addEventListener('click', () => {
+        if (selectedSwitchPlanButton) {
+            openTapSubscribe(selectedSwitchPlanButton);
+        }
+        closeSwitchPlanModal();
+    });
+
     async function openTapSubscribe(button) {
         const url = button?.getAttribute('data-subscribe-url');
         const planId = button?.getAttribute('data-plan-id');
@@ -307,6 +395,92 @@
         } finally {
             setPayLoading(button, false);
         }
+    }
+
+    function showReceipt(item) {
+        currentReceipt = item;
+        const content = document.getElementById('receipt-content');
+        const paidAt = item.paid_at || 'N/A';
+        const transactionId = item.transaction_id || 'N/A';
+        const provider = item.payment_provider || 'Tap';
+        const amount = parseFloat(item.amount || 0).toFixed(2);
+
+        content.innerHTML = `
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <h2 class="text-xl font-bold text-gray-900 mb-1">{{ __('Payment Receipt') }}</h2>
+                <p class="text-xs text-gray-500">${provider}</p>
+            </div>
+            <div class="space-y-3 border-t border-gray-100 pt-4">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">{{ __('Plan') }}</span>
+                    <span class="font-semibold text-gray-900">${escapeHtml(item.plan || 'N/A')}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">{{ __('Period') }}</span>
+                    <span class="font-semibold text-gray-900">${escapeHtml(item.period || 'N/A')}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">{{ __('Amount') }}</span>
+                    <span class="font-semibold text-gray-900">SAR ${amount}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">{{ __('Status') }}</span>
+                    <span class="font-semibold text-green-600">${escapeHtml(item.payment_status || 'paid')}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">{{ __('Paid on') }}</span>
+                    <span class="font-semibold text-gray-900">${escapeHtml(paidAt)}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500">{{ __('Transaction ID') }}</span>
+                    <span class="font-semibold text-gray-900 text-[10px]">${escapeHtml(transactionId)}</span>
+                </div>
+            </div>
+            <div class="mt-6 text-center text-[10px] text-gray-400">
+                {{ __('Thank you for choosing Nutrio Meals') }}
+            </div>
+        `;
+
+        document.getElementById('receipt-modal').classList.remove('hidden');
+    }
+
+    function closeReceipt() {
+        document.getElementById('receipt-modal').classList.add('hidden');
+        currentReceipt = null;
+    }
+
+    function downloadReceipt() {
+        if (!currentReceipt) return;
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        if (!printWindow) return;
+
+        const content = document.getElementById('receipt-content').innerHTML;
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>{{ __('Payment Receipt') }}</title>
+                <script src="https://cdn.tailwindcss.com"><\/script>
+                <style>body{font-family:system-ui,-apple-system,sans-serif;}</style>
+            </head>
+            <body class="bg-gray-50 p-8">
+                <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
+                    ${content}
+                </div>
+                <script>window.onload = () => { setTimeout(() => { window.print(); }, 300); };<\/script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 </script>
 @endpush
