@@ -38,35 +38,36 @@
 
             <form class="space-y-5" method="POST" action="{{ route('register') }}" @submit.prevent="submit">
 
-                {{-- First Name --}}
-                <div>
-                    <label for="first_name" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('First Name') }}</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
+                {{-- First Name & Last Name --}}
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="first_name" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('First Name') }}</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                            </div>
+                            <input id="first_name" type="text" name="first_name" x-model="form.first_name" required autocomplete="given-name" autofocus
+                                class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                                :class="errors.first_name ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
+                                placeholder="John">
                         </div>
-                        <input id="first_name" type="text" name="first_name" x-model="form.first_name" required autocomplete="given-name" autofocus
-                            class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
-                            :class="errors.first_name ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
-                            placeholder="John">
                     </div>
-                </div>
 
-                {{-- Last Name --}}
-                <div>
-                    <label for="last_name" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Last Name') }}</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
+                    <div>
+                        <label for="last_name" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Last Name') }}</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                            </div>
+                            <input id="last_name" type="text" name="last_name" x-model="form.last_name" required autocomplete="family-name"
+                                class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                                :class="errors.last_name ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
+                                placeholder="Doe">
                         </div>
-                        <input id="last_name" type="text" name="last_name" x-model="form.last_name" required autocomplete="family-name"
-                            class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
-                            :class="errors.last_name ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
-                            placeholder="Doe">
                     </div>
                 </div>
 
@@ -157,7 +158,7 @@
                 </div>
 
                 {{-- Location --}}
-                <div x-data="locationPicker()" @click.away="open = false">
+                <div class="relative" @click.away="locationOpen = false">
                     <label for="location" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Location') }}</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -170,14 +171,14 @@
                             class="w-full pl-11 pr-11 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                             :class="errors.location ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
                             placeholder="{{ __('Select your city') }}">
-                        <button type="button" @click="togglePicker()"
+                        <button type="button" @click="toggleLocationPicker()"
                             class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-emerald-600 transition-colors focus:outline-none"
-                            :aria-label="open ? '{{ __('Close location picker') }}' : '{{ __('Open location picker') }}'"
+                            :aria-label="locationOpen ? '{{ __('Close location picker') }}' : '{{ __('Open location picker') }}'"
                             title="{{ __('Choose location') }}">
-                            <svg x-show="!loading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg x-show="!locationLoading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
-                            <svg x-show="loading" class="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg x-show="locationLoading" class="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
@@ -185,12 +186,12 @@
                     </div>
 
                     {{-- Location Picker Dropdown --}}
-                    <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" x-cloak
+                    <div x-show="locationOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" x-cloak
                         class="absolute z-50 mt-2 w-full max-w-md bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden"
                         style="left: 0; right: 0;">
                         <div class="p-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
                             <h3 class="text-sm font-bold text-gray-900">{{ __('Choose your location') }}</h3>
-                            <button type="button" @click="open = false" class="text-gray-400 hover:text-gray-600">
+                            <button type="button" @click="locationOpen = false" class="text-gray-400 hover:text-gray-600">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
@@ -223,13 +224,13 @@
                             </div>
 
                             {{-- Empty states --}}
-                            <div x-show="selectedRegion && !cities.length && !loading" class="text-center py-6 text-sm text-gray-400">
+                            <div x-show="selectedRegion && !cities.length && !locationLoading" class="text-center py-6 text-sm text-gray-400">
                                 {{ __('No cities found for this region.') }}
                             </div>
-                            <div x-show="!selectedRegion && regions.length && !loading" class="text-center py-6 text-sm text-gray-400">
+                            <div x-show="!selectedRegion && regions.length && !locationLoading" class="text-center py-6 text-sm text-gray-400">
                                 {{ __('Select a region to see cities.') }}
                             </div>
-                            <div x-show="error" class="mt-3 p-3 rounded-lg bg-red-50 text-red-700 text-xs" x-text="error"></div>
+                            <div x-show="locationError" class="mt-3 p-3 rounded-lg bg-red-50 text-red-700 text-xs" x-text="locationError"></div>
                         </div>
 
                         <div class="p-3 border-t border-gray-100 bg-gray-50 text-center">
@@ -392,77 +393,6 @@
 
 @push('scripts')
 <script>
-    function locationPicker() {
-        return {
-            open: false,
-            loading: false,
-            error: '',
-            regions: [],
-            cities: [],
-            selectedRegion: '',
-            locationsUrl: @json(route('register.locations')),
-            init() {
-                this.$watch('open', value => {
-                    if (value && this.regions.length === 0) {
-                        this.loadRegions();
-                    }
-                });
-            },
-            togglePicker() {
-                this.open = !this.open;
-                if (this.open && this.regions.length === 0) {
-                    this.loadRegions();
-                }
-            },
-            async loadRegions() {
-                this.loading = true;
-                this.error = '';
-                try {
-                    const response = await fetch(this.locationsUrl + '?type=regions');
-                    const result = await response.json();
-                    if (result.success && Array.isArray(result.data)) {
-                        this.regions = result.data.sort((a, b) => a.name_en.localeCompare(b.name_en));
-                    } else {
-                        this.error = result.message || '{{ __('Unable to load regions.') }}';
-                    }
-                } catch (err) {
-                    this.error = '{{ __('Network error. Please try again.') }}';
-                } finally {
-                    this.loading = false;
-                }
-            },
-            async loadCities() {
-                if (!this.selectedRegion) {
-                    this.cities = [];
-                    return;
-                }
-                this.loading = true;
-                this.error = '';
-                try {
-                    const response = await fetch(this.locationsUrl + '?type=cities&region_code=' + encodeURIComponent(this.selectedRegion));
-                    const result = await response.json();
-                    if (result.success && Array.isArray(result.data)) {
-                        this.cities = result.data.sort((a, b) => a.name_en.localeCompare(b.name_en));
-                    } else {
-                        this.error = result.message || '{{ __('Unable to load cities.') }}';
-                        this.cities = [];
-                    }
-                } catch (err) {
-                    this.error = '{{ __('Network error. Please try again.') }}';
-                    this.cities = [];
-                } finally {
-                    this.loading = false;
-                }
-            },
-            selectCity(city) {
-                if (this.$parent && this.$parent.form) {
-                    this.$parent.form.location = city.name_en;
-                }
-                this.open = false;
-            }
-        };
-    }
-
     function registerForm() {
         return {
             loading: false,
@@ -474,6 +404,7 @@
             successTitle: @json(__('Success')),
             networkError: @json(__('Network error. Please try again.')),
             registerUrl: @json(route('register')),
+            locationsUrl: @json(route('register.locations')),
             form: {
                 first_name: '',
                 last_name: '',
@@ -490,6 +421,60 @@
                 fitness_goal: '',
                 dietary_preference: '',
                 allergies: ''
+            },
+            locationOpen: false,
+            locationLoading: false,
+            locationError: '',
+            regions: [],
+            cities: [],
+            selectedRegion: '',
+            toggleLocationPicker() {
+                this.locationOpen = !this.locationOpen;
+                if (this.locationOpen && this.regions.length === 0) {
+                    this.loadRegions();
+                }
+            },
+            async loadRegions() {
+                this.locationLoading = true;
+                this.locationError = '';
+                try {
+                    const response = await fetch(this.locationsUrl + '?type=regions');
+                    const result = await response.json();
+                    if (result.success && Array.isArray(result.data)) {
+                        this.regions = result.data.sort((a, b) => a.name_en.localeCompare(b.name_en));
+                    } else {
+                        this.locationError = result.message || '{{ __('Unable to load regions.') }}';
+                    }
+                } catch (err) {
+                    this.locationError = '{{ __('Network error. Please try again.') }}';
+                } finally {
+                    this.locationLoading = false;
+                }
+            },
+            async loadCities() {
+                this.cities = [];
+                if (!this.selectedRegion) {
+                    return;
+                }
+                this.locationLoading = true;
+                this.locationError = '';
+                try {
+                    const response = await fetch(this.locationsUrl + '?type=cities&region_code=' + encodeURIComponent(this.selectedRegion));
+                    const result = await response.json();
+                    if (result.success && Array.isArray(result.data)) {
+                        this.cities = result.data.sort((a, b) => a.name_en.localeCompare(b.name_en));
+                    } else {
+                        this.locationError = result.message || '{{ __('Unable to load cities.') }}';
+                    }
+                } catch (err) {
+                    this.locationError = '{{ __('Network error. Please try again.') }}';
+                } finally {
+                    this.locationLoading = false;
+                }
+            },
+            selectCity(city) {
+                this.form.location = city.name_en;
+                this.locationOpen = false;
             },
             showToast(message, type = 'error') {
                 this.toast = {
