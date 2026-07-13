@@ -205,6 +205,7 @@ Route::prefix('driver')->name('driver.')->middleware(['api.auth', 'api.driver'])
     Route::get('/dashboard', [\App\Http\Controllers\DriverController::class, 'dashboard'])->name('dashboard');
     Route::get('/deliveries', [\App\Http\Controllers\DriverController::class, 'deliveries'])->name('deliveries');
     Route::get('/deliveries/{id}', [\App\Http\Controllers\DriverController::class, 'showDelivery'])->name('deliveries.show');
+    Route::get('/deliveries/{id}/map', [\App\Http\Controllers\DriverController::class, 'mapView'])->name('deliveries.map');
     Route::post('/deliveries/{id}/status', [\App\Http\Controllers\DriverController::class, 'updateStatus'])->name('deliveries.status');
     Route::post('/deliveries/{id}/location', [\App\Http\Controllers\DriverController::class, 'updateLocation'])->name('deliveries.location');
 });

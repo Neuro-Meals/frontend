@@ -146,53 +146,6 @@
             });
         }
 
-        function openDirections(address) {
-            if (!address) return;
-
-            Swal.fire({
-                title: '{{ __('Finding location...') }}',
-                allowOutsideClick: false,
-                showConfirmButton: false,
-                customClass: { popup: 'rounded-2xl' },
-                didOpen: () => Swal.showLoading(),
-            });
-
-            const geocode = fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`)
-                .then((res) => res.json())
-                .then((results) => (results && results[0]) ? { lat: parseFloat(results[0].lat), lon: parseFloat(results[0].lon) } : null)
-                .catch(() => null);
-
-            const currentPosition = new Promise((resolve) => {
-                if (!navigator.geolocation) return resolve(null);
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-                    () => resolve(null),
-                    { enableHighAccuracy: true, timeout: 8000 }
-                );
-            });
-
-            Promise.all([geocode, currentPosition]).then(([destination, origin]) => {
-                Swal.close();
-
-                if (!destination) {
-                    Swal.fire({
-                        title: '{{ __('Location not found') }}',
-                        text: '{{ __('Could not locate this address on the map.') }}',
-                        icon: 'error',
-                        confirmButtonColor: '#173327',
-                        customClass: { popup: 'rounded-2xl' },
-                    });
-                    return;
-                }
-
-                const url = origin
-                    ? `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${origin.lat}%2C${origin.lon}%3B${destination.lat}%2C${destination.lon}`
-                    : `https://www.openstreetmap.org/?mlat=${destination.lat}&mlon=${destination.lon}#map=16/${destination.lat}/${destination.lon}`;
-
-                window.open(url, '_blank');
-            });
-        }
-
         function confirmFailDelivery(url) {
             Swal.fire({
                 title: '{{ __('Mark Delivery as Failed') }}',

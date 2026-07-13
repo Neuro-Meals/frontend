@@ -107,11 +107,11 @@ $driverName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''
                         <p class="text-xs text-gray-700 leading-relaxed flex-1">{{ $delivery['address'] ?: __('No address provided') }}</p>
                     </div>
                     @if($delivery['address'])
-                    <button type="button" onclick='openDirections(@json($delivery["address"]))'
+                    <a href="{{ route('driver.deliveries.map', $delivery['id']) }}"
                         class="mb-4 flex items-center justify-center gap-1.5 w-full py-2 rounded-xl border border-brand-200 bg-brand-50 text-brand-700 text-xs font-bold hover:bg-brand-100 transition-colors">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
                         {{ __('Get Directions') }}
-                    </button>
+                    </a>
                     @endif
                     <div class="grid grid-cols-2 gap-2">
                         @if(in_array($delivery['status'], ['assigned', 'pending']))

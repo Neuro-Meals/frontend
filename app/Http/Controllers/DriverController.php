@@ -101,6 +101,19 @@ class DriverController extends Controller
         return response()->json(['success' => true, 'delivery' => $this->formatDelivery($delivery)]);
     }
 
+    public function mapView(int $id, DriverApiService $driverApi)
+    {
+        $deliveryData = $this->apiData($driverApi->showDelivery($id), fn () => []);
+
+        if (empty($deliveryData)) {
+            abort(404, __('Delivery not found.'));
+        }
+
+        $delivery = $this->formatDelivery($deliveryData);
+
+        return view('driver.map', compact('delivery'));
+    }
+
     public function updateStatus(Request $request, int $id, DriverApiService $driverApi)
     {
         $status = $request->input('status');
