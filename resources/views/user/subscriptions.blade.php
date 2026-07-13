@@ -17,6 +17,18 @@
 </div>
 @endif
 
+{{-- Inline payment error toast --}}
+<div id="payment-error-toast" class="hidden mb-4 bg-red-50 border border-red-100 text-red-700 rounded-xl px-4 py-3 text-sm flex items-start gap-3">
+    <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <div class="flex-1">
+        <p class="font-semibold">{{ __('Payment Error') }}</p>
+        <p id="payment-error-message" class="text-sm"></p>
+    </div>
+    <button type="button" onclick="document.getElementById('payment-error-toast').classList.add('hidden')" class="text-red-400 hover:text-red-600">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+</div>
+
 {{-- Active Plan Banner --}}
 <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-2xl p-6 text-white shadow-lg mb-6 relative overflow-hidden">
     <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl"></div>
@@ -90,13 +102,13 @@
             @endif
             @elseif($activePlan['payment_status'] === 'unpaid' || $activePlan['payment_status'] === 'pending')
             <div class="text-xs text-white/70 mb-1">{{ __('Complete payment to activate') }}</div>
-            <form action="{{ route('user.subscriptions.pay', $activePlan['id']) }}" method="POST">
-                @csrf
-                <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white text-[#173327] hover:bg-white/90 text-xs font-bold transition-colors shadow-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    {{ __('Pay') }} SAR {{ $activePlan['price'] }}
-                </button>
-            </form>
+            <button type="button" onclick="openTapCheckout(this)"
+                data-checkout-url="{{ route('user.subscriptions.checkout', $activePlan['id']) }}"
+                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white text-[#173327] hover:bg-white/90 text-xs font-bold transition-colors shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <span class="pay-label">{{ __('Pay') }} SAR {{ $activePlan['price'] }}</span>
+                <svg class="pay-spinner hidden w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            </button>
             @endif
         </div>
         @endif
@@ -130,13 +142,13 @@
                 Active
             </button>
             @else
-            <form action="{{ route('user.subscriptions.subscribe') }}" method="POST" class="mt-4">
-                @csrf
-                <input type="hidden" name="plan_id" value="{{ $plan['id'] }}">
-                <button type="submit" class="w-full px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-md transition-all">
-                    Switch Plan
-                </button>
-            </form>
+            <button type="button" onclick="openTapSubscribe(this)"
+                data-plan-id="{{ $plan['id'] }}"
+                data-subscribe-url="{{ route('user.subscriptions.subscribe') }}"
+                class="w-full px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-md transition-all mt-4">
+                <span class="pay-label">Switch Plan</span>
+                <svg class="pay-spinner hidden w-3 h-3 animate-spin inline-block align-middle" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            </button>
             @endif
         </div>
         @endforeach
@@ -177,13 +189,13 @@
                     </td>
                     <td class="px-5 py-3">
                         @if($item['payment_status'] !== 'paid' && !empty($item['id']))
-                        <form action="{{ route('user.subscriptions.pay', $item['id']) }}" method="POST" class="inline">
-                            @csrf
-                            <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-[10px] font-bold hover:shadow-md transition-all">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                {{ __('Pay') }}
-                            </button>
-                        </form>
+                        <button type="button" onclick="openTapCheckout(this)"
+                            data-checkout-url="{{ route('user.subscriptions.checkout', $item['id']) }}"
+                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-[10px] font-bold hover:shadow-md transition-all">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <span class="pay-label">{{ __('Pay') }}</span>
+                            <svg class="pay-spinner hidden w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        </button>
                         @else
                         <span class="text-xs text-gray-400">-</span>
                         @endif
@@ -196,3 +208,105 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    }
+
+    function showPaymentError(message) {
+        const toast = document.getElementById('payment-error-toast');
+        const text = document.getElementById('payment-error-message');
+        if (toast && text) {
+            text.textContent = message || 'Unable to start payment. Please try again.';
+            toast.classList.remove('hidden');
+            toast.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+            alert(message || 'Unable to start payment. Please try again.');
+        }
+    }
+
+    function setPayLoading(button, loading) {
+        if (!button) return;
+        const label = button.querySelector('.pay-label');
+        const spinner = button.querySelector('.pay-spinner');
+        button.disabled = loading;
+        if (label) label.classList.toggle('hidden', loading);
+        if (spinner) spinner.classList.toggle('hidden', !loading);
+        button.classList.toggle('opacity-75', loading);
+        button.classList.toggle('cursor-not-allowed', loading);
+    }
+
+    async function openTapCheckout(button) {
+        const url = button?.getAttribute('data-checkout-url');
+        if (!url) {
+            showPaymentError('Invalid payment link.');
+            return;
+        }
+
+        setPayLoading(button, true);
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                },
+                credentials: 'same-origin',
+            });
+
+            const result = await response.json().catch(() => ({}));
+
+            if (!response.ok || !result.success || !result.checkout_url) {
+                showPaymentError(result.message || 'Unable to start payment. Please try again.');
+                return;
+            }
+
+            window.open(result.checkout_url, '_blank', 'noopener,noreferrer');
+        } catch (err) {
+            showPaymentError('Network error. Please try again.');
+        } finally {
+            setPayLoading(button, false);
+        }
+    }
+
+    async function openTapSubscribe(button) {
+        const url = button?.getAttribute('data-subscribe-url');
+        const planId = button?.getAttribute('data-plan-id');
+
+        if (!url || !planId) {
+            showPaymentError('Invalid subscription link.');
+            return;
+        }
+
+        setPayLoading(button, true);
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ plan_id: parseInt(planId, 10), json: '1' }),
+            });
+
+            const result = await response.json().catch(() => ({}));
+
+            if (!response.ok || !result.success || !result.checkout_url) {
+                showPaymentError(result.message || 'Unable to start subscription. Please try again.');
+                return;
+            }
+
+            window.open(result.checkout_url, '_blank', 'noopener,noreferrer');
+        } catch (err) {
+            showPaymentError('Network error. Please try again.');
+        } finally {
+            setPayLoading(button, false);
+        }
+    }
+</script>
+@endpush

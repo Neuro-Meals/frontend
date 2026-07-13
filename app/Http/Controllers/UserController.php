@@ -338,21 +338,31 @@ class UserController extends Controller
     public function subscribe(Request $request, SubscriptionApiService $subscriptionApi, PaymentApiService $paymentApi)
     {
         $planId = (int) $request->input('plan_id');
+        $wantsJson = $request->wantsJson() || $request->input('json') === '1';
 
         if ($planId <= 0) {
+            if ($wantsJson) {
+                return response()->json(['success' => false, 'message' => 'Invalid plan selected.'], 422);
+            }
             return redirect()->route('user.subscriptions')->with('error', 'Invalid plan selected.');
         }
 
         $subscriptionResponse = $subscriptionApi->create(['plan_id' => $planId]);
 
         if (!empty($subscriptionResponse['success']) && $subscriptionResponse['success'] === false) {
-            $message = $subscriptionResponse['detail'] ?? $subscriptionResponse['message'] ?? 'Failed to subscribe. Please try again.';
+            $message = $this->apiErrorMessage($subscriptionResponse);
+            if ($wantsJson) {
+                return response()->json(['success' => false, 'message' => $message], 400);
+            }
             return redirect()->route('user.subscriptions')->with('error', $message);
         }
 
         $subscription = $subscriptionResponse['data'] ?? $subscriptionResponse;
 
         if (empty($subscription) || !empty($subscription['error']) || !isset($subscription['id'])) {
+            if ($wantsJson) {
+                return response()->json(['success' => false, 'message' => 'Failed to subscribe. Please try again.'], 400);
+            }
             return redirect()->route('user.subscriptions')->with('error', 'Failed to subscribe. Please try again.');
         }
 
@@ -362,16 +372,30 @@ class UserController extends Controller
         if (!empty($checkoutResponse['success']) && $checkoutResponse['success'] === false) {
             $message = $this->apiErrorMessage($checkoutResponse);
             \Illuminate\Support\Facades\Log::warning('Subscription payment checkout failed', ['response' => $checkoutResponse]);
+            if ($wantsJson) {
+                return response()->json(['success' => false, 'message' => $message], 400);
+            }
             return redirect()->route('user.subscriptions')->with('error', $message);
         }
 
         $checkout = $checkoutResponse['data'] ?? $checkoutResponse;
 
         if (!empty($checkout['checkout_url'])) {
+            if ($wantsJson) {
+                return response()->json([
+                    'success' => true,
+                    'checkout_url' => $checkout['checkout_url'],
+                    'subscription_id' => $subscriptionId,
+                    'payment_id' => $checkout['payment_id'] ?? null,
+                ]);
+            }
             return redirect()->away($checkout['checkout_url']);
         }
 
         \Illuminate\Support\Facades\Log::warning('Subscription payment checkout returned no URL', ['response' => $checkoutResponse]);
+        if ($wantsJson) {
+            return response()->json(['success' => false, 'message' => 'Unable to start payment. Please try again.'], 400);
+        }
         return redirect()->route('user.subscriptions')->with('success', 'Subscription created! Please complete payment.');
     }
 
@@ -413,6 +437,46 @@ class UserController extends Controller
 
         \Illuminate\Support\Facades\Log::warning('Payment checkout returned no URL', ['response' => $checkoutResponse]);
         return redirect()->route('user.subscriptions')->with('error', 'Unable to start payment. Please try again.');
+    }
+
+    public function checkoutJson(int $subscriptionId, PaymentApiService $paymentApi)
+    {
+        if ($subscriptionId <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid subscription.',
+            ], 422);
+        }
+
+        $checkoutResponse = $paymentApi->createCheckout($subscriptionId);
+
+        if (!empty($checkoutResponse['success']) && $checkoutResponse['success'] === false) {
+            $message = $this->apiErrorMessage($checkoutResponse);
+            \Illuminate\Support\Facades\Log::warning('Payment checkout JSON failed', ['response' => $checkoutResponse]);
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+                'response' => $checkoutResponse,
+            ], 400);
+        }
+
+        $checkout = $checkoutResponse['data'] ?? $checkoutResponse;
+
+        if (!empty($checkout['checkout_url'])) {
+            return response()->json([
+                'success' => true,
+                'checkout_url' => $checkout['checkout_url'],
+                'payment_id' => $checkout['payment_id'] ?? null,
+                'tap_charge_id' => $checkout['tap_charge_id'] ?? null,
+            ]);
+        }
+
+        \Illuminate\Support\Facades\Log::warning('Payment checkout JSON returned no URL', ['response' => $checkoutResponse]);
+        return response()->json([
+            'success' => false,
+            'message' => $this->apiErrorMessage($checkout),
+            'response' => $checkout,
+        ], 400);
     }
 
     public function pauseSubscription(int $subscriptionId, SubscriptionApiService $subscriptionApi)
