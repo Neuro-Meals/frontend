@@ -323,6 +323,7 @@ class UserController extends Controller
         foreach ($mySubscriptions as $sub) {
             $plan = $plansById[$sub['plan_id'] ?? 0] ?? [];
             $history[] = [
+                'id' => $sub['id'] ?? null,
                 'plan' => $plan['name_en'] ?? 'Unknown Plan',
                 'period' => !empty($sub['start_date']) ? date('M Y', strtotime($sub['start_date'])) : 'N/A',
                 'status' => $sub['status'] ?? 'unknown',
@@ -360,6 +361,28 @@ class UserController extends Controller
         }
 
         return redirect()->route('user.subscriptions')->with('success', 'Subscription created! Please complete payment.');
+    }
+
+    public function paySubscription(int $subscriptionId, PaymentApiService $paymentApi)
+    {
+        if ($subscriptionId <= 0) {
+            return redirect()->route('user.subscriptions')->with('error', 'Invalid subscription.');
+        }
+
+        $checkout = $this->apiData($paymentApi->createCheckout($subscriptionId), function () {
+            return [];
+        });
+
+        if (!empty($checkout['checkout_url'])) {
+            return redirect()->away($checkout['checkout_url']);
+        }
+
+        if (!empty($checkout['error']) || !empty($checkout['detail'])) {
+            $message = $checkout['detail'] ?? $checkout['message'] ?? 'Unable to start payment. Please try again.';
+            return redirect()->route('user.subscriptions')->with('error', $message);
+        }
+
+        return redirect()->route('user.subscriptions')->with('error', 'Unable to start payment. Please try again.');
     }
 
     public function pauseSubscription(int $subscriptionId, SubscriptionApiService $subscriptionApi)
