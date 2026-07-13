@@ -343,24 +343,46 @@ class UserController extends Controller
             return redirect()->route('user.subscriptions')->with('error', 'Invalid plan selected.');
         }
 
-        $subscription = $this->apiData($subscriptionApi->create(['plan_id' => $planId]), function () {
-            return [];
-        });
+        $subscriptionResponse = $subscriptionApi->create(['plan_id' => $planId]);
+
+        if (!empty($subscriptionResponse['success']) && $subscriptionResponse['success'] === false) {
+            $message = $subscriptionResponse['detail'] ?? $subscriptionResponse['message'] ?? 'Failed to subscribe. Please try again.';
+            return redirect()->route('user.subscriptions')->with('error', $message);
+        }
+
+        $subscription = $subscriptionResponse['data'] ?? $subscriptionResponse;
 
         if (empty($subscription) || !empty($subscription['error']) || !isset($subscription['id'])) {
             return redirect()->route('user.subscriptions')->with('error', 'Failed to subscribe. Please try again.');
         }
 
         $subscriptionId = $subscription['id'];
-        $checkout = $this->apiData($paymentApi->createCheckout($subscriptionId), function () {
-            return [];
-        });
+        $checkoutResponse = $paymentApi->createCheckout($subscriptionId);
+
+        if (!empty($checkoutResponse['success']) && $checkoutResponse['success'] === false) {
+            $message = $this->apiErrorMessage($checkoutResponse);
+            \Illuminate\Support\Facades\Log::warning('Subscription payment checkout failed', ['response' => $checkoutResponse]);
+            return redirect()->route('user.subscriptions')->with('error', $message);
+        }
+
+        $checkout = $checkoutResponse['data'] ?? $checkoutResponse;
 
         if (!empty($checkout['checkout_url'])) {
             return redirect()->away($checkout['checkout_url']);
         }
 
+        \Illuminate\Support\Facades\Log::warning('Subscription payment checkout returned no URL', ['response' => $checkoutResponse]);
         return redirect()->route('user.subscriptions')->with('success', 'Subscription created! Please complete payment.');
+    }
+
+    protected function apiErrorMessage(array $response): string
+    {
+        $detail = $response['detail'] ?? null;
+        if (is_array($detail)) {
+            $detail = $detail['message'] ?? $detail['detail'] ?? json_encode($detail);
+        }
+
+        return $detail ?? $response['message'] ?? $response['errors'] ?? 'Request failed. Please try again.';
     }
 
     public function paySubscription(int $subscriptionId, PaymentApiService $paymentApi)
@@ -369,19 +391,27 @@ class UserController extends Controller
             return redirect()->route('user.subscriptions')->with('error', 'Invalid subscription.');
         }
 
-        $checkout = $this->apiData($paymentApi->createCheckout($subscriptionId), function () {
-            return [];
-        });
+        $checkoutResponse = $paymentApi->createCheckout($subscriptionId);
+
+        if (!empty($checkoutResponse['success']) && $checkoutResponse['success'] === false) {
+            $message = $this->apiErrorMessage($checkoutResponse);
+            \Illuminate\Support\Facades\Log::warning('Payment checkout failed', ['response' => $checkoutResponse]);
+            return redirect()->route('user.subscriptions')->with('error', $message);
+        }
+
+        $checkout = $checkoutResponse['data'] ?? $checkoutResponse;
 
         if (!empty($checkout['checkout_url'])) {
             return redirect()->away($checkout['checkout_url']);
         }
 
         if (!empty($checkout['error']) || !empty($checkout['detail'])) {
-            $message = $checkout['detail'] ?? $checkout['message'] ?? 'Unable to start payment. Please try again.';
+            $message = $this->apiErrorMessage($checkout);
+            \Illuminate\Support\Facades\Log::warning('Payment checkout missing URL', ['response' => $checkoutResponse]);
             return redirect()->route('user.subscriptions')->with('error', $message);
         }
 
+        \Illuminate\Support\Facades\Log::warning('Payment checkout returned no URL', ['response' => $checkoutResponse]);
         return redirect()->route('user.subscriptions')->with('error', 'Unable to start payment. Please try again.');
     }
 
@@ -434,28 +464,28 @@ class UserController extends Controller
 
         // Tap gateway: verify by charge_id (tap_id) if available.
         if ($isLoggedIn && $chargeId) {
-            $result = $this->apiData($paymentApi->verifyCharge($chargeId), function () {
-                return [];
-            });
+            $response = $paymentApi->verifyCharge($chargeId);
+            $result = $response['data'] ?? $response;
 
             if (!empty($result['id'])) {
                 $payment = $result;
                 $verified = ($result['status'] ?? '') === 'paid';
-            } elseif (!empty($result['detail']) || !empty($result['message'])) {
-                $error = $result['detail'] ?? $result['message'] ?? 'Unable to confirm payment status.';
+            } else {
+                $error = $this->apiErrorMessage($response);
+                \Illuminate\Support\Facades\Log::warning('Payment charge verification failed', ['response' => $response]);
             }
         }
         // Legacy Stripe fallback
         elseif ($isLoggedIn && $sessionId) {
-            $result = $this->apiData($paymentApi->verifySession($sessionId), function () {
-                return [];
-            });
+            $response = $paymentApi->verifySession($sessionId);
+            $result = $response['data'] ?? $response;
 
             if (!empty($result['id'])) {
                 $payment = $result;
                 $verified = ($result['status'] ?? '') === 'paid';
-            } elseif (!empty($result['detail']) || !empty($result['message'])) {
-                $error = $result['detail'] ?? $result['message'] ?? 'Unable to confirm payment status.';
+            } else {
+                $error = $this->apiErrorMessage($response);
+                \Illuminate\Support\Facades\Log::warning('Payment session verification failed', ['response' => $response]);
             }
         } elseif ($paymentId) {
             // No charge/session id to verify; surface a pending state so the user can retry later.
