@@ -163,18 +163,19 @@
                 </div>
 
                 {{-- Expanded details --}}
-                <div x-show="selectedHistory === {{ $delivery['id'] }}" x-collapse class="mt-4 pt-4 border-t border-gray-100">
+                <div x-show="selectedHistory === {{ $delivery['id'] }}" x-transition class="mt-4 pt-4 border-t border-gray-100">
                     {{-- Delivery stepper --}}
                     <div class="mb-5">
                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Delivery Progress') }}</p>
                         <div class="relative flex justify-between items-start">
+                            <div class="absolute top-3.5 left-0 w-full h-0.5 bg-gray-200 z-0"></div>
                             @foreach($stepOrder as $index => $step)
                             @php
                                 $isCompleted = $index <= $currentStepIndex && !($isFailed && $step === 'delivered');
                                 $isCurrent = $index === $currentStepIndex && !$isFailed && $step !== 'delivered';
                                 $stepActive = $index === $currentStepIndex;
                                 $stepColor = $isFailed && $step === 'delivered' ? 'bg-red-500 border-red-500' : ($isCompleted ? 'bg-brand-600 border-brand-600' : 'bg-gray-200 border-gray-200');
-                                $textColor = $isCompleted || $stepActive ? 'text-gray-900' : 'text-gray-400';
+                                $textColor = $isFailed && $step === 'delivered' ? 'text-red-600' : ($isCompleted || $stepActive ? 'text-gray-900' : 'text-gray-400');
                             @endphp
                             <div class="flex flex-col items-center z-10 w-1/4">
                                 <div class="w-7 h-7 rounded-full border-2 flex items-center justify-center {{ $stepColor }}">
@@ -188,9 +189,6 @@
                                 </div>
                                 <p class="text-[9px] font-semibold mt-1.5 text-center leading-tight {{ $textColor }}">{{ $stepLabels[$step] }}</p>
                             </div>
-                            @if(!$loop->last)
-                            <div class="absolute top-3.5 left-0 w-full h-0.5 bg-gray-200 -z-0"></div>
-                            @endif
                             @endforeach
                         </div>
                     </div>
