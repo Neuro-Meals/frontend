@@ -110,8 +110,34 @@ class DriverController extends Controller
         }
 
         $delivery = $this->formatDelivery($deliveryData);
+        $delivery['whatsapp_phone'] = $this->cleanPhoneForWhatsApp($delivery['customer_phone']);
 
         return view('driver.map', compact('delivery'));
+    }
+
+    public function detailView(int $id, DriverApiService $driverApi)
+    {
+        $deliveryData = $this->apiData($driverApi->showDelivery($id), fn () => []);
+
+        if (empty($deliveryData)) {
+            abort(404, __('Delivery not found.'));
+        }
+
+        $delivery = $this->formatDelivery($deliveryData);
+        $delivery['whatsapp_phone'] = $this->cleanPhoneForWhatsApp($delivery['customer_phone']);
+
+        return view('driver.delivery-detail', compact('delivery'));
+    }
+
+    private function cleanPhoneForWhatsApp(?string $phone): string
+    {
+        if (empty($phone)) return '';
+        $digits = preg_replace('/[^0-9]/', '', $phone);
+        if (strlen($digits) > 0 && $digits[0] !== '+') {
+            $digits = ltrim($digits, '0');
+            $digits = '966' . $digits;
+        }
+        return $digits;
     }
 
     public function updateStatus(Request $request, int $id, DriverApiService $driverApi)

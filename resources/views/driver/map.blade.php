@@ -76,26 +76,35 @@
     <div class="absolute bottom-0 left-0 right-0 z-[500] p-4">
         <div class="bg-white rounded-2xl shadow-2xl p-4 border border-gray-100 map-fade-in">
             <div class="flex items-center justify-between mb-3">
-                <div>
+                <div class="min-w-0">
+                    <p class="text-sm font-bold text-gray-900 truncate">{{ $delivery['customer'] }}</p>
+                    <p class="text-[10px] text-gray-400 truncate">{{ $delivery['customer_phone'] ?: '' }}</p>
+                    <p class="text-[10px] text-brand-600 mt-0.5" x-text="etaText">{{ __('Calculating route...') }}</p>
                     <p class="text-[10px] text-gray-400" x-text="distanceText"></p>
-                    <p class="text-lg font-bold text-gray-900" x-text="etaText">{{ __('Calculating route...') }}</p>
                 </div>
                 <div class="w-11 h-11 rounded-full bg-brand-50 flex items-center justify-center flex-shrink-0">
                     <svg class="w-5 h-5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 17h8m-8 0a2 2 0 11-4 0 2 2 0 014 0zm8 0a2 2 0 104 0 2 2 0 00-4 0zM3 11l1.5-4.5A2 2 0 016.4 5h7.2a2 2 0 011.9 1.5L17 11m-14 0h18m-18 0v4a1 1 0 001 1h1m16-5v4a1 1 0 01-1 1h-1"/></svg>
                 </div>
             </div>
-            <div class="grid {{ $delivery['customer_phone'] ? 'grid-cols-2' : 'grid-cols-1' }} gap-2">
+            <div class="grid grid-cols-2 gap-2">
                 @if($delivery['customer_phone'])
                 <a href="tel:{{ $delivery['customer_phone'] }}" class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-brand-200 bg-brand-50 text-brand-700 text-xs font-bold hover:bg-brand-100 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                    {{ __('Call Customer') }}
+                    {{ __('Call') }}
+                </a>
+                @if($delivery['whatsapp_phone'])
+                <a href="https://wa.me/{{ $delivery['whatsapp_phone'] }}" target="_blank" rel="noopener"
+                    class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-green-50 text-green-700 border border-green-200 text-xs font-bold hover:bg-green-100 transition-colors">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.6 6.32A7.85 7.85 0 0012 4a7.94 7.94 0 00-8 7.88c0 1.39.36 2.74 1.05 3.94L4 20l4.3-1.12A7.93 7.93 0 0012 19.77h.02A7.94 7.94 0 0020 11.89a7.85 7.85 0 00-2.4-5.57zM12 18.1a6.2 6.2 0 01-3.16-.87l-.23-.14-2.55.67.68-2.49-.18-.28a6.23 6.23 0 119.16 1.91 6.18 6.18 0 01-3.72 1.2zM14.6 13.5c-.08-.13-.28-.2-.58-.35-.3-.15-1.77-.87-2.05-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.95 1.17-.17.2-.35.22-.65.08-.3-.15-1.27-.47-2.42-1.5a8.9 8.9 0 01-1.65-2.02c-.17-.3 0-.46.13-.6.13-.14.3-.35.44-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.5l-.37-.01c-.13 0-.35.05-.53.25-.18.2-.7.68-.7 1.66s.72 1.93.82 2.06c.1.13 1.4 2.13 3.4 2.99.47.2.85.33 1.14.42.48.15.92.13 1.27.08.39-.06 1.2-.49 1.37-.96.17-.47.17-.87.12-.96z"/></svg>
+                    {{ __('WhatsApp') }}
                 </a>
                 @endif
-                <a href="{{ route('driver.deliveries') }}" class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-gradient-to-r from-brand-700 to-brand-600 text-white text-xs font-bold shadow-md">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    {{ __('Back to Deliveries') }}
-                </a>
+                @endif
             </div>
+            <a href="{{ route('driver.deliveries.detail', $delivery['id']) }}" class="mt-2 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-gray-50 text-gray-600 text-[10px] font-bold hover:bg-gray-100 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {{ __('Full Details') }}
+            </a>
         </div>
     </div>
 </div>
