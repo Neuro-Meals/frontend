@@ -297,9 +297,28 @@
         </div>
     </div>
 
-    {{-- Legal Terms & Conditions and Refund Policy Modal --}}
-    <div x-show="showTermsModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-250" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" x-cloak>
-        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden border border-slate-100 animate-fadeInUp">
+    {{-- Legal Terms & Conditions and Refund Policy Sidebar Drawer --}}
+    <div x-show="showTermsModal" class="fixed inset-0 z-50 flex justify-end" x-cloak>
+        {{-- Backdrop --}}
+        <div x-show="showTermsModal"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-250"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="showTermsModal = false"
+             class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs"></div>
+
+        {{-- Drawer Content --}}
+        <div x-show="showTermsModal"
+             x-transition:enter="transition ease-out duration-300 transform"
+             x-transition:enter-start="translate-x-full"
+             x-transition:enter-end="translate-x-0"
+             x-transition:leave="transition ease-in duration-250 transform"
+             x-transition:leave-start="translate-x-0"
+             x-transition:leave-end="translate-x-full"
+             class="relative bg-white w-full max-w-lg h-full flex flex-col shadow-2xl overflow-hidden border-l border-slate-100 z-50">
             {{-- Header --}}
             <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                 <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-2">
