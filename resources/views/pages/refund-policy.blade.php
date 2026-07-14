@@ -15,26 +15,31 @@
             'num' => '01',
             'title' => $isAr ? 'الإيقاف والاستئناف' : 'Pause & Resume',
             'desc' => $isAr ? 'قم بإيقاف اشتراكك لحفظ أيامك المتبقية بدلاً من طلب الإلغاء.' : 'Pause subscription days to preserve your prepaid meal credits.',
+            'icon' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
         ],
         [
             'num' => '02',
             'title' => $isAr ? 'الإبلاغ عن المشكلات' : 'Report Issue',
             'desc' => $isAr ? 'أبلغ عن أي طلب تالف أو خاطئ خلال 24 ساعة مع إرفاق دليل.' : 'Report a damaged or incorrect meal within 24 hours with evidence.',
+            'icon' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
         ],
         [
             'num' => '03',
             'title' => $isAr ? 'طلب الترقية' : 'Up/Downgrade',
             'desc' => $isAr ? 'قم بترقية باقتك ودفع الفارق، أو خفضها واسترداد الرصيد.' : 'Upgrade/downgrade plans easily with calculated price adjustment.',
+            'icon' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>',
         ],
         [
             'num' => '04',
             'title' => $isAr ? 'الموافقة على الاسترداد' : 'Refund Approval',
             'desc' => $isAr ? 'مراجعة الطلب والموافقة عليه في حال تأثر الخدمة أو تعذر التلبية.' : 'Review of request and approval in case of failure to fulfill.',
+            'icon' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
         ],
         [
             'num' => '05',
             'title' => $isAr ? 'استرداد آمن لتاب' : 'Tap Card Reversal',
             'desc' => $isAr ? 'إرجاع المبالغ مباشرة إلى البطاقة الأصلية عبر بوابة Tap Payments.' : 'Directly refund to your payment card via secure Tap gateway.',
+            'icon' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>',
         ],
     ];
 
@@ -125,20 +130,39 @@
     ];
 @endphp
 
+{{-- CSS Animations --}}
+<style>
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeInUp {
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .hover-card-trigger:hover .hover-card-target {
+        transform: translateY(-5px);
+        border-color: #6E7A25;
+        box-shadow: 0 10px 25px -5px rgba(110, 122, 37, 0.15);
+    }
+</style>
+
 {{-- Policy Process Stepper --}}
-<section class="py-8 bg-gray-50 dark:bg-gray-800/50 border-y border-gray-100 dark:border-gray-700/50 transition-colors duration-300">
+<section class="py-10 bg-gray-50 dark:bg-gray-800/40 border-y border-gray-100 dark:border-gray-700/50 transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h3 class="text-center text-xs font-bold uppercase tracking-wider text-brand-light mb-8">{{ $isAr ? 'رحلة الاسترداد والإيقاف والتعديل' : 'Refund, Pause & Change Processes' }}</h3>
+        <h3 class="text-center text-xs font-black uppercase tracking-widest text-[#6E7A25] mb-10">{{ $isAr ? 'رحلة الاسترداد والإيقاف والتعديل' : 'Refund, Pause & Change Processes' }}</h3>
         
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
-            @foreach($steps as $step)
-            <div class="relative bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800 transition-all hover:shadow-md">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-2xl font-black text-brand-light/30">{{ $step['num'] }}</span>
-                    <div class="w-2 h-2 rounded-full bg-brand-light"></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
+            @foreach($steps as $index => $step)
+            <div class="hover-card-trigger relative bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-850 hover-card-target transition-all duration-350 ease-out animate-fadeInUp" style="animation-delay: {{ $index * 0.1 }}s">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-3xl font-black text-[#6E7A25]/20 dark:text-[#6E7A25]/10 font-mono">{{ $step['num'] }}</span>
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-[#6E7A25] shadow-sm">
+                        {!! $step['icon'] !!}
+                    </div>
                 </div>
-                <h4 class="font-bold text-sm text-gray-900 dark:text-white mb-1.5">{{ $step['title'] }}</h4>
-                <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{{ $step['desc'] }}</p>
+                <h4 class="font-bold text-sm text-gray-900 dark:text-white mb-2">{{ $step['title'] }}</h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-medium">{{ $step['desc'] }}</p>
+                <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#6E7A25]/10 to-transparent rounded-b-full"></div>
             </div>
             @endforeach
         </div>
@@ -152,37 +176,38 @@
             
             {{-- Desktop Table of Contents Sidebar --}}
             <aside class="hidden lg:block lg:col-span-3">
-                <div class="sticky top-28 bg-gray-50 dark:bg-gray-800/30 rounded-2xl p-6 border border-gray-100 dark:border-gray-800/80">
-                    <h4 class="font-bold text-sm text-gray-900 dark:text-white mb-4 uppercase tracking-wider">{{ $isAr ? 'فهرس الاسترداد' : 'Refund Index' }}</h4>
-                    <nav class="flex flex-col gap-2.5">
+                <div class="sticky top-28 bg-gray-50 dark:bg-gray-800/30 rounded-3xl p-6 border border-gray-100 dark:border-gray-800/80 shadow-sm">
+                    <h4 class="font-extrabold text-xs text-gray-400 dark:text-gray-500 mb-5 uppercase tracking-widest">{{ $isAr ? 'فهرس الاسترداد' : 'Refund Index' }}</h4>
+                    <nav class="flex flex-col gap-3">
                         @foreach($sections as $sec)
-                        <a href="#{{ $sec['id'] }}" class="text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-brand-light dark:hover:text-brand-light transition-colors py-1 block border-l-2 border-transparent hover:border-brand-light pl-3 rtl:pl-0 rtl:pr-3 rtl:border-l-0 rtl:border-r-2">
+                        <a href="#{{ $sec['id'] }}" class="text-xs font-bold text-gray-500 dark:text-gray-400 hover:text-[#6E7A25] dark:hover:text-white transition-all py-1.5 px-3 block rounded-lg hover:bg-gray-100/50 dark:hover:bg-gray-800/50 border-l-2 border-transparent hover:border-[#6E7A25] rtl:border-l-0 rtl:border-r-2 rtl:hover:border-[#6E7A25] tracking-wide">
                             {{ $isAr ? $sec['title_ar'] : $sec['title_en'] }}
                         </a>
                         @endforeach
                     </nav>
-                    <div class="mt-6 pt-5 border-t border-gray-200/60 dark:border-gray-700/60 text-center">
-                        <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-1 rounded-full">
-                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.9c.74-.75 2.045-.75 2.784 0l8.43 8.544a1 1 0 11-1.414 1.414L3.58 6.314a1 1 0 010-1.414zm10.73 1.414l5.688 5.76a2.001 2.001 0 11-2.83 2.828l-5.687-5.76a1 1 0 011.414-1.414l1.414 1.414V6.314a1 1 0 011-1z" clip-rule="evenodd"/></svg>
-                            {{ $isAr ? 'تدقيق واسترداد عبر تاب' : 'Audited Tap Refund Reversals' }}
+                    <div class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-850 text-center">
+                        <span class="inline-flex items-center gap-1.5 text-[10px] font-extrabold tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-full uppercase">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-16.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            {{ $isAr ? 'إرجاع آمن ومضمون' : 'Audited Tap Refund Reversals' }}
                         </span>
                     </div>
                 </div>
             </aside>
 
             {{-- Policy Sections --}}
-            <div class="lg:col-span-9 space-y-12">
+            <div class="lg:col-span-9 space-y-8">
                 @foreach($sections as $sec)
-                <div id="{{ $sec['id'] }}" class="scroll-mt-28 bg-gray-50/50 dark:bg-gray-800/10 rounded-2xl p-6 sm:p-8 border border-gray-100/80 dark:border-gray-800/50 transition-all">
-                    <h3 class="text-lg sm:text-xl font-black text-gray-900 dark:text-white mb-6 pb-3 border-b border-gray-100 dark:border-gray-800">
+                <div id="{{ $sec['id'] }}" class="scroll-mt-28 bg-gray-50/30 dark:bg-gray-800/10 rounded-3xl p-6 sm:p-10 border border-gray-100 dark:border-gray-850 hover:border-gray-200 dark:hover:border-gray-800 transition-all duration-300">
+                    <h3 class="text-base sm:text-lg font-black text-gray-900 dark:text-white mb-6 pb-4 border-b border-gray-100 dark:border-gray-850 flex items-center gap-3">
+                        <span class="w-1.5 h-6 rounded-full bg-[#6E7A25]"></span>
                         {{ $isAr ? $sec['title_ar'] : $sec['title_en'] }}
                     </h3>
                     <ul class="space-y-4">
                         @php $points = $isAr ? $sec['points_ar'] : $sec['points_en']; @endphp
                         @foreach($points as $point)
-                        <li class="flex items-start gap-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                            <div class="w-5 h-5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-800 mt-0.5">
-                                <svg class="w-3 h-3 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M5 13l4 4L19 7"/></svg>
+                        <li class="flex items-start gap-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed font-medium">
+                            <div class="w-6 h-6 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/50 mt-0.5 shadow-sm">
+                                <svg class="w-3.5 h-3.5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                             </div>
                             <span>{{ $point }}</span>
                         </li>
@@ -197,13 +222,13 @@
 </section>
 
 {{-- Contact Section --}}
-<section class="py-12 bg-gray-50 dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700/50 transition-colors duration-300">
+<section class="py-16 bg-gray-50 dark:bg-gray-850 border-t border-gray-100 dark:border-gray-800/60 transition-colors duration-300">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mb-3">{{ __('Need Legal Clarification?') }}</h2>
-        <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-6">{{ __('For questions regarding these terms, please contact NutrioMeals Customer Support through the official website or application.') }}</p>
-        <a href="{{ route('page.show', 'contact-support') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-sm font-bold text-white shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
+        <h2 class="text-2xl font-black text-gray-900 dark:text-white mb-4">{{ __('Need Legal Clarification?') }}</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-8 max-w-2xl mx-auto font-medium">{{ __('For questions regarding these terms, please contact NutrioMeals Customer Support through the official website or application.') }}</p>
+        <a href="{{ route('page.show', 'contact-support') }}" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-sm font-bold text-white shadow-lg shadow-[#6E7A25]/20 hover:shadow-xl hover:shadow-[#6E7A25]/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300">
             {{ __('Contact Support') }}
-            <svg class="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            <svg class="w-4.5 h-4.5 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
         </a>
     </div>
 </section>
