@@ -1,27 +1,39 @@
 @extends('layouts.landing')
 
-@section('title', 'Privacy Policy - Nutrio Meals')
+@section('title', __('Privacy Policy') . ' - ' . __('Nutrio Meals'))
 
 @section('content')
 @include('landing.partials.header')
-@include('pages.partials.hero', ['title' => 'Privacy Policy', 'description' => 'How Nutrio Meals collects, uses, and protects your personal information.'])
+@include('pages.partials.hero', ['title' => __('Privacy Policy'), 'description' => __('How NutrioMeals collects, uses, and protects your personal information.')])
 
 @php
     $sections = [
-        ['heading' => 'Introduction', 'body' => 'At Nutrio Meals, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services. Please read this policy carefully.'],
-        ['heading' => 'Information We Collect', 'body' => 'We collect information you provide directly to us, such as your name, email address, phone number, delivery address, and payment information when you create an account or place an order. We also automatically collect certain information about your device and usage patterns.'],
-        ['heading' => 'How We Use Your Information', 'body' => 'We use your information to process orders, deliver meals, manage subscriptions, send notifications, improve our services, and communicate with you about promotions and updates. We do not sell your personal information to third parties.'],
-        ['heading' => 'Data Security', 'body' => 'We implement industry-standard security measures to protect your personal information, including encryption, secure servers, and access controls. However, no method of transmission over the internet is 100% secure.'],
-        ['heading' => 'Your Rights', 'body' => 'You have the right to access, update, or delete your personal information. You can also opt out of marketing communications at any time. To exercise these rights, contact us at privacy@nutriomeals.com.'],
-        ['heading' => 'Contact Us', 'body' => 'If you have questions about this Privacy Policy, please contact us at privacy@nutriomeals.com or +966 50 123 4567.'],
+        [
+            'heading' => __('Information We Collect'),
+            'points' => [
+                __('NutrioMeals collects only the information necessary to provide its services, including name, email, phone number, delivery address, and payment information.'),
+                __('Payment card information is processed securely by certified payment providers such as Tap Payments and is not stored by NutrioMeals.'),
+                __('Personal information is used only for account management, order fulfillment, customer support, and service improvement.'),
+                __('NutrioMeals does not sell customer personal information to third parties.'),
+                __('Customer information may be shared only with trusted service providers such as payment processors and delivery partners when required to complete the service.'),
+                __('Reasonable administrative and technical safeguards are implemented to protect customer data.'),
+            ],
+        ],
     ];
 @endphp
 
 @foreach($sections as $section)
 <section class="py-12 {{ $loop->iteration % 2 === 1 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800' }} transition-colors duration-300">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-3">{{ $section['heading'] }}</h2>
-        <p class="text-gray-600 dark:text-gray-300 leading-relaxed">{{ $section['body'] }}</p>
+        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">{{ $section['heading'] }}</h2>
+        <ul class="space-y-3">
+            @foreach($section['points'] as $point)
+            <li class="flex items-start gap-3 text-gray-600 dark:text-gray-300 leading-relaxed">
+                <svg class="w-5 h-5 text-[#6E7A25] mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span>{{ $point }}</span>
+            </li>
+            @endforeach
+        </ul>
     </div>
 </section>
 @endforeach

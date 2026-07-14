@@ -67,9 +67,10 @@
             <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
                 <p class="text-sm text-gray-500 dark:text-gray-400">&copy; {{ date('Y') }} Nutrio Meals. {{ __('All rights reserved.') }}</p>
                 <ul class="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                    <li><a href="{{ route('page.show', 'privacy-policy') }}" class="hover:text-[#6E7A25] dark:hover:text-white transition-colors">{{ __('Privacy') }}</a></li>
-                    <li><a href="{{ route('page.show', 'terms-of-service') }}" class="hover:text-[#6E7A25] dark:hover:text-white transition-colors">{{ __('Terms') }}</a></li>
-                    <li><a href="{{ route('page.show', 'refund-policy') }}" class="hover:text-[#6E7A25] dark:hover:text-white transition-colors">{{ __('Refunds') }}</a></li>
+                    <li><a href="{{ route('page.show', 'terms-of-service') }}" class="hover:text-[#6E7A25] dark:hover:text-white transition-colors">{{ __('Terms & Conditions') }}</a></li>
+                    <li><a href="{{ route('page.show', 'privacy-policy') }}" class="hover:text-[#6E7A25] dark:hover:text-white transition-colors">{{ __('Privacy Policy') }}</a></li>
+                    <li><a href="{{ route('page.show', 'refund-policy') }}" class="hover:text-[#6E7A25] dark:hover:text-white transition-colors">{{ __('Return & Refund') }}</a></li>
+                    <li><a href="{{ route('page.show', 'delivery-policy') }}" class="hover:text-[#6E7A25] dark:hover:text-white transition-colors">{{ __('Delivery Policy') }}</a></li>
                     <li><a href="{{ route('page.show', 'food-safety') }}" class="hover:text-[#6E7A25] dark:hover:text-white transition-colors">{{ __('Food Safety') }}</a></li>
                 </ul>
             </div>

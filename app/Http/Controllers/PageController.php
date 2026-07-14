@@ -12,7 +12,7 @@ class PageController extends Controller
         'whatsapp-support', 'partner-with-us', 'become-a-supplier', 'affiliate-program',
         'collaboration', 'sponsorship', 'my-subscriptions', 'reward-points',
         'refer-a-friend', 'privacy-policy', 'terms-of-service', 'refund-policy',
-        'cookie-policy', 'food-safety',
+        'delivery-policy', 'cookie-policy', 'food-safety',
     ];
 
     public function show($slug)
