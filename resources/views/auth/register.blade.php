@@ -255,6 +255,18 @@
                     </div>
                 </div>
 
+                {{-- Terms & Conditions and Refund Policy Agreement --}}
+                <div class="flex items-start gap-2.5 mt-4">
+                    <input id="agree_terms" type="checkbox" x-model="form.agree_terms" required
+                        class="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500 mt-1 cursor-pointer">
+                    <label for="agree_terms" class="text-xs text-gray-600 leading-relaxed select-none cursor-pointer">
+                        {{ __('I agree to the') }}
+                        <button type="button" @click="showTermsModal = true" class="font-bold text-emerald-600 hover:text-emerald-700 outline-none focus:underline decoration-dotted underline">{{ __('Terms & Conditions') }}</button>
+                        {{ __('and') }}
+                        <button type="button" @click="showTermsModal = true" class="font-bold text-emerald-600 hover:text-emerald-700 outline-none focus:underline decoration-dotted underline">{{ __('Return & Refund Policy') }}</button>
+                    </label>
+                </div>
+
 
                 {{-- Submit --}}
                 <button type="submit" :disabled="loading"
@@ -285,6 +297,120 @@
         </div>
     </div>
 
+    {{-- Legal Terms & Conditions and Refund Policy Modal --}}
+    <div x-show="showTermsModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-250" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" x-cloak>
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden border border-slate-100 animate-fadeInUp">
+            {{-- Header --}}
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-16.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    {{ __('Legal Terms & Policies') }}
+                </h3>
+                <button type="button" @click="showTermsModal = false" class="text-slate-400 hover:text-slate-600 outline-none p-1 rounded-full hover:bg-slate-100 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            {{-- Body --}}
+            <div class="p-6 overflow-y-auto space-y-8 flex-1 text-slate-700 text-sm leading-relaxed" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
+                {{-- Terms & Conditions Section --}}
+                <div>
+                    <h4 class="font-black text-slate-900 border-b pb-2 mb-4 flex items-center gap-2">
+                        <span class="w-1.5 h-4 rounded-full bg-emerald-600"></span>
+                        1. {{ __('Terms & Conditions') }}
+                    </h4>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-emerald-600 font-bold mt-0.5">•</span>
+                            <span>{{ __('NutrioMeals provides healthy meal subscription services through its website and mobile application.') }}</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-emerald-600 font-bold mt-0.5">•</span>
+                            <span>{{ __('By creating an account or purchasing a subscription, you agree to these Terms & Conditions.') }}</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-emerald-600 font-bold mt-0.5">•</span>
+                            <span>{{ __('Customers are responsible for providing accurate personal, delivery, and payment information.') }}</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-emerald-600 font-bold mt-0.5">•</span>
+                            <span>{{ __('Subscription plans begin only after successful payment confirmation.') }}</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-emerald-600 font-bold mt-0.5">•</span>
+                            <span>{{ __('Meal availability may vary based on operational requirements.') }}</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-emerald-600 font-bold mt-0.5">•</span>
+                            <span>{{ __('NutrioMeals may update menus, ingredients, or delivery schedules when necessary while maintaining equivalent quality.') }}</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-emerald-600 font-bold mt-0.5">•</span>
+                            <span>{{ __('Customers must notify NutrioMeals of allergies or dietary restrictions before ordering.') }}</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-emerald-600 font-bold mt-0.5">•</span>
+                            <span>{{ __('Misuse of the platform, fraudulent activity, or violation of these terms may result in account suspension.') }}</span>
+                        </li>
+                    </ul>
+                </div>
+
+                {{-- Return & Refund Policy Section --}}
+                <div>
+                    <h4 class="font-black text-slate-900 border-b pb-2 mb-4 flex items-center gap-2">
+                        <span class="w-1.5 h-4 rounded-full bg-emerald-600"></span>
+                        2. {{ __('Return & Refund Policy') }}
+                    </h4>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-emerald-600 font-bold mt-0.5">•</span>
+                            <span>{{ __('Because NutrioMeals delivers freshly prepared food, delivered meals cannot normally be returned.') }}</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-emerald-600 font-bold mt-0.5">•</span>
+                            <span>{{ __('Refunds may be approved when NutrioMeals is unable to fulfill an order, charges a customer incorrectly, or delivers an incorrect or significantly damaged order.') }}</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-emerald-600 font-bold mt-0.5">•</span>
+                            <span>{{ __('Approved refunds will be returned using the original payment method whenever possible.') }}</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-emerald-600 font-bold mt-0.5">•</span>
+                            <span>{{ __('Refund processing time depends on the customer\'s payment provider or bank.') }}</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-emerald-600 font-bold mt-0.5">•</span>
+                            <span>{{ __('If a customer wishes to temporarily stop receiving meals, they may use the Pause Subscription feature instead of requesting a refund.') }}</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-emerald-600 font-bold mt-0.5">•</span>
+                            <span>{{ __('Paused subscriptions preserve the customer\'s remaining subscription days. When the customer resumes the subscription, the remaining days continue from where they stopped.') }}</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-emerald-600 font-bold mt-0.5">•</span>
+                            <span>{{ __('Customers may request to upgrade or downgrade their subscription plan. Any price difference will be calculated according to the applicable plan and payment policy.') }}</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-emerald-600 font-bold mt-0.5">•</span>
+                            <span>{{ __('Cancellation requests submitted before service activation may be eligible for review. Requests after meals have already been prepared or delivered may not qualify for a refund.') }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            {{-- Footer Actions --}}
+            <div class="p-6 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50">
+                <button type="button" @click="showTermsModal = false" class="px-5 py-2.5 text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all outline-none">
+                    {{ __('Close') }}
+                </button>
+                <button type="button" @click="form.agree_terms = true; showTermsModal = false" class="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-brand-light to-brand-dark hover:from-brand-dark hover:to-brand-light hover:shadow-lg rounded-xl transition-all outline-none flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    {{ __('I Agree') }}
+                </button>
+            </div>
+        </div>
+    </div>
+
     <p class="mt-6 text-center text-xs text-gray-300">&copy; {{ date('Y') }} {{ config('app.name', 'Nitrio Meals') }}. All rights reserved.</p>
 </div>
 
@@ -310,8 +436,10 @@
                 password: '',
                 password_confirmation: '',
                 location: '',
-                address: ''
+                address: '',
+                agree_terms: false
             },
+            showTermsModal: false,
             locationOpen: false,
             locationLoading: false,
             locationError: '',
@@ -387,6 +515,11 @@
                 setTimeout(() => { this.toast.show = false }, 7000);
             },
             async submit() {
+                if (!this.form.agree_terms) {
+                    this.showToast('{{ __('Please read and agree to the Terms & Conditions and Return & Refund Policy to register.') }}');
+                    return;
+                }
+
                 this.loading = true;
                 this.errors = {};
                 this.toast.show = false;
