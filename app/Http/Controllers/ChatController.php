@@ -40,15 +40,6 @@ class ChatController extends Controller
         }
         $history = array_slice($history, -self::HISTORY_LIMIT);
 
-        $hasToken = session('api_token') !== null;
-
-        if (!$hasToken && $context === 'landing') {
-            return response()->json([
-                'success' => false,
-                'message' => __('Please log in or create an account to chat with our AI assistant.'),
-            ]);
-        }
-
         try {
             $response = $chatbotApi->ask($message, $history);
 

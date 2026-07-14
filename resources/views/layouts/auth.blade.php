@@ -35,7 +35,7 @@
         {{ __('Back to Home') }}
     </a>
 
-    <main class="relative z-10 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <main class="relative z-10 min-h-screen flex items-start sm:items-center justify-center py-12 px-4 sm:px-6 lg:px-8 overflow-y-auto">
         @yield('content')
     </main>
 

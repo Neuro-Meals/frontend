@@ -364,7 +364,18 @@
             },
             selectCity(city) {
                 this.form.location = city.name_en;
+                if (!this.form.address || this.form.address.trim() === '') {
+                    this.form.address = city.name_en + ', ';
+                }
                 this.locationOpen = false;
+                this.$nextTick(() => {
+                    const addrInput = document.getElementById('address');
+                    if (addrInput) {
+                        addrInput.focus();
+                        const val = addrInput.value;
+                        addrInput.setSelectionRange(val.length, val.length);
+                    }
+                });
             },
             showToast(message, type = 'error') {
                 this.toast = {
