@@ -232,5 +232,10 @@ return [
         'uploads' => [
             'images' => '/uploads/images',
         ],
+
+        // ─── AI Chatbot ───
+        'chatbot' => [
+            'ask' => '/chatbot/ask',
+        ],
     ],
 ];

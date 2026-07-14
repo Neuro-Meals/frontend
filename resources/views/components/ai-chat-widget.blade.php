@@ -151,6 +151,7 @@ $isRtl = app()->getLocale() === 'ar';
             const logoUrl = '{{ $logoUrl }}';
             const errorProcess = widget.dataset.errorProcess || 'Sorry, I could not process that. Please try again.';
             const errorNetwork = widget.dataset.errorNetwork || 'Sorry, I\'m having trouble connecting right now. Please try again later.';
+            let chatHistory = [];
 
             function scrollToBottom() {
                 messages.scrollTop = messages.scrollHeight;
@@ -231,7 +232,7 @@ $isRtl = app()->getLocale() === 'ar';
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                         },
-                        body: JSON.stringify({ message: text }),
+                        body: JSON.stringify({ message: text, history: chatHistory }),
                     });
 
                     const result = await response.json();
@@ -242,7 +243,14 @@ $isRtl = app()->getLocale() === 'ar';
                         return;
                     }
 
-                    appendMessage(result.reply || 'Here is what I found.', 'bot');
+                    const reply = result.reply || 'Here is what I found.';
+                    appendMessage(reply, 'bot');
+
+                    chatHistory.push({ role: 'user', content: text });
+                    chatHistory.push({ role: 'assistant', content: reply });
+                    if (chatHistory.length > 20) {
+                        chatHistory = chatHistory.slice(-20);
+                    }
                 } catch (err) {
                     removeTyping(typingId);
                     appendMessage(errorNetwork, 'bot');
