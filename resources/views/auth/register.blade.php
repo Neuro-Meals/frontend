@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="w-full max-w-md animate-simple-fade-in" x-data="registerForm()">
-    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100">
         {{-- Header --}}
         <div class="bg-white px-8 py-8 text-center border-b border-gray-100">
             <div class="mx-auto mb-4 flex items-center justify-center">
@@ -196,7 +196,7 @@
                             </button>
                         </div>
 
-                        <div class="p-4 max-h-80 overflow-y-auto">
+                        <div class="p-4 max-h-56 sm:max-h-64 md:max-h-80 overflow-y-auto overscroll-contain touch-pan-y" style="-webkit-overflow-scrolling: touch;">
                             {{-- Region selector --}}
                             <div class="mb-3">
                                 <label class="block text-xs font-semibold text-gray-500 mb-1.5">{{ __('Region') }}</label>
