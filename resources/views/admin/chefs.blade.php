@@ -218,7 +218,7 @@ function chefManager() {
             );
         },
 
-        init() { this.loadChefs(); },
+        init() { if (this.chefs.length === 0) this.loadChefs(); },
 
         async loadChefs() {
             this.loading = true;
@@ -264,7 +264,7 @@ function chefManager() {
             fields.forEach(key => { const v = this.form[key]; if (v !== null && v !== undefined && v !== '') formData.append(key, v); });
             if (isEdit) formData.append('_method', 'PUT');
             try {
-                const res = await fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }, body: formData });
+                const res = await fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }, body: formData });
                 const data = await res.json();
                 if (data.success) {
                     await this.loadChefs();
@@ -289,7 +289,7 @@ function chefManager() {
             if (!confirm(confirmText)) return;
             try {
                 const formData = new FormData();
-                const res = await fetch(`{{ url('admin/chefs') }}/${chef.id}/${action}`, { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }, body: formData });
+                const res = await fetch(`{{ url('admin/chefs') }}/${chef.id}/${action}`, { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }, body: formData });
                 const data = await res.json();
                 if (data.success) {
                     await this.loadChefs();
@@ -306,7 +306,7 @@ function chefManager() {
             if (!confirm(`{{ __('Remove chef role from') }} ${chef.name}? {{ __('They will become a regular customer.') }}`)) return;
             try {
                 const formData = new FormData();
-                const res = await fetch(`{{ url('admin/chefs') }}/${chef.id}/remove-role`, { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }, body: formData });
+                const res = await fetch(`{{ url('admin/chefs') }}/${chef.id}/remove-role`, { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }, body: formData });
                 const data = await res.json();
                 if (data.success) {
                     await this.loadChefs();
@@ -324,7 +324,7 @@ function chefManager() {
             try {
                 const formData = new FormData();
                 formData.append('user_id', this.assignUserId);
-                const res = await fetch('{{ route('admin.chefs.assign-existing') }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }, body: formData });
+                const res = await fetch('{{ route('admin.chefs.assign-existing') }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }, body: formData });
                 const data = await res.json();
                 if (data.success) {
                     this.assignSuccess = data.message;

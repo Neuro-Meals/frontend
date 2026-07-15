@@ -2126,10 +2126,10 @@ class AdminController extends Controller
             'address' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $response = $this->apiData($adminApi->chefCreate($validated), fn () => []);
+        $response = $adminApi->chefCreate($validated);
 
-        $success = is_array($response) && !empty($response['id']);
-        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Chef created successfully.') : __('Failed to create chef.')));
+        $success = isset($response['id']);
+        $message = $success ? __('Chef created successfully.') : ($response['message'] ?? $response['detail'] ?? __('Failed to create chef.'));
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
@@ -2156,10 +2156,10 @@ class AdminController extends Controller
 
         $data = array_filter($validated, fn ($v) => $v !== null && $v !== '', ARRAY_FILTER_USE_KEY);
 
-        $response = $this->apiData($adminApi->chefUpdate($id, $data), fn () => []);
+        $response = $adminApi->chefUpdate($id, $data);
 
-        $success = is_array($response) && !empty($response['id']);
-        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Chef updated successfully.') : __('Failed to update chef.')));
+        $success = isset($response['id']);
+        $message = $success ? __('Chef updated successfully.') : ($response['message'] ?? $response['detail'] ?? __('Failed to update chef.'));
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
@@ -2174,9 +2174,9 @@ class AdminController extends Controller
 
     public function activateChef(Request $request, int $id, AdminApiService $adminApi)
     {
-        $response = $this->apiData($adminApi->chefActivate($id), fn () => []);
-        $success = is_array($response) && !empty($response['id']);
-        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Chef activated.') : __('Failed to activate chef.')));
+        $response = $adminApi->chefActivate($id);
+        $success = isset($response['id']);
+        $message = $success ? __('Chef activated.') : ($response['message'] ?? $response['detail'] ?? __('Failed to activate chef.'));
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
@@ -2187,9 +2187,9 @@ class AdminController extends Controller
 
     public function deactivateChef(Request $request, int $id, AdminApiService $adminApi)
     {
-        $response = $this->apiData($adminApi->chefDeactivate($id), fn () => []);
-        $success = is_array($response) && !empty($response['id']);
-        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Chef deactivated.') : __('Failed to deactivate chef.')));
+        $response = $adminApi->chefDeactivate($id);
+        $success = isset($response['id']);
+        $message = $success ? __('Chef deactivated.') : ($response['message'] ?? $response['detail'] ?? __('Failed to deactivate chef.'));
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
@@ -2204,10 +2204,10 @@ class AdminController extends Controller
             'user_id' => ['required', 'integer', 'min:1'],
         ]);
 
-        $response = $this->apiData($adminApi->chefAssignExistingUser($validated['user_id']), fn () => []);
+        $response = $adminApi->chefAssignExistingUser($validated['user_id']);
 
-        $success = is_array($response) && !empty($response['id']);
-        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('User assigned as chef.') : __('Failed to assign chef role.')));
+        $success = isset($response['id']);
+        $message = $success ? __('User assigned as chef.') : ($response['message'] ?? $response['detail'] ?? __('Failed to assign chef role.'));
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
@@ -2218,9 +2218,9 @@ class AdminController extends Controller
 
     public function removeChefRole(Request $request, int $id, AdminApiService $adminApi)
     {
-        $response = $this->apiData($adminApi->chefRemoveRole($id), fn () => []);
-        $success = is_array($response) && !empty($response['id']);
-        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Chef role removed.') : __('Failed to remove chef role.')));
+        $response = $adminApi->chefRemoveRole($id);
+        $success = isset($response['id']);
+        $message = $success ? __('Chef role removed.') : ($response['message'] ?? $response['detail'] ?? __('Failed to remove chef role.'));
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
