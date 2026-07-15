@@ -132,6 +132,9 @@ Route::get('/home', function () {
     if ($authApi->isAdmin()) {
         return redirect()->route('admin.dashboard');
     }
+    if ($authApi->hasRole('chef')) {
+        return redirect()->route('chef.dashboard');
+    }
     if ($authApi->hasRole('driver')) {
         return redirect()->route('driver.dashboard');
     }

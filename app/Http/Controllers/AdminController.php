@@ -2051,12 +2051,11 @@ class AdminController extends Controller
         }
         $query['limit'] = 100;
 
-        $response = $this->apiData($adminApi->chefsList($query), fn () => ['data' => []]);
+        $chefsData = $this->apiData($adminApi->chefsList($query), fn () => []);
 
         $chefs = [];
         $stats = ['total' => 0, 'active' => 0, 'inactive' => 0];
 
-        $chefsData = $response['data'] ?? [];
         foreach ($chefsData as $c) {
             $status = ($c['is_active'] ?? true) ? 'active' : 'inactive';
             $chefs[] = [
