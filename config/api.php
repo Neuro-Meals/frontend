@@ -35,6 +35,7 @@ return [
         2 => 'admin',
         3 => 'super_admin',
         4 => 'driver',
+        5 => 'chef',
     ],
 
     /*
@@ -186,6 +187,18 @@ return [
             'delete' => '/driver/admin/{driver_id}',
         ],
 
+        // ─── Admin Chef Management ───
+        'admin_chefs' => [
+            'list'               => '/admin/chefs/',
+            'create'             => '/admin/chefs/',
+            'show'               => '/admin/chefs/{chef_id}',
+            'update'             => '/admin/chefs/{chef_id}',
+            'activate'           => '/admin/chefs/{chef_id}/activate',
+            'deactivate'         => '/admin/chefs/{chef_id}/deactivate',
+            'assign_existing'    => '/admin/chefs/assign-existing-user',
+            'remove_role'        => '/admin/chefs/{chef_id}/remove-role',
+        ],
+
         // ─── Driver App ───
         'driver' => [
             'my_deliveries'      => '/driver/deliveries',
@@ -195,6 +208,17 @@ return [
             'complete'           => '/driver/deliveries/{delivery_id}/complete',
             'fail'               => '/driver/deliveries/{delivery_id}/fail',
             'update_location'    => '/driver/deliveries/{delivery_id}/location',
+        ],
+
+        // ─── Chef App ───
+        'chef' => [
+            'dashboard'          => '/chef/dashboard',
+            'orders'             => '/chef/orders',
+            'show_order'         => '/chef/orders/{order_id}',
+            'start_preparing'    => '/chef/orders/{order_id}/start-preparing',
+            'mark_ready'         => '/chef/orders/{order_id}/ready',
+            'drivers'            => '/chef/drivers',
+            'assign_driver'      => '/chef/orders/{order_id}/assign-driver',
         ],
 
         // ─── Meal Schedule (not in OpenAPI spec — customer dashboard requirement) ───

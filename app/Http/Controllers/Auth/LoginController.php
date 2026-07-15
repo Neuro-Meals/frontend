@@ -79,6 +79,8 @@ class LoginController extends Controller
                 $role = $authApi->role();
                 if ($authApi->isAdmin()) {
                     $redirect = route('admin.dashboard');
+                } elseif ($authApi->hasRole('chef')) {
+                    $redirect = route('chef.dashboard');
                 } elseif ($authApi->hasRole('driver')) {
                     $redirect = route('driver.dashboard');
                 } else {

@@ -157,4 +157,46 @@ class AdminApiService extends BaseApiService
     {
         return $this->post('rbac.assign_permission', [], $data);
     }
+
+    // ─── Chef Management ───
+
+    public function chefsList(array $query = []): array
+    {
+        return $this->get('admin_chefs.list', [], $query);
+    }
+
+    public function chefShow(int $chefId): array
+    {
+        return $this->get('admin_chefs.show', ['chef_id' => $chefId]);
+    }
+
+    public function chefCreate(array $data): array
+    {
+        return $this->post('admin_chefs.create', [], $data);
+    }
+
+    public function chefUpdate(int $chefId, array $data): array
+    {
+        return $this->patch('admin_chefs.update', ['chef_id' => $chefId], $data);
+    }
+
+    public function chefActivate(int $chefId): array
+    {
+        return $this->patch('admin_chefs.activate', ['chef_id' => $chefId]);
+    }
+
+    public function chefDeactivate(int $chefId): array
+    {
+        return $this->patch('admin_chefs.deactivate', ['chef_id' => $chefId]);
+    }
+
+    public function chefAssignExistingUser(int $userId): array
+    {
+        return $this->post('admin_chefs.assign_existing', [], ['user_id' => $userId]);
+    }
+
+    public function chefRemoveRole(int $chefId): array
+    {
+        return $this->patch('admin_chefs.remove_role', ['chef_id' => $chefId]);
+    }
 }

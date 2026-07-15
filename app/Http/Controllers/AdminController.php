@@ -2037,4 +2037,196 @@ class AdminController extends Controller
 
         return $values;
     }
+
+    // ─── Chef Management ───
+
+    public function chefs(Request $request, AdminApiService $adminApi)
+    {
+        $query = [];
+        if ($request->filled('search')) {
+            $query['search'] = $request->input('search');
+        }
+        if ($request->filled('is_active')) {
+            $query['is_active'] = $request->input('is_active');
+        }
+        $query['limit'] = 100;
+
+        $response = $this->apiData($adminApi->chefsList($query), fn () => ['data' => []]);
+
+        $chefs = [];
+        $stats = ['total' => 0, 'active' => 0, 'inactive' => 0];
+
+        $chefsData = $response['data'] ?? [];
+        foreach ($chefsData as $c) {
+            $status = ($c['is_active'] ?? true) ? 'active' : 'inactive';
+            $chefs[] = [
+                'id' => $c['id'] ?? 0,
+                'name' => $c['full_name'] ?? (trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? '')) ?: 'Chef'),
+                'first_name' => $c['first_name'] ?? '',
+                'last_name' => $c['last_name'] ?? '',
+                'email' => $c['email'] ?? '',
+                'phone' => $c['phone'] ?? '',
+                'location' => $c['location'] ?? '',
+                'address' => $c['address'] ?? '',
+                'status' => $status,
+                'is_verified' => $c['is_verified'] ?? false,
+                'created_at' => $c['created_at'] ?? '',
+            ];
+            $stats['total']++;
+            $stats[$status === 'active' ? 'active' : 'inactive']++;
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'chefs' => $chefs,
+                'stats' => $stats,
+            ]);
+        }
+
+        return view('admin.chefs', compact('chefs', 'stats'));
+    }
+
+    public function showChef(int $id, AdminApiService $adminApi)
+    {
+        $chefData = $this->apiData($adminApi->chefShow($id), fn () => []);
+
+        if (empty($chefData)) {
+            return response()->json(['success' => false, 'message' => __('Chef not found.')], 404);
+        }
+
+        $chef = [
+            'id' => $chefData['id'] ?? $id,
+            'name' => $chefData['full_name'] ?? (trim(($chefData['first_name'] ?? '') . ' ' . ($chefData['last_name'] ?? '')) ?: 'Chef'),
+            'first_name' => $chefData['first_name'] ?? '',
+            'last_name' => $chefData['last_name'] ?? '',
+            'email' => $chefData['email'] ?? '',
+            'phone' => $chefData['phone'] ?? '',
+            'location' => $chefData['location'] ?? '',
+            'address' => $chefData['address'] ?? '',
+            'status' => ($chefData['is_active'] ?? true) ? 'active' : 'inactive',
+            'is_verified' => $chefData['is_verified'] ?? false,
+            'created_at' => $chefData['created_at'] ?? '',
+        ];
+
+        return response()->json([
+            'success' => true,
+            'chef' => $chef,
+        ]);
+    }
+
+    public function storeChef(Request $request, AdminApiService $adminApi)
+    {
+        $validated = $request->validate([
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
+            'email' => ['required', 'email', 'max:255'],
+            'phone' => ['required', 'string', 'min:8', 'max:30'],
+            'password' => ['required', 'string', 'min:6', 'max:128'],
+            'location' => ['nullable', 'string', 'max:150'],
+            'address' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $response = $this->apiData($adminApi->chefCreate($validated), fn () => []);
+
+        $success = is_array($response) && !empty($response['id']);
+        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Chef created successfully.') : __('Failed to create chef.')));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => $success,
+                'message' => $message,
+                'chef' => $response ?? null,
+            ], $success ? 200 : 422);
+        }
+
+        return redirect()->route('admin.chefs')->with($success ? 'success' : 'error', $message);
+    }
+
+    public function updateChef(Request $request, int $id, AdminApiService $adminApi)
+    {
+        $validated = $request->validate([
+            'first_name' => ['nullable', 'string', 'max:100'],
+            'last_name' => ['nullable', 'string', 'max:100'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'min:8', 'max:30'],
+            'location' => ['nullable', 'string', 'max:150'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $data = array_filter($validated, fn ($v) => $v !== null && $v !== '', ARRAY_FILTER_USE_KEY);
+
+        $response = $this->apiData($adminApi->chefUpdate($id, $data), fn () => []);
+
+        $success = is_array($response) && !empty($response['id']);
+        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Chef updated successfully.') : __('Failed to update chef.')));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => $success,
+                'message' => $message,
+                'chef' => $response ?? null,
+            ], $success ? 200 : 422);
+        }
+
+        return redirect()->route('admin.chefs')->with($success ? 'success' : 'error', $message);
+    }
+
+    public function activateChef(Request $request, int $id, AdminApiService $adminApi)
+    {
+        $response = $this->apiData($adminApi->chefActivate($id), fn () => []);
+        $success = is_array($response) && !empty($response['id']);
+        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Chef activated.') : __('Failed to activate chef.')));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
+        }
+
+        return redirect()->route('admin.chefs')->with($success ? 'success' : 'error', $message);
+    }
+
+    public function deactivateChef(Request $request, int $id, AdminApiService $adminApi)
+    {
+        $response = $this->apiData($adminApi->chefDeactivate($id), fn () => []);
+        $success = is_array($response) && !empty($response['id']);
+        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Chef deactivated.') : __('Failed to deactivate chef.')));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
+        }
+
+        return redirect()->route('admin.chefs')->with($success ? 'success' : 'error', $message);
+    }
+
+    public function assignExistingUserAsChef(Request $request, AdminApiService $adminApi)
+    {
+        $validated = $request->validate([
+            'user_id' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $response = $this->apiData($adminApi->chefAssignExistingUser($validated['user_id']), fn () => []);
+
+        $success = is_array($response) && !empty($response['id']);
+        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('User assigned as chef.') : __('Failed to assign chef role.')));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
+        }
+
+        return redirect()->route('admin.chefs')->with($success ? 'success' : 'error', $message);
+    }
+
+    public function removeChefRole(Request $request, int $id, AdminApiService $adminApi)
+    {
+        $response = $this->apiData($adminApi->chefRemoveRole($id), fn () => []);
+        $success = is_array($response) && !empty($response['id']);
+        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Chef role removed.') : __('Failed to remove chef role.')));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
+        }
+
+        return redirect()->route('admin.chefs')->with($success ? 'success' : 'error', $message);
+    }
 }

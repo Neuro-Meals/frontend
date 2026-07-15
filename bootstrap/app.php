@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.admin' => \App\Http\Middleware\AdminApiMiddleware::class,
             'api.customer' => \App\Http\Middleware\CustomerApiMiddleware::class,
             'api.driver' => \App\Http\Middleware\DriverApiMiddleware::class,
+            'api.chef' => \App\Http\Middleware\ChefApiMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

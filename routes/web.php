@@ -172,6 +172,16 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
     Route::post('/drivers', [AdminController::class, 'storeDriver'])->name('drivers.store');
     Route::put('/drivers/{id}', [AdminController::class, 'updateDriver'])->name('drivers.update');
     Route::delete('/drivers/{id}', [AdminController::class, 'destroyDriver'])->name('drivers.destroy');
+
+    // Chef Management
+    Route::get('/chefs', [AdminController::class, 'chefs'])->name('chefs');
+    Route::get('/chefs/{id}', [AdminController::class, 'showChef'])->name('chefs.show');
+    Route::post('/chefs', [AdminController::class, 'storeChef'])->name('chefs.store');
+    Route::put('/chefs/{id}', [AdminController::class, 'updateChef'])->name('chefs.update');
+    Route::post('/chefs/{id}/activate', [AdminController::class, 'activateChef'])->name('chefs.activate');
+    Route::post('/chefs/{id}/deactivate', [AdminController::class, 'deactivateChef'])->name('chefs.deactivate');
+    Route::post('/chefs/assign-existing', [AdminController::class, 'assignExistingUserAsChef'])->name('chefs.assign-existing');
+    Route::post('/chefs/{id}/remove-role', [AdminController::class, 'removeChefRole'])->name('chefs.remove-role');
     Route::get('/payments', [AdminController::class, 'payments'])->name('payments');
     Route::get('/notifications', [AdminController::class, 'notifications'])->name('notifications');
     Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
@@ -202,6 +212,13 @@ Route::prefix('driver')->name('driver.')->middleware(['api.auth', 'api.driver'])
     Route::get('/deliveries/{id}/map', [\App\Http\Controllers\DriverController::class, 'mapView'])->name('deliveries.map');
     Route::post('/deliveries/{id}/status', [\App\Http\Controllers\DriverController::class, 'updateStatus'])->name('deliveries.status');
     Route::post('/deliveries/{id}/location', [\App\Http\Controllers\DriverController::class, 'updateLocation'])->name('deliveries.location');
+});
+
+// Chef routes
+Route::prefix('chef')->name('chef.')->middleware(['api.auth', 'api.chef'])->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\ChefController::class, 'dashboard'])->name('dashboard');
+    Route::post('/orders/{id}/start-preparing', [\App\Http\Controllers\ChefController::class, 'startPreparing'])->name('orders.start_preparing');
+    Route::post('/orders/{id}/mark-ready', [\App\Http\Controllers\ChefController::class, 'markReady'])->name('orders.mark_ready');
 });
 
 // User routes (customer only)
