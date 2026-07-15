@@ -25,16 +25,15 @@ class ChefController extends Controller
 
     public function dashboard(ChefApiService $chefApi, NotificationApiService $notificationApi)
     {
-        $today = date('Y-m-d');
-
         $dashboardData = $this->apiData($chefApi->dashboard(), fn () => $this->mockDashboardStats());
 
-        $ordersResponse = $chefApi->orders([
-            'delivery_date' => $today,
-            'limit' => 100,
-        ]);
+        $ordersResponse = $chefApi->orders(['limit' => 100]);
 
-        $ordersData = $ordersResponse['data'] ?? ($this->apiEnabled() ? [] : $this->mockOrders());
+        if (isset($ordersResponse['success']) && $ordersResponse['success'] === false) {
+            $ordersData = $this->apiEnabled() ? [] : $this->mockOrders();
+        } else {
+            $ordersData = $ordersResponse['data'] ?? ($this->apiEnabled() ? [] : $this->mockOrders());
+        }
 
         $morningOrders = [];
         $noonOrders = [];
@@ -78,14 +77,16 @@ class ChefController extends Controller
 
         $notificationsData = $this->apiData($notificationApi->my(['limit' => 5, 'is_read' => false]), fn () => []);
         $notifications = [];
-        foreach ($notificationsData as $n) {
-            $notifications[] = [
-                'id' => $n['id'] ?? 0,
-                'title' => $n['title'] ?? '',
-                'message' => $n['message'] ?? '',
-                'created_at' => $n['created_at'] ?? '',
-                'is_read' => $n['is_read'] ?? false,
-            ];
+        if (is_array($notificationsData)) {
+            foreach ($notificationsData as $n) {
+                $notifications[] = [
+                    'id' => $n['id'] ?? 0,
+                    'title' => $n['title'] ?? '',
+                    'message' => $n['message'] ?? '',
+                    'created_at' => $n['created_at'] ?? '',
+                    'is_read' => $n['is_read'] ?? false,
+                ];
+            }
         }
 
         return view('chef.dashboard', compact('morningOrders', 'noonOrders', 'eveningOrders', 'stats', 'notifications'));
@@ -93,8 +94,8 @@ class ChefController extends Controller
 
     public function startPreparing(Request $request, int $orderId, ChefApiService $chefApi)
     {
-        $response = $this->apiData($chefApi->startPreparing($orderId), fn () => []);
-        $success = is_array($response) && !empty($response['order']);
+        $response = $chefApi->startPreparing($orderId);
+        $success = isset($response['order']) || (isset($response['success']) && $response['success'] === true);
         $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Preparation started.') : __('Failed to start preparation.')));
 
         if ($request->ajax() || $request->wantsJson()) {
@@ -106,8 +107,8 @@ class ChefController extends Controller
 
     public function markReady(Request $request, int $orderId, ChefApiService $chefApi)
     {
-        $response = $this->apiData($chefApi->markReady($orderId), fn () => []);
-        $success = is_array($response) && !empty($response['order']);
+        $response = $chefApi->markReady($orderId);
+        $success = isset($response['order']) || (isset($response['success']) && $response['success'] === true);
         $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Order marked as ready.') : __('Failed to mark as ready.')));
 
         if ($request->ajax() || $request->wantsJson()) {
