@@ -58,15 +58,13 @@ class ChefController extends Controller
             $ordersData = [];
         }
 
-        $morningOrders = [];
-        $noonOrders = [];
-        $eveningOrders = [];
+        // Group orders by category dynamically from order items
+        $categorizedOrders = []; // category_id => [orders]
+        $categoryMap = [];       // category_id => category_name
+        $categoryCounts = [];    // category_id => count
 
         $stats = [
             'total_today' => $dashboardData['total_orders'] ?? 0,
-            'morning' => 0,
-            'noon' => 0,
-            'evening' => 0,
             'pending' => ($dashboardData['pending_orders'] ?? 0) + ($dashboardData['confirmed_orders'] ?? 0),
             'preparing' => $dashboardData['preparing_orders'] ?? 0,
             'ready' => $dashboardData['ready_for_delivery_orders'] ?? 0,
@@ -87,16 +85,39 @@ class ChefController extends Controller
                 ]);
                 continue;
             }
-            $timeframe = $item['timeframe'];
 
-            $stats[$timeframe]++;
+            // An order can have items from multiple categories.
+            // Use the first item's category as the primary category for tab grouping.
+            $catId = $item['primary_category_id'];
+            $catName = $item['primary_category_name'];
 
-            match ($timeframe) {
-                'morning' => $morningOrders[] = $item,
-                'noon' => $noonOrders[] = $item,
-                'evening' => $eveningOrders[] = $item,
-                default => null,
-            };
+            if (!isset($categoryMap[$catId])) {
+                $categoryMap[$catId] = $catName;
+                $categorizedOrders[$catId] = [];
+                $categoryCounts[$catId] = 0;
+            }
+
+            $categorizedOrders[$catId][] = $item;
+            $categoryCounts[$catId]++;
+        }
+
+        // Build categories array for frontend (sorted by category name)
+        $categories = [];
+        $sortedCatIds = array_keys($categoryMap);
+        // Sort by category name alphabetically
+        usort($sortedCatIds, fn($a, $b) => strcmp($categoryMap[$a], $categoryMap[$b]));
+
+        foreach ($sortedCatIds as $catId) {
+            $categories[] = [
+                'id' => $catId,
+                'name' => $categoryMap[$catId],
+                'count' => $categoryCounts[$catId],
+            ];
+        }
+
+        // Add category counts to stats
+        foreach ($categoryCounts as $catId => $count) {
+            $stats['cat_' . $catId] = $count;
         }
 
         // Fetch meals summary for today
@@ -127,7 +148,7 @@ class ChefController extends Controller
             }
         }
 
-        return view('chef.dashboard', compact('morningOrders', 'noonOrders', 'eveningOrders', 'stats', 'notifications', 'mealsSummary', 'allergyCustomers'));
+        return view('chef.dashboard', compact('categorizedOrders', 'categories', 'stats', 'notifications', 'mealsSummary', 'allergyCustomers'));
     }
 
     public function startPreparing(Request $request, int $orderId, ChefApiService $chefApi)
@@ -175,24 +196,10 @@ class ChefController extends Controller
         $items = $order['items'] ?? [];
 
         $deliveryDate = $order['delivery_date'] ?? null;
-        $hour = null;
-        if ($deliveryDate) {
-            $hour = (int) date('H', strtotime($deliveryDate));
-        }
 
-        $timeframe = match (true) {
-            $hour !== null && $hour < 11 => 'morning',
-            $hour !== null && $hour < 16 => 'noon',
-            $hour !== null && $hour >= 16 => 'evening',
-            default => 'morning',
-        };
-
-        $timeframeLabels = [
-            'morning' => __('Morning'),
-            'noon' => __('Noon'),
-            'evening' => __('Evening'),
-        ];
-
+        // Extract categories from order items dynamically
+        $primaryCategoryId = 0;
+        $primaryCategoryName = __('Uncategorized');
         $mealNames = [];
         $totalCalories = 0;
         if (is_array($items)) {
@@ -206,6 +213,11 @@ class ChefController extends Controller
                 if ($cal) {
                     $totalCalories += (int) $cal * ($item['quantity'] ?? 1);
                 }
+                // Use first item's category as primary
+                if ($primaryCategoryId === 0 && !empty($item['category_id'])) {
+                    $primaryCategoryId = (int) $item['category_id'];
+                    $primaryCategoryName = $item['category_name'] ?? __('Uncategorized');
+                }
             }
         }
 
@@ -216,8 +228,8 @@ class ChefController extends Controller
             'order_number' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
             'status' => $status,
             'status_label' => $statusLabels[$status] ?? __(ucfirst(str_replace('_', ' ', $status))),
-            'timeframe' => $timeframe,
-            'timeframe_label' => $timeframeLabels[$timeframe] ?? __(ucfirst($timeframe)),
+            'primary_category_id' => $primaryCategoryId,
+            'primary_category_name' => $primaryCategoryName,
             'customer' => $customerName,
             'customer_phone' => $customer['phone'] ?? '',
             'delivery_address' => $order['delivery_address'] ?? '',
@@ -268,7 +280,7 @@ class ChefController extends Controller
                 'delivery_address' => 'Riyadh, King Fahd District',
                 'delivery_notes' => 'No nuts - allergy',
                 'items' => [
-                    ['meal_name' => 'Oatmeal with Berries', 'quantity' => 1, 'calories' => 350],
+                    ['meal_name' => 'Oatmeal with Berries', 'quantity' => 1, 'calories' => 350, 'category_id' => 1, 'category_name' => 'Breakfast'],
                 ],
                 'created_at' => "{$today}T06:00:00",
                 'updated_at' => "{$today}T06:00:00",
@@ -294,7 +306,7 @@ class ChefController extends Controller
                 'delivery_address' => 'Riyadh, Olaya District',
                 'delivery_notes' => '',
                 'items' => [
-                    ['meal_name' => 'Veggie Omelette', 'quantity' => 2, 'calories' => 420],
+                    ['meal_name' => 'Veggie Omelette', 'quantity' => 2, 'calories' => 420, 'category_id' => 1, 'category_name' => 'Breakfast'],
                 ],
                 'created_at' => "{$today}T06:00:00",
                 'updated_at' => "{$today}T07:00:00",
@@ -320,7 +332,7 @@ class ChefController extends Controller
                 'delivery_address' => 'Jeddah, Al-Balad',
                 'delivery_notes' => 'Extra dressing on side',
                 'items' => [
-                    ['meal_name' => 'Grilled Chicken Salad', 'quantity' => 1, 'calories' => 550],
+                    ['meal_name' => 'Grilled Chicken Salad', 'quantity' => 1, 'calories' => 550, 'category_id' => 2, 'category_name' => 'Lunch'],
                 ],
                 'created_at' => "{$today}T06:00:00",
                 'updated_at' => "{$today}T06:00:00",
@@ -346,7 +358,7 @@ class ChefController extends Controller
                 'delivery_address' => 'Riyadh, Nakheel District',
                 'delivery_notes' => '',
                 'items' => [
-                    ['meal_name' => 'Quinoa Buddha Bowl', 'quantity' => 1, 'calories' => 480],
+                    ['meal_name' => 'Quinoa Buddha Bowl', 'quantity' => 1, 'calories' => 480, 'category_id' => 2, 'category_name' => 'Lunch'],
                 ],
                 'created_at' => "{$today}T06:00:00",
                 'updated_at' => "{$today}T11:00:00",
@@ -372,7 +384,7 @@ class ChefController extends Controller
                 'delivery_address' => 'Riyadh, Diplomatic Quarter',
                 'delivery_notes' => 'Well done salmon',
                 'items' => [
-                    ['meal_name' => 'Salmon with Roasted Vegetables', 'quantity' => 1, 'calories' => 620],
+                    ['meal_name' => 'Salmon with Roasted Vegetables', 'quantity' => 1, 'calories' => 620, 'category_id' => 3, 'category_name' => 'Dinner'],
                 ],
                 'created_at' => "{$today}T06:00:00",
                 'updated_at' => "{$today}T06:00:00",
@@ -398,7 +410,7 @@ class ChefController extends Controller
                 'delivery_address' => 'Riyadh, Al-Malqa District',
                 'delivery_notes' => 'Spicy',
                 'items' => [
-                    ['meal_name' => 'Beef Stir Fry with Rice', 'quantity' => 2, 'calories' => 580],
+                    ['meal_name' => 'Beef Stir Fry with Rice', 'quantity' => 2, 'calories' => 580, 'category_id' => 3, 'category_name' => 'Dinner'],
                 ],
                 'created_at' => "{$today}T06:00:00",
                 'updated_at' => "{$today}T06:00:00",

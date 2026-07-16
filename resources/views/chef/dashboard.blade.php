@@ -90,60 +90,34 @@ $today = date('l, M j');
             </div>
         </div>
 
-        {{-- Tab Navigation --}}
-        <div class="bg-white rounded-2xl p-1.5 shadow-sm border border-gray-100 flex gap-1">
-            <button @click="switchTab('morning')"
-                :class="activeTab === 'morning' ? 'bg-chef-600 text-white shadow-md shadow-chef-600/20' : 'text-gray-500 hover:bg-gray-50'"
-                class="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h1M3 12h1m15.364-6.364l.707.707M4.929 4.929l.707.707m12.728 0l.707-.707M4.929 19.071l.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                {{ __('Morning') }}
-                <span x-show="stats.morning > 0" class="px-1.5 py-0.5 rounded-full text-[9px] font-bold" :class="activeTab === 'morning' ? 'bg-white/20' : 'bg-gray-100'" x-text="stats.morning">{{ $stats['morning'] }}</span>
-            </button>
-            <button @click="switchTab('noon')"
-                :class="activeTab === 'noon' ? 'bg-chef-600 text-white shadow-md shadow-chef-600/20' : 'text-gray-500 hover:bg-gray-50'"
-                class="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h1M3 12h1m15.364-6.364l.707.707M4.929 4.929l.707.707m12.728 0l.707-.707M4.929 19.071l.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                {{ __('Noon') }}
-                <span x-show="stats.noon > 0" class="px-1.5 py-0.5 rounded-full text-[9px] font-bold" :class="activeTab === 'noon' ? 'bg-white/20' : 'bg-gray-100'" x-text="stats.noon">{{ $stats['noon'] }}</span>
-            </button>
-            <button @click="switchTab('evening')"
-                :class="activeTab === 'evening' ? 'bg-chef-600 text-white shadow-md shadow-chef-600/20' : 'text-gray-500 hover:bg-gray-50'"
-                class="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-                {{ __('Evening') }}
-                <span x-show="stats.evening > 0" class="px-1.5 py-0.5 rounded-full text-[9px] font-bold" :class="activeTab === 'evening' ? 'bg-white/20' : 'bg-gray-100'" x-text="stats.evening">{{ $stats['evening'] }}</span>
-            </button>
+        {{-- Tab Navigation (dynamic categories + summary) --}}
+        <div class="bg-white rounded-2xl p-1.5 shadow-sm border border-gray-100 flex gap-1 overflow-x-auto">
+            <template x-for="cat in categories" :key="cat.id">
+                <button @click="switchTab('cat_' + cat.id)"
+                    :class="activeTab === 'cat_' + cat.id ? 'bg-chef-600 text-white shadow-md shadow-chef-600/20' : 'text-gray-500 hover:bg-gray-50'"
+                    class="flex-1 min-w-[80px] py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all whitespace-nowrap">
+                    <span x-text="cat.name"></span>
+                    <span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold" :class="activeTab === 'cat_' + cat.id ? 'bg-white/20' : 'bg-gray-100'" x-text="cat.count"></span>
+                </button>
+            </template>
             <button @click="switchTab('summary')"
                 :class="activeTab === 'summary' ? 'bg-chef-600 text-white shadow-md shadow-chef-600/20' : 'text-gray-500 hover:bg-gray-50'"
-                class="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all">
+                class="flex-1 min-w-[80px] py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all whitespace-nowrap">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                 {{ __('Summary') }}
             </button>
         </div>
 
-        {{-- Orders by Tab (Alpine filtered) --}}
+        {{-- Orders by Category Tab (Alpine filtered) --}}
         <template x-if="activeTab !== 'summary'">
             <div class="space-y-3">
                 {{-- Section header --}}
                 <div class="flex items-center gap-2 mb-1">
-                    <div class="w-7 h-7 rounded-lg flex items-center justify-center"
-                         :class="{
-                            'bg-amber-50': activeTab === 'morning',
-                            'bg-orange-50': activeTab === 'noon',
-                            'bg-indigo-50': activeTab === 'evening'
-                         }">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                             :class="{
-                                'text-amber-500': activeTab === 'morning',
-                                'text-orange-500': activeTab === 'noon',
-                                'text-indigo-500': activeTab === 'evening'
-                             }">
-                            <path x-show="activeTab !== 'evening'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h1M3 12h1m15.364-6.364l.707.707M4.929 4.929l.707.707m12.728 0l.707-.707M4.929 19.071l.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                            <path x-show="activeTab === 'evening'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-                        </svg>
+                    <div class="w-7 h-7 rounded-lg bg-chef-50 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-chef-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     </div>
                     <h2 class="text-sm font-bold text-gray-900">
-                        <span x-text="activeTab === 'morning' ? '{{ __('Morning Orders') }}' : activeTab === 'noon' ? '{{ __('Noon Orders') }}' : '{{ __('Evening Orders') }}'"></span>
+                        <span x-text="activeCategoryName"></span>
                     </h2>
                     <span class="text-[10px] text-gray-400" x-text="filteredOrders.length + ' {{ __('orders') }}'"></span>
                 </div>
@@ -154,7 +128,7 @@ $today = date('l, M j');
                         <div class="w-14 h-14 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-3">
                             <svg class="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                         </div>
-                        <p class="text-sm text-gray-500" x-text="'{{ __('No') }} ' + activeTab + ' {{ __('orders scheduled.') }}'"></p>
+                        <p class="text-sm text-gray-500" x-text="'{{ __('No orders in') }} ' + activeCategoryName"></p>
                     </div>
                 </template>
 
@@ -330,15 +304,28 @@ $today = date('l, M j');
 function chefDashboard() {
     return {
         stats: @json($stats),
-        allOrders: @json(array_merge($morningOrders, $noonOrders, $eveningOrders)),
-        activeTab: 'morning',
+        categories: @json($categories),
+        allOrders: @json(collect($categorizedOrders)->flatten(1)->values()),
+        activeTab: '',
         loading: false,
 
         init() {
-            const saved = localStorage.getItem('chef_active_tab');
-            if (saved && ['morning', 'noon', 'evening', 'summary'].includes(saved)) {
-                this.activeTab = saved;
+            // Set first category as default tab
+            if (this.categories.length > 0) {
+                const saved = localStorage.getItem('chef_active_tab');
+                if (saved && this.isValidTab(saved)) {
+                    this.activeTab = saved;
+                } else {
+                    this.activeTab = 'cat_' + this.categories[0].id;
+                }
+            } else {
+                this.activeTab = 'summary';
             }
+        },
+
+        isValidTab(tab) {
+            if (tab === 'summary') return true;
+            return this.categories.some(c => 'cat_' + c.id === tab);
         },
 
         switchTab(tab) {
@@ -346,8 +333,20 @@ function chefDashboard() {
             localStorage.setItem('chef_active_tab', tab);
         },
 
+        get activeCategoryId() {
+            if (!this.activeTab.startsWith('cat_')) return null;
+            return parseInt(this.activeTab.replace('cat_', ''));
+        },
+
+        get activeCategoryName() {
+            const cat = this.categories.find(c => c.id === this.activeCategoryId);
+            return cat ? cat.name : '';
+        },
+
         get filteredOrders() {
-            return this.allOrders.filter(o => o.timeframe === this.activeTab);
+            const catId = this.activeCategoryId;
+            if (catId === null) return [];
+            return this.allOrders.filter(o => o.primary_category_id === catId);
         },
 
         async startPreparing(orderId) {
