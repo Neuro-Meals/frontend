@@ -12,6 +12,8 @@ return [
 
     'base_url' => env('API_BASE_URL', 'http://185.237.97.69:8080'),
 
+    'enabled' => env('API_ENABLED', false),
+
     'timeout' => env('API_TIMEOUT', 30),
 
     'retry_attempts' => env('API_RETRY_ATTEMPTS', 3),

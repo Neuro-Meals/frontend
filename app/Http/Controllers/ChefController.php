@@ -25,14 +25,31 @@ class ChefController extends Controller
 
     public function dashboard(ChefApiService $chefApi, NotificationApiService $notificationApi)
     {
-        $dashboardData = $this->apiData($chefApi->dashboard(), fn () => $this->mockDashboardStats());
+        $dashboardResponse = $chefApi->dashboard();
+
+        if (isset($dashboardResponse['success']) && $dashboardResponse['success'] === false) {
+            \Log::warning('Chef dashboard API failed', [
+                'status' => $dashboardResponse['status'] ?? null,
+                'message' => $dashboardResponse['message'] ?? null,
+            ]);
+        }
+
+        $dashboardData = $this->apiData($dashboardResponse, fn () => $this->mockDashboardStats());
 
         $ordersResponse = $chefApi->orders(['limit' => 100]);
 
         if (isset($ordersResponse['success']) && $ordersResponse['success'] === false) {
+            \Log::warning('Chef orders API failed', [
+                'status' => $ordersResponse['status'] ?? null,
+                'message' => $ordersResponse['message'] ?? null,
+            ]);
             $ordersData = $this->apiEnabled() ? [] : $this->mockOrders();
         } else {
             $ordersData = $ordersResponse['data'] ?? ($this->apiEnabled() ? [] : $this->mockOrders());
+        }
+
+        if (!is_array($ordersData)) {
+            $ordersData = [];
         }
 
         $morningOrders = [];
@@ -55,7 +72,15 @@ class ChefController extends Controller
         ];
 
         foreach ($ordersData as $order) {
-            $item = $this->formatOrder($order);
+            try {
+                $item = $this->formatOrder($order);
+            } catch (\Throwable $e) {
+                \Log::error('Chef order format failed', [
+                    'order_id' => $order['id'] ?? null,
+                    'error' => $e->getMessage(),
+                ]);
+                continue;
+            }
             $timeframe = $item['timeframe'];
 
             $stats[$timeframe]++;

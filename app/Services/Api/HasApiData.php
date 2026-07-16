@@ -27,7 +27,7 @@ trait HasApiData
     protected function apiEnabled(): bool
     {
         return config('api.base_url') !== null
-            && env('API_ENABLED', false) === true;
+            && config('api.enabled', false) === true;
     }
 
     /**
