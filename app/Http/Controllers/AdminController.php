@@ -1611,7 +1611,7 @@ class AdminController extends Controller
         return redirect()->route('admin.orders')->with('success', 'Driver assigned successfully.');
     }
 
-    public function deliveries(DeliveryApiService $deliveryApi, DriverApiService $driverApi, ChefApiService $chefApi)
+    public function deliveries(DeliveryApiService $deliveryApi, DriverApiService $driverApi)
     {
         $deliveriesData = $this->apiData($deliveryApi->list(['limit' => 100]), function () {
             return [];
@@ -1677,51 +1677,7 @@ class AdminController extends Controller
             }
         }
 
-        // Ready-for-delivery orders that have no driver yet, so admin
-        // can select several at once and hand them to one driver
-        // (bulk assign) instead of assigning order by order.
-        $readyData = $this->apiData($chefApi->readyForDelivery(true), fn () => ['data' => []]);
-        $readyOrders = [];
-        foreach ($readyData['data'] ?? [] as $order) {
-            $customer = $order['customer'] ?? [];
-            $items = is_array($order['items'] ?? null) ? $order['items'] : [];
-            $readyOrders[] = [
-                'id' => $order['id'] ?? 0,
-                'order_number' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
-                'customer' => trim($customer['full_name'] ?? (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) ?: __('Customer'),
-                'address' => $order['delivery_address'] ?? '',
-                'item_count' => count($items),
-            ];
-        }
-
-        return view('admin.deliveries', compact('deliveries', 'stats', 'allDrivers', 'availableDrivers', 'readyOrders'));
-    }
-
-    /**
-     * Assign several ready-for-delivery orders to one driver at once
-     * ("kuchagua mzigo" from the admin/chef side).
-     */
-    public function bulkAssignDriver(Request $request, ChefApiService $chefApi)
-    {
-        $validated = $request->validate([
-            'driver_id' => ['required', 'integer', 'min:1'],
-            'order_ids' => ['required', 'array', 'min:1'],
-            'order_ids.*' => ['integer', 'min:1'],
-        ]);
-
-        $response = $this->apiData(
-            $chefApi->bulkAssignDriver((int) $validated['driver_id'], $validated['order_ids']),
-            fn () => []
-        );
-
-        $success = !empty($response) && empty($response['error']);
-        $message = $response['message'] ?? ($success ? __('Orders assigned to the driver.') : __('Failed to assign orders.'));
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['success' => $success, 'message' => $message, 'result' => $response], $success ? 200 : 422);
-        }
-
-        return back()->with($success ? 'status' : 'error', $message);
+        return view('admin.deliveries', compact('deliveries', 'stats', 'allDrivers', 'availableDrivers'));
     }
 
     public function assignDriver(Request $request, DeliveryApiService $deliveryApi, int $id)

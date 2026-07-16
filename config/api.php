@@ -214,6 +214,8 @@ return [
         // ─── Driver App ───
         'driver' => [
             'my_deliveries'      => '/driver/deliveries',
+            'available_loads'    => '/driver/deliveries/available',
+            'claim_load'         => '/driver/deliveries/claim',
             'show_delivery'      => '/driver/deliveries/{delivery_id}',
             'pickup'             => '/driver/deliveries/{delivery_id}/pickup',
             'out_for_delivery'   => '/driver/deliveries/{delivery_id}/out-for-delivery',

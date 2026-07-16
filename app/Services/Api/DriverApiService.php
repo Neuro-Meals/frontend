@@ -34,6 +34,20 @@ class DriverApiService extends BaseApiService
         return $this->get('driver.my_deliveries');
     }
 
+    /**
+     * Ready-for-delivery orders with no driver yet, so a driver can
+     * browse and pick ("kuchagua mzigo") their own load.
+     */
+    public function availableLoads(): array
+    {
+        return $this->get('driver.available_loads');
+    }
+
+    public function claimLoad(int $orderId): array
+    {
+        return $this->post('driver.claim_load', [], ['order_id' => $orderId]);
+    }
+
     public function showDelivery(int $deliveryId): array
     {
         return $this->get('driver.show_delivery', ['delivery_id' => $deliveryId]);
