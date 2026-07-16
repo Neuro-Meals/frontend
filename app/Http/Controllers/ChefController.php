@@ -195,7 +195,53 @@ class ChefController extends Controller
             }
         }
 
-        return view('chef.dashboard', compact('categorizedOrders', 'categories', 'stats', 'notifications', 'mealsSummary', 'allergyCustomers'));
+        // Build per-tab summaries used by the kitchen shift screen:
+        // required dish quantities, customer/meal counts, and prep progress.
+        $tabSummaries = [];
+        foreach ($categories as $cat) {
+            $tabOrders = $categorizedOrders[$cat['id']] ?? [];
+            $tabSummaries[$cat['id']] = [
+                'customers' => count($tabOrders),
+                'total_meals' => array_sum(array_column($tabOrders, 'meal_count')),
+                'ready' => count(array_filter($tabOrders, fn ($o) => in_array($o['status'], ['ready_for_delivery', 'out_for_delivery', 'delivered']))),
+                'preparing' => count(array_filter($tabOrders, fn ($o) => $o['status'] === 'preparing')),
+                'pending' => count(array_filter($tabOrders, fn ($o) => in_array($o['status'], ['pending', 'confirmed', 'scheduled']))),
+                'dishes' => $this->aggregateDishes($tabOrders),
+            ];
+        }
+
+        return view('chef.dashboard', compact('categorizedOrders', 'categories', 'stats', 'notifications', 'mealsSummary', 'allergyCustomers', 'tabSummaries'));
+    }
+
+    /**
+     * Aggregate dish names + quantities across a set of formatted orders,
+     * powering the "quantities needed" card on the kitchen shift screen.
+     */
+    private function aggregateDishes(array $orders): array
+    {
+        $totals = [];
+        foreach ($orders as $order) {
+            foreach ($order['items'] ?? [] as $item) {
+                $name = $item['meal_name'] ?? ($item['name'] ?? ($item['title'] ?? null));
+                if (!$name) {
+                    continue;
+                }
+                $qty = (int) ($item['quantity'] ?? 1);
+                if (!isset($totals[$name])) {
+                    $totals[$name] = 0;
+                }
+                $totals[$name] += $qty;
+            }
+        }
+
+        $dishes = [];
+        foreach ($totals as $name => $qty) {
+            $dishes[] = ['name' => $name, 'quantity' => $qty];
+        }
+
+        usort($dishes, fn ($a, $b) => $b['quantity'] <=> $a['quantity']);
+
+        return $dishes;
     }
 
     public function startPreparing(Request $request, int $orderId, ChefApiService $chefApi)
