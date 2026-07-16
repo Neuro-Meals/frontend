@@ -315,6 +315,91 @@ class ChefController extends Controller
     }
 
     /**
+     * Chef Kitchen Schedule page: shows ALL meal categories at once
+     * (Breakfast, Lunch, Dinner, Snacks) with per-meal production
+     * requirements, ingredients, allergens, calories, customer orders,
+     * and transfer/advance actions — the same data as the admin
+     * schedule but styled for the chef mobile app.
+     */
+    public function schedule(Request $request, ChefApiService $chefApi)
+    {
+        $today = $request->query('date') ?: date('Y-m-d');
+
+        $iconMap = [
+            'breakfast' => 'sunrise',
+            'lunch'     => 'sun',
+            'dinner'    => 'moon',
+            'supper'    => 'moon',
+            'snack'     => 'cookie',
+        ];
+        $getIcon = function (string $name) use ($iconMap): string {
+            $lower = strtolower($name);
+            foreach ($iconMap as $keyword => $icon) {
+                if (str_contains($lower, $keyword)) return $icon;
+            }
+            return 'dots';
+        };
+        $getRank = function (string $name): int {
+            $lower = strtolower($name);
+            if (str_contains($lower, 'breakfast')) return 0;
+            if (str_contains($lower, 'lunch')) return 1;
+            if (str_contains($lower, 'dinner') || str_contains($lower, 'supper')) return 2;
+            if (str_contains($lower, 'snack')) return 3;
+            return 4;
+        };
+
+        $categoriesData = $this->apiData($chefApi->scheduleCategories($today), fn () => ['categories' => []]);
+        $categories = $categoriesData['categories'] ?? [];
+
+        usort($categories, fn($a, $b) => $getRank($a['category_name'] ?? '') <=> $getRank($b['category_name'] ?? ''));
+
+        $allProduction = [];
+        $totalOrders = 0;
+        $distinctMeals = 0;
+        $totalPortions = 0;
+
+        foreach ($categories as $cat) {
+            $catId = (int) ($cat['category_id'] ?? 0);
+            if (!$catId) continue;
+
+            $prodData = $this->apiData(
+                $chefApi->productionRequirements($today, $catId),
+                fn () => ['meals' => [], 'total_required' => 0]
+            );
+
+            $allProduction[] = [
+                'category_id' => $catId,
+                'category_name' => $cat['category_name'] ?? '',
+                'category_name_ar' => $cat['category_name_ar'] ?? '',
+                'icon' => $getIcon($cat['category_name'] ?? ''),
+                'total_required' => $prodData['total_required'] ?? 0,
+                'meals' => $prodData['meals'] ?? [],
+                'pending' => $cat['pending'] ?? 0,
+                'sent_to_kitchen' => $cat['sent_to_kitchen'] ?? 0,
+                'preparing' => $cat['preparing'] ?? 0,
+                'ready' => $cat['ready'] ?? 0,
+                'served' => $cat['served'] ?? 0,
+                'order_count' => $cat['order_count'] ?? 0,
+            ];
+
+            $totalOrders += (int) ($cat['order_count'] ?? 0);
+            $distinctMeals += count($prodData['meals'] ?? []);
+            $totalPortions += (int) ($prodData['total_required'] ?? 0);
+        }
+
+        return view('chef.schedule', [
+            'today' => $today,
+            'allProduction' => $allProduction,
+            'summary' => [
+                'total_orders' => $totalOrders,
+                'category_count' => count($categories),
+                'distinct_meals' => $distinctMeals,
+                'total_portions' => $totalPortions,
+            ],
+        ]);
+    }
+
+    /**
      * Aggregate dish names + quantities across a set of formatted orders,
      * powering the "quantities needed" card on the kitchen shift screen.
      */
