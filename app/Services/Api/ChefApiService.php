@@ -53,6 +53,18 @@ class ChefApiService extends BaseApiService
         return $this->post('chef.assign_driver', ['order_id' => $orderId], $data);
     }
 
+    public function bulkAssignDriver(int $driverId, array $orderIds, ?string $scheduledAt = null): array
+    {
+        $data = [
+            'driver_id' => $driverId,
+            'order_ids' => $orderIds,
+        ];
+        if ($scheduledAt) {
+            $data['scheduled_at'] = $scheduledAt;
+        }
+        return $this->post('chef.bulk_assign_driver', [], $data);
+    }
+
     public function mealsSummary(?string $date = null): array
     {
         $query = [];

@@ -81,15 +81,40 @@
                 <h3 class="text-sm font-bold text-gray-900">{{ __('Live Deliveries') }}</h3>
                 <p class="text-xs text-gray-400 mt-0.5">{{ __('Real-time delivery tracking') }}</p>
             </div>
-            <button @click="openDriverManager()" class="text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-1.5">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                {{ __('Manage Drivers') }}
-            </button>
+            <div class="flex items-center gap-2">
+                @if(count($availableDrivers) > 0)
+                <button x-show="selectedOrderIds.length > 0" @click="bulkAssignOpen = true"
+                    class="text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span x-text="'{{ __('Bulk Assign') }} (' + selectedOrderIds.length + ')'"></span>
+                </button>
+                @endif
+                <button @click="openDriverManager()" class="text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    {{ __('Manage Drivers') }}
+                </button>
+            </div>
         </div>
+
+        {{-- Bulk Selection Info Bar --}}
+        <div x-show="selectedOrderIds.length > 0" x-transition class="px-6 py-2 bg-[#F6F3E9] border-b border-[#d1cb9f] flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" @change="toggleAllDeliveries($event)" :checked="allDeliveriesSelected" class="w-4 h-4 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]">
+                    <span class="text-xs font-bold text-[#6E7A25]">{{ __('Select All') }}</span>
+                </label>
+                <span class="text-xs text-gray-600" x-text="selectedOrderIds.length + ' {{ __('orders selected') }}'"></span>
+                <button @click="clearSelection()" class="text-xs text-red-500 hover:underline">{{ __('Clear') }}</button>
+            </div>
+        </div>
+
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="text-left text-xs text-gray-400 bg-gray-50/50 border-b border-gray-100">
+                        <th class="px-4 py-3 w-10">
+                            <input type="checkbox" @change="toggleAllDeliveries($event)" :checked="allDeliveriesSelected" class="w-4 h-4 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]">
+                        </th>
                         <th class="px-6 py-3 font-medium">{{ __('Delivery ID') }}</th>
                         <th class="px-6 py-3 font-medium">{{ __('Customer') }}</th>
                         <th class="px-6 py-3 font-medium">{{ __('Zone') }}</th>
@@ -101,7 +126,12 @@
                 </thead>
                 <tbody>
                     @foreach($deliveries as $delivery)
-                    <tr class="border-b border-gray-50 hover:bg-gray-50/30 transition-colors">
+                    <tr class="border-b border-gray-50 hover:bg-gray-50/30 transition-colors" :class="selectedOrderIds.includes({{ $delivery['order_id'] }}) ? 'bg-[#F6F3E9]/40' : ''">
+                        <td class="px-4 py-3.5">
+                            @if(in_array($delivery['status'], ['pending', 'scheduled', 'assigned']))
+                            <input type="checkbox" value="{{ $delivery['order_id'] }}" x-model="selectedOrderIds" class="w-4 h-4 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]">
+                            @endif
+                        </td>
                         <td class="px-6 py-3.5">
                             <span class="text-xs font-bold text-gray-900">{{ $delivery['delivery_id'] }}</span>
                             <p class="text-[10px] text-gray-400">{{ $delivery['order'] }}</p>
@@ -160,6 +190,40 @@
             </table>
         </div>
     </div>
+
+{{-- Bulk Assign Driver Modal --}}
+<div x-show="bulkAssignOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" aria-labelledby="bulk-assign-title" role="dialog" aria-modal="true">
+    <div x-show="bulkAssignOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="bulkAssignOpen = false" class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm"></div>
+    <div x-show="bulkAssignOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 id="bulk-assign-title" class="text-lg font-bold text-gray-900">{{ __('Bulk Assign Driver') }}</h3>
+            <button @click="bulkAssignOpen = false" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <p class="text-sm text-gray-500 mb-4" x-text="selectedOrderIds.length + ' {{ __('orders will be assigned to the selected driver.') }}'"></p>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Select Driver') }} <span class="text-red-500">*</span></label>
+                <select x-model="bulkDriverId" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
+                    <option value="">{{ __('Choose a driver...') }}</option>
+                    @foreach($allDrivers as $driver)
+                    <option value="{{ $driver['id'] }}" @if(!$driver['is_active']) disabled @endif>{{ $driver['name'] }}@if(!$driver['is_active']) (Inactive)@endif</option>
+                    @endforeach
+                </select>
+            </div>
+            <div x-show="bulkAssignError" x-text="bulkAssignError" class="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2"></div>
+            <div x-show="bulkAssignSuccess" x-text="bulkAssignSuccess" class="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2"></div>
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <button @click="bulkAssignOpen = false" class="px-4 py-2 rounded-lg border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">{{ __('Cancel') }}</button>
+                <button @click="submitBulkAssign()" :disabled="bulkAssigning || !bulkDriverId" class="px-4 py-2 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-sm font-bold shadow-sm hover:shadow-md transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2">
+                    <svg x-show="bulkAssigning" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                    <span x-text="bulkAssigning ? '{{ __('Assigning...') }}' : '{{ __('Assign Driver') }}'"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 {{-- Driver Management Modal --}}
 <div x-show="driverModalOpen" x-cloak class="fixed inset-0 z-50" aria-labelledby="driver-modal-title" role="dialog" aria-modal="true">
@@ -329,6 +393,14 @@
             driverSearch: '',
             drivers: [],
             driverCredentials: null,
+            // Bulk assign state
+            selectedOrderIds: [],
+            bulkAssignOpen: false,
+            bulkDriverId: '',
+            bulkAssigning: false,
+            bulkAssignError: '',
+            bulkAssignSuccess: '',
+            allAssignableOrderIds: @json(collect($deliveries)->where('status', 'pending')->pluck('order_id')->merge(collect($deliveries)->where('status', 'scheduled')->pluck('order_id')->merge(collect($deliveries)->where('status', 'assigned')->pluck('order_id')))->values()),
             driverForm: {
                 id: null,
                 first_name: '',
@@ -350,6 +422,56 @@
                     (d.phone || '').toLowerCase().includes(term) ||
                     (d.location || '').toLowerCase().includes(term)
                 );
+            },
+
+            get allDeliveriesSelected() {
+                return this.allAssignableOrderIds.length > 0 &&
+                    this.allAssignableOrderIds.every(id => this.selectedOrderIds.includes(id));
+            },
+
+            toggleAllDeliveries(e) {
+                if (e.target.checked) {
+                    this.selectedOrderIds = [...this.allAssignableOrderIds];
+                } else {
+                    this.selectedOrderIds = [];
+                }
+            },
+            clearSelection() {
+                this.selectedOrderIds = [];
+            },
+
+            async submitBulkAssign() {
+                if (!this.bulkDriverId || this.selectedOrderIds.length === 0) return;
+                this.bulkAssigning = true;
+                this.bulkAssignError = '';
+                this.bulkAssignSuccess = '';
+
+                try {
+                    const res = await fetch('{{ route('admin.deliveries.bulk-assign-driver') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            driver_id: parseInt(this.bulkDriverId),
+                            order_ids: this.selectedOrderIds.map(id => parseInt(id)),
+                        }),
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.bulkAssignSuccess = data.message || 'Driver assigned successfully.';
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        this.bulkAssignError = data.message || 'Failed to assign driver.';
+                    }
+                } catch (err) {
+                    this.bulkAssignError = 'Network error. Please try again.';
+                } finally {
+                    this.bulkAssigning = false;
+                }
             },
 
             openDriverManager() {

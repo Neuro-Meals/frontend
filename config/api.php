@@ -223,6 +223,7 @@ return [
             'mark_ready'            => '/chef/orders/{order_id}/ready',
             'drivers'               => '/chef/drivers',
             'assign_driver'         => '/chef/orders/{order_id}/assign-driver',
+            'bulk_assign_driver'    => '/chef/orders/bulk-assign-driver',
             'meals_summary'         => '/chef/meals/summary',
             'allergies_summary'     => '/chef/allergies/summary',
             'ready_for_delivery'    => '/chef/orders/ready-for-delivery',

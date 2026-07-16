@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\DriverCredentialsMail;
 use App\Services\Api\AuthApiService;
 use App\Services\Api\AdminApiService;
+use App\Services\Api\ChefApiService;
 use App\Services\Api\DeliveryApiService;
 use App\Services\Api\DriverApiService;
 use App\Services\Api\MealApiService;
@@ -995,6 +996,121 @@ class AdminController extends Controller
         return $payload;
     }
 
+    // ─── Meal Categories ───
+
+    public function storeCategory(Request $request, MealApiService $mealApi)
+    {
+        $validated = $request->validate([
+            'name_en' => ['required', 'string', 'min:2', 'max:100'],
+            'name_ar' => ['nullable', 'string', 'max:100'],
+            'description' => ['nullable', 'string', 'max:255'],
+            'image_url' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $payload = [
+            'name_en' => $validated['name_en'],
+            'image_url' => $validated['image_url'] ?? null,
+        ];
+        if (!empty($validated['name_ar'])) $payload['name_ar'] = $validated['name_ar'];
+        if (!empty($validated['description'])) $payload['description'] = $validated['description'];
+
+        $response = $this->apiData($mealApi->categoryCreate($payload), function () {
+            return [];
+        });
+
+        if (empty($response) || !empty($response['error']) || !isset($response['id'])) {
+            $message = $response['detail'] ?? $response['message'] ?? 'Failed to create category.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
+            return back()->with('error', $message)->withInput();
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Category created successfully.', 'category' => $response]);
+        }
+        return redirect()->route('admin.meals')->with('status', 'Category created successfully.');
+    }
+
+    public function showCategory(int $id, MealApiService $mealApi)
+    {
+        $category = $this->apiData($mealApi->categoryShow($id), function () {
+            return [];
+        });
+
+        if (empty($category)) {
+            return response()->json(['success' => false, 'message' => 'Category not found.'], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'category' => [
+                'id' => $category['id'] ?? 0,
+                'name_en' => $category['name_en'] ?? '',
+                'name_ar' => $category['name_ar'] ?? '',
+                'description' => $category['description'] ?? '',
+                'image_url' => $category['image_url'] ?? '',
+                'is_active' => $category['is_active'] ?? true,
+            ],
+        ]);
+    }
+
+    public function updateCategory(Request $request, int $id, MealApiService $mealApi)
+    {
+        $validated = $request->validate([
+            'name_en' => ['required', 'string', 'min:2', 'max:100'],
+            'name_ar' => ['nullable', 'string', 'max:100'],
+            'description' => ['nullable', 'string', 'max:255'],
+            'image_url' => ['nullable', 'string', 'max:500'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $payload = [
+            'name_en' => $validated['name_en'],
+            'image_url' => $validated['image_url'] ?? null,
+        ];
+        if (array_key_exists('name_ar', $validated)) $payload['name_ar'] = $validated['name_ar'];
+        if (array_key_exists('description', $validated)) $payload['description'] = $validated['description'];
+        if (array_key_exists('is_active', $validated)) $payload['is_active'] = (bool) $validated['is_active'];
+
+        $response = $this->apiData($mealApi->categoryUpdate($id, $payload), function () {
+            return [];
+        });
+
+        if (empty($response) || !empty($response['error'])) {
+            $message = $response['detail'] ?? $response['message'] ?? 'Failed to update category.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
+            return back()->with('error', $message)->withInput();
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Category updated successfully.', 'category' => $response]);
+        }
+        return redirect()->route('admin.meals')->with('status', 'Category updated successfully.');
+    }
+
+    public function destroyCategory(int $id, MealApiService $mealApi)
+    {
+        $response = $this->apiData($mealApi->categoryDelete($id), function () {
+            return [];
+        });
+
+        if (empty($response) || !empty($response['error'])) {
+            $message = $response['detail'] ?? $response['message'] ?? 'Failed to delete category.';
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
+            return redirect()->route('admin.meals')->with('error', $message);
+        }
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Category deleted successfully.']);
+        }
+        return redirect()->route('admin.meals')->with('status', 'Category deleted successfully.');
+    }
+
     public function orders(Request $request, OrderApiService $orderApi, DriverApiService $driverApi)
     {
         $page = (int) $request->input('page', 1);
@@ -1272,6 +1388,55 @@ class AdminController extends Controller
         }
 
         return redirect()->route('admin.deliveries')->with('success', 'Driver assigned successfully.');
+    }
+
+    public function bulkAssignDriver(Request $request, ChefApiService $chefApi)
+    {
+        $validated = $request->validate([
+            'driver_id' => ['required', 'integer', 'min:1'],
+            'order_ids' => ['required', 'array', 'min:1'],
+            'order_ids.*' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $result = $this->apiData($chefApi->bulkAssignDriver(
+            (int) $validated['driver_id'],
+            $validated['order_ids']
+        ), function () {
+            return [];
+        });
+
+        $assigned = $result['assigned'] ?? 0;
+        $failed = $result['failed'] ?? 0;
+        $failures = $result['failures'] ?? [];
+
+        if ($assigned > 0) {
+            $message = "Driver assigned to {$assigned} order(s).";
+            if ($failed > 0) {
+                $message .= " {$failed} failed.";
+            }
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'assigned' => $assigned,
+                    'failed' => $failed,
+                    'failures' => $failures,
+                ]);
+            }
+            return redirect()->route('admin.deliveries')->with('success', $message);
+        }
+
+        $message = $result['detail'] ?? $result['message'] ?? 'Failed to assign driver to orders.';
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+                'assigned' => $assigned,
+                'failed' => $failed,
+                'failures' => $failures,
+            ], 422);
+        }
+        return redirect()->route('admin.deliveries')->with('error', $message);
     }
 
     public function updateDeliveryStatus(Request $request, DeliveryApiService $deliveryApi, int $id)

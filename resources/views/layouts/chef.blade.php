@@ -36,8 +36,8 @@
         .animate-delay-4 { animation-delay: 0.2s; }
         .pulse-dot { animation: pulse-soft 2s infinite; }
         .bottom-nav-item { transition: all 0.2s ease; }
-        .bottom-nav-item.active { color: #C2410C; }
-        .bottom-nav-item.active svg { stroke: #C2410C; }
+        .bottom-nav-item.active { color: #173327; }
+        .bottom-nav-item.active svg { stroke: #173327; }
         .status-badge { transition: all 0.3s ease; }
         .btn-action { transition: transform 0.1s ease, box-shadow 0.2s ease; }
         .btn-action:active { transform: scale(0.96); }
@@ -79,7 +79,7 @@
                 text = '',
                 confirmText = 'Confirm',
                 icon = 'question',
-                confirmColor = '#C2410C',
+                confirmColor = '#173327',
             } = opts;
 
             Swal.fire({
@@ -120,7 +120,7 @@
                                 title: '{{ __('Success!') }}',
                                 text: data.message || '{{ __('Status updated.') }}',
                                 icon: 'success',
-                                confirmButtonColor: '#C2410C',
+                                confirmButtonColor: '#173327',
                                 customClass: { popup: 'rounded-2xl' },
                                 timer: 1400,
                                 showConfirmButton: false,
@@ -130,7 +130,7 @@
                                 title: '{{ __('Oops!') }}',
                                 text: data.message || '{{ __('Something went wrong.') }}',
                                 icon: 'error',
-                                confirmButtonColor: '#C2410C',
+                                confirmButtonColor: '#173327',
                                 customClass: { popup: 'rounded-2xl' },
                             });
                         }
@@ -140,7 +140,7 @@
                             title: '{{ __('Network Error') }}',
                             text: '{{ __('Please check your connection and try again.') }}',
                             icon: 'error',
-                            confirmButtonColor: '#C2410C',
+                            confirmButtonColor: '#173327',
                             customClass: { popup: 'rounded-2xl' },
                         });
                     });

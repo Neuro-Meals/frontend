@@ -11,7 +11,7 @@ $today = date('l, M j');
 
 <div x-data="chefDashboard()" x-init="init()" x-cloak class="pb-4">
     {{-- Header --}}
-    <div class="bg-gradient-to-br from-chef-700 to-chef-600 text-white p-5 rounded-b-3xl shadow-lg shadow-chef-700/20 animate-slide-up">
+    <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white p-5 rounded-b-3xl shadow-lg shadow-[#6E7A25]/20 animate-slide-up">
         <div class="flex items-center justify-between mb-4">
             <div>
                 <p class="text-xs text-white/70 mb-0.5">{{ __('Good day, Chef') }}</p>
@@ -27,7 +27,7 @@ $today = date('l, M j');
         <div class="grid grid-cols-3 gap-3">
             <div class="bg-white/10 backdrop-blur rounded-2xl p-3 border border-white/10 animate-slide-up animate-delay-1">
                 <div class="flex items-center gap-1.5 mb-1">
-                    <div class="w-2 h-2 rounded-full bg-orange-300 pulse-dot"></div>
+                    <div class="w-2 h-2 rounded-full bg-white/60 pulse-dot"></div>
                     <span class="text-[10px] text-white/70">{{ __('Total') }}</span>
                 </div>
                 <p class="text-xl font-bold" x-text="stats.total_today">{{ $stats['total_today'] }}</p>
@@ -54,7 +54,7 @@ $today = date('l, M j');
         <div class="grid grid-cols-4 gap-2">
             <div class="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 text-center">
                 <p class="text-[9px] text-gray-400 mb-0.5">{{ __('Preparing') }}</p>
-                <p class="text-lg font-bold text-chef-600">{{ $stats['preparing'] }}</p>
+                <p class="text-lg font-bold text-[#6E7A25]">{{ $stats['preparing'] }}</p>
             </div>
             <div class="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 text-center">
                 <p class="text-[9px] text-gray-400 mb-0.5">{{ __('Ready') }}</p>
@@ -73,8 +73,8 @@ $today = date('l, M j');
         {{-- Status mini bar --}}
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between animate-slide-up animate-delay-2">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-chef-50 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-chef-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
                 <div>
                     <p class="text-xs text-gray-400">{{ __('Today\'s Schedule') }}</p>
@@ -83,10 +83,10 @@ $today = date('l, M j');
             </div>
             <div class="flex items-center gap-2">
                 <span class="relative flex h-3 w-3">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-chef-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3 w-3 bg-chef-500"></span>
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6E7A25] opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-[#6E7A25]"></span>
                 </span>
-                <span class="text-xs font-bold text-chef-600">{{ __('On Duty') }}</span>
+                <span class="text-xs font-bold text-[#173327]">{{ __('On Duty') }}</span>
             </div>
         </div>
 
@@ -94,14 +94,14 @@ $today = date('l, M j');
         <div class="bg-white rounded-2xl p-1.5 shadow-sm border border-gray-100 flex gap-1 overflow-x-auto">
             <template x-for="cat in categories" :key="cat.id">
                 <button @click="switchTab('cat_' + cat.id)"
-                    :class="activeTab === 'cat_' + cat.id ? 'bg-chef-600 text-white shadow-md shadow-chef-600/20' : 'text-gray-500 hover:bg-gray-50'"
+                    :class="activeTab === 'cat_' + cat.id ? 'bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white shadow-md shadow-[#6E7A25]/20' : 'text-gray-500 hover:bg-gray-50'"
                     class="flex-1 min-w-[80px] py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all whitespace-nowrap">
                     <span x-text="cat.name"></span>
                     <span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold" :class="activeTab === 'cat_' + cat.id ? 'bg-white/20' : 'bg-gray-100'" x-text="cat.count"></span>
                 </button>
             </template>
             <button @click="switchTab('summary')"
-                :class="activeTab === 'summary' ? 'bg-chef-600 text-white shadow-md shadow-chef-600/20' : 'text-gray-500 hover:bg-gray-50'"
+                :class="activeTab === 'summary' ? 'bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white shadow-md shadow-[#6E7A25]/20' : 'text-gray-500 hover:bg-gray-50'"
                 class="flex-1 min-w-[80px] py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all whitespace-nowrap">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                 {{ __('Summary') }}
@@ -113,8 +113,8 @@ $today = date('l, M j');
             <div class="space-y-3">
                 {{-- Section header --}}
                 <div class="flex items-center gap-2 mb-1">
-                    <div class="w-7 h-7 rounded-lg bg-chef-50 flex items-center justify-center">
-                        <svg class="w-4 h-4 text-chef-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     </div>
                     <h2 class="text-sm font-bold text-gray-900">
                         <span x-text="activeCategoryName"></span>
@@ -155,7 +155,7 @@ $today = date('l, M j');
                         </div>
 
                         <div class="flex items-start gap-2 mb-2">
-                            <svg class="w-4 h-4 text-chef-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <svg class="w-4 h-4 text-[#6E7A25] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                             <p class="text-xs text-gray-700 leading-relaxed flex-1" x-text="order.meal_summary"></p>
                         </div>
 
@@ -190,7 +190,7 @@ $today = date('l, M j');
                                 <template x-if="['pending','confirmed'].includes(order.status)">
                                     <button type="button"
                                         @click="startPreparing(order.id)"
-                                        class="btn-action w-full py-2.5 rounded-xl bg-chef-600 text-white text-xs font-bold shadow-md shadow-chef-600/20 flex items-center justify-center gap-2">
+                                        class="btn-action w-full py-2.5 rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-xs font-bold shadow-md shadow-[#6E7A25]/20 flex items-center justify-center gap-2">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                                         {{ __('Start Preparing') }}
                                     </button>
@@ -231,14 +231,14 @@ $today = date('l, M j');
             <h2 class="text-sm font-bold text-gray-900 mb-3">{{ __('Today\'s Meal Summary') }}</h2>
             <div class="space-y-2">
                 @foreach($mealsSummary as $meal)
-                <div class="flex items-center justify-between p-2.5 rounded-xl bg-chef-50/30">
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-gray-50/50">
                     <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 rounded-lg bg-chef-100 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4 text-chef-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                         </div>
                         <span class="text-xs font-medium text-gray-900">{{ $meal['meal_name'] ?? 'Unknown' }}</span>
                     </div>
-                    <span class="px-2.5 py-1 rounded-full bg-chef-600 text-white text-[10px] font-bold">x{{ $meal['quantity'] ?? 1 }}</span>
+                    <span class="px-2.5 py-1 rounded-full bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-[10px] font-bold">x{{ $meal['quantity'] ?? 1 }}</span>
                 </div>
                 @endforeach
             </div>
@@ -280,8 +280,8 @@ $today = date('l, M j');
             <h2 class="text-sm font-bold text-gray-900 mb-3">{{ __('Notifications') }}</h2>
             <div class="space-y-3">
                 @foreach($notifications as $notification)
-                <div class="flex items-start gap-3 p-3 rounded-xl {{ $notification['is_read'] ? 'bg-gray-50' : 'bg-chef-50/50 border border-chef-100' }}">
-                    <div class="w-8 h-8 rounded-full {{ $notification['is_read'] ? 'bg-gray-100 text-gray-400' : 'bg-chef-100 text-chef-600' }} flex items-center justify-center flex-shrink-0">
+                <div class="flex items-start gap-3 p-3 rounded-xl {{ $notification['is_read'] ? 'bg-gray-50' : 'bg-[#173327]/5 border border-[#6E7A25]/20' }}">
+                    <div class="w-8 h-8 rounded-full {{ $notification['is_read'] ? 'bg-gray-100 text-gray-400' : 'bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white' }} flex items-center justify-center flex-shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                     </div>
                     <div class="min-w-0">

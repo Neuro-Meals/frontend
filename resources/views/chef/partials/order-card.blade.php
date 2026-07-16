@@ -24,7 +24,7 @@ $statusColor = match($order['status']) {
 
     {{-- Meal summary --}}
     <div class="flex items-start gap-2 mb-2">
-        <svg class="w-4 h-4 text-chef-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <svg class="w-4 h-4 text-[#6E7A25] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
         <p class="text-xs text-gray-700 leading-relaxed flex-1">{{ $order['meal_summary'] }}</p>
     </div>
 
@@ -72,9 +72,9 @@ $statusColor = match($order['status']) {
                 text: '{{ __('This will mark the order as being prepared in the kitchen.') }}',
                 confirmText: '{{ __('Yes, Start') }}',
                 icon: 'question',
-                confirmColor: '#C2410C'
+                confirmColor: '#173327'
             })"
-            class="btn-action w-full py-2.5 rounded-xl bg-chef-600 text-white text-xs font-bold shadow-md shadow-chef-600/20 flex items-center justify-center gap-2">
+            class="btn-action w-full py-2.5 rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-xs font-bold shadow-md shadow-[#6E7A25]/20 flex items-center justify-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             {{ __('Start Preparing') }}
         </button>

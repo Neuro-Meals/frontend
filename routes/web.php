@@ -164,11 +164,18 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
     Route::get('/meals/{id}', [AdminController::class, 'showMeal'])->name('meals.show');
     Route::put('/meals/{id}', [AdminController::class, 'updateMeal'])->name('meals.update');
     Route::delete('/meals/{id}', [AdminController::class, 'destroyMeal'])->name('meals.destroy');
+
+    // Meal Categories
+    Route::post('/meal-categories', [AdminController::class, 'storeCategory'])->name('categories.store');
+    Route::get('/meal-categories/{id}', [AdminController::class, 'showCategory'])->name('categories.show');
+    Route::put('/meal-categories/{id}', [AdminController::class, 'updateCategory'])->name('categories.update');
+    Route::delete('/meal-categories/{id}', [AdminController::class, 'destroyCategory'])->name('categories.destroy');
     Route::get('/orders', [AdminController::class, 'orders'])->name('orders');
     Route::post('/orders/{id}/approve', [AdminController::class, 'approveOrder'])->name('orders.approve');
     Route::post('/orders/{id}/assign-driver', [AdminController::class, 'assignDriverToOrder'])->name('orders.assign-driver');
     Route::get('/deliveries', [AdminController::class, 'deliveries'])->name('deliveries');
     Route::post('/deliveries/{id}/assign-driver', [AdminController::class, 'assignDriver'])->name('deliveries.assign-driver');
+    Route::post('/deliveries/bulk-assign-driver', [AdminController::class, 'bulkAssignDriver'])->name('deliveries.bulk-assign-driver');
     Route::post('/deliveries/{id}/update-status', [AdminController::class, 'updateDeliveryStatus'])->name('deliveries.update-status');
     Route::get('/drivers', [AdminController::class, 'drivers'])->name('drivers');
     Route::get('/drivers/{id}', [AdminController::class, 'showDriver'])->name('drivers.show');

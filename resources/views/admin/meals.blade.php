@@ -100,7 +100,13 @@
 
 {{-- Category Distribution --}}
 <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-6">
-    <h3 class="text-base font-bold text-gray-900 mb-4">{{ __('Category') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Distribution') }}</span></h3>
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-bold text-gray-900">{{ __('Category') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Distribution') }}</span></h3>
+        <button @click="openCategoryModal()" class="text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            {{ __('Manage Categories') }}
+        </button>
+    </div>
     <div class="flex flex-wrap gap-3">
         @foreach($categories as $cat)
         <div class="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-100 hover:shadow-sm transition-all">
@@ -442,6 +448,109 @@
     </div>
 </div>
 
+{{-- Category Management Modal --}}
+<div x-show="categoryModalOpen" x-cloak class="fixed inset-0 z-50" aria-labelledby="category-modal-title" role="dialog" aria-modal="true">
+    <div x-show="categoryModalOpen" x-transition:enter="ease-in-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in-out duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" @click="closeCategoryModal()"></div>
+
+    <div x-show="categoryModalOpen"
+         x-transition:enter="transform transition ease-in-out duration-300"
+         x-transition:enter-start="translate-x-full rtl:-translate-x-full"
+         x-transition:enter-end="translate-x-0"
+         x-transition:leave="transform transition ease-in-out duration-300"
+         x-transition:leave-start="translate-x-0"
+         x-transition:leave-end="translate-x-full rtl:-translate-x-full"
+         class="absolute inset-y-0 right-0 rtl:right-auto rtl:left-0 w-full sm:w-[32rem] lg:w-[36rem] bg-white shadow-2xl"
+         style="max-width: 100vw;">
+        <div class="h-full flex flex-col">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+                <h3 id="category-modal-title" class="text-lg font-bold text-gray-900">{{ __('Manage Categories') }}</h3>
+                <button @click="closeCategoryModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6">
+                {{-- Category Form --}}
+                <form class="space-y-4 mb-6" @submit.prevent="submitCategory">
+                    <input type="hidden" x-model="categoryForm.id">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Name (EN)') }} <span class="text-red-500">*</span></label>
+                            <input type="text" x-model="categoryForm.name_en" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Name (AR)') }}</label>
+                            <input type="text" x-model="categoryForm.name_ar" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none" dir="rtl">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Description') }}</label>
+                        <textarea x-model="categoryForm.description" rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none resize-none"></textarea>
+                    </div>
+                    <div x-show="categoryForm.id" class="flex items-center gap-2 p-3 rounded-lg bg-gray-50 border border-gray-100">
+                        <input type="checkbox" id="catActive" x-model="categoryForm.is_active" class="w-4 h-4 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]">
+                        <label for="catActive" class="text-xs font-bold text-gray-700">{{ __('Active category') }}</label>
+                    </div>
+                    <div x-show="categoryError" x-text="categoryError" class="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2"></div>
+                    <div x-show="categorySuccess" x-text="categorySuccess" class="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2"></div>
+                    <div class="flex items-center justify-end gap-2 pt-2">
+                        <button type="button" @click="resetCategoryForm()" class="px-4 py-2 rounded-lg border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors">{{ __('Reset') }}</button>
+                        <button type="submit" :disabled="categorySaving" class="px-4 py-2 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-xs font-bold shadow-sm hover:shadow-md transition-all disabled:opacity-60">
+                            <span x-show="!categorySaving" x-text="categoryForm.id ? '{{ __('Update Category') }}' : '{{ __('Add Category') }}'"></span>
+                            <span x-show="categorySaving">{{ __('Saving...') }}</span>
+                        </button>
+                    </div>
+                </form>
+
+                {{-- Category List --}}
+                <h4 class="text-sm font-bold text-gray-900 mb-3">{{ __('Categories') }}</h4>
+                <div class="space-y-3">
+                    <template x-for="cat in categories" :key="cat.id">
+                        <div class="flex items-center justify-between p-3 rounded-xl border border-gray-100 hover:shadow-sm transition-all bg-white">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-3 h-3 rounded-full flex-shrink-0" :style="`background: ${cat.color || '#6E7A25'};`"></div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-bold text-gray-900 truncate" x-text="cat.name"></p>
+                                    <p class="text-[10px] text-gray-400 truncate" x-text="cat.count + ' {{ __('meals') }}'"></p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <button @click="editCategory(cat)" class="p-1.5 text-[#6E7A25] hover:bg-[#6E7A25]/10 rounded-lg transition-colors" title="{{ __('Edit') }}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.43-9.121a2.948 2.948 0 00-4.172 0L11.879 5.88a2.948 2.948 0 000 4.172l5.586 5.586a2.948 2.948 0 004.172 0l.586-.586a2.948 2.948 0 000-4.172l-5.586-5.586z"/></svg>
+                                </button>
+                                <button @click="confirmDeleteCategory(cat)" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="{{ __('Delete') }}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                    <div x-show="categories.length === 0" class="p-8 text-center text-gray-400 text-sm">
+                        {{ __('No categories found.') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Category Delete Confirmation --}}
+<div x-show="categoryDeleteOpen" x-cloak class="fixed inset-0 z-[60] flex items-center justify-center p-4" style="background: rgba(0,0,0,0.5);">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
+        <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2">{{ __('Delete Category') }}</h3>
+        <p class="text-sm text-gray-500 mb-6">{{ __('Are you sure? This action cannot be undone.') }}</p>
+        <div class="flex items-center justify-center gap-3">
+            <button @click="categoryDeleteOpen = false" class="px-4 py-2 rounded-lg border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">{{ __('Cancel') }}</button>
+            <button @click="deleteCategory()" :disabled="categoryDeleting" class="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-60">
+                <span x-show="!categoryDeleting">{{ __('Delete') }}</span>
+                <span x-show="categoryDeleting">{{ __('Deleting...') }}</span>
+            </button>
+        </div>
+    </div>
+</div>
+
 </div>
 
 @push('scripts')
@@ -465,6 +574,21 @@
                 category_id: '', calories: '', protein_g: '', carbs_g: '', fat_g: '',
                 fiber_g: '', sugar_g: '', sodium_mg: '', price: '',
                 image_url: '', ingredients: '', allergens: '', diet_tags: '', is_available: '1'
+            },
+            // Category management state
+            categoryModalOpen: false,
+            categoryDeleteOpen: false,
+            categorySaving: false,
+            categoryDeleting: false,
+            categoryError: '',
+            categorySuccess: '',
+            categoryDeleteTarget: null,
+            categoryForm: {
+                id: null,
+                name_en: '',
+                name_ar: '',
+                description: '',
+                is_active: true,
             },
             get filteredMeals() {
                 const term = this.search.toLowerCase();
@@ -632,6 +756,111 @@
                     this.formError = 'Network error while saving.';
                 } finally {
                     this.saving = false;
+                }
+            },
+
+            // ─── Category Management Methods ───
+            openCategoryModal() {
+                this.categoryModalOpen = true;
+                this.resetCategoryForm();
+            },
+            closeCategoryModal() {
+                this.categoryModalOpen = false;
+                this.resetCategoryForm();
+            },
+            resetCategoryForm() {
+                this.categoryForm = { id: null, name_en: '', name_ar: '', description: '', is_active: true };
+                this.categoryError = '';
+                this.categorySuccess = '';
+            },
+            editCategory(cat) {
+                this.categoryError = '';
+                this.categorySuccess = '';
+                this.categoryForm = {
+                    id: cat.id,
+                    name_en: cat.name_en || cat.name || '',
+                    name_ar: cat.name_ar || '',
+                    description: cat.description || '',
+                    is_active: cat.is_active !== false,
+                };
+            },
+            confirmDeleteCategory(cat) {
+                this.categoryDeleteTarget = cat;
+                this.categoryDeleteOpen = true;
+            },
+            async submitCategory() {
+                this.categorySaving = true;
+                this.categoryError = '';
+                this.categorySuccess = '';
+
+                const isEdit = !!this.categoryForm.id;
+                const url = isEdit
+                    ? '{{ url('admin/meal-categories') }}/' + this.categoryForm.id
+                    : '{{ route('admin.categories.store') }}';
+
+                const payload = {
+                    name_en: this.categoryForm.name_en,
+                    name_ar: this.categoryForm.name_ar || null,
+                    description: this.categoryForm.description || null,
+                };
+                if (isEdit) {
+                    payload.is_active = this.categoryForm.is_active;
+                }
+
+                try {
+                    const res = await fetch(url, {
+                        method: isEdit ? 'PUT' : 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.categorySuccess = data.message || 'Category saved successfully.';
+                        this.resetCategoryForm();
+                        // Reload page to refresh categories
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        this.categoryError = data.message || 'Failed to save category.';
+                    }
+                } catch (err) {
+                    this.categoryError = 'Network error while saving category.';
+                } finally {
+                    this.categorySaving = false;
+                }
+            },
+            async deleteCategory() {
+                if (!this.categoryDeleteTarget) return;
+                this.categoryDeleting = true;
+
+                const url = '{{ url('admin/meal-categories') }}/' + this.categoryDeleteTarget.id;
+                try {
+                    const res = await fetch(url, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        },
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.categoryDeleteOpen = false;
+                        this.categoryDeleteTarget = null;
+                        setTimeout(() => window.location.reload(), 500);
+                    } else {
+                        this.categoryError = data.message || 'Failed to delete category.';
+                        this.categoryDeleteOpen = false;
+                    }
+                } catch (err) {
+                    this.categoryError = 'Network error while deleting category.';
+                    this.categoryDeleteOpen = false;
+                } finally {
+                    this.categoryDeleting = false;
                 }
             }
         };
