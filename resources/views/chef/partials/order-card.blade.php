@@ -1,5 +1,6 @@
 @php
 $statusColor = match($order['status']) {
+    'scheduled' => 'bg-indigo-50 text-indigo-700 border-indigo-200',
     'pending' => 'bg-blue-50 text-blue-700 border-blue-200',
     'confirmed' => 'bg-cyan-50 text-cyan-700 border-cyan-200',
     'preparing' => 'bg-amber-50 text-amber-700 border-amber-200',
@@ -62,7 +63,7 @@ $statusColor = match($order['status']) {
     @endif
 
     {{-- Action buttons --}}
-    @if(!in_array($order['status'], ['delivered', 'cancelled', 'out_for_delivery']))
+    @if(!in_array($order['status'], ['delivered', 'cancelled', 'out_for_delivery', 'scheduled']))
     <div class="grid grid-cols-1 gap-2 mt-3">
         @if(in_array($order['status'], ['pending', 'confirmed']))
         <button type="button"

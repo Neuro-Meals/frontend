@@ -181,6 +181,55 @@ $today = date('l, M j');
             @endforeach
         </div>
 
+        {{-- Meals Summary --}}
+        @if(count($mealsSummary) > 0)
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up animate-delay-3">
+            <h2 class="text-sm font-bold text-gray-900 mb-3">{{ __('Today\'s Meal Summary') }}</h2>
+            <div class="space-y-2">
+                @foreach($mealsSummary as $meal)
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-chef-50/30">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-lg bg-chef-100 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4 h-4 text-chef-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        </div>
+                        <span class="text-xs font-medium text-gray-900">{{ $meal['meal_name'] ?? 'Unknown' }}</span>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-chef-600 text-white text-[10px] font-bold">x{{ $meal['quantity'] ?? 1 }}</span>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        {{-- Allergy Alerts --}}
+        @if(count($allergyCustomers) > 0)
+        <div class="bg-red-50 rounded-2xl p-4 shadow-sm border border-red-100 animate-slide-up animate-delay-3">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-red-100 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                </div>
+                <h2 class="text-sm font-bold text-red-900">{{ __('Allergy Alerts') }}</h2>
+            </div>
+            <div class="space-y-2">
+                @foreach($allergyCustomers as $customer)
+                <div class="flex items-start gap-2 p-2.5 rounded-xl bg-white border border-red-100">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs font-bold text-gray-900">{{ $customer['full_name'] ?? 'Unknown' }}</p>
+                        <div class="flex flex-wrap gap-1 mt-1">
+                            @foreach($customer['allergies'] ?? [] as $allergy)
+                            <span class="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[9px] font-bold">{{ $allergy }}</span>
+                            @endforeach
+                        </div>
+                        @if(!empty($customer['phone']))
+                        <p class="text-[10px] text-gray-400 mt-1">{{ $customer['phone'] }}</p>
+                        @endif
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
         {{-- Notifications --}}
         @if(count($notifications) > 0)
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up animate-delay-3">

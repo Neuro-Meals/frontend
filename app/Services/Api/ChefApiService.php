@@ -14,6 +14,16 @@ class ChefApiService extends BaseApiService
         return $this->get('chef.orders', [], $query);
     }
 
+    public function ordersToday(bool $includeCompleted = false): array
+    {
+        return $this->get('chef.orders_today', [], $includeCompleted ? ['include_completed' => 'true'] : []);
+    }
+
+    public function ordersTomorrow(bool $includeCompleted = false): array
+    {
+        return $this->get('chef.orders_tomorrow', [], $includeCompleted ? ['include_completed' => 'true'] : []);
+    }
+
     public function showOrder(int $orderId): array
     {
         return $this->get('chef.show_order', ['order_id' => $orderId]);
@@ -41,5 +51,35 @@ class ChefApiService extends BaseApiService
             $data['scheduled_at'] = $scheduledAt;
         }
         return $this->post('chef.assign_driver', ['order_id' => $orderId], $data);
+    }
+
+    public function mealsSummary(?string $date = null): array
+    {
+        $query = [];
+        if ($date) {
+            $query['date'] = $date;
+        }
+        return $this->get('chef.meals_summary', [], $query);
+    }
+
+    public function allergiesSummary(?string $date = null): array
+    {
+        $query = [];
+        if ($date) {
+            $query['date'] = $date;
+        }
+        return $this->get('chef.allergies_summary', [], $query);
+    }
+
+    public function readyForDelivery(bool $unassignedOnly = false, ?string $date = null): array
+    {
+        $query = [];
+        if ($unassignedOnly) {
+            $query['unassigned_only'] = 'true';
+        }
+        if ($date) {
+            $query['date'] = $date;
+        }
+        return $this->get('chef.ready_for_delivery', [], $query);
     }
 }

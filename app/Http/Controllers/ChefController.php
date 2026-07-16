@@ -36,13 +36,19 @@ class ChefController extends Controller
 
         $dashboardData = $this->apiData($dashboardResponse, fn () => $this->mockDashboardStats());
 
-        $ordersResponse = $chefApi->orders(['limit' => 100]);
+        // Use /chef/orders/today for today's kitchen queue
+        $ordersResponse = $chefApi->ordersToday();
 
         if (isset($ordersResponse['success']) && $ordersResponse['success'] === false) {
-            \Log::warning('Chef orders API failed', [
+            \Log::warning('Chef orders today API failed, falling back to /chef/orders', [
                 'status' => $ordersResponse['status'] ?? null,
                 'message' => $ordersResponse['message'] ?? null,
             ]);
+            // Fallback to general orders endpoint
+            $ordersResponse = $chefApi->orders(['limit' => 100]);
+        }
+
+        if (isset($ordersResponse['success']) && $ordersResponse['success'] === false) {
             $ordersData = $this->apiEnabled() ? [] : $this->mockOrders();
         } else {
             $ordersData = $ordersResponse['data'] ?? ($this->apiEnabled() ? [] : $this->mockOrders());
@@ -93,6 +99,20 @@ class ChefController extends Controller
             };
         }
 
+        // Fetch meals summary for today
+        $mealsSummaryResponse = $chefApi->mealsSummary();
+        $mealsSummary = [];
+        if (!isset($mealsSummaryResponse['success']) || $mealsSummaryResponse['success'] !== false) {
+            $mealsSummary = $mealsSummaryResponse['meals'] ?? [];
+        }
+
+        // Fetch allergies summary for today
+        $allergiesResponse = $chefApi->allergiesSummary();
+        $allergyCustomers = [];
+        if (!isset($allergiesResponse['success']) || $allergiesResponse['success'] !== false) {
+            $allergyCustomers = $allergiesResponse['customers'] ?? [];
+        }
+
         $notificationsData = $this->apiData($notificationApi->my(['limit' => 5, 'is_read' => false]), fn () => []);
         $notifications = [];
         if (is_array($notificationsData)) {
@@ -107,7 +127,7 @@ class ChefController extends Controller
             }
         }
 
-        return view('chef.dashboard', compact('morningOrders', 'noonOrders', 'eveningOrders', 'stats', 'notifications'));
+        return view('chef.dashboard', compact('morningOrders', 'noonOrders', 'eveningOrders', 'stats', 'notifications', 'mealsSummary', 'allergyCustomers'));
     }
 
     public function startPreparing(Request $request, int $orderId, ChefApiService $chefApi)
@@ -139,6 +159,7 @@ class ChefController extends Controller
     private function formatOrder(array $order): array
     {
         $statusLabels = [
+            'scheduled' => __('Scheduled'),
             'pending' => __('Pending'),
             'confirmed' => __('Confirmed'),
             'preparing' => __('Preparing'),

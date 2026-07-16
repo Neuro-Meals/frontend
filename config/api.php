@@ -214,13 +214,18 @@ return [
 
         // ─── Chef App ───
         'chef' => [
-            'dashboard'          => '/chef/dashboard',
-            'orders'             => '/chef/orders',
-            'show_order'         => '/chef/orders/{order_id}',
-            'start_preparing'    => '/chef/orders/{order_id}/start-preparing',
-            'mark_ready'         => '/chef/orders/{order_id}/ready',
-            'drivers'            => '/chef/drivers',
-            'assign_driver'      => '/chef/orders/{order_id}/assign-driver',
+            'dashboard'             => '/chef/dashboard',
+            'orders'                => '/chef/orders',
+            'orders_today'          => '/chef/orders/today',
+            'orders_tomorrow'       => '/chef/orders/tomorrow',
+            'show_order'            => '/chef/orders/{order_id}',
+            'start_preparing'       => '/chef/orders/{order_id}/start-preparing',
+            'mark_ready'            => '/chef/orders/{order_id}/ready',
+            'drivers'               => '/chef/drivers',
+            'assign_driver'         => '/chef/orders/{order_id}/assign-driver',
+            'meals_summary'         => '/chef/meals/summary',
+            'allergies_summary'     => '/chef/allergies/summary',
+            'ready_for_delivery'    => '/chef/orders/ready-for-delivery',
         ],
 
         // ─── Meal Schedule (not in OpenAPI spec — customer dashboard requirement) ───
