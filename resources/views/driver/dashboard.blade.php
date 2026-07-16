@@ -74,6 +74,20 @@ $driverName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''
         @endif
         @endunless
 
+        {{-- Browse & claim available loads --}}
+        <a href="{{ route('driver.available-loads') }}" class="btn-action w-full flex items-center justify-between gap-3 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up animate-delay-2">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-bold text-gray-900">{{ __('Available Loads') }}</p>
+                    <p class="text-[10px] text-gray-400">{{ __('Browse and claim ready orders near you') }}</p>
+                </div>
+            </div>
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" transform="rotate(180 12 12)"/></svg>
+        </a>
+
         {{-- Shift Completed celebration --}}
         @if($shiftComplete)
         <div class="relative bg-white rounded-3xl p-6 text-center shadow-lg border border-gray-100 overflow-hidden animate-pop-in">

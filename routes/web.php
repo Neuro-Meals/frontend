@@ -235,6 +235,8 @@ Route::prefix('driver')->name('driver.')->middleware(['api.auth', 'api.driver'])
     Route::get('/notifications', [\App\Http\Controllers\DriverController::class, 'notifications'])->name('notifications');
     Route::post('/notifications/{id}/read', [\App\Http\Controllers\DriverController::class, 'markNotificationRead'])->name('notifications.read');
     Route::get('/profile', [\App\Http\Controllers\DriverController::class, 'profile'])->name('profile');
+    Route::get('/available-loads', [\App\Http\Controllers\DriverController::class, 'availableLoads'])->name('available-loads');
+    Route::post('/available-loads/{orderId}/claim', [\App\Http\Controllers\DriverController::class, 'claimLoad'])->name('available-loads.claim');
 });
 
 // Chef routes

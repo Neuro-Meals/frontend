@@ -148,6 +148,32 @@ class DriverController extends Controller
         return view('driver.profile', compact('user', 'driverCode', 'primaryZone', 'totalDelivered', 'totalFailed'));
     }
 
+    /**
+     * Browse ready-for-delivery orders that have no driver yet, so a
+     * driver can pick their own load ("kuchagua mzigo") instead of
+     * only waiting to be assigned.
+     */
+    public function availableLoads(DriverApiService $driverApi)
+    {
+        $response = $this->apiData($driverApi->availableLoads(), fn () => ['data' => []]);
+        $loads = $response['data'] ?? [];
+
+        return view('driver.available-loads', compact('loads'));
+    }
+
+    public function claimLoad(Request $request, int $orderId, DriverApiService $driverApi)
+    {
+        $response = $driverApi->claimLoad($orderId);
+        $success = isset($response['id']) || (isset($response['success']) && $response['success'] === true);
+        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Load claimed. It is now in your deliveries.') : __('Failed to claim this load — it may already be taken.')));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
+        }
+
+        return redirect()->route('driver.available-loads')->with($success ? 'status' : 'error', $message);
+    }
+
     public function deliveries(DriverApiService $driverApi, OrderApiService $orderApi)
     {
         $deliveriesData = $this->apiData($driverApi->myDeliveries(), fn () => []);

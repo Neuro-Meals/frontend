@@ -356,5 +356,21 @@
     "Marked as ready.": "تم تعليمه كجاهز.",
     "Marked as served.": "تم تعليمه كمُقدَّم.",
     "Updated.": "تم التحديث.",
-    "Failed to update.": "فشل التحديث."
+    "Failed to update.": "فشل التحديث.",
+
+    "Ingredients": "المكونات",
+    "Allergens": "مسببات الحساسية",
+    "No customers found.": "لم يتم العثور على عملاء.",
+    "Available Loads": "الأحمال المتاحة",
+    "Ready orders with no driver yet — claim one to add it to your deliveries.": "طلبات جاهزة بدون سائق بعد — اطلب واحدًا لإضافته إلى توصيلاتك.",
+    "No loads available right now.": "لا توجد أحمال متاحة الآن.",
+    "Check back soon — new ready orders appear here as the kitchen finishes them.": "تحقق مرة أخرى قريبًا — تظهر هنا الطلبات الجاهزة الجديدة بمجرد أن ينهيها المطبخ.",
+    "Claim This Load": "اطلب هذا الحمل",
+    "Claiming...": "جارٍ الطلب...",
+    "Claim this load?": "طلب هذا الحمل؟",
+    "This order will be added to your deliveries.": "سيتم إضافة هذا الطلب إلى توصيلاتك.",
+    "Yes, Claim": "نعم، اطلب",
+    "Load claimed. It is now in your deliveries.": "تم طلب الحمل. أصبح الآن ضمن توصيلاتك.",
+    "Failed to claim this load — it may already be taken.": "فشل طلب هذا الحمل — ربما تم طلبه بالفعل.",
+    "Browse and claim ready orders near you": "تصفح واطلب الطلبات الجاهزة القريبة منك"
 }
