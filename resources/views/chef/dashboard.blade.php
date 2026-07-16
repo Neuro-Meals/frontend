@@ -161,6 +161,18 @@
                             <span x-show="meal.ready" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-green-100 text-green-700" x-text="meal.ready + ' {{ __('ready') }}'"></span>
                             <span x-show="meal.served" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-emerald-100 text-emerald-700" x-text="meal.served + ' {{ __('served') }}'"></span>
                         </div>
+                        <div x-show="meal.ingredients?.length" class="flex flex-wrap items-center gap-1 mb-2">
+                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide">{{ __('Ingredients') }}:</span>
+                            <template x-for="ing in meal.ingredients" :key="ing">
+                                <span class="px-1.5 py-0.5 rounded-full bg-white border border-gray-200 text-[10px] text-gray-600" x-text="ing"></span>
+                            </template>
+                        </div>
+                        <div x-show="meal.allergens?.length" class="flex flex-wrap items-center gap-1 mb-2">
+                            <span class="text-[9px] font-bold text-red-400 uppercase tracking-wide">{{ __('Allergens') }}:</span>
+                            <template x-for="a in meal.allergens" :key="a">
+                                <span class="px-1.5 py-0.5 rounded-full bg-red-50 border border-red-100 text-[10px] text-red-600" x-text="a"></span>
+                            </template>
+                        </div>
                         <div class="flex gap-2">
                             <button x-show="meal.sent_to_kitchen > 0" @click="advanceMeal(meal, 'start_preparing')" class="btn-action flex-1 py-2 rounded-lg bg-blue-600 text-white text-[11px] font-bold">{{ __('Start Preparing') }}</button>
                             <button x-show="meal.preparing > 0" @click="advanceMeal(meal, 'mark_ready')" class="btn-action flex-1 py-2 rounded-lg bg-green-600 text-white text-[11px] font-bold">{{ __('Mark Ready') }}</button>
