@@ -36,63 +36,98 @@ class ChefController extends Controller
 
         $dashboardData = $this->apiData($dashboardResponse, fn () => $this->mockDashboardStats());
 
-        // Use grouped endpoint for meal-time tabs (breakfast/lunch/dinner)
+        // Use grouped endpoint — extract real category IDs from the response
         $groupedResponse = $chefApi->ordersTodayGrouped();
 
         $useGrouped = !isset($groupedResponse['success']) || $groupedResponse['success'] !== false;
 
+        // Icon mapping based on category name keywords
+        $iconMap = [
+            'breakfast' => 'sunrise',
+            'lunch'     => 'sun',
+            'dinner'    => 'moon',
+            'supper'    => 'moon',
+            'snack'     => 'cookie',
+        ];
+
+        $getIconForName = function (string $name) use ($iconMap): string {
+            $lower = strtolower($name);
+            foreach ($iconMap as $keyword => $icon) {
+                if (str_contains($lower, $keyword)) {
+                    return $icon;
+                }
+            }
+            return 'dots';
+        };
+
+        // Determine meal-time order for sorting (breakfast first, lunch, dinner, snacks, other)
+        $mealTimeOrder = ['breakfast', 'lunch', 'dinner', 'snacks', 'other'];
+        $getMealTimeRank = function (string $catName): int {
+            $lower = strtolower($catName);
+            if (str_contains($lower, 'breakfast')) return 0;
+            if (str_contains($lower, 'lunch')) return 1;
+            if (str_contains($lower, 'dinner') || str_contains($lower, 'supper')) return 2;
+            if (str_contains($lower, 'snack')) return 3;
+            return 4;
+        };
+
         if ($useGrouped) {
             $groups = $groupedResponse['groups'] ?? [];
-
-            // Build fixed meal-time tabs: breakfast, lunch, dinner, snacks, other
-            $mealTimeConfig = [
-                'breakfast' => ['label' => __('Breakfast'), 'icon' => 'sunrise'],
-                'lunch'     => ['label' => __('Lunch'), 'icon' => 'sun'],
-                'dinner'    => ['label' => __('Dinner'), 'icon' => 'moon'],
-                'snacks'    => ['label' => __('Snacks'), 'icon' => 'cookie'],
-                'other'     => ['label' => __('Other'), 'icon' => 'dots'],
-            ];
 
             $categories = [];
             $categorizedOrders = [];
             $allOrders = [];
+            $categorySeen = []; // track category_id => index in $categories
 
-            foreach ($mealTimeConfig as $mealTime => $config) {
+            // Iterate groups in meal-time order so tabs appear in the right sequence
+            foreach ($mealTimeOrder as $mealTime) {
                 $group = collect($groups)->firstWhere('meal_time', $mealTime);
-                $orderCount = $group['order_count'] ?? 0;
+                if (!$group || !isset($group['categories'])) {
+                    continue;
+                }
 
-                // Use a string key like "breakfast", "lunch", etc. for the tab id
-                $tabId = $mealTime;
-                $categories[] = [
-                    'id' => $tabId,
-                    'name' => $config['label'],
-                    'icon' => $config['icon'],
-                    'count' => $orderCount,
-                ];
+                foreach ($group['categories'] as $catGroup) {
+                    $catId = $catGroup['category_id'] ?? 0;
+                    $catName = $catGroup['category_name'] ?? __('Uncategorized');
 
-                $groupOrders = [];
-                if ($group && isset($group['categories'])) {
-                    foreach ($group['categories'] as $catGroup) {
-                        foreach ($catGroup['orders'] as $order) {
-                            try {
-                                $item = $this->formatOrder($order);
-                                $item['primary_category_id'] = $tabId;
-                                $item['primary_category_name'] = $config['label'];
-                                $groupOrders[] = $item;
-                                $allOrders[] = $item;
-                            } catch (\Throwable $e) {
-                                \Log::error('Chef order format failed', [
-                                    'order_id' => $order['id'] ?? null,
-                                    'error' => $e->getMessage(),
-                                ]);
-                                continue;
-                            }
+                    // Skip if we already added this category (can happen if API returns duplicates)
+                    if (isset($categorySeen[$catId])) {
+                        // Still process orders into the existing bucket
+                        $existingIdx = $categorySeen[$catId];
+                    } else {
+                        $categories[] = [
+                            'id' => $catId,
+                            'name' => $catName,
+                            'icon' => $getIconForName($catName),
+                            'count' => 0,
+                        ];
+                        $categorizedOrders[$catId] = [];
+                        $categorySeen[$catId] = count($categories) - 1;
+                    }
+
+                    foreach ($catGroup['orders'] as $order) {
+                        try {
+                            $item = $this->formatOrder($order);
+                            $item['primary_category_id'] = $catId;
+                            $item['primary_category_name'] = $catName;
+                            $categorizedOrders[$catId][] = $item;
+                            $allOrders[] = $item;
+                        } catch (\Throwable $e) {
+                            \Log::error('Chef order format failed', [
+                                'order_id' => $order['id'] ?? null,
+                                'error' => $e->getMessage(),
+                            ]);
+                            continue;
                         }
                     }
                 }
-
-                $categorizedOrders[$tabId] = $groupOrders;
             }
+
+            // Update counts based on actual orders per category
+            foreach ($categories as &$cat) {
+                $cat['count'] = count($categorizedOrders[$cat['id']] ?? []);
+            }
+            unset($cat);
         } else {
             // Fallback: use the flat orders endpoint and group dynamically
             $ordersResponse = $chefApi->ordersToday();
@@ -143,13 +178,13 @@ class ChefController extends Controller
 
             $categories = [];
             $sortedCatIds = array_keys($categoryMap);
-            usort($sortedCatIds, fn($a, $b) => strcmp($categoryMap[$a], $categoryMap[$b]));
+            usort($sortedCatIds, fn($a, $b) => $getMealTimeRank($categoryMap[$a]) <=> $getMealTimeRank($categoryMap[$b]));
 
             foreach ($sortedCatIds as $catId) {
                 $categories[] = [
                     'id' => $catId,
                     'name' => $categoryMap[$catId],
-                    'icon' => 'dot',
+                    'icon' => $getIconForName($categoryMap[$catId]),
                     'count' => $categoryCounts[$catId],
                 ];
             }
@@ -209,13 +244,6 @@ class ChefController extends Controller
                 'dishes' => $this->aggregateDishes($tabOrders),
             ];
         }
-
-        \Log::info('Chef dashboard tabSummaries', [
-            'tabSummaries' => $tabSummaries,
-            'categories' => $categories,
-            'categorizedOrders_keys' => array_keys($categorizedOrders),
-            'sample_order' => !empty($allOrders) ? $allOrders[0] : null,
-        ]);
 
         return view('chef.dashboard', compact('categorizedOrders', 'categories', 'stats', 'notifications', 'mealsSummary', 'allergyCustomers', 'tabSummaries'));
     }
