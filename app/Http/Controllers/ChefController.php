@@ -255,8 +255,13 @@ class ChefController extends Controller
         // Fetch allergies summary for today
         $allergiesResponse = $chefApi->allergiesSummary();
         $allergyCustomers = [];
+        $allergySummary = ['total_orders' => 0, 'customers_with_allergies' => 0];
         if (!isset($allergiesResponse['success']) || $allergiesResponse['success'] !== false) {
             $allergyCustomers = $allergiesResponse['customers'] ?? [];
+            $allergySummary = [
+                'total_orders' => $allergiesResponse['total_orders'] ?? 0,
+                'customers_with_allergies' => $allergiesResponse['customers_with_allergies'] ?? 0,
+            ];
         }
 
         $notificationsData = $this->apiData($notificationApi->my(['limit' => 5, 'is_read' => false]), fn () => []);
@@ -311,7 +316,7 @@ class ChefController extends Controller
             ];
         }
 
-        return view('chef.dashboard', compact('categorizedOrders', 'categories', 'stats', 'notifications', 'mealsSummary', 'allergyCustomers', 'tabSummaries', 'scheduleByTab', 'today'));
+        return view('chef.dashboard', compact('categorizedOrders', 'categories', 'stats', 'notifications', 'mealsSummary', 'allergyCustomers', 'allergySummary', 'tabSummaries', 'scheduleByTab', 'today'));
     }
 
     /**

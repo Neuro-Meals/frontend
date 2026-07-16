@@ -56,6 +56,7 @@
                 linear-gradient(225deg, rgba(23,51,39,0.05) 25%, transparent 25%);
             background-size: 24px 24px;
         }
+        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
     </style>
     @stack('styles')
 </head>

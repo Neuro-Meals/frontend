@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', __('Deliveries') . ' - ' . __('Nutrio Meals'))
-@section('page_title', __('Deliveries'))
+@section('page_title', __('Delivery Board'))
 
 @section('content')
 <div x-data="deliveryManager()">

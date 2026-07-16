@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', __('Orders') . ' - ' . __('Nutrio Meals'))
-@section('page_title', __('Orders'))
+@section('page_title', __('Kitchen Orders'))
 
 @section('content')
 <div x-data="ordersApp()" x-init="init()" class="space-y-4">

@@ -112,19 +112,97 @@
 
         {{-- ============ STAT CARDS ============ --}}
         <div class="grid grid-cols-2 gap-3 animate-slide-up animate-delay-2">
-            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 card-hover">
-                <div class="w-11 h-11 rounded-full bg-brand-50 flex items-center justify-center mb-2">
-                    <svg class="w-5 h-5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 100-8 4 4 0 000 8zm6 0a4 4 0 10-3-6.65"/></svg>
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 card-hover relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-full -mr-6 -mt-6 opacity-50"></div>
+                <div class="relative w-11 h-11 rounded-full bg-blue-50 flex items-center justify-center mb-2">
+                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 100-8 4 4 0 000 8zm6 0a4 4 0 10-3-6.65"/></svg>
                 </div>
-                <p class="text-2xl font-extrabold text-gray-900" x-text="activeSummary.customers"></p>
-                <p class="text-xs text-gray-400 font-semibold">{{ __('Customers') }}</p>
+                <p class="relative text-2xl font-extrabold text-gray-900" x-text="activeSummary.customers"></p>
+                <p class="relative text-xs text-gray-400 font-semibold">{{ __('Customers') }}</p>
             </div>
-            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 card-hover">
-                <div class="w-11 h-11 rounded-full bg-brand-50 flex items-center justify-center mb-2">
-                    <svg class="w-5 h-5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 card-hover relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-amber-50 rounded-full -mr-6 -mt-6 opacity-50"></div>
+                <div class="relative w-11 h-11 rounded-full bg-amber-50 flex items-center justify-center mb-2">
+                    <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 </div>
-                <p class="text-2xl font-extrabold text-gray-900" x-text="activeSummary.total_meals"></p>
-                <p class="text-xs text-gray-400 font-semibold">{{ __('Total Meals') }}</p>
+                <p class="relative text-2xl font-extrabold text-gray-900" x-text="activeSummary.total_meals"></p>
+                <p class="relative text-xs text-gray-400 font-semibold">{{ __('Total Meals') }}</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 card-hover relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-green-50 rounded-full -mr-6 -mt-6 opacity-50"></div>
+                <div class="relative w-11 h-11 rounded-full bg-green-50 flex items-center justify-center mb-2">
+                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <p class="relative text-2xl font-extrabold text-green-600" x-text="activeSummary.ready"></p>
+                <p class="relative text-xs text-gray-400 font-semibold">{{ __('Ready') }}</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 card-hover relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-orange-50 rounded-full -mr-6 -mt-6 opacity-50"></div>
+                <div class="relative w-11 h-11 rounded-full bg-orange-50 flex items-center justify-center mb-2">
+                    <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <p class="relative text-2xl font-extrabold text-orange-500" x-text="activeSummary.pending"></p>
+                <p class="relative text-xs text-gray-400 font-semibold">{{ __('Pending') }}</p>
+            </div>
+        </div>
+
+        {{-- ============ PRODUCTION & ALLERGY SUMMARY ============ --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-slide-up animate-delay-2">
+            <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
+                <svg class="w-4 h-4 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <h3 class="text-sm font-bold text-gray-900">{{ __('Production & Allergy Summary') }}</h3>
+                <span class="ml-auto text-[10px] font-bold text-gray-400" x-text="productionDate"></span>
+            </div>
+
+            {{-- Two-column summary stats --}}
+            <div class="grid grid-cols-2 divide-x divide-gray-50 border-b border-gray-50">
+                <div class="p-3">
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">{{ __('Meal Quantities') }}</p>
+                    <div class="flex items-center gap-3">
+                        <div>
+                            <p class="text-[9px] text-gray-400">{{ __('Orders') }}</p>
+                            <p class="text-lg font-extrabold text-gray-900">{{ $stats['total_today'] ?? 0 }}</p>
+                        </div>
+                        <div class="w-px h-8 bg-gray-100"></div>
+                        <div>
+                            <p class="text-[9px] text-gray-400">{{ __('Total Meals') }}</p>
+                            <p class="text-lg font-extrabold text-brand-700">{{ array_sum(array_column($mealsSummary, 'quantity')) }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-3">
+                    <p class="text-[9px] font-bold text-red-400 uppercase tracking-wide mb-1.5">{{ __('Allergy Alerts') }}</p>
+                    <div class="flex items-center gap-3">
+                        <div>
+                            <p class="text-[9px] text-gray-400">{{ __('Orders') }}</p>
+                            <p class="text-lg font-extrabold text-gray-900">{{ $allergySummary['total_orders'] ?? 0 }}</p>
+                        </div>
+                        <div class="w-px h-8 bg-gray-100"></div>
+                        <div>
+                            <p class="text-[9px] text-gray-400">{{ __('Allergies') }}</p>
+                            <p class="text-lg font-extrabold text-red-600">{{ $allergySummary['customers_with_allergies'] ?? 0 }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Meal quantities list --}}
+            <div class="max-h-56 overflow-y-auto">
+                @if(count($mealsSummary) > 0)
+                <div class="divide-y divide-gray-50">
+                    @foreach($mealsSummary as $idx => $meal)
+                    <div class="px-4 py-2.5 flex items-center justify-between gap-2 hover:bg-gray-50/50 transition-colors">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="w-5 h-5 rounded-full bg-brand-50 text-brand-700 text-[9px] font-bold flex items-center justify-center flex-shrink-0">{{ $idx + 1 }}</span>
+                            <span class="text-xs font-bold text-gray-800 truncate">{{ $meal['meal_name'] ?? __('Unknown') }}</span>
+                        </div>
+                        <span class="text-sm font-extrabold text-brand-700 flex-shrink-0">{{ $meal['quantity'] ?? 0 }}</span>
+                    </div>
+                    @endforeach
+                </div>
+                @else
+                <div class="px-4 py-6 text-center text-xs text-gray-400">{{ __('No meals scheduled for today.') }}</div>
+                @endif
             </div>
         </div>
 
@@ -221,19 +299,26 @@
         </div>
 
         {{-- ============ PROGRESS + REMAINING ============ --}}
-        <div class="grid grid-cols-2 gap-3 animate-slide-up animate-delay-4">
-            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                <p class="text-[10px] text-gray-400 font-semibold mb-2">{{ __('Preparation Progress') }}</p>
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="text-lg font-extrabold text-brand-700" x-text="progressPercent + '%'"></span>
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up animate-delay-4">
+            <div class="flex items-center justify-between mb-3">
+                <div>
+                    <p class="text-[10px] text-gray-400 font-semibold">{{ __('Preparation Progress') }}</p>
+                    <p class="text-lg font-extrabold text-brand-700" x-text="progressPercent + '%'"></p>
                 </div>
-                <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div class="progress-fill h-full bg-gradient-to-r from-brand-600 to-brand-700 rounded-full" :style="'width:' + progressPercent + '%'"></div>
+                <div class="text-right">
+                    <p class="text-[10px] text-gray-400 font-semibold">{{ __('Remaining') }}</p>
+                    <p class="text-lg font-extrabold text-gray-900"><span x-text="activeSummary.pending + activeSummary.preparing"></span><span class="text-xs font-semibold text-gray-400"> / <span x-text="activeSummary.customers"></span></span></p>
                 </div>
             </div>
-            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                <p class="text-[10px] text-gray-400 font-semibold mb-2">{{ __('Remaining to Prepare') }}</p>
-                <p class="text-lg font-extrabold text-gray-900"><span x-text="activeSummary.pending + activeSummary.preparing"></span> <span class="text-xs font-semibold text-gray-400">{{ __('of') }} <span x-text="activeSummary.customers"></span></span></p>
+            <div class="h-3 bg-gray-100 rounded-full overflow-hidden relative">
+                <div class="progress-fill h-full bg-gradient-to-r from-brand-500 via-brand-600 to-brand-700 rounded-full relative" :style="'width:' + progressPercent + '%'">
+                    <div x-show="progressPercent > 0 && progressPercent < 100" class="absolute inset-0 bg-white/20 animate-pulse"></div>
+                </div>
+            </div>
+            <div class="flex items-center justify-between mt-2 text-[9px] font-bold text-gray-400">
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-400"></span>{{ __('Pending') }} <span x-text="activeSummary.pending"></span></span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-400"></span>{{ __('Preparing') }} <span x-text="activeSummary.preparing"></span></span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-400"></span>{{ __('Ready') }} <span x-text="activeSummary.ready"></span></span>
             </div>
         </div>
 
@@ -463,6 +548,11 @@ function chefShift() {
         transferring: false,
         openMeals: [],
         walkthrough: { open: false, index: 0 },
+
+        get productionDate() {
+            const d = new Date(this.scheduleDate + 'T00:00:00');
+            return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        },
 
         strings: {
             kitchenShift: @json(__('Kitchen Shift')),

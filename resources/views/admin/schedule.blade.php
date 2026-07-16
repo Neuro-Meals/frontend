@@ -9,10 +9,16 @@
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h2 class="text-2xl font-bold text-gray-900">{{ __('Today\'s Kitchen Plan by Category') }}</h2>
+            <h2 class="text-2xl font-bold text-gray-900" x-text="headerTitle"></h2>
             <p class="text-sm text-gray-400 mt-1">{{ __('Shows Breakfast, Lunch, Dinner or other categories; each meal\'s total quantity; and every customer who needs it.') }}</p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
+            <button @click="setDate(todayStr())"
+                :class="date === todayStr() ? 'bg-[#173327] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
+                class="px-3 py-2 rounded-lg border border-gray-200 text-xs font-bold transition-all whitespace-nowrap">{{ __('Today') }}</button>
+            <button @click="setDate(tomorrowStr())"
+                :class="date === tomorrowStr() ? 'bg-[#173327] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
+                class="px-3 py-2 rounded-lg border border-gray-200 text-xs font-bold transition-all whitespace-nowrap">{{ __('Tomorrow') }}</button>
             <input type="date" x-model="date" @change="changeDate()"
                 class="px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
             <button @click="refresh()" :disabled="loading" class="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors disabled:opacity-50">
@@ -130,6 +136,74 @@
                     <svg class="w-5 h-5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                 </div>
             </div>
+        </div>
+    </div>
+
+    {{-- Production Summary --}}
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden" x-show="allProduction.length">
+        <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
+            <svg class="w-4 h-4 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <h3 class="text-sm font-bold text-gray-900">{{ __('Production Summary') }}</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-50/80 text-[10px] font-bold text-gray-400 uppercase tracking-wide">
+                        <th class="px-5 py-2 text-left">{{ __('Category') }}</th>
+                        <th class="px-3 py-2 text-center">{{ __('Portions') }}</th>
+                        <th class="px-3 py-2 text-center">{{ __('Orders') }}</th>
+                        <th class="px-3 py-2 text-center">{{ __('Pending') }}</th>
+                        <th class="px-3 py-2 text-center">{{ __('Sent') }}</th>
+                        <th class="px-3 py-2 text-center">{{ __('Preparing') }}</th>
+                        <th class="px-3 py-2 text-center">{{ __('Ready') }}</th>
+                        <th class="px-3 py-2 text-center">{{ __('Served') }}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    <template x-for="cat in allProduction" :key="cat.category_id">
+                        <tr class="hover:bg-gray-50/50 transition-colors">
+                            <td class="px-5 py-2.5 font-bold text-gray-800">
+                                <span x-text="cat.category_name"></span>
+                                <span x-show="cat.category_name_ar" class="text-gray-400 font-normal text-xs" x-text="' / ' + (cat.category_name_ar || '')"></span>
+                            </td>
+                            <td class="px-3 py-2.5 text-center font-bold text-gray-900" x-text="cat.total_required"></td>
+                            <td class="px-3 py-2.5 text-center text-gray-600" x-text="cat.order_count ?? 0"></td>
+                            <td class="px-3 py-2.5 text-center">
+                                <span x-show="cat.pending > 0" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-orange-100 text-orange-600" x-text="cat.pending"></span>
+                                <span x-show="!cat.pending" class="text-gray-300">—</span>
+                            </td>
+                            <td class="px-3 py-2.5 text-center">
+                                <span x-show="cat.sent_to_kitchen > 0" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-amber-100 text-amber-700" x-text="cat.sent_to_kitchen"></span>
+                                <span x-show="!cat.sent_to_kitchen" class="text-gray-300">—</span>
+                            </td>
+                            <td class="px-3 py-2.5 text-center">
+                                <span x-show="cat.preparing > 0" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-blue-100 text-blue-700" x-text="cat.preparing"></span>
+                                <span x-show="!cat.preparing" class="text-gray-300">—</span>
+                            </td>
+                            <td class="px-3 py-2.5 text-center">
+                                <span x-show="cat.ready > 0" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-green-100 text-green-700" x-text="cat.ready"></span>
+                                <span x-show="!cat.ready" class="text-gray-300">—</span>
+                            </td>
+                            <td class="px-3 py-2.5 text-center">
+                                <span x-show="cat.served > 0" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-emerald-100 text-emerald-700" x-text="cat.served"></span>
+                                <span x-show="!cat.served" class="text-gray-300">—</span>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+                <tfoot>
+                    <tr class="bg-gray-50/80 font-bold text-gray-900 border-t-2 border-gray-100">
+                        <td class="px-5 py-2.5">{{ __('Total') }}</td>
+                        <td class="px-3 py-2.5 text-center" x-text="summary.total_portions ?? 0"></td>
+                        <td class="px-3 py-2.5 text-center" x-text="summary.total_orders ?? 0"></td>
+                        <td class="px-3 py-2.5 text-center text-orange-600" x-text="allProduction.reduce((s, c) => s + (c.pending || 0), 0)"></td>
+                        <td class="px-3 py-2.5 text-center text-amber-700" x-text="allProduction.reduce((s, c) => s + (c.sent_to_kitchen || 0), 0)"></td>
+                        <td class="px-3 py-2.5 text-center text-blue-700" x-text="allProduction.reduce((s, c) => s + (c.preparing || 0), 0)"></td>
+                        <td class="px-3 py-2.5 text-center text-green-700" x-text="allProduction.reduce((s, c) => s + (c.ready || 0), 0)"></td>
+                        <td class="px-3 py-2.5 text-center text-emerald-700" x-text="allProduction.reduce((s, c) => s + (c.served || 0), 0)"></td>
+                    </tr>
+                </tfoot>
+            </table>
         </div>
     </div>
 
@@ -316,6 +390,30 @@ function scheduleBoard() {
         },
 
         init() {
+        },
+
+        todayStr() {
+            return new Date().toISOString().split('T')[0];
+        },
+
+        tomorrowStr() {
+            const d = new Date();
+            d.setDate(d.getDate() + 1);
+            return d.toISOString().split('T')[0];
+        },
+
+        async setDate(d) {
+            this.date = d;
+            await this.refresh();
+        },
+
+        get headerTitle() {
+            const today = this.todayStr();
+            const tomorrow = this.tomorrowStr();
+            if (this.date === today) return @json(__("Today's Kitchen Plan by Category"));
+            if (this.date === tomorrow) return @json(__("Tomorrow's Kitchen Plan by Category"));
+            const d = new Date(this.date + 'T00:00:00');
+            return d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }) + ' — ' + @json(__('Kitchen Plan by Category'));
         },
 
         mealKey(catId, meal) {
