@@ -207,6 +207,62 @@
         </div>
     </div>
 
+    {{-- Production & Allergy Summary --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" x-show="allProduction.length">
+        {{-- Meal Quantities --}}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
+                <svg class="w-4 h-4 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <h3 class="text-sm font-bold text-gray-900">{{ __('Meal Quantities') }}</h3>
+                <span class="ml-auto text-[10px] font-bold text-gray-400">{{ __('Orders') }}: <span x-text="mealsSummaryStats.total_orders"></span> · {{ __('Total Meals') }}: <span x-text="mealsSummaryStats.total_meals"></span></span>
+            </div>
+            <div class="max-h-64 overflow-y-auto">
+                <template x-if="mealsSummary.length > 0">
+                    <div class="divide-y divide-gray-50">
+                        <template x-for="(meal, idx) in mealsSummary" :key="idx">
+                            <div class="px-5 py-2.5 flex items-center justify-between gap-2 hover:bg-gray-50/50 transition-colors">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <span class="w-5 h-5 rounded-full bg-[#6E7A25]/10 text-[#6E7A25] text-[9px] font-bold flex items-center justify-center flex-shrink-0" x-text="idx + 1"></span>
+                                    <span class="text-xs font-bold text-gray-800 truncate" x-text="meal.meal_name"></span>
+                                </div>
+                                <span class="text-sm font-extrabold text-[#6E7A25] flex-shrink-0" x-text="meal.quantity"></span>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+                <div x-show="!mealsSummary.length" class="px-5 py-6 text-center text-xs text-gray-400">{{ __('No meals scheduled for this date.') }}</div>
+            </div>
+        </div>
+
+        {{-- Allergy Alerts --}}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
+                <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <h3 class="text-sm font-bold text-gray-900">{{ __('Allergy Alerts') }}</h3>
+                <span class="ml-auto text-[10px] font-bold text-gray-400">{{ __('Orders') }}: <span x-text="allergySummaryStats.total_orders"></span> · {{ __('Customers with Allergies') }}: <span x-text="allergySummaryStats.customers_with_allergies"></span></span>
+            </div>
+            <div class="max-h-64 overflow-y-auto">
+                <template x-if="allergyCustomers.length > 0">
+                    <div class="divide-y divide-gray-50">
+                        <template x-for="(customer, idx) in allergyCustomers" :key="idx">
+                            <div class="px-5 py-2.5 flex items-start justify-between gap-2 hover:bg-gray-50/50 transition-colors">
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs font-bold text-gray-900 truncate" x-text="customer.full_name"></p>
+                                    <div class="flex flex-wrap gap-1 mt-1">
+                                        <template x-for="allergy in customer.allergies" :key="allergy">
+                                            <span class="px-2 py-0.5 rounded-full bg-red-50 text-red-600 text-[9px] font-bold" x-text="allergy"></span>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+                <div x-show="!allergyCustomers.length" class="px-5 py-6 text-center text-xs text-gray-400">{{ __('No allergy alerts for this date.') }}</div>
+            </div>
+        </div>
+    </div>
+
     {{-- Category sections with meals --}}
     <template x-for="cat in allProduction" :key="cat.category_id">
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -368,6 +424,10 @@ function scheduleBoard() {
         date: @json($date),
         allProduction: @json($allProduction),
         summary: @json($summary),
+        mealsSummary: @json($mealsSummary),
+        mealsSummaryStats: @json($mealsSummaryStats),
+        allergyCustomers: @json($allergyCustomers),
+        allergySummaryStats: @json($allergySummaryStats),
         filters: {
             search: @json($filters['search'] ?? ''),
             status: @json($filters['status'] ?? ''),
@@ -489,6 +549,10 @@ function scheduleBoard() {
                 if (data.success) {
                     this.allProduction = data.allProduction;
                     this.summary = data.summary;
+                    this.mealsSummary = data.mealsSummary || [];
+                    this.mealsSummaryStats = data.mealsSummaryStats || { total_meals: 0, total_orders: 0 };
+                    this.allergyCustomers = data.allergyCustomers || [];
+                    this.allergySummaryStats = data.allergySummaryStats || { customers_with_allergies: 0, total_orders: 0 };
                 }
             } finally {
                 this.loading = false;

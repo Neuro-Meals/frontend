@@ -896,6 +896,10 @@ class AdminController extends Controller
             $totalPortions += (int) ($prodData['total_required'] ?? 0);
         }
 
+        // Fetch meals summary and allergy summary for the selected date
+        $mealsSummary = $this->apiData($chefApi->mealsSummary($date), fn () => ['meals' => [], 'total_meals' => 0, 'total_orders' => 0]);
+        $allergySummary = $this->apiData($chefApi->allergiesSummary($date), fn () => ['customers' => [], 'customers_with_allergies' => 0, 'total_orders' => 0]);
+
         return view('admin.schedule', [
             'date' => $date,
             'categories' => $categories,
@@ -907,6 +911,16 @@ class AdminController extends Controller
                 'total_portions' => $totalPortions,
             ],
             'filters' => $filters,
+            'mealsSummary' => $mealsSummary['meals'] ?? [],
+            'mealsSummaryStats' => [
+                'total_meals' => $mealsSummary['total_meals'] ?? 0,
+                'total_orders' => $mealsSummary['total_orders'] ?? 0,
+            ],
+            'allergyCustomers' => $allergySummary['customers'] ?? [],
+            'allergySummaryStats' => [
+                'customers_with_allergies' => $allergySummary['customers_with_allergies'] ?? 0,
+                'total_orders' => $allergySummary['total_orders'] ?? 0,
+            ],
         ]);
     }
 
@@ -957,6 +971,10 @@ class AdminController extends Controller
             $totalPortions += (int) ($prodData['total_required'] ?? 0);
         }
 
+        // Fetch meals summary and allergy summary for the selected date
+        $mealsSummary = $this->apiData($chefApi->mealsSummary($date), fn () => ['meals' => [], 'total_meals' => 0, 'total_orders' => 0]);
+        $allergySummary = $this->apiData($chefApi->allergiesSummary($date), fn () => ['customers' => [], 'customers_with_allergies' => 0, 'total_orders' => 0]);
+
         return response()->json([
             'success' => true,
             'categories' => $categories,
@@ -966,6 +984,16 @@ class AdminController extends Controller
                 'category_count' => count($categories),
                 'distinct_meals' => $distinctMeals,
                 'total_portions' => $totalPortions,
+            ],
+            'mealsSummary' => $mealsSummary['meals'] ?? [],
+            'mealsSummaryStats' => [
+                'total_meals' => $mealsSummary['total_meals'] ?? 0,
+                'total_orders' => $mealsSummary['total_orders'] ?? 0,
+            ],
+            'allergyCustomers' => $allergySummary['customers'] ?? [],
+            'allergySummaryStats' => [
+                'customers_with_allergies' => $allergySummary['customers_with_allergies'] ?? 0,
+                'total_orders' => $allergySummary['total_orders'] ?? 0,
             ],
         ]);
     }
