@@ -28,7 +28,7 @@ $today = date('l, M j');
             <div class="bg-white/10 backdrop-blur rounded-2xl p-3 border border-white/10 animate-slide-up animate-delay-1">
                 <div class="flex items-center gap-1.5 mb-1">
                     <div class="w-2 h-2 rounded-full bg-orange-300 pulse-dot"></div>
-                    <span class="text-[10px] text-white/70">{{ __('Today') }}</span>
+                    <span class="text-[10px] text-white/70">{{ __('Total') }}</span>
                 </div>
                 <p class="text-xl font-bold" x-text="stats.total_today">{{ $stats['total_today'] }}</p>
             </div>
@@ -50,6 +50,26 @@ $today = date('l, M j');
     </div>
 
     <div class="p-4 space-y-4">
+        {{-- Secondary KPI Cards --}}
+        <div class="grid grid-cols-4 gap-2">
+            <div class="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 text-center">
+                <p class="text-[9px] text-gray-400 mb-0.5">{{ __('Preparing') }}</p>
+                <p class="text-lg font-bold text-chef-600">{{ $stats['preparing'] }}</p>
+            </div>
+            <div class="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 text-center">
+                <p class="text-[9px] text-gray-400 mb-0.5">{{ __('Ready') }}</p>
+                <p class="text-lg font-bold text-green-600">{{ $stats['ready'] }}</p>
+            </div>
+            <div class="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 text-center">
+                <p class="text-[9px] text-gray-400 mb-0.5">{{ __('Drivers') }}</p>
+                <p class="text-lg font-bold text-blue-600">{{ $stats['available_drivers'] }}</p>
+            </div>
+            <div class="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 text-center">
+                <p class="text-[9px] text-gray-400 mb-0.5">{{ __('Cancelled') }}</p>
+                <p class="text-lg font-bold text-red-500">{{ $stats['cancelled'] }}</p>
+            </div>
+        </div>
+
         {{-- Status mini bar --}}
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between animate-slide-up animate-delay-2">
             <div class="flex items-center gap-3">
