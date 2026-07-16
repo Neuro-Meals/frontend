@@ -791,7 +791,7 @@ class AdminController extends Controller
 
     public function destroyMenuItem(int $id, PlanMenuApiService $menuApi)
     {
-        $response = $this->apiData($menuApi->delete($id), fn () => []);
+        $response = $this->apiData($menuApi->destroy($id), fn () => []);
 
         if (empty($response) || !empty($response['error'])) {
             $message = $response['detail'] ?? $response['message'] ?? 'Failed to delete menu item.';

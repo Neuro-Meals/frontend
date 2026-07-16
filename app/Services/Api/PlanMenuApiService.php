@@ -24,8 +24,8 @@ class PlanMenuApiService extends BaseApiService
         return $this->patch('plan_menus.update', ['menu_item_id' => $menuItemId], $data);
     }
 
-    public function delete(int $menuItemId): array
+    public function destroy(int $menuItemId): array
     {
-        return $this->delete('plan_menus.delete', ['menu_item_id' => $menuItemId]);
+        return parent::delete('plan_menus.delete', ['menu_item_id' => $menuItemId]);
     }
 }
