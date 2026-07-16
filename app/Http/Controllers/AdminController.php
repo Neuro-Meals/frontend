@@ -860,26 +860,52 @@ class AdminController extends Controller
         $categoriesData = $this->apiData($chefApi->scheduleCategories($date, $filters), fn () => ['categories' => []]);
         $categories = $this->sortScheduleCategories($categoriesData['categories'] ?? []);
 
-        $selectedCategoryId = (int) ($request->query('category_id') ?: 0);
-        if (!$selectedCategoryId && !empty($categories)) {
-            $withPending = collect($categories)->first(fn ($c) => ($c['pending'] ?? 0) > 0);
-            $selectedCategoryId = (int) ($withPending['category_id'] ?? $categories[0]['category_id'] ?? 0);
+        // Fetch production requirements for ALL categories at once
+        $allProduction = [];
+        $totalOrders = 0;
+        $distinctMeals = 0;
+        $totalPortions = 0;
+
+        foreach ($categories as $cat) {
+            $catId = (int) ($cat['category_id'] ?? 0);
+            if (!$catId) {
+                continue;
+            }
+
+            $prodData = $this->apiData(
+                $chefApi->productionRequirements($date, $catId, $filters),
+                fn () => ['meals' => [], 'total_required' => 0]
+            );
+
+            $allProduction[] = [
+                'category_id' => $catId,
+                'category_name' => $cat['category_name'] ?? '',
+                'category_name_ar' => $cat['category_name_ar'] ?? '',
+                'total_required' => $prodData['total_required'] ?? 0,
+                'meals' => $prodData['meals'] ?? [],
+                'pending' => $cat['pending'] ?? 0,
+                'sent_to_kitchen' => $cat['sent_to_kitchen'] ?? 0,
+                'preparing' => $cat['preparing'] ?? 0,
+                'ready' => $cat['ready'] ?? 0,
+                'served' => $cat['served'] ?? 0,
+                'order_count' => $cat['order_count'] ?? 0,
+            ];
+
+            $totalOrders += (int) ($cat['order_count'] ?? 0);
+            $distinctMeals += count($prodData['meals'] ?? []);
+            $totalPortions += (int) ($prodData['total_required'] ?? 0);
         }
-
-        $productionData = $selectedCategoryId
-            ? $this->apiData($chefApi->productionRequirements($date, $selectedCategoryId, $filters), fn () => ['meals' => []])
-            : ['meals' => []];
-
-        $kitchenQueueData = $selectedCategoryId
-            ? $this->apiData($chefApi->kitchenQueue($date, $selectedCategoryId, $filters), fn () => ['meals' => [], 'totals' => []])
-            : ['meals' => [], 'totals' => []];
 
         return view('admin.schedule', [
             'date' => $date,
             'categories' => $categories,
-            'selectedCategoryId' => $selectedCategoryId,
-            'production' => $productionData,
-            'kitchenQueue' => $kitchenQueueData,
+            'allProduction' => $allProduction,
+            'summary' => [
+                'total_orders' => $totalOrders,
+                'category_count' => count($categories),
+                'distinct_meals' => $distinctMeals,
+                'total_portions' => $totalPortions,
+            ],
             'filters' => $filters,
         ]);
     }
@@ -891,22 +917,56 @@ class AdminController extends Controller
     public function scheduleData(Request $request, ChefApiService $chefApi)
     {
         $date = $request->query('date') ?: date('Y-m-d');
-        $categoryId = (int) $request->query('category_id', 0);
         $filters = $this->scheduleFiltersFromRequest($request);
 
         $categoriesData = $this->apiData($chefApi->scheduleCategories($date, $filters), fn () => ['categories' => []]);
-        $productionData = $categoryId
-            ? $this->apiData($chefApi->productionRequirements($date, $categoryId, $filters), fn () => ['meals' => []])
-            : ['meals' => []];
-        $kitchenQueueData = $categoryId
-            ? $this->apiData($chefApi->kitchenQueue($date, $categoryId, $filters), fn () => ['meals' => [], 'totals' => []])
-            : ['meals' => [], 'totals' => []];
+        $categories = $this->sortScheduleCategories($categoriesData['categories'] ?? []);
+
+        $allProduction = [];
+        $totalOrders = 0;
+        $distinctMeals = 0;
+        $totalPortions = 0;
+
+        foreach ($categories as $cat) {
+            $catId = (int) ($cat['category_id'] ?? 0);
+            if (!$catId) {
+                continue;
+            }
+
+            $prodData = $this->apiData(
+                $chefApi->productionRequirements($date, $catId, $filters),
+                fn () => ['meals' => [], 'total_required' => 0]
+            );
+
+            $allProduction[] = [
+                'category_id' => $catId,
+                'category_name' => $cat['category_name'] ?? '',
+                'category_name_ar' => $cat['category_name_ar'] ?? '',
+                'total_required' => $prodData['total_required'] ?? 0,
+                'meals' => $prodData['meals'] ?? [],
+                'pending' => $cat['pending'] ?? 0,
+                'sent_to_kitchen' => $cat['sent_to_kitchen'] ?? 0,
+                'preparing' => $cat['preparing'] ?? 0,
+                'ready' => $cat['ready'] ?? 0,
+                'served' => $cat['served'] ?? 0,
+                'order_count' => $cat['order_count'] ?? 0,
+            ];
+
+            $totalOrders += (int) ($cat['order_count'] ?? 0);
+            $distinctMeals += count($prodData['meals'] ?? []);
+            $totalPortions += (int) ($prodData['total_required'] ?? 0);
+        }
 
         return response()->json([
             'success' => true,
-            'categories' => $this->sortScheduleCategories($categoriesData['categories'] ?? []),
-            'production' => $productionData,
-            'kitchen_queue' => $kitchenQueueData,
+            'categories' => $categories,
+            'allProduction' => $allProduction,
+            'summary' => [
+                'total_orders' => $totalOrders,
+                'category_count' => count($categories),
+                'distinct_meals' => $distinctMeals,
+                'total_portions' => $totalPortions,
+            ],
         ]);
     }
 
