@@ -52,8 +52,8 @@
 
     <div class="px-4 -mt-4 relative z-10 space-y-4">
 
-        {{-- ============ MEAL-TIME DROPDOWN ============ --}}
-        <div class="relative animate-slide-up animate-delay-1" x-data>
+        {{-- ============ MEAL-TIME DROPDOWN (slide-down panel) ============ --}}
+        <div class="relative animate-slide-up animate-delay-1">
             <button @click="dropdownOpen = !dropdownOpen"
                 class="w-full bg-white rounded-2xl p-1.5 shadow-md border border-gray-100 flex items-center justify-between gap-2 transition-all">
                 <span class="flex items-center gap-2 px-2 py-1.5">
@@ -67,28 +67,42 @@
                 </span>
                 <svg class="w-5 h-5 text-gray-400 transition-transform flex-shrink-0 mr-2" :class="dropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            <div x-show="dropdownOpen" @click.outside="dropdownOpen = false"
-                x-transition:enter="transition ease-out duration-100"
-                x-transition:enter-start="opacity-0 scale-95"
-                x-transition:enter-end="opacity-100 scale-100"
-                x-transition:leave="transition ease-in duration-75"
-                x-transition:leave-start="opacity-100 scale-100"
-                x-transition:leave-end="opacity-0 scale-95"
-                class="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 z-30 max-h-72 overflow-y-auto"
-                style="display: none;">
+        </div>
+
+        {{-- Slide-down panel --}}
+        <div x-show="dropdownOpen"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="-translate-y-2 opacity-0"
+            x-transition:enter-end="translate-y-0 opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="translate-y-0 opacity-100"
+            x-transition:leave-end="-translate-y-2 opacity-0"
+            @click.outside="dropdownOpen = false"
+            class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden z-30"
+            style="display: none;">
+            <div class="px-4 py-3 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">{{ __('Select Category') }}</span>
+                <button @click="dropdownOpen = false" class="w-6 h-6 rounded-full hover:bg-gray-200 flex items-center justify-center transition-colors">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="max-h-80 overflow-y-auto divide-y divide-gray-50">
                 <template x-for="cat in categories" :key="cat.id">
                     <button @click="switchTab(cat.id); dropdownOpen = false"
-                        class="w-full flex items-center justify-between px-4 py-2.5 text-sm font-semibold hover:bg-gray-50 transition-colors"
-                        :class="activeTab === cat.id ? 'text-brand-700 bg-brand-50/50' : 'text-gray-600'">
-                        <span class="flex items-center gap-2.5">
-                            <template x-if="cat.icon === 'sunrise'"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v2m-4.5 3.5L6 6m9 0l1.5-1.5M4 12H2m20 0h-2M6.343 17.657L4.929 19.071M19.071 19.071l-1.414-1.414M12 18a6 6 0 00-6-6 6 6 0 006 6 6 6 0 006-6 6 6 0 00-6 6z"/></svg></template>
-                            <template x-if="cat.icon === 'sun'"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg></template>
-                            <template x-if="cat.icon === 'moon'"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg></template>
-                            <template x-if="cat.icon === 'cookie'"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h1a4 4 0 100-8h-1M3 8h1a4 4 0 110 8H3m5-4a4 4 0 100-8 4 4 0 000 8z"/></svg></template>
-                            <template x-if="cat.icon === 'dots'"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01"/></svg></template>
+                        class="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold hover:bg-brand-50/30 transition-colors"
+                        :class="activeTab === cat.id ? 'text-brand-700 bg-brand-50/50' : 'text-gray-700'">
+                        <span class="flex items-center gap-3">
+                            <span class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                                :class="activeTab === cat.id ? 'bg-brand-100' : 'bg-gray-100'">
+                                <template x-if="cat.icon === 'sunrise'"><svg class="w-5 h-5" :class="activeTab === cat.id ? 'text-brand-700' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v2m-4.5 3.5L6 6m9 0l1.5-1.5M4 12H2m20 0h-2M6.343 17.657L4.929 19.071M19.071 19.071l-1.414-1.414M12 18a6 6 0 00-6-6 6 6 0 006 6 6 6 0 006-6 6 6 0 00-6 6z"/></svg></template>
+                                <template x-if="cat.icon === 'sun'"><svg class="w-5 h-5" :class="activeTab === cat.id ? 'text-brand-700' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg></template>
+                                <template x-if="cat.icon === 'moon'"><svg class="w-5 h-5" :class="activeTab === cat.id ? 'text-brand-700' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg></template>
+                                <template x-if="cat.icon === 'cookie'"><svg class="w-5 h-5" :class="activeTab === cat.id ? 'text-brand-700' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h1a4 4 0 100-8h-1M3 8h1a4 4 0 110 8H3m5-4a4 4 0 100-8 4 4 0 000 8z"/></svg></template>
+                                <template x-if="cat.icon === 'dots'"><svg class="w-5 h-5" :class="activeTab === cat.id ? 'text-brand-700' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01"/></svg></template>
+                            </span>
                             <span x-text="cat.name"></span>
                         </span>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold"
                             :class="cat.count > 0 ? 'bg-brand-50 text-brand-700' : 'bg-gray-100 text-gray-400'"
                             x-text="cat.count"></span>
                     </button>
