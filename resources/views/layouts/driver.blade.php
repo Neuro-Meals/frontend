@@ -27,7 +27,11 @@
     <style>
         @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulse-soft { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+        @keyframes floatY { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
         .animate-slide-up { animation: slideUp 0.35s ease-out both; }
+        .animate-pop-in { animation: popIn 0.35s cubic-bezier(.34,1.56,.64,1) both; }
+        .animate-float { animation: floatY 2.4s ease-in-out infinite; }
         .animate-delay-1 { animation-delay: 0.05s; }
         .animate-delay-2 { animation-delay: 0.1s; }
         .animate-delay-3 { animation-delay: 0.15s; }

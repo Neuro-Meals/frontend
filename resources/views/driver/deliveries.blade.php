@@ -15,6 +15,29 @@
         <p class="text-xs text-white/70">{{ __('Manage your assigned deliveries') }}</p>
     </div>
 
+    @php
+        $totalCount = count($deliveries);
+        $deliveredCount = count(array_filter($deliveries, fn ($d) => $d['status'] === 'delivered'));
+        $remainingCount = $totalCount - $deliveredCount;
+        $deliveredPct = $totalCount > 0 ? round(($deliveredCount / $totalCount) * 100) : 0;
+    @endphp
+    @if($totalCount > 0)
+    <div class="px-4 -mt-6 relative z-10">
+        <div class="bg-white rounded-2xl p-4 shadow-lg border border-gray-100 animate-slide-up">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                    <span class="text-xs font-bold text-gray-700">{{ $deliveredCount }} / {{ $totalCount }} {{ __('Delivered') }}</span>
+                </div>
+                <span class="text-[10px] font-bold text-gray-400">{{ $remainingCount }} {{ __('Remaining') }}</span>
+            </div>
+            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-brand-600 to-brand-700 rounded-full transition-all duration-500" style="width: {{ $deliveredPct }}%"></div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <div class="p-4">
         {{-- Tabs --}}
         <div class="bg-white rounded-2xl p-1 shadow-sm border border-gray-100 mb-4 flex">

@@ -48,6 +48,51 @@ $driverName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''
     </div>
 
     <div class="p-4 space-y-4">
+        @php
+            $shiftComplete = ($stats['assigned'] + $stats['in_progress']) === 0 && $stats['completed'] > 0;
+        @endphp
+
+        {{-- Shift Completed celebration --}}
+        @if($shiftComplete)
+        <div class="relative bg-white rounded-3xl p-6 text-center shadow-lg border border-gray-100 overflow-hidden animate-pop-in">
+            <span class="absolute top-3 left-3 text-2xl animate-float">🎉</span>
+            <span class="absolute top-3 right-3 text-2xl animate-float animate-delay-2">🎉</span>
+            <div class="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
+                <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <h2 class="text-lg font-bold text-brand-700 mb-1">{{ __('Shift Completed') }}</h2>
+            <p class="text-xs text-gray-500 mb-1">{{ __('Great Job!') }}</p>
+            <p class="text-xs text-gray-400 mb-5">{{ __('You have completed all deliveries.') }}</p>
+
+            <div class="grid grid-cols-3 gap-3 mb-5">
+                <div class="bg-gray-50 rounded-xl p-3">
+                    <p class="text-lg font-extrabold text-gray-900">{{ $stats['completed'] + $stats['failed'] }}</p>
+                    <p class="text-[10px] text-gray-500">{{ __('Total') }}</p>
+                </div>
+                <div class="bg-green-50 rounded-xl p-3">
+                    <p class="text-lg font-extrabold text-green-600">{{ $stats['completed'] }}</p>
+                    <p class="text-[10px] text-gray-500">{{ __('Delivered') }}</p>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-3">
+                    <p class="text-lg font-extrabold text-gray-400">0</p>
+                    <p class="text-[10px] text-gray-500">{{ __('Remaining') }}</p>
+                </div>
+            </div>
+
+            <a href="{{ route('driver.deliveries') }}" class="btn-action w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-brand-700 text-white text-sm font-bold shadow-md shadow-brand-700/20 mb-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                {{ __('View Delivery Summary') }}
+            </a>
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-50 text-gray-600 text-sm font-bold border border-gray-100">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    {{ __('End Shift') }}
+                </button>
+            </form>
+        </div>
+        @endif
+
         {{-- Rating / Status mini bar --}}
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between animate-slide-up animate-delay-2">
             <div class="flex items-center gap-3">
