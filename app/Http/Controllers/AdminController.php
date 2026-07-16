@@ -834,11 +834,30 @@ class AdminController extends Controller
         return $categories;
     }
 
+    /**
+     * Pull the Search/Status/User ID/Subscription ID/Page/Limit
+     * filters off the request -- same shape as the admin Orders
+     * screen -- so the Kitchen Schedule board can be narrowed down
+     * to one customer, subscription, status or order.
+     */
+    private function scheduleFiltersFromRequest(Request $request): array
+    {
+        return [
+            'search' => $request->query('search') ?: null,
+            'status' => $request->query('status') ?: null,
+            'user_id' => (int) ($request->query('user_id') ?: 0) ?: null,
+            'subscription_id' => (int) ($request->query('subscription_id') ?: 0) ?: null,
+            'page' => (int) ($request->query('page') ?: 0) ?: null,
+            'limit' => (int) ($request->query('limit') ?: 0) ?: null,
+        ];
+    }
+
     public function schedule(Request $request, ChefApiService $chefApi)
     {
         $date = $request->query('date') ?: date('Y-m-d');
+        $filters = $this->scheduleFiltersFromRequest($request);
 
-        $categoriesData = $this->apiData($chefApi->scheduleCategories($date), fn () => ['categories' => []]);
+        $categoriesData = $this->apiData($chefApi->scheduleCategories($date, $filters), fn () => ['categories' => []]);
         $categories = $this->sortScheduleCategories($categoriesData['categories'] ?? []);
 
         $selectedCategoryId = (int) ($request->query('category_id') ?: 0);
@@ -848,11 +867,11 @@ class AdminController extends Controller
         }
 
         $productionData = $selectedCategoryId
-            ? $this->apiData($chefApi->productionRequirements($date, $selectedCategoryId), fn () => ['meals' => []])
+            ? $this->apiData($chefApi->productionRequirements($date, $selectedCategoryId, $filters), fn () => ['meals' => []])
             : ['meals' => []];
 
         $kitchenQueueData = $selectedCategoryId
-            ? $this->apiData($chefApi->kitchenQueue($date, $selectedCategoryId), fn () => ['meals' => [], 'totals' => []])
+            ? $this->apiData($chefApi->kitchenQueue($date, $selectedCategoryId, $filters), fn () => ['meals' => [], 'totals' => []])
             : ['meals' => [], 'totals' => []];
 
         return view('admin.schedule', [
@@ -861,24 +880,26 @@ class AdminController extends Controller
             'selectedCategoryId' => $selectedCategoryId,
             'production' => $productionData,
             'kitchenQueue' => $kitchenQueueData,
+            'filters' => $filters,
         ]);
     }
 
     /**
-     * AJAX refresh when switching schedule tab / date without a full
-     * page reload.
+     * AJAX refresh when switching schedule tab / date / filters
+     * without a full page reload.
      */
     public function scheduleData(Request $request, ChefApiService $chefApi)
     {
         $date = $request->query('date') ?: date('Y-m-d');
         $categoryId = (int) $request->query('category_id', 0);
+        $filters = $this->scheduleFiltersFromRequest($request);
 
-        $categoriesData = $this->apiData($chefApi->scheduleCategories($date), fn () => ['categories' => []]);
+        $categoriesData = $this->apiData($chefApi->scheduleCategories($date, $filters), fn () => ['categories' => []]);
         $productionData = $categoryId
-            ? $this->apiData($chefApi->productionRequirements($date, $categoryId), fn () => ['meals' => []])
+            ? $this->apiData($chefApi->productionRequirements($date, $categoryId, $filters), fn () => ['meals' => []])
             : ['meals' => []];
         $kitchenQueueData = $categoryId
-            ? $this->apiData($chefApi->kitchenQueue($date, $categoryId), fn () => ['meals' => [], 'totals' => []])
+            ? $this->apiData($chefApi->kitchenQueue($date, $categoryId, $filters), fn () => ['meals' => [], 'totals' => []])
             : ['meals' => [], 'totals' => []];
 
         return response()->json([

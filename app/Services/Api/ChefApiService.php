@@ -102,13 +102,43 @@ class ChefApiService extends BaseApiService
 
     // ─── Kitchen Schedule (item-level workflow) ───
 
-    public function scheduleCategories(?string $date = null): array
+    /**
+     * Pull the search/status/user_id/subscription_id/page/limit
+     * filters (same shape as the admin Orders screen) out of a
+     * loose $filters array, dropping empty/zero ("0 = all") values.
+     */
+    private function scheduleFilterQuery(array $filters): array
+    {
+        $query = [];
+        if (!empty($filters['search'])) {
+            $query['search'] = $filters['search'];
+        }
+        if (!empty($filters['status'])) {
+            $query['status'] = $filters['status'];
+        }
+        if (!empty($filters['user_id'])) {
+            $query['user_id'] = $filters['user_id'];
+        }
+        if (!empty($filters['subscription_id'])) {
+            $query['subscription_id'] = $filters['subscription_id'];
+        }
+        if (!empty($filters['page'])) {
+            $query['page'] = $filters['page'];
+        }
+        if (!empty($filters['limit'])) {
+            $query['limit'] = $filters['limit'];
+        }
+        return $query;
+    }
+
+    public function scheduleCategories(?string $date = null, array $filters = []): array
     {
         $query = $date ? ['date' => $date] : [];
+        $query += $this->scheduleFilterQuery($filters);
         return $this->get('schedule.categories', [], $query);
     }
 
-    public function productionRequirements(?string $date = null, ?int $categoryId = null): array
+    public function productionRequirements(?string $date = null, ?int $categoryId = null, array $filters = []): array
     {
         $query = [];
         if ($date) {
@@ -117,10 +147,11 @@ class ChefApiService extends BaseApiService
         if ($categoryId) {
             $query['category_id'] = $categoryId;
         }
+        $query += $this->scheduleFilterQuery($filters);
         return $this->get('schedule.production_requirements', [], $query);
     }
 
-    public function kitchenQueue(?string $date = null, ?int $categoryId = null): array
+    public function kitchenQueue(?string $date = null, ?int $categoryId = null, array $filters = []): array
     {
         $query = [];
         if ($date) {
@@ -129,6 +160,7 @@ class ChefApiService extends BaseApiService
         if ($categoryId) {
             $query['category_id'] = $categoryId;
         }
+        $query += $this->scheduleFilterQuery($filters);
         return $this->get('schedule.kitchen_queue', [], $query);
     }
 

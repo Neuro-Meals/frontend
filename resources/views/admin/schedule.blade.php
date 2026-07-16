@@ -21,6 +21,64 @@
         </div>
     </div>
 
+    {{-- Filters --}}
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div class="col-span-2 sm:col-span-1 lg:col-span-2">
+                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">{{ __('Search') }}</label>
+                <input type="text" x-model="filters.search" @keydown.enter="applyFilters()" placeholder="{{ __('Customer, order #, email...') }}"
+                    class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">{{ __('Status') }}</label>
+                <select x-model="filters.status" @change="applyFilters()" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
+                    <option value="">{{ __('All') }}</option>
+                    @foreach([
+                        'scheduled' => 'Scheduled',
+                        'pending' => 'Pending',
+                        'confirmed' => 'Confirmed',
+                        'preparing' => 'Preparing',
+                        'ready_for_delivery' => 'Ready for Delivery',
+                        'out_for_delivery' => 'Out for Delivery',
+                        'delivered' => 'Delivered',
+                        'cancelled' => 'Cancelled',
+                    ] as $st => $label)
+                    <option value="{{ $st }}">{{ __($label) }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">{{ __('User ID') }} <span class="normal-case text-gray-300">({{ __('0 = all') }})</span></label>
+                <input type="number" min="0" x-model.number="filters.user_id" @keydown.enter="applyFilters()"
+                    class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">{{ __('Subscription ID') }} <span class="normal-case text-gray-300">({{ __('0 = all') }})</span></label>
+                <input type="number" min="0" x-model.number="filters.subscription_id" @keydown.enter="applyFilters()"
+                    class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
+            </div>
+            <div class="flex gap-2">
+                <div class="flex-1">
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">{{ __('Page') }}</label>
+                    <input type="number" min="1" x-model.number="filters.page" @keydown.enter="applyFilters()"
+                        class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
+                </div>
+                <div class="flex-1">
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">{{ __('Limit') }}</label>
+                    <input type="number" min="1" x-model.number="filters.limit" @keydown.enter="applyFilters()"
+                        class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center justify-end gap-2 mt-3">
+            <button @click="clearFilters()" class="px-3 py-2 rounded-lg border border-gray-200 text-xs font-bold text-gray-500 hover:bg-gray-50 transition-colors">{{ __('Clear') }}</button>
+            <button @click="applyFilters()" :disabled="loading" class="px-4 py-2 rounded-lg bg-[#173327] text-white text-xs font-bold shadow-sm hover:shadow-md transition-all disabled:opacity-50 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"/></svg>
+                {{ __('Search') }}
+            </button>
+        </div>
+    </div>
+
     {{-- Schedule (category) tabs --}}
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="flex items-center border-b border-gray-100 overflow-x-auto">
@@ -228,6 +286,14 @@ function scheduleBoard() {
         selectedCategoryId: @json($selectedCategoryId),
         production: @json($production),
         kitchenQueue: @json($kitchenQueue),
+        filters: {
+            search: @json($filters['search'] ?? ''),
+            status: @json($filters['status'] ?? ''),
+            user_id: @json($filters['user_id'] ?? 0),
+            subscription_id: @json($filters['subscription_id'] ?? 0),
+            page: @json($filters['page'] ?? 0),
+            limit: @json($filters['limit'] ?? 0),
+        },
         loading: false,
         transferring: false,
         openMeals: [],
@@ -294,6 +360,15 @@ function scheduleBoard() {
             await this.refresh();
         },
 
+        applyFilters() {
+            this.refresh();
+        },
+
+        clearFilters() {
+            this.filters = { search: '', status: '', user_id: 0, subscription_id: 0, page: 0, limit: 0 };
+            this.refresh();
+        },
+
         async refresh() {
             this.loading = true;
             try {
@@ -302,6 +377,12 @@ function scheduleBoard() {
                 if (this.selectedCategoryId) {
                     url.searchParams.set('category_id', this.selectedCategoryId);
                 }
+                if (this.filters.search) url.searchParams.set('search', this.filters.search);
+                if (this.filters.status) url.searchParams.set('status', this.filters.status);
+                if (this.filters.user_id) url.searchParams.set('user_id', this.filters.user_id);
+                if (this.filters.subscription_id) url.searchParams.set('subscription_id', this.filters.subscription_id);
+                if (this.filters.page) url.searchParams.set('page', this.filters.page);
+                if (this.filters.limit) url.searchParams.set('limit', this.filters.limit);
                 const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
                 const data = await res.json();
                 if (data.success) {

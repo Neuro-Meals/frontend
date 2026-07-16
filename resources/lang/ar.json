@@ -374,5 +374,14 @@
     "Failed to claim this load — it may already be taken.": "فشل طلب هذا الحمل — ربما تم طلبه بالفعل.",
     "Browse and claim ready orders near you": "تصفح واطلب الطلبات الجاهزة القريبة منك",
     "customers": "عملاء",
-    "Sent to kitchen, preparing, or ready — tap a dish to see ingredients and who ordered it.": "أُرسل للمطبخ، قيد التحضير، أو جاهز — اضغط على أي طبق لرؤية المكونات ومن طلبه."
+    "Sent to kitchen, preparing, or ready — tap a dish to see ingredients and who ordered it.": "أُرسل للمطبخ، قيد التحضير، أو جاهز — اضغط على أي طبق لرؤية المكونات ومن طلبه.",
+    "Search": "بحث",
+    "All": "الكل",
+    "User ID": "رقم المستخدم",
+    "0 = all": "0 = الكل",
+    "Subscription ID": "رقم الاشتراك",
+    "Page": "الصفحة",
+    "Limit": "الحد",
+    "Clear": "مسح",
+    "Customer, order #, email...": "العميل، رقم الطلب، البريد الإلكتروني..."
 }
