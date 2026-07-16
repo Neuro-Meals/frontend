@@ -24,6 +24,11 @@ class SubscriptionApiService extends BaseApiService
         return $this->get('subscriptions.my');
     }
 
+    public function currentDetails(): array
+    {
+        return $this->get('subscriptions.current_details');
+    }
+
     public function show(int $subscriptionId): array
     {
         return $this->get('subscriptions.show', ['subscription_id' => $subscriptionId]);

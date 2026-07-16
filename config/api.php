@@ -123,11 +123,12 @@ return [
 
         // ─── Subscriptions ───
         'subscriptions' => [
-            'list'         => '/subscriptions/',
-            'create'       => '/subscriptions/',
-            'admin_create' => '/subscriptions/admin',
-            'my'           => '/subscriptions/my',
-            'show'         => '/subscriptions/{subscription_id}',
+            'list'            => '/subscriptions/',
+            'create'          => '/subscriptions/',
+            'admin_create'    => '/subscriptions/admin',
+            'my'              => '/subscriptions/my',
+            'current_details' => '/subscriptions/my/current-details',
+            'show'            => '/subscriptions/{subscription_id}',
             'update'       => '/subscriptions/{subscription_id}',
             'cancel'       => '/subscriptions/{subscription_id}/cancel',
             'pause'        => '/subscriptions/{subscription_id}/pause',

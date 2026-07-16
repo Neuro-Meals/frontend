@@ -90,22 +90,74 @@ class UserController extends Controller
             }
         }
 
-        // Fetch plan items and user selections to build the real schedule
-        $planItems = [];
-        $selections = [];
-        if ($activeSubscription && !empty($activeSubscription['plan_id'])) {
-            $planItems = $this->apiData($planApi->listPlanItems($activeSubscription['plan_id']), function () {
-                return [];
-            });
-            $selections = $this->apiData($selectionApi->my((int) $activeSubscription['id']), function () {
+        // Fetch current-details (today + weekly menu grouped by category)
+        $currentDetails = [];
+        if ($activeSubscription) {
+            $currentDetails = $this->apiData($subscriptionApi->currentDetails(), function () {
                 return [];
             });
         }
 
-        $weekMeals = $this->buildWeeklyScheduleFromPlan($planItems, $selections, $mealsById);
+        // Build today's meals from current-details API
+        $todayMeals = [];
+        if (!empty($currentDetails['today']['categories'])) {
+            foreach ($currentDetails['today']['categories'] as $catGroup) {
+                $catName = $catGroup['category']['name_en'] ?? ($catGroup['category']['name_ar'] ?? 'Meal');
+                foreach ($catGroup['meals'] ?? [] as $mealItem) {
+                    $normalized = $this->normalizeMenuMealForView($mealItem, $catName);
+                    $todayMeals[] = $normalized;
+                }
+            }
+        }
 
-        $todayNumber = (int) date('N');
-        $todayMeals = $weekMeals[$todayNumber - 1]['meals'] ?? [];
+        // Build weekly schedule from current-details API
+        $weekMeals = [];
+        $dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        $dayMap = [
+            'monday' => 0, 'tuesday' => 1, 'wednesday' => 2, 'thursday' => 3,
+            'friday' => 4, 'saturday' => 5, 'sunday' => 6,
+        ];
+
+        if (!empty($currentDetails['weekly_menu'])) {
+            foreach ($currentDetails['weekly_menu'] as $dayMenu) {
+                $dayKey = $dayMenu['day_of_week'] ?? '';
+                $dayIndex = $dayMap[$dayKey] ?? 0;
+                $dayMeals = [];
+
+                foreach ($dayMenu['categories'] ?? [] as $catGroup) {
+                    $catName = $catGroup['category']['name_en'] ?? ($catGroup['category']['name_ar'] ?? 'Meal');
+                    foreach ($catGroup['meals'] ?? [] as $mealItem) {
+                        $dayMeals[] = $this->normalizeMenuMealForView($mealItem, $catName);
+                    }
+                }
+
+                $calories = array_sum(array_column($dayMeals, 'calories'));
+                $weekMeals[$dayIndex] = [
+                    'day' => $dayLabels[$dayIndex] ?? ucfirst($dayKey),
+                    'date' => null,
+                    'meals' => $dayMeals,
+                    'mealCount' => count($dayMeals),
+                    'calories' => $calories,
+                    'completed' => $calories > 0 && count($dayMeals) > 0,
+                ];
+            }
+        }
+
+        // Fill missing days
+        for ($i = 0; $i < 7; $i++) {
+            if (!isset($weekMeals[$i])) {
+                $weekMeals[$i] = [
+                    'day' => $dayLabels[$i],
+                    'date' => null,
+                    'meals' => [],
+                    'mealCount' => 0,
+                    'calories' => 0,
+                    'completed' => false,
+                ];
+            }
+        }
+        ksort($weekMeals);
+        $weekMeals = array_values($weekMeals);
 
         // Fallback to generic meals if nothing is scheduled yet
         if (empty($todayMeals)) {
@@ -665,36 +717,158 @@ class UserController extends Controller
         $mealsPerDay = $planDetails['meals_per_day'] ?? 3;
         $mealsConsumed = $activeSubscription['meals_consumed'] ?? 0;
 
-        // Fetch the user's plan items and their meal selections
-        $planItems = [];
-        $selections = [];
-        if ($activeSubscription && !empty($activeSubscription['plan_id'])) {
-            $planItems = $this->apiData($planApi->listPlanItems($activeSubscription['plan_id']), function () {
-                return [];
-            });
-            $selections = $this->apiData($selectionApi->my((int) $activeSubscription['id']), function () {
+        // Fetch all meal categories for icons and display
+        $allCategoriesData = $this->apiData($mealApi->categoriesList(['limit' => 100]), function () {
+            return [];
+        });
+
+        $allCategories = [];
+        $categoryIcons = [];
+        foreach ($allCategoriesData as $cat) {
+            $catId = $cat['id'] ?? 0;
+            $catName = $cat['name_en'] ?? ($cat['name_ar'] ?? 'Uncategorized');
+            $allCategories[$catId] = [
+                'id' => $catId,
+                'name' => $catName,
+                'icon' => $this->getCategoryIcon($catName),
+            ];
+            $categoryIcons[$catId] = $this->getCategoryIcon($catName);
+        }
+
+        // Fetch current-details (today + weekly menu grouped by category)
+        $currentDetails = [];
+        if ($activeSubscription) {
+            $currentDetails = $this->apiData($subscriptionApi->currentDetails(), function () {
                 return [];
             });
         }
 
-        // Build weekly schedule from plan items, applying user selections as overrides
-        $weekMeals = $this->buildWeeklyScheduleFromPlan($planItems, $selections, $mealsById);
+        // Build today's meals grouped by category
+        $todayMealsByCategory = [];
+        $todayMeals = [];
 
-        // Today's meals are the meals scheduled for the current day
-        $todayNumber = (int) date('N');
-        $todayMeals = $weekMeals[$todayNumber - 1]['meals'] ?? [];
+        if (!empty($currentDetails['today']['categories'])) {
+            foreach ($currentDetails['today']['categories'] as $catGroup) {
+                $catInfo = $catGroup['category'] ?? null;
+                $catId = $catInfo['id'] ?? 0;
+                $catName = $catInfo['name_en'] ?? ($catInfo['name_ar'] ?? 'Meal');
+                $catIcon = $categoryIcons[$catId] ?? $this->getCategoryIcon($catName);
 
-        // Fallback to first available meals if nothing is scheduled yet
-        if (empty($todayMeals)) {
-            foreach (array_slice($meals, 0, $mealsPerDay) as $meal) {
-                $todayMeals[] = $this->normalizeMealForView($meal);
+                $catMeals = [];
+                foreach ($catGroup['meals'] ?? [] as $mealItem) {
+                    $normalized = $this->normalizeMenuMealForView($mealItem, $catName);
+                    $catMeals[] = $normalized;
+                    $todayMeals[] = $normalized;
+                }
+
+                if (!empty($catMeals)) {
+                    $todayMealsByCategory[] = [
+                        'id' => $catId,
+                        'name' => $catName,
+                        'icon' => $catIcon,
+                        'meals' => $catMeals,
+                    ];
+                }
             }
         }
 
+        // Fallback: if no scheduled meals, show first available meals
+        if (empty($todayMeals)) {
+            foreach (array_slice($meals, 0, $mealsPerDay) as $meal) {
+                $normalized = $this->normalizeMealForView($meal);
+                $todayMeals[] = $normalized;
+            }
+            // Group fallback meals by their category
+            $grouped = [];
+            foreach ($todayMeals as $meal) {
+                $catName = $meal['category'] ?? 'Meal';
+                if (!isset($grouped[$catName])) {
+                    $grouped[$catName] = [
+                        'name' => $catName,
+                        'icon' => $this->getCategoryIcon($catName),
+                        'meals' => [],
+                    ];
+                }
+                $grouped[$catName]['meals'][] = $meal;
+            }
+            $todayMealsByCategory = array_values($grouped);
+        }
+
+        // Build weekly schedule grouped by day and category
+        $weekMeals = [];
+        $dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        $dayMap = [
+            'monday' => 0, 'tuesday' => 1, 'wednesday' => 2, 'thursday' => 3,
+            'friday' => 4, 'saturday' => 5, 'sunday' => 6,
+        ];
+
+        if (!empty($currentDetails['weekly_menu'])) {
+            foreach ($currentDetails['weekly_menu'] as $dayMenu) {
+                $dayKey = $dayMenu['day_of_week'] ?? '';
+                $dayIndex = $dayMap[$dayKey] ?? 0;
+                $dayMeals = [];
+                $dayCategories = [];
+
+                foreach ($dayMenu['categories'] ?? [] as $catGroup) {
+                    $catInfo = $catGroup['category'] ?? null;
+                    $catId = $catInfo['id'] ?? 0;
+                    $catName = $catInfo['name_en'] ?? ($catInfo['name_ar'] ?? 'Meal');
+                    $catIcon = $categoryIcons[$catId] ?? $this->getCategoryIcon($catName);
+
+                    $catMeals = [];
+                    foreach ($catGroup['meals'] ?? [] as $mealItem) {
+                        $normalized = $this->normalizeMenuMealForView($mealItem, $catName);
+                        $catMeals[] = $normalized;
+                        $dayMeals[] = $normalized;
+                    }
+
+                    if (!empty($catMeals)) {
+                        $dayCategories[] = [
+                            'id' => $catId,
+                            'name' => $catName,
+                            'icon' => $catIcon,
+                            'meals' => $catMeals,
+                        ];
+                    }
+                }
+
+                $calories = array_sum(array_column($dayMeals, 'calories'));
+                $weekMeals[$dayIndex] = [
+                    'day' => $dayLabels[$dayIndex] ?? ucfirst($dayKey),
+                    'date' => null,
+                    'meals' => $dayMeals,
+                    'categories' => $dayCategories,
+                    'mealCount' => count($dayMeals),
+                    'calories' => $calories,
+                    'completed' => $calories > 0 && count($dayMeals) > 0,
+                ];
+            }
+        }
+
+        // Fill missing days
+        for ($i = 0; $i < 7; $i++) {
+            if (!isset($weekMeals[$i])) {
+                $weekMeals[$i] = [
+                    'day' => $dayLabels[$i],
+                    'date' => null,
+                    'meals' => [],
+                    'categories' => [],
+                    'mealCount' => 0,
+                    'calories' => 0,
+                    'completed' => false,
+                ];
+            }
+        }
+        ksort($weekMeals);
+        $weekMeals = array_values($weekMeals);
+
         // Calculate stats
-        $totalThisWeek = min(count($meals), $mealsPerDay * 7);
-        $avgCalories = $this->calculateAvgCalories($meals);
-        $favoriteMeal = $this->findFavoriteMeal($meals);
+        $totalThisWeek = 0;
+        foreach ($weekMeals as $day) {
+            $totalThisWeek += $day['mealCount'] ?? 0;
+        }
+        $avgCalories = $this->calculateAvgCalories($todayMeals);
+        $favoriteMeal = $this->findFavoriteMeal($todayMeals);
 
         $stats = [
             'totalThisWeek' => $totalThisWeek,
@@ -707,7 +881,7 @@ class UserController extends Controller
 
         $hasActiveSubscription = $activeSubscription !== null;
 
-        return view('user.meals', compact('todayMeals', 'weekMeals', 'stats', 'activeSubscription', 'hasActiveSubscription'));
+        return view('user.meals', compact('todayMeals', 'todayMealsByCategory', 'weekMeals', 'stats', 'activeSubscription', 'hasActiveSubscription', 'allCategories'));
     }
 
     /**
@@ -728,6 +902,42 @@ class UserController extends Controller
             'price' => $meal['price'] ?? 0,
             'category' => $meal['category']['name_en'] ?? ($meal['category_name'] ?? 'Meal'),
         ];
+    }
+
+    /**
+     * Normalize a meal from the plan menu API (build_customer_menu_item format).
+     */
+    private function normalizeMenuMealForView(array $mealItem, string $categoryName): array
+    {
+        return [
+            'id' => $mealItem['id'] ?? 0,
+            'name' => $mealItem['name_en'] ?? ($mealItem['name'] ?? 'Meal'),
+            'time' => $categoryName,
+            'calories' => (int) ($mealItem['calories'] ?? 0),
+            'protein' => (int) ($mealItem['protein_g'] ?? 0),
+            'carbs' => (int) ($mealItem['carbs_g'] ?? 0),
+            'fat' => (int) ($mealItem['fat_g'] ?? 0),
+            'status' => 'upcoming',
+            'image' => $mealItem['image_url'] ?? null,
+            'price' => $mealItem['price'] ?? 0,
+            'category' => $categoryName,
+            'quantity' => $mealItem['quantity'] ?? 1,
+            'ingredients' => $mealItem['ingredients'] ?? [],
+            'allergens' => $mealItem['allergens'] ?? [],
+        ];
+    }
+
+    /**
+     * Get icon name for a meal category based on its name.
+     */
+    private function getCategoryIcon(string $name): string
+    {
+        $nameLower = strtolower($name);
+        if (str_contains($nameLower, 'breakfast')) return 'sunrise';
+        if (str_contains($nameLower, 'lunch')) return 'sun';
+        if (str_contains($nameLower, 'dinner')) return 'moon';
+        if (str_contains($nameLower, 'snack')) return 'cookie';
+        return 'dots';
     }
 
     /**
