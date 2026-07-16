@@ -18,11 +18,7 @@
             </form>
 
             <div class="flex flex-col items-center">
-                <div class="flex items-center gap-1.5">
-                    <svg class="w-4 h-4 text-brand-300" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8 6 6 9 6 13a6 6 0 0012 0c0-4-2-7-6-11z"/></svg>
-                    <span class="font-extrabold tracking-wide text-sm">NUTRIO</span>
-                </div>
-                <span class="text-[8px] tracking-[0.35em] text-white/60">MEALS</span>
+                <img src="{{ asset('whitelogo.png') }}" alt="Nutrio Meals" class="h-10 w-auto">
             </div>
 
             <div class="flex items-center gap-2">
