@@ -210,6 +210,13 @@ class ChefController extends Controller
             ];
         }
 
+        \Log::info('Chef dashboard tabSummaries', [
+            'tabSummaries' => $tabSummaries,
+            'categories' => $categories,
+            'categorizedOrders_keys' => array_keys($categorizedOrders),
+            'sample_order' => !empty($allOrders) ? $allOrders[0] : null,
+        ]);
+
         return view('chef.dashboard', compact('categorizedOrders', 'categories', 'stats', 'notifications', 'mealsSummary', 'allergyCustomers', 'tabSummaries'));
     }
 
