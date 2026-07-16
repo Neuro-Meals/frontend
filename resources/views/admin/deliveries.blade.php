@@ -400,7 +400,7 @@
             bulkAssigning: false,
             bulkAssignError: '',
             bulkAssignSuccess: '',
-            allAssignableOrderIds: @json(collect($deliveries)->where('status', 'pending')->pluck('order_id')->merge(collect($deliveries)->where('status', 'scheduled')->pluck('order_id')->merge(collect($deliveries)->where('status', 'assigned')->pluck('order_id')))->values()),
+            allAssignableOrderIds: @json(collect($deliveries)->whereIn('status', ['pending', 'scheduled', 'assigned'])->pluck('order_id')->values()),
             driverForm: {
                 id: null,
                 first_name: '',
