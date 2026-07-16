@@ -242,6 +242,10 @@ Route::prefix('chef')->name('chef.')->middleware(['api.auth', 'api.chef'])->grou
     Route::get('/dashboard', [\App\Http\Controllers\ChefController::class, 'dashboard'])->name('dashboard');
     Route::post('/orders/{id}/start-preparing', [\App\Http\Controllers\ChefController::class, 'startPreparing'])->name('orders.start_preparing');
     Route::post('/orders/{id}/mark-ready', [\App\Http\Controllers\ChefController::class, 'markReady'])->name('orders.mark_ready');
+
+    // Kitchen Queue (item-level, aggregated by schedule/category)
+    Route::post('/schedule/transfer', [\App\Http\Controllers\ChefController::class, 'transferSchedule'])->name('schedule.transfer');
+    Route::post('/schedule/advance', [\App\Http\Controllers\ChefController::class, 'advanceSchedule'])->name('schedule.advance');
 });
 
 // User routes (customer only)

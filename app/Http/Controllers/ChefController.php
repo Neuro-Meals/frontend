@@ -288,7 +288,30 @@ class ChefController extends Controller
             ];
         }
 
-        return view('chef.dashboard', compact('categorizedOrders', 'categories', 'stats', 'notifications', 'mealsSummary', 'allergyCustomers', 'tabSummaries'));
+        // Item-level Kitchen Queue: what the chef is actually meant to
+        // cook per schedule (category), aggregated across every order
+        // for today — never individual Order #1025/#1026 during prep.
+        $today = date('Y-m-d');
+        $scheduleCategoriesData = $this->apiData($chefApi->scheduleCategories($today), fn () => ['categories' => []]);
+        $scheduleCategoryStats = [];
+        foreach ($scheduleCategoriesData['categories'] ?? [] as $sc) {
+            $scheduleCategoryStats[$sc['category_id']] = $sc;
+        }
+
+        $scheduleByTab = [];
+        foreach ($categories as $cat) {
+            $catId = $cat['id'];
+            $production = $this->apiData($chefApi->productionRequirements($today, $catId), fn () => ['meals' => [], 'total_required' => 0]);
+            $queue = $this->apiData($chefApi->kitchenQueue($today, $catId), fn () => ['meals' => [], 'totals' => []]);
+
+            $scheduleByTab[$catId] = [
+                'stats' => $scheduleCategoryStats[$catId] ?? ['pending' => 0, 'sent_to_kitchen' => 0, 'preparing' => 0, 'ready' => 0, 'served' => 0, 'total_items' => 0],
+                'production' => $production,
+                'kitchen_queue' => $queue,
+            ];
+        }
+
+        return view('chef.dashboard', compact('categorizedOrders', 'categories', 'stats', 'notifications', 'mealsSummary', 'allergyCustomers', 'tabSummaries', 'scheduleByTab', 'today'));
     }
 
     /**
@@ -343,6 +366,72 @@ class ChefController extends Controller
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
+        }
+
+        return redirect()->route('chef.dashboard')->with($success ? 'status' : 'error', $message);
+    }
+
+    /**
+     * Transfer only the items belonging to one schedule (category) to
+     * the kitchen — not the whole order. Mirrors the admin Schedule
+     * page so the chef can also trigger the transfer directly.
+     */
+    public function transferSchedule(Request $request, ChefApiService $chefApi)
+    {
+        $validated = $request->validate([
+            'category_id' => ['required', 'integer', 'min:1'],
+            'date' => ['nullable', 'date'],
+        ]);
+
+        $date = $validated['date'] ?? date('Y-m-d');
+
+        $response = $this->apiData(
+            $chefApi->transferSchedule($date, (int) $validated['category_id']),
+            fn () => []
+        );
+
+        $success = !empty($response) && empty($response['error']);
+        $message = $response['message'] ?? ($success ? __('Items transferred to the kitchen.') : __('Failed to transfer items.'));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => $success, 'message' => $message, 'result' => $response], $success ? 200 : 422);
+        }
+
+        return redirect()->route('chef.dashboard')->with($success ? 'status' : 'error', $message);
+    }
+
+    /**
+     * Advance item status one step (sent_to_kitchen -> preparing ->
+     * ready -> served) for every item in a schedule, optionally
+     * scoped to one meal. The parent order only becomes ready for
+     * delivery once every item across every schedule is served.
+     */
+    public function advanceSchedule(Request $request, ChefApiService $chefApi)
+    {
+        $validated = $request->validate([
+            'category_id' => ['required', 'integer', 'min:1'],
+            'action' => ['required', 'string', 'in:start_preparing,mark_ready,mark_served'],
+            'meal_id' => ['nullable', 'integer', 'min:1'],
+            'date' => ['nullable', 'date'],
+        ]);
+
+        $date = $validated['date'] ?? date('Y-m-d');
+
+        $response = $this->apiData(
+            $chefApi->advanceSchedule($date, (int) $validated['category_id'], $validated['action'], $validated['meal_id'] ?? null),
+            fn () => []
+        );
+
+        $success = !empty($response) && empty($response['error']);
+        $labels = [
+            'start_preparing' => __('Started preparing.'),
+            'mark_ready' => __('Marked as ready.'),
+            'mark_served' => __('Marked as served.'),
+        ];
+        $message = $response['message'] ?? ($success ? ($labels[$validated['action']] ?? __('Updated.')) : __('Failed to update.'));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => $success, 'message' => $message, 'result' => $response], $success ? 200 : 422);
         }
 
         return redirect()->route('chef.dashboard')->with($success ? 'status' : 'error', $message);

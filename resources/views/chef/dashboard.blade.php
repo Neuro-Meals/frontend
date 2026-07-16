@@ -128,22 +128,44 @@
             </div>
         </div>
 
-        {{-- ============ QUANTITIES NEEDED ============ --}}
+        {{-- ============ KITCHEN QUEUE (item-level, per schedule) ============ --}}
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up animate-delay-3">
-            <h2 class="text-sm font-bold text-gray-900 mb-3">{{ __('Quantities Needed') }}</h2>
-            <template x-if="activeSummary.dishes.length === 0">
+            <div class="flex items-center justify-between mb-3 gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-gray-900">{{ __('Kitchen Queue') }}</h2>
+                    <p class="text-[10px] text-gray-400">{{ __('Only items for this schedule are transferred — not whole orders.') }}</p>
+                </div>
+                <button x-show="activeScheduleStats.pending > 0" @click="transferActiveSchedule()" :disabled="transferring"
+                    class="btn-action px-3 py-2 rounded-xl bg-brand-700 text-white text-[11px] font-bold flex items-center gap-1.5 flex-shrink-0 disabled:opacity-50">
+                    <svg x-show="!transferring" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                    <svg x-show="transferring" class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                    <span x-text="strings.transferLabel + ' (' + activeScheduleStats.pending + ')'"></span>
+                </button>
+            </div>
+
+            <template x-if="activeProductionMeals.length === 0">
                 <p class="text-xs text-gray-400 text-center py-4">{{ __('No items for this shift yet.') }}</p>
             </template>
-            <div class="space-y-1">
-                <template x-for="(dish, i) in activeSummary.dishes" :key="dish.name">
-                    <div class="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-9 h-9 rounded-xl bg-brand-50 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                            </div>
-                            <span class="text-sm font-medium text-gray-800 truncate" x-text="dish.name"></span>
+
+            <div class="space-y-2">
+                <template x-for="meal in activeProductionMeals" :key="meal.meal_id ?? meal.meal_name">
+                    <div class="p-3 rounded-xl border border-gray-100 bg-gray-50/40">
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="text-sm font-bold text-gray-800 truncate" x-text="meal.meal_name"></span>
+                            <span class="px-2.5 py-1 rounded-full bg-brand-700 text-white text-[11px] font-bold flex-shrink-0" x-text="'×' + meal.total_required"></span>
                         </div>
-                        <span class="px-2.5 py-1 rounded-full bg-brand-700 text-white text-[11px] font-bold flex-shrink-0" x-text="'x' + dish.quantity"></span>
+                        <div class="flex flex-wrap items-center gap-1.5 mb-2">
+                            <span x-show="meal.pending" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-gray-200 text-gray-600" x-text="meal.pending + ' {{ __('pending') }}'"></span>
+                            <span x-show="meal.sent_to_kitchen" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-amber-100 text-amber-700" x-text="meal.sent_to_kitchen + ' {{ __('sent') }}'"></span>
+                            <span x-show="meal.preparing" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-blue-100 text-blue-700" x-text="meal.preparing + ' {{ __('preparing') }}'"></span>
+                            <span x-show="meal.ready" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-green-100 text-green-700" x-text="meal.ready + ' {{ __('ready') }}'"></span>
+                            <span x-show="meal.served" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-emerald-100 text-emerald-700" x-text="meal.served + ' {{ __('served') }}'"></span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button x-show="meal.sent_to_kitchen > 0" @click="advanceMeal(meal, 'start_preparing')" class="btn-action flex-1 py-2 rounded-lg bg-blue-600 text-white text-[11px] font-bold">{{ __('Start Preparing') }}</button>
+                            <button x-show="meal.preparing > 0" @click="advanceMeal(meal, 'mark_ready')" class="btn-action flex-1 py-2 rounded-lg bg-green-600 text-white text-[11px] font-bold">{{ __('Mark Ready') }}</button>
+                            <button x-show="meal.ready > 0" @click="advanceMeal(meal, 'mark_served')" class="btn-action flex-1 py-2 rounded-lg bg-emerald-700 text-white text-[11px] font-bold">{{ __('Mark Served') }}</button>
+                        </div>
                     </div>
                 </template>
             </div>
@@ -385,8 +407,11 @@ function chefShift() {
         categories: @json($categories),
         tabSummaries: @json($tabSummaries),
         ordersByTab: @json($categorizedOrders),
+        scheduleByTab: @json($scheduleByTab),
+        scheduleDate: @json($today),
         activeTab: '',
         dropdownOpen: false,
+        transferring: false,
         walkthrough: { open: false, index: 0 },
 
         strings: {
@@ -400,6 +425,13 @@ function chefShift() {
             readyTitle: @json(__('Meal ready?')),
             readyText: @json(__('Make sure all items are weighed and packed before continuing.')),
             yesReady: @json(__('Yes, Ready')),
+            transferLabel: @json(__('Transfer to Kitchen')),
+            transferTitle: @json(__('Transfer to Kitchen?')),
+            transferText: @json(__('This sends only the items in this schedule to the kitchen. The order stays active until every schedule is completed.')),
+            yesTransfer: @json(__('Yes, transfer')),
+            cancel: @json(__('Cancel')),
+            errorTitle: @json(__('Error')),
+            updated: @json(__('Updated')),
         },
 
         init() {
@@ -453,6 +485,18 @@ function chefShift() {
             return this.ordersByTab[this.activeTab] || [];
         },
 
+        get activeSchedule() {
+            return this.scheduleByTab[this.activeTab] || { stats: {}, production: { meals: [] }, kitchen_queue: { meals: [] } };
+        },
+
+        get activeScheduleStats() {
+            return this.activeSchedule.stats || { pending: 0, sent_to_kitchen: 0, preparing: 0, ready: 0, served: 0 };
+        },
+
+        get activeProductionMeals() {
+            return this.activeSchedule.production?.meals || [];
+        },
+
         get progressPercent() {
             const s = this.activeSummary;
             if (!s.customers) return 0;
@@ -501,6 +545,71 @@ function chefShift() {
                 'bg-amber-50 text-amber-700': status === 'preparing',
                 'bg-green-50 text-green-700': ['ready_for_delivery', 'out_for_delivery', 'delivered'].includes(status),
             };
+        },
+
+        async postJson(url, body) {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify(body),
+            });
+            return res.json();
+        },
+
+        async transferActiveSchedule() {
+            const confirmed = await Swal.fire({
+                title: this.strings.transferTitle,
+                text: this.strings.transferText,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#173327',
+                cancelButtonColor: '#d1d5db',
+                confirmButtonText: this.strings.yesTransfer,
+                cancelButtonText: this.strings.cancel,
+                reverseButtons: true,
+                customClass: { popup: 'rounded-2xl' },
+            });
+            if (!confirmed.isConfirmed) return;
+
+            this.transferring = true;
+            try {
+                const data = await this.postJson(`{{ url('chef/schedule/transfer') }}`, {
+                    category_id: this.activeTab,
+                    date: this.scheduleDate,
+                });
+                if (data.success) {
+                    await this.reloadSchedule();
+                } else {
+                    Swal.fire({ title: this.strings.errorTitle, text: data.message, icon: 'error', customClass: { popup: 'rounded-2xl' } });
+                }
+            } finally {
+                this.transferring = false;
+            }
+        },
+
+        async advanceMeal(meal, action) {
+            const data = await this.postJson(`{{ url('chef/schedule/advance') }}`, {
+                category_id: this.activeTab,
+                action: action,
+                meal_id: meal.meal_id || null,
+                date: this.scheduleDate,
+            });
+            if (data.success) {
+                await this.reloadSchedule();
+            } else {
+                Swal.fire({ title: this.strings.errorTitle, text: data.message, icon: 'error', customClass: { popup: 'rounded-2xl' } });
+            }
+        },
+
+        async reloadSchedule() {
+            // Full reload keeps the server-rendered schedule/production
+            // data (and every other tab's counts) in sync after a
+            // transfer or status change.
+            window.location.reload();
         },
 
         async doStartPreparing() {
