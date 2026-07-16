@@ -382,6 +382,9 @@
 </div>
 
 @push('scripts')
+@php
+$assignableOrderIds = collect($deliveries)->whereIn('status', ['pending', 'scheduled', 'assigned'])->pluck('order_id')->values();
+@endphp
 <script>
     function deliveryManager() {
         return {
@@ -400,7 +403,7 @@
             bulkAssigning: false,
             bulkAssignError: '',
             bulkAssignSuccess: '',
-            allAssignableOrderIds: @json(collect($deliveries)->whereIn('status', ['pending', 'scheduled', 'assigned'])->pluck('order_id')->values()),
+            allAssignableOrderIds: @json($assignableOrderIds),
             driverForm: {
                 id: null,
                 first_name: '',
