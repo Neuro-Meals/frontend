@@ -46,6 +46,7 @@
         .timeframe-tab { transition: all 0.25s ease; }
         html, body { height: 100%; }
         .safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 0px); }
+        [x-cloak] { display: none !important; }
     </style>
     @stack('styles')
 </head>
