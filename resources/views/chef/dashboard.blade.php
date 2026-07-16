@@ -149,34 +149,71 @@
 
             <div class="space-y-2">
                 <template x-for="meal in activeProductionMeals" :key="meal.meal_id ?? meal.meal_name">
-                    <div class="p-3 rounded-xl border border-gray-100 bg-gray-50/40">
-                        <div class="flex items-center justify-between gap-2 mb-2">
-                            <span class="text-sm font-bold text-gray-800 truncate" x-text="meal.meal_name"></span>
-                            <span class="px-2.5 py-1 rounded-full bg-brand-700 text-white text-[11px] font-bold flex-shrink-0" x-text="'×' + meal.total_required"></span>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-1.5 mb-2">
-                            <span x-show="meal.pending" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-gray-200 text-gray-600" x-text="meal.pending + ' {{ __('pending') }}'"></span>
-                            <span x-show="meal.sent_to_kitchen" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-amber-100 text-amber-700" x-text="meal.sent_to_kitchen + ' {{ __('sent') }}'"></span>
-                            <span x-show="meal.preparing" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-blue-100 text-blue-700" x-text="meal.preparing + ' {{ __('preparing') }}'"></span>
-                            <span x-show="meal.ready" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-green-100 text-green-700" x-text="meal.ready + ' {{ __('ready') }}'"></span>
-                            <span x-show="meal.served" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-emerald-100 text-emerald-700" x-text="meal.served + ' {{ __('served') }}'"></span>
-                        </div>
-                        <div x-show="meal.ingredients?.length" class="flex flex-wrap items-center gap-1 mb-2">
-                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide">{{ __('Ingredients') }}:</span>
-                            <template x-for="ing in meal.ingredients" :key="ing">
-                                <span class="px-1.5 py-0.5 rounded-full bg-white border border-gray-200 text-[10px] text-gray-600" x-text="ing"></span>
-                            </template>
-                        </div>
-                        <div x-show="meal.allergens?.length" class="flex flex-wrap items-center gap-1 mb-2">
-                            <span class="text-[9px] font-bold text-red-400 uppercase tracking-wide">{{ __('Allergens') }}:</span>
-                            <template x-for="a in meal.allergens" :key="a">
-                                <span class="px-1.5 py-0.5 rounded-full bg-red-50 border border-red-100 text-[10px] text-red-600" x-text="a"></span>
-                            </template>
-                        </div>
-                        <div class="flex gap-2">
-                            <button x-show="meal.sent_to_kitchen > 0" @click="advanceMeal(meal, 'start_preparing')" class="btn-action flex-1 py-2 rounded-lg bg-blue-600 text-white text-[11px] font-bold">{{ __('Start Preparing') }}</button>
-                            <button x-show="meal.preparing > 0" @click="advanceMeal(meal, 'mark_ready')" class="btn-action flex-1 py-2 rounded-lg bg-green-600 text-white text-[11px] font-bold">{{ __('Mark Ready') }}</button>
-                            <button x-show="meal.ready > 0" @click="advanceMeal(meal, 'mark_served')" class="btn-action flex-1 py-2 rounded-lg bg-emerald-700 text-white text-[11px] font-bold">{{ __('Mark Served') }}</button>
+                    <div class="rounded-xl border border-gray-100 bg-gray-50/40 overflow-hidden">
+                        <button @click="toggleMeal(meal)" type="button" class="w-full p-3 text-left">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-9 h-9 rounded-lg bg-white border border-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                                    <img x-show="meal.image_url" :src="meal.image_url" class="w-full h-full object-cover" alt="">
+                                    <svg x-show="!meal.image_url" class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-sm font-bold text-gray-800 truncate block" x-text="meal.meal_name"></span>
+                                    <span class="text-[10px] text-gray-400" x-text="(meal.customers?.length ?? 0) + ' {{ __('customers') }}'"></span>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full bg-brand-700 text-white text-[11px] font-bold flex-shrink-0" x-text="'×' + meal.total_required"></span>
+                                <svg class="w-4 h-4 text-gray-400 transition-transform flex-shrink-0" :class="isMealOpen(meal) ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <span x-show="meal.pending" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-gray-200 text-gray-600" x-text="meal.pending + ' {{ __('pending') }}'"></span>
+                                <span x-show="meal.sent_to_kitchen" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-amber-100 text-amber-700" x-text="meal.sent_to_kitchen + ' {{ __('sent') }}'"></span>
+                                <span x-show="meal.preparing" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-blue-100 text-blue-700" x-text="meal.preparing + ' {{ __('preparing') }}'"></span>
+                                <span x-show="meal.ready" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-green-100 text-green-700" x-text="meal.ready + ' {{ __('ready') }}'"></span>
+                                <span x-show="meal.served" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-emerald-100 text-emerald-700" x-text="meal.served + ' {{ __('served') }}'"></span>
+                            </div>
+                        </button>
+
+                        <div x-show="isMealOpen(meal)"
+                            x-transition:enter="transition ease-out duration-150"
+                            x-transition:enter-start="opacity-0 -translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            class="px-3 pb-3" style="display: none;">
+                            <div x-show="meal.ingredients?.length" class="flex flex-wrap items-center gap-1 mb-2">
+                                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide">{{ __('Ingredients') }}:</span>
+                                <template x-for="ing in meal.ingredients" :key="ing">
+                                    <span class="px-1.5 py-0.5 rounded-full bg-white border border-gray-200 text-[10px] text-gray-600" x-text="ing"></span>
+                                </template>
+                            </div>
+                            <div x-show="meal.allergens?.length" class="flex flex-wrap items-center gap-1 mb-2">
+                                <span class="text-[9px] font-bold text-red-400 uppercase tracking-wide">{{ __('Allergens') }}:</span>
+                                <template x-for="a in meal.allergens" :key="a">
+                                    <span class="px-1.5 py-0.5 rounded-full bg-red-50 border border-red-100 text-[10px] text-red-600" x-text="a"></span>
+                                </template>
+                            </div>
+
+                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">
+                                {{ __('Customers') }} (<span x-text="meal.customers?.length ?? 0"></span>)
+                            </p>
+                            <div class="space-y-1.5 max-h-56 overflow-y-auto pr-1 mb-3">
+                                <template x-for="c in meal.customers" :key="c.order_id">
+                                    <div class="flex items-center justify-between gap-2 bg-white rounded-lg px-2.5 py-1.5 border border-gray-100">
+                                        <div class="min-w-0">
+                                            <p class="text-[11px] font-bold text-gray-800 truncate" x-text="c.customer_name"></p>
+                                            <p class="text-[9px] text-gray-400 truncate" x-text="(c.order_number || ('#' + c.order_id)) + (c.address ? (' · ' + c.address) : '')"></p>
+                                        </div>
+                                        <div class="flex items-center gap-1.5 flex-shrink-0">
+                                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full capitalize" :class="itemStatusClass(c.item_status)" x-text="c.item_status?.replaceAll('_',' ')"></span>
+                                            <span class="text-[11px] font-bold text-gray-700" x-text="'×' + c.quantity"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                                <div x-show="!meal.customers?.length" class="text-[11px] text-gray-400 text-center py-2">{{ __('No customers found.') }}</div>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <button x-show="meal.sent_to_kitchen > 0" @click="advanceMeal(meal, 'start_preparing')" class="btn-action flex-1 py-2 rounded-lg bg-blue-600 text-white text-[11px] font-bold">{{ __('Start Preparing') }}</button>
+                                <button x-show="meal.preparing > 0" @click="advanceMeal(meal, 'mark_ready')" class="btn-action flex-1 py-2 rounded-lg bg-green-600 text-white text-[11px] font-bold">{{ __('Mark Ready') }}</button>
+                                <button x-show="meal.ready > 0" @click="advanceMeal(meal, 'mark_served')" class="btn-action flex-1 py-2 rounded-lg bg-emerald-700 text-white text-[11px] font-bold">{{ __('Mark Served') }}</button>
+                            </div>
                         </div>
                     </div>
                 </template>
@@ -424,6 +461,7 @@ function chefShift() {
         activeTab: '',
         dropdownOpen: false,
         transferring: false,
+        openMeals: [],
         walkthrough: { open: false, index: 0 },
 
         strings: {
@@ -507,6 +545,31 @@ function chefShift() {
 
         get activeProductionMeals() {
             return this.activeSchedule.production?.meals || [];
+        },
+
+        mealKey(meal) {
+            return meal.meal_id ?? meal.meal_name;
+        },
+
+        toggleMeal(meal) {
+            const key = this.mealKey(meal);
+            const idx = this.openMeals.indexOf(key);
+            if (idx === -1) this.openMeals.push(key);
+            else this.openMeals.splice(idx, 1);
+        },
+
+        isMealOpen(meal) {
+            return this.openMeals.includes(this.mealKey(meal));
+        },
+
+        itemStatusClass(status) {
+            return {
+                'bg-gray-100 text-gray-500': status === 'pending',
+                'bg-amber-100 text-amber-700': status === 'sent_to_kitchen',
+                'bg-blue-100 text-blue-700': status === 'preparing',
+                'bg-green-100 text-green-700': status === 'ready',
+                'bg-emerald-100 text-emerald-700': status === 'served',
+            };
         },
 
         get progressPercent() {

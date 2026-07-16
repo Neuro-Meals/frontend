@@ -372,5 +372,7 @@
     "Yes, Claim": "نعم، اطلب",
     "Load claimed. It is now in your deliveries.": "تم طلب الحمل. أصبح الآن ضمن توصيلاتك.",
     "Failed to claim this load — it may already be taken.": "فشل طلب هذا الحمل — ربما تم طلبه بالفعل.",
-    "Browse and claim ready orders near you": "تصفح واطلب الطلبات الجاهزة القريبة منك"
+    "Browse and claim ready orders near you": "تصفح واطلب الطلبات الجاهزة القريبة منك",
+    "customers": "عملاء",
+    "Sent to kitchen, preparing, or ready — tap a dish to see ingredients and who ordered it.": "أُرسل للمطبخ، قيد التحضير، أو جاهز — اضغط على أي طبق لرؤية المكونات ومن طلبه."
 }
