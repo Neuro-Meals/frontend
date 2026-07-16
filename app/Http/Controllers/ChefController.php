@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\Api\AuthApiService;
 use App\Services\Api\ChefApiService;
 use App\Services\Api\HasApiData;
+use App\Services\Api\MealApiService;
 use App\Services\Api\NotificationApiService;
 use Illuminate\Http\Request;
 
@@ -23,7 +24,7 @@ class ChefController extends Controller
         });
     }
 
-    public function dashboard(ChefApiService $chefApi, NotificationApiService $notificationApi)
+    public function dashboard(ChefApiService $chefApi, NotificationApiService $notificationApi, MealApiService $mealApi)
     {
         $dashboardResponse = $chefApi->dashboard();
 
@@ -187,6 +188,48 @@ class ChefController extends Controller
                     'icon' => $getIconForName($categoryMap[$catId]),
                     'count' => $categoryCounts[$catId],
                 ];
+            }
+        }
+
+        // Fetch all meal categories from API so the dropdown can show
+        // categories that have no orders yet.
+        $allCategoriesData = $this->apiData($mealApi->categoriesList(['limit' => 100]), fn () => []);
+
+        $allCategories = [];
+        if (is_array($allCategoriesData)) {
+            foreach ($allCategoriesData as $cat) {
+                $catId = $cat['id'] ?? 0;
+                $catName = $cat['name_en'] ?? ($cat['name_ar'] ?? __('Uncategorized'));
+                $allCategories[$catId] = [
+                    'id' => $catId,
+                    'name' => $catName,
+                    'icon' => $getIconForName($catName),
+                    'count' => 0,
+                ];
+            }
+        }
+
+        // Merge: start with all API categories, then update counts from order-based categories
+        $existingCatIds = array_column($categories, 'id');
+        foreach ($categories as $orderCat) {
+            if (isset($allCategories[$orderCat['id']])) {
+                $allCategories[$orderCat['id']]['count'] = $orderCat['count'];
+            } else {
+                // Category exists in orders but not in API list — add it
+                $allCategories[$orderCat['id']] = $orderCat;
+            }
+        }
+
+        // Sort all categories by meal-time rank
+        $allCategoryList = array_values($allCategories);
+        usort($allCategoryList, fn($a, $b) => $getMealTimeRank($a['name']) <=> $getMealTimeRank($b['name']));
+
+        $categories = $allCategoryList;
+
+        // Ensure categorizedOrders and tabSummaries have entries for all categories
+        foreach ($categories as $cat) {
+            if (!isset($categorizedOrders[$cat['id']])) {
+                $categorizedOrders[$cat['id']] = [];
             }
         }
 

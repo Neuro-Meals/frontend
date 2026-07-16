@@ -58,7 +58,7 @@
         {{-- ============ MEAL-TIME TABS + DROPDOWN ============ --}}
         <div class="flex gap-2 items-stretch animate-slide-up animate-delay-1">
             <div class="bg-white rounded-2xl p-1.5 shadow-md border border-gray-100 flex gap-1 overflow-x-auto flex-1">
-                <template x-for="cat in categories" :key="cat.id">
+                <template x-for="cat in categories.filter(c => c.count > 0)" :key="cat.id">
                     <button @click="switchTab(cat.id)"
                         :class="activeTab === cat.id ? 'bg-gradient-to-r from-brand-700 to-brand-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'"
                         class="tab-pill flex-1 min-w-[76px] py-2.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 whitespace-nowrap">
