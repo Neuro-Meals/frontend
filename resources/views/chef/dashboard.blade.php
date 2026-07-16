@@ -1,278 +1,158 @@
 @extends('layouts.chef')
 
-@section('title', __('Chef Dashboard') . ' - ' . __('Nutrio Meals'))
+@section('title', 'شفت المطبخ - Nutrio Meals')
 
 @section('content')
-@php
-$user = app(\App\Services\Api\AuthApiService::class)->user() ?? [];
-$chefName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: ($user['email'] ?? 'Chef');
-$today = date('l, M j');
-@endphp
+<div x-data="chefShift()" x-init="init()" x-cloak class="pb-10">
 
-<div x-data="chefDashboard()" x-init="init()" x-cloak class="pb-4">
-    {{-- Header --}}
-    <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white p-5 rounded-b-3xl shadow-lg shadow-[#6E7A25]/20 animate-slide-up">
-        <div class="flex items-center justify-between mb-4">
-            <div>
-                <p class="text-xs text-white/70 mb-0.5">{{ __('Good day, Chef') }}</p>
-                <h1 class="text-lg font-bold">{{ $chefName }}</h1>
-                <p class="text-[10px] text-white/60 mt-0.5">{{ $today }}</p>
+    {{-- ============ HEADER ============ --}}
+    <div class="relative bg-gradient-to-br from-brand-700 to-brand-800 text-white px-5 pt-5 pb-9 rounded-b-[2rem] shadow-lg shadow-brand-700/30 overflow-hidden animate-slide-up">
+        <div class="absolute inset-0 bg-diamond opacity-[0.06]"></div>
+
+        <div class="relative flex items-center justify-between mb-6">
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="w-10 h-10 rounded-full bg-white/10 border border-white/15 flex items-center justify-center hover:bg-white/20 transition-colors" title="تسجيل الخروج">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                </button>
+            </form>
+
+            <div class="flex flex-col items-center">
+                <div class="flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-brand-300" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8 6 6 9 6 13a6 6 0 0012 0c0-4-2-7-6-11z"/></svg>
+                    <span class="font-extrabold tracking-wide text-sm">NUTRIO</span>
+                </div>
+                <span class="text-[8px] tracking-[0.35em] text-white/60">MEALS</span>
             </div>
-            <div class="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center border border-white/20">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+
+            <div class="relative w-10 h-10 rounded-full bg-white/10 border border-white/15 flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                @if(count($notifications) > 0)
+                <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-400 pulse-dot"></span>
+                @endif
             </div>
         </div>
 
-        {{-- KPI Cards --}}
-        <div class="grid grid-cols-3 gap-3">
-            <div class="bg-white/10 backdrop-blur rounded-2xl p-3 border border-white/10 animate-slide-up animate-delay-1">
-                <div class="flex items-center gap-1.5 mb-1">
-                    <div class="w-2 h-2 rounded-full bg-white/60 pulse-dot"></div>
-                    <span class="text-[10px] text-white/70">{{ __('Total') }}</span>
-                </div>
-                <p class="text-xl font-bold" x-text="stats.total_today">{{ $stats['total_today'] }}</p>
+        <div class="relative flex items-center justify-between">
+            <div>
+                <p class="text-white/70 text-xs mb-1 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    المطبخ
+                </p>
+                <h1 class="text-2xl font-extrabold" x-text="activeLabel"></h1>
             </div>
-            <div class="bg-white/10 backdrop-blur rounded-2xl p-3 border border-white/10 animate-slide-up animate-delay-2">
-                <div class="flex items-center gap-1.5 mb-1">
-                    <div class="w-2 h-2 rounded-full bg-amber-300"></div>
-                    <span class="text-[10px] text-white/70">{{ __('Pending') }}</span>
-                </div>
-                <p class="text-xl font-bold" x-text="stats.pending">{{ $stats['pending'] }}</p>
-            </div>
-            <div class="bg-white/10 backdrop-blur rounded-2xl p-3 border border-white/10 animate-slide-up animate-delay-3">
-                <div class="flex items-center gap-1.5 mb-1">
-                    <div class="w-2 h-2 rounded-full bg-green-300"></div>
-                    <span class="text-[10px] text-white/70">{{ __('Done') }}</span>
-                </div>
-                <p class="text-xl font-bold" x-text="stats.completed">{{ $stats['completed'] }}</p>
+            <div class="w-14 h-14 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center animate-float">
+                <template x-if="activeIcon === 'sunrise'"><svg class="w-7 h-7 text-brand-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v2m-4.5 3.5L6 6m9 0l1.5-1.5M4 12H2m20 0h-2M6.343 17.657L4.929 19.071M19.071 19.071l-1.414-1.414M12 18a6 6 0 00-6-6 6 6 0 006 6 6 6 0 006-6 6 6 0 00-6 6z"/></svg></template>
+                <template x-if="activeIcon === 'sun'"><svg class="w-7 h-7 text-amber-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg></template>
+                <template x-if="activeIcon === 'moon'"><svg class="w-7 h-7 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg></template>
+                <template x-if="!['sunrise','sun','moon'].includes(activeIcon)"><svg class="w-7 h-7 text-brand-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h1a4 4 0 100-8h-1M3 8h1a4 4 0 110 8H3m5-4a4 4 0 100-8 4 4 0 000 8z"/></svg></template>
             </div>
         </div>
     </div>
 
-    <div class="p-4 space-y-4">
-        {{-- Secondary KPI Cards --}}
-        <div class="grid grid-cols-4 gap-2">
-            <div class="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 text-center">
-                <p class="text-[9px] text-gray-400 mb-0.5">{{ __('Preparing') }}</p>
-                <p class="text-lg font-bold text-[#6E7A25]">{{ $stats['preparing'] }}</p>
-            </div>
-            <div class="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 text-center">
-                <p class="text-[9px] text-gray-400 mb-0.5">{{ __('Ready') }}</p>
-                <p class="text-lg font-bold text-green-600">{{ $stats['ready'] }}</p>
-            </div>
-            <div class="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 text-center">
-                <p class="text-[9px] text-gray-400 mb-0.5">{{ __('Drivers') }}</p>
-                <p class="text-lg font-bold text-blue-600">{{ $stats['available_drivers'] }}</p>
-            </div>
-            <div class="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 text-center">
-                <p class="text-[9px] text-gray-400 mb-0.5">{{ __('Cancelled') }}</p>
-                <p class="text-lg font-bold text-red-500">{{ $stats['cancelled'] }}</p>
-            </div>
-        </div>
+    <div class="px-4 -mt-4 relative z-10 space-y-4">
 
-        {{-- Status mini bar --}}
-        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between animate-slide-up animate-delay-2">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-400">{{ __('Today\'s Schedule') }}</p>
-                    <p class="text-sm font-bold text-gray-900">{{ $stats['total_today'] }} {{ __('orders to prepare') }}</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="relative flex h-3 w-3">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6E7A25] opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3 w-3 bg-[#6E7A25]"></span>
-                </span>
-                <span class="text-xs font-bold text-[#173327]">{{ __('On Duty') }}</span>
-            </div>
-        </div>
-
-        {{-- Tab Navigation (meal time tabs + summary) --}}
-        <div class="bg-white rounded-2xl p-1.5 shadow-sm border border-gray-100 flex gap-1 overflow-x-auto">
+        {{-- ============ MEAL-TIME TABS ============ --}}
+        <div class="bg-white rounded-2xl p-1.5 shadow-md border border-gray-100 flex gap-1 overflow-x-auto animate-slide-up animate-delay-1">
             <template x-for="cat in categories" :key="cat.id">
-                <button @click="switchTab('cat_' + cat.id)"
-                    :class="activeTab === 'cat_' + cat.id ? 'bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white shadow-md shadow-[#6E7A25]/20' : 'text-gray-500 hover:bg-gray-50'"
-                    class="flex-1 min-w-[80px] py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all whitespace-nowrap">
-                    <template x-if="cat.icon === 'sunrise'"><svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v2m-4.5 3.5L6 6m9 0l1.5-1.5M4 12H2m20 0h-2M6.343 17.657L4.929 19.071M19.071 19.071l-1.414-1.414M12 18a6 6 0 00-6-6 6 6 0 006 6 6 6 0 006-6 6 6 0 00-6 6z"/></svg></template>
-                    <template x-if="cat.icon === 'sun'"><svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg></template>
-                    <template x-if="cat.icon === 'moon'"><svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg></template>
-                    <template x-if="cat.icon === 'cookie'"><svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h1a4 4 0 100-8h-1M3 8h1a4 4 0 110 8H3m5-4a4 4 0 100-8 4 4 0 000 8z"/></svg></template>
-                    <template x-if="cat.icon === 'dots'"><svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01"/></svg></template>
-                    <template x-if="cat.icon === 'dot'"><svg class="w-2 h-2 flex-shrink-0 rounded-full bg-current"></svg></template>
-                    <span x-text="cat.name"></span>
-                    <span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold" :class="activeTab === 'cat_' + cat.id ? 'bg-white/20' : 'bg-gray-100'" x-text="cat.count"></span>
+                <button @click="switchTab(cat.id)"
+                    :class="activeTab === cat.id ? 'bg-gradient-to-r from-brand-700 to-brand-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'"
+                    class="tab-pill flex-1 min-w-[76px] py-2.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 whitespace-nowrap">
+                    <span x-text="arabicLabel(cat)"></span>
+                    <span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold" :class="activeTab === cat.id ? 'bg-white/20' : 'bg-gray-100'" x-text="cat.count"></span>
                 </button>
             </template>
-            <button @click="switchTab('summary')"
-                :class="activeTab === 'summary' ? 'bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white shadow-md shadow-[#6E7A25]/20' : 'text-gray-500 hover:bg-gray-50'"
-                class="flex-1 min-w-[80px] py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all whitespace-nowrap">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                {{ __('Summary') }}
-            </button>
         </div>
 
-        {{-- Orders by Category Tab (Alpine filtered) --}}
-        <template x-if="activeTab !== 'summary'">
-            <div class="space-y-3">
-                {{-- Section header --}}
-                <div class="flex items-center gap-2 mb-1">
-                    <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    </div>
-                    <h2 class="text-sm font-bold text-gray-900">
-                        <span x-text="activeCategoryName"></span>
-                    </h2>
-                    <span class="text-[10px] text-gray-400" x-text="filteredOrders.length + ' {{ __('orders') }}'"></span>
+        {{-- ============ STAT CARDS ============ --}}
+        <div class="grid grid-cols-2 gap-3 animate-slide-up animate-delay-2">
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 card-hover">
+                <div class="w-11 h-11 rounded-full bg-brand-50 flex items-center justify-center mb-2">
+                    <svg class="w-5 h-5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 100-8 4 4 0 000 8zm6 0a4 4 0 10-3-6.65"/></svg>
                 </div>
-
-                {{-- Empty state --}}
-                <template x-if="filteredOrders.length === 0">
-                    <div class="bg-white rounded-2xl p-6 text-center border border-gray-100 shadow-sm">
-                        <div class="w-14 h-14 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-3">
-                            <svg class="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                        </div>
-                        <p class="text-sm text-gray-500" x-text="'{{ __('No orders in') }} ' + activeCategoryName"></p>
-                    </div>
-                </template>
-
-                {{-- Order cards rendered by Alpine --}}
-                <template x-for="order in filteredOrders" :key="order.id">
-                    <div class="meal-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up">
-                        <div class="flex items-start justify-between mb-3">
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs font-bold text-gray-900 truncate" x-text="order.order_number"></p>
-                                <p class="text-[10px] text-gray-400 mt-0.5" x-text="order.customer + ' · ' + order.time"></p>
-                            </div>
-                            <span class="px-2 py-1 rounded-full text-[10px] font-semibold border flex-shrink-0 ml-2"
-                                  x-text="order.status_label"
-                                  :class="{
-                                    'bg-indigo-50 text-indigo-700 border-indigo-200': order.status === 'scheduled',
-                                    'bg-blue-50 text-blue-700 border-blue-200': order.status === 'pending',
-                                    'bg-cyan-50 text-cyan-700 border-cyan-200': order.status === 'confirmed',
-                                    'bg-amber-50 text-amber-700 border-amber-200': order.status === 'preparing',
-                                    'bg-green-50 text-green-700 border-green-200': order.status === 'ready_for_delivery',
-                                    'bg-purple-50 text-purple-700 border-purple-200': order.status === 'out_for_delivery',
-                                    'bg-gray-50 text-gray-500 border-gray-200': order.status === 'delivered',
-                                    'bg-red-50 text-red-600 border-red-200': order.status === 'cancelled'
-                                  }"></span>
-                        </div>
-
-                        <div class="flex items-start gap-2 mb-2">
-                            <svg class="w-4 h-4 text-[#6E7A25] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                            <p class="text-xs text-gray-700 leading-relaxed flex-1" x-text="order.meal_summary"></p>
-                        </div>
-
-                        <div class="flex items-center gap-3 mb-2 flex-wrap">
-                            <div class="flex items-center gap-1.5" x-show="order.meal_count > 0">
-                                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                                <span class="text-[10px] font-semibold text-gray-600" x-text="order.meal_count + ' {{ __('items') }}'"></span>
-                            </div>
-                            <div class="flex items-center gap-1.5" x-show="order.total_calories > 0">
-                                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                <span class="text-[10px] font-semibold text-gray-600" x-text="order.total_calories + ' kcal'"></span>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                <span class="text-[10px] font-semibold text-gray-600" x-text="Number(order.total_amount).toFixed(2) + ' SAR'"></span>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-2 mb-2" x-show="order.delivery_address">
-                            <svg class="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            <p class="text-[10px] text-gray-500 leading-relaxed flex-1" x-text="order.delivery_address"></p>
-                        </div>
-
-                        <div class="flex items-start gap-2 mb-3 bg-amber-50 p-2 rounded-lg border border-amber-100" x-show="order.delivery_notes">
-                            <svg class="w-3.5 h-3.5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                            <p class="text-[10px] text-amber-800 leading-tight flex-1 italic" x-text="order.delivery_notes"></p>
-                        </div>
-
-                        {{-- Action buttons --}}
-                        <template x-if="!['delivered','cancelled','out_for_delivery','scheduled'].includes(order.status)">
-                            <div class="grid grid-cols-1 gap-2 mt-3">
-                                <template x-if="['pending','confirmed'].includes(order.status)">
-                                    <button type="button"
-                                        @click="startPreparing(order.id)"
-                                        class="btn-action w-full py-2.5 rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-xs font-bold shadow-md shadow-[#6E7A25]/20 flex items-center justify-center gap-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                        {{ __('Start Preparing') }}
-                                    </button>
-                                </template>
-                                <template x-if="order.status === 'preparing'">
-                                    <button type="button"
-                                        @click="markReady(order.id)"
-                                        class="btn-action w-full py-2.5 rounded-xl bg-green-600 text-white text-xs font-bold shadow-md shadow-green-600/20 flex items-center justify-center gap-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                        {{ __('Mark as Ready') }}
-                                    </button>
-                                </template>
-                                <template x-if="order.status === 'ready_for_delivery'">
-                                    <div class="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-green-50 border border-green-100">
-                                        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        <span class="text-[10px] font-bold text-green-600">{{ __('Ready for delivery') }}</span>
-                                    </div>
-                                </template>
-                            </div>
-                        </template>
-
-                        <div class="flex items-center justify-center gap-1.5 mt-2 pt-3 border-t border-gray-50" x-show="order.status === 'delivered'">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span class="text-[10px] font-bold text-gray-400">{{ __('Order delivered') }}</span>
-                        </div>
-                    </div>
-                </template>
+                <p class="text-2xl font-extrabold text-gray-900" x-text="activeSummary.customers"></p>
+                <p class="text-xs text-gray-400 font-semibold">عميل</p>
             </div>
-        </template>
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 card-hover">
+                <div class="w-11 h-11 rounded-full bg-brand-50 flex items-center justify-center mb-2">
+                    <svg class="w-5 h-5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+                <p class="text-2xl font-extrabold text-gray-900" x-text="activeSummary.total_meals"></p>
+                <p class="text-xs text-gray-400 font-semibold">إجمالي الوجبات</p>
+            </div>
+        </div>
 
-        {{-- Summary Tab --}}
-        <template x-if="activeTab === 'summary'">
-            <div class="space-y-4">
-
-        {{-- Meals Summary --}}
-        @if(count($mealsSummary) > 0)
+        {{-- ============ QUANTITIES NEEDED ============ --}}
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up animate-delay-3">
-            <h2 class="text-sm font-bold text-gray-900 mb-3">{{ __('Today\'s Meal Summary') }}</h2>
-            <div class="space-y-2">
-                @foreach($mealsSummary as $meal)
-                <div class="flex items-center justify-between p-2.5 rounded-xl bg-gray-50/50">
-                    <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            <h2 class="text-sm font-bold text-gray-900 mb-3">الكميات المطلوبة</h2>
+            <template x-if="activeSummary.dishes.length === 0">
+                <p class="text-xs text-gray-400 text-center py-4">لا توجد أصناف لهذا الشفت بعد.</p>
+            </template>
+            <div class="space-y-1">
+                <template x-for="(dish, i) in activeSummary.dishes" :key="dish.name">
+                    <div class="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 rounded-xl bg-brand-50 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            </div>
+                            <span class="text-sm font-medium text-gray-800 truncate" x-text="dish.name"></span>
                         </div>
-                        <span class="text-xs font-medium text-gray-900">{{ $meal['meal_name'] ?? 'Unknown' }}</span>
+                        <span class="px-2.5 py-1 rounded-full bg-brand-700 text-white text-[11px] font-bold flex-shrink-0" x-text="'x' + dish.quantity"></span>
                     </div>
-                    <span class="px-2.5 py-1 rounded-full bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-[10px] font-bold">x{{ $meal['quantity'] ?? 1 }}</span>
-                </div>
-                @endforeach
+                </template>
             </div>
         </div>
-        @endif
 
-        {{-- Allergy Alerts --}}
+        {{-- ============ PROGRESS + REMAINING ============ --}}
+        <div class="grid grid-cols-2 gap-3 animate-slide-up animate-delay-4">
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                <p class="text-[10px] text-gray-400 font-semibold mb-2">تقدم التحضير</p>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-lg font-extrabold text-brand-700" x-text="progressPercent + '%'"></span>
+                </div>
+                <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="progress-fill h-full bg-gradient-to-r from-brand-600 to-brand-700 rounded-full" :style="'width:' + progressPercent + '%'"></div>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                <p class="text-[10px] text-gray-400 font-semibold mb-2">متبقٍ للتحضير</p>
+                <p class="text-lg font-extrabold text-gray-900"><span x-text="activeSummary.pending + activeSummary.preparing"></span> <span class="text-xs font-semibold text-gray-400">من <span x-text="activeSummary.customers"></span></span></p>
+            </div>
+        </div>
+
+        {{-- ============ OPEN PREP LIST BUTTON ============ --}}
+        <button @click="openWalkthrough()" class="btn-action w-full flex items-center justify-between gap-3 bg-gradient-to-l from-brand-700 to-brand-600 text-white rounded-2xl p-4 shadow-md shadow-brand-700/20 animate-slide-up animate-delay-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-bold">قائمة التحضير التفصيلية</p>
+                    <p class="text-[10px] text-white/70">اضغط لعرض خطوات التحضير لكل صنف</p>
+                </div>
+            </div>
+            <svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" transform="rotate(180 12 12)"/></svg>
+        </button>
+
+        {{-- ============ ALLERGY ALERTS ============ --}}
         @if(count($allergyCustomers) > 0)
-        <div class="bg-red-50 rounded-2xl p-4 shadow-sm border border-red-100 animate-slide-up animate-delay-3">
+        <div class="bg-red-50 rounded-2xl p-4 shadow-sm border border-red-100 animate-slide-up">
             <div class="flex items-center gap-2 mb-3">
-                <div class="w-7 h-7 rounded-lg bg-red-100 flex items-center justify-center">
+                <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
                     <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 </div>
-                <h2 class="text-sm font-bold text-red-900">{{ __('Allergy Alerts') }}</h2>
+                <h2 class="text-sm font-bold text-red-900">تنبيهات الحساسية</h2>
             </div>
             <div class="space-y-2">
                 @foreach($allergyCustomers as $customer)
-                <div class="flex items-start gap-2 p-2.5 rounded-xl bg-white border border-red-100">
+                <div class="flex items-start justify-between gap-2 p-2.5 rounded-xl bg-white border border-red-100">
                     <div class="min-w-0 flex-1">
-                        <p class="text-xs font-bold text-gray-900">{{ $customer['full_name'] ?? 'Unknown' }}</p>
+                        <p class="text-xs font-bold text-gray-900">{{ $customer['full_name'] ?? 'غير معروف' }}</p>
                         <div class="flex flex-wrap gap-1 mt-1">
                             @foreach($customer['allergies'] ?? [] as $allergy)
                             <span class="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[9px] font-bold">{{ $allergy }}</span>
                             @endforeach
                         </div>
-                        @if(!empty($customer['phone']))
-                        <p class="text-[10px] text-gray-400 mt-1">{{ $customer['phone'] }}</p>
-                        @endif
                     </div>
                 </div>
                 @endforeach
@@ -280,14 +160,14 @@ $today = date('l, M j');
         </div>
         @endif
 
-        {{-- Notifications --}}
+        {{-- ============ NOTIFICATIONS ============ --}}
         @if(count($notifications) > 0)
-        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up animate-delay-3">
-            <h2 class="text-sm font-bold text-gray-900 mb-3">{{ __('Notifications') }}</h2>
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up">
+            <h2 class="text-sm font-bold text-gray-900 mb-3">الإشعارات</h2>
             <div class="space-y-3">
                 @foreach($notifications as $notification)
-                <div class="flex items-start gap-3 p-3 rounded-xl {{ $notification['is_read'] ? 'bg-gray-50' : 'bg-[#173327]/5 border border-[#6E7A25]/20' }}">
-                    <div class="w-8 h-8 rounded-full {{ $notification['is_read'] ? 'bg-gray-100 text-gray-400' : 'bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white' }} flex items-center justify-center flex-shrink-0">
+                <div class="flex items-start gap-3 p-3 rounded-xl {{ $notification['is_read'] ? 'bg-gray-50' : 'bg-brand-50 border border-brand-100' }}">
+                    <div class="w-8 h-8 rounded-full {{ $notification['is_read'] ? 'bg-gray-100 text-gray-400' : 'bg-brand-700 text-white' }} flex items-center justify-center flex-shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                     </div>
                     <div class="min-w-0">
@@ -299,109 +179,290 @@ $today = date('l, M j');
             </div>
         </div>
         @endif
+    </div>
+
+    {{-- ============ PREP WALKTHROUGH OVERLAY ============ --}}
+    <div x-show="walkthrough.open" x-cloak class="fixed inset-0 z-50 bg-brand-50 overflow-y-auto" x-transition:enter="animate-fade-in">
+        <div class="max-w-3xl mx-auto px-4 pt-5 pb-10">
+
+            {{-- Overlay top bar --}}
+            <div class="flex items-center gap-3 mb-4 animate-slide-up">
+                <button @click="closeWalkthrough()" class="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" transform="rotate(180 12 12)"/></svg>
+                </button>
+                <div class="flex-1 bg-white rounded-2xl px-4 py-2.5 shadow-sm border border-gray-100">
+                    <p class="text-xs font-bold text-gray-900" x-text="activeLabel + ' · قائمة التحضير'"></p>
+                    <template x-if="!walkthroughDone">
+                        <p class="text-[10px] text-gray-400">طلب <span x-text="walkthrough.index + 1"></span> من <span x-text="activeOrders.length"></span> · متبقي <span x-text="activeOrders.length - walkthrough.index - 1"></span></p>
+                    </template>
+                </div>
             </div>
-        </template>
+
+            {{-- Progress bar --}}
+            <template x-if="!walkthroughDone">
+                <div class="h-2 bg-gray-200 rounded-full overflow-hidden mb-5 animate-slide-up animate-delay-1">
+                    <div class="progress-fill h-full bg-gradient-to-r from-brand-600 to-brand-700 rounded-full" :style="'width:' + walkthroughPercent + '%'"></div>
+                </div>
+            </template>
+
+            {{-- Empty state --}}
+            <template x-if="activeOrders.length === 0">
+                <div class="bg-white rounded-2xl p-8 text-center border border-gray-100 shadow-sm animate-slide-up">
+                    <p class="text-sm text-gray-500">لا توجد طلبات في هذا الشفت.</p>
+                </div>
+            </template>
+
+            {{-- Completed celebration --}}
+            <template x-if="activeOrders.length > 0 && walkthroughDone">
+                <div class="bg-white rounded-3xl p-8 text-center shadow-lg border border-gray-100 animate-pop-in">
+                    <div class="w-20 h-20 rounded-full bg-brand-50 flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-10 h-10 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <h2 class="text-xl font-extrabold text-brand-700 mb-1">أحسنت! 🎉</h2>
+                    <p class="text-sm text-gray-500 mb-6">تم تجهيز جميع وجبات <span x-text="activeLabel"></span> بنجاح.</p>
+                    <div class="grid grid-cols-3 gap-3 mb-6">
+                        <div class="bg-brand-50 rounded-xl p-3">
+                            <p class="text-lg font-extrabold text-gray-900" x-text="activeSummary.customers"></p>
+                            <p class="text-[10px] text-gray-500">الإجمالي</p>
+                        </div>
+                        <div class="bg-green-50 rounded-xl p-3">
+                            <p class="text-lg font-extrabold text-green-600" x-text="readyCount"></p>
+                            <p class="text-[10px] text-gray-500">جاهز</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-xl p-3">
+                            <p class="text-lg font-extrabold text-gray-400">0</p>
+                            <p class="text-[10px] text-gray-500">متبقي</p>
+                        </div>
+                    </div>
+                    <button @click="closeWalkthrough()" class="btn-action w-full py-3 rounded-xl bg-brand-700 text-white text-sm font-bold shadow-md">إغلاق</button>
+                </div>
+            </template>
+
+            {{-- Current order prep card --}}
+            <template x-if="currentOrder">
+                <div class="space-y-4 animate-pop-in" :key="currentOrder.id">
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="min-w-0">
+                                <p class="text-base font-extrabold text-gray-900 truncate" x-text="currentOrder.customer"></p>
+                                <p class="text-[11px] text-gray-400 mt-0.5">#<span x-text="currentOrder.id"></span> &nbsp;|&nbsp; <span x-text="currentOrder.order_number"></span></p>
+                            </div>
+                            <div class="w-12 h-12 rounded-full bg-brand-50 flex items-center justify-center text-brand-700 font-bold flex-shrink-0" x-text="currentOrder.customer.charAt(0)"></div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500">
+                            <span class="flex items-center gap-1" x-show="currentOrder.delivery_address">
+                                <svg class="w-3.5 h-3.5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <span x-text="currentOrder.delivery_address"></span>
+                            </span>
+                            <span class="flex items-center gap-1" x-show="currentOrder.customer_phone">
+                                <svg class="w-3.5 h-3.5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                <span x-text="currentOrder.customer_phone"></span>
+                            </span>
+                        </div>
+                        <template x-if="currentOrder.delivery_notes">
+                            <div class="flex items-start gap-2 mt-3 bg-amber-50 p-2.5 rounded-xl border border-amber-100">
+                                <svg class="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                <p class="text-xs text-amber-800 italic" x-text="currentOrder.delivery_notes"></p>
+                            </div>
+                        </template>
+                    </div>
+
+                    {{-- Items to prepare --}}
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">الأصناف المطلوب تجهيزها</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <template x-for="(item, idx) in currentOrder.items" :key="idx">
+                                <div class="bg-brand-50/60 rounded-xl p-3 border border-brand-100 text-center">
+                                    <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center mx-auto mb-2 shadow-sm">
+                                        <svg class="w-4 h-4 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                    </div>
+                                    <p class="text-xs font-bold text-gray-800 leading-tight" x-text="item.meal_name || item.name || 'صنف'"></p>
+                                    <p class="text-[11px] text-brand-700 font-semibold mt-0.5" x-text="'× ' + (item.quantity || 1)"></p>
+                                </div>
+                            </template>
+                            <template x-if="!currentOrder.items || currentOrder.items.length === 0">
+                                <p class="col-span-2 text-xs text-gray-400 text-center py-2">لا توجد تفاصيل أصناف لهذا الطلب.</p>
+                            </template>
+                        </div>
+                    </div>
+
+                    {{-- Status + Actions --}}
+                    <div class="flex items-center justify-center gap-2">
+                        <span class="px-3 py-1 rounded-full text-[11px] font-bold" :class="statusBadgeClass(currentOrder.status)" x-text="currentOrder.status_label"></span>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-2">
+                        <template x-if="['pending','confirmed','scheduled'].includes(currentOrder.status)">
+                            <button @click="doStartPreparing()" class="btn-action w-full py-3.5 rounded-2xl bg-gradient-to-l from-brand-700 to-brand-600 text-white text-sm font-bold shadow-md shadow-brand-700/20 flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                بدء التحضير
+                            </button>
+                        </template>
+                        <template x-if="currentOrder.status === 'preparing'">
+                            <button @click="doMarkReady()" class="btn-action w-full py-3.5 rounded-2xl bg-green-600 text-white text-sm font-bold shadow-md shadow-green-600/20 flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                تم تجهيز الوجبة
+                            </button>
+                        </template>
+                        <template x-if="['ready_for_delivery','out_for_delivery','delivered'].includes(currentOrder.status)">
+                            <button @click="goNext()" class="btn-action w-full py-3.5 rounded-2xl bg-gray-100 text-gray-700 text-sm font-bold flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                جاهزة بالفعل — التالي
+                            </button>
+                        </template>
+                    </div>
+
+                    <p class="text-center text-[10px] text-gray-400">اضغط بعد الانتهاء من الوزن والتجهيز للانتقال للعميل التالي</p>
+
+                    {{-- Prev / Next --}}
+                    <div class="flex items-center justify-between pt-2">
+                        <button @click="goPrev()" :disabled="walkthrough.index === 0" class="flex items-center gap-1 text-xs font-bold text-gray-500 disabled:opacity-30 disabled:cursor-not-allowed">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            السابق
+                        </button>
+                        <button @click="goNext()" class="flex items-center gap-1 text-xs font-bold text-brand-700">
+                            التالي
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" transform="rotate(180 12 12)"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </template>
+        </div>
     </div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
-function chefDashboard() {
+function chefShift() {
     return {
-        stats: @json($stats),
         categories: @json($categories),
-        allOrders: @json(collect($categorizedOrders)->flatten(1)->values()),
+        tabSummaries: @json($tabSummaries),
+        ordersByTab: @json($categorizedOrders),
         activeTab: '',
-        loading: false,
+        walkthrough: { open: false, index: 0 },
+
+        arabicMap: {
+            breakfast: { label: 'شفت الفطور', icon: 'sunrise' },
+            lunch: { label: 'شفت الغداء', icon: 'sun' },
+            dinner: { label: 'شفت العشاء', icon: 'moon' },
+            snacks: { label: 'سناكس', icon: 'cookie' },
+            other: { label: 'أخرى', icon: 'dots' },
+        },
 
         init() {
-            // Set first category as default tab
             if (this.categories.length > 0) {
-                const saved = localStorage.getItem('chef_active_tab');
-                if (saved && this.isValidTab(saved)) {
-                    this.activeTab = saved;
-                } else {
-                    this.activeTab = 'cat_' + this.categories[0].id;
-                }
-            } else {
-                this.activeTab = 'summary';
+                const withOrders = this.categories.find(c => c.count > 0);
+                this.activeTab = withOrders ? withOrders.id : this.categories[0].id;
             }
         },
 
-        isValidTab(tab) {
-            if (tab === 'summary') return true;
-            return this.categories.some(c => 'cat_' + c.id === tab);
+        switchTab(id) {
+            this.activeTab = id;
         },
 
-        switchTab(tab) {
-            this.activeTab = tab;
-            localStorage.setItem('chef_active_tab', tab);
+        arabicLabel(cat) {
+            return this.arabicMap[cat.id] ? this.arabicMap[cat.id].label.replace('شفت ', '') : cat.name;
         },
 
-        get activeCategoryId() {
-            if (!this.activeTab.startsWith('cat_')) return null;
-            return this.activeTab.replace('cat_', '');
+        get activeLabel() {
+            const found = this.arabicMap[this.activeTab];
+            return found ? found.label : 'شفت المطبخ';
         },
 
-        get activeCategoryName() {
-            const cat = this.categories.find(c => c.id === this.activeCategoryId);
-            return cat ? cat.name : '';
+        get activeIcon() {
+            const found = this.arabicMap[this.activeTab];
+            return found ? found.icon : 'dot';
         },
 
-        get filteredOrders() {
-            const catId = this.activeCategoryId;
-            if (catId === null) return [];
-            return this.allOrders.filter(o => o.primary_category_id === catId);
+        get activeSummary() {
+            return this.tabSummaries[this.activeTab] || { customers: 0, total_meals: 0, ready: 0, preparing: 0, pending: 0, dishes: [] };
         },
 
-        async startPreparing(orderId) {
-            if (this.loading) return;
-            this.loading = true;
-            try {
-                const res = await fetch('{{ route('chef.orders.start_preparing', '__ID__') }}'.replace('__ID__', orderId), {
-                    method: 'POST',
-                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                });
-                const data = await res.json();
-                if (data.success) {
-                    const order = this.allOrders.find(o => o.id === orderId);
-                    if (order) {
-                        order.status = 'preparing';
-                        order.status_label = '{{ __('Preparing') }}';
-                    }
-                } else {
-                    alert(data.message || '{{ __('Failed to start preparation.') }}');
-                }
-            } catch (e) {
-                alert('{{ __('Network error. Please try again.') }}');
-            } finally {
-                this.loading = false;
+        get activeOrders() {
+            return this.ordersByTab[this.activeTab] || [];
+        },
+
+        get progressPercent() {
+            const s = this.activeSummary;
+            if (!s.customers) return 0;
+            return Math.round((s.ready / s.customers) * 100);
+        },
+
+        get readyCount() {
+            return this.activeOrders.filter(o => ['ready_for_delivery', 'out_for_delivery', 'delivered'].includes(o.status)).length;
+        },
+
+        openWalkthrough() {
+            const firstPending = this.activeOrders.findIndex(o => !['ready_for_delivery', 'out_for_delivery', 'delivered'].includes(o.status));
+            this.walkthrough.index = firstPending === -1 ? 0 : firstPending;
+            this.walkthrough.open = true;
+        },
+
+        closeWalkthrough() {
+            this.walkthrough.open = false;
+        },
+
+        get walkthroughDone() {
+            return this.activeOrders.length > 0 && this.walkthrough.index >= this.activeOrders.length;
+        },
+
+        get walkthroughPercent() {
+            if (this.activeOrders.length === 0) return 0;
+            return Math.round((this.walkthrough.index / this.activeOrders.length) * 100);
+        },
+
+        get currentOrder() {
+            if (this.walkthroughDone) return null;
+            return this.activeOrders[this.walkthrough.index] || null;
+        },
+
+        goNext() {
+            if (this.walkthrough.index < this.activeOrders.length) this.walkthrough.index++;
+        },
+
+        goPrev() {
+            if (this.walkthrough.index > 0) this.walkthrough.index--;
+        },
+
+        statusBadgeClass(status) {
+            return {
+                'bg-blue-50 text-blue-700': ['pending', 'confirmed', 'scheduled'].includes(status),
+                'bg-amber-50 text-amber-700': status === 'preparing',
+                'bg-green-50 text-green-700': ['ready_for_delivery', 'out_for_delivery', 'delivered'].includes(status),
+            };
+        },
+
+        async doStartPreparing() {
+            const order = this.currentOrder;
+            if (!order) return;
+            const ok = await chefAction(`{{ url('chef/orders') }}/${order.id}/start-preparing`, {
+                title: 'بدء تحضير هذا الطلب؟',
+                text: 'سيتم تعليم الطلب كقيد التحضير في المطبخ.',
+                confirmText: 'نعم، ابدأ',
+                icon: 'question',
+            });
+            if (ok) {
+                order.status = 'preparing';
+                order.status_label = 'قيد التحضير';
             }
         },
 
-        async markReady(orderId) {
-            if (this.loading) return;
-            this.loading = true;
-            try {
-                const res = await fetch('{{ route('chef.orders.mark_ready', '__ID__') }}'.replace('__ID__', orderId), {
-                    method: 'POST',
-                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                });
-                const data = await res.json();
-                if (data.success) {
-                    const order = this.allOrders.find(o => o.id === orderId);
-                    if (order) {
-                        order.status = 'ready_for_delivery';
-                        order.status_label = '{{ __('Ready for Delivery') }}';
-                    }
-                } else {
-                    alert(data.message || '{{ __('Failed to mark as ready.') }}');
-                }
-            } catch (e) {
-                alert('{{ __('Network error. Please try again.') }}');
-            } finally {
-                this.loading = false;
+        async doMarkReady() {
+            const order = this.currentOrder;
+            if (!order) return;
+            const ok = await chefAction(`{{ url('chef/orders') }}/${order.id}/mark-ready`, {
+                title: 'تم تجهيز الوجبة؟',
+                text: 'تأكد من وزن وتعبئة جميع الأصناف قبل المتابعة.',
+                confirmText: 'نعم، جاهزة',
+                icon: 'success',
+                confirmColor: '#16a34a',
+            });
+            if (ok) {
+                order.status = 'ready_for_delivery';
+                order.status_label = 'جاهزة للتوصيل';
+                this.activeSummary.ready++;
+                setTimeout(() => this.goNext(), 350);
             }
         },
     };
