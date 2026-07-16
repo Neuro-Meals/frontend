@@ -89,8 +89,12 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button @click="editPlan(plan)" class="flex-1 px-3 py-2 text-xs font-bold text-white rounded-lg transition-all hover:opacity-90" :style="`background: ${plan.color};`">
-                            {{ __('Edit Plan') }}
+                        <a :href="'{{ url('admin/plans') }}/' + plan.id + '/menu'" class="flex-1 px-3 py-2 text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-lg transition-all hover:shadow-md flex items-center justify-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            {{ __('Menu') }}
+                        </a>
+                        <button @click="editPlan(plan)" class="px-3 py-2 text-xs font-bold text-white rounded-lg transition-all hover:opacity-90" :style="`background: ${plan.color};`">
+                            {{ __('Edit') }}
                         </button>
                         <button @click="viewPlan(plan)" class="px-3 py-2 text-xs font-medium text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                             {{ __('View') }}

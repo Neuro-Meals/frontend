@@ -19,6 +19,11 @@ class ChefApiService extends BaseApiService
         return $this->get('chef.orders_today', [], $includeCompleted ? ['include_completed' => 'true'] : []);
     }
 
+    public function ordersTodayGrouped(bool $includeCompleted = false): array
+    {
+        return $this->get('chef.orders_today_grouped', [], $includeCompleted ? ['include_completed' => 'true'] : []);
+    }
+
     public function ordersTomorrow(bool $includeCompleted = false): array
     {
         return $this->get('chef.orders_tomorrow', [], $includeCompleted ? ['include_completed' => 'true'] : []);

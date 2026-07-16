@@ -159,6 +159,11 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
     Route::get('/plans/{id}', [AdminController::class, 'showPlan'])->name('plans.show');
     Route::put('/plans/{id}', [AdminController::class, 'updatePlan'])->name('plans.update');
     Route::delete('/plans/{id}', [AdminController::class, 'destroyPlan'])->name('plans.destroy');
+    // Plan Weekly Menu Builder
+    Route::get('/plans/{id}/menu', [AdminController::class, 'planMenu'])->name('plans.menu');
+    Route::post('/plans/{id}/menu', [AdminController::class, 'storeMenuItem'])->name('plans.menu.store');
+    Route::patch('/plans/menu/{id}', [AdminController::class, 'updateMenuItem'])->name('plans.menu.update');
+    Route::delete('/plans/menu/{id}', [AdminController::class, 'destroyMenuItem'])->name('plans.menu.destroy');
     Route::get('/meals', [AdminController::class, 'meals'])->name('meals');
     Route::post('/meals', [AdminController::class, 'storeMeal'])->name('meals.store');
     Route::get('/meals/{id}', [AdminController::class, 'showMeal'])->name('meals.show');

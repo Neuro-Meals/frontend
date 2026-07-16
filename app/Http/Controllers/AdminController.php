@@ -15,6 +15,7 @@ use App\Services\Api\NotificationApiService;
 use App\Services\Api\OrderApiService;
 use App\Services\Api\PaymentApiService;
 use App\Services\Api\PlanApiService;
+use App\Services\Api\PlanMenuApiService;
 use App\Services\Api\ReportsApiService;
 use App\Services\Api\SubscriptionApiService;
 use App\Services\Api\HasApiData;
@@ -652,6 +653,158 @@ class AdminController extends Controller
         }
 
         return back()->withErrors(['general' => $message]);
+    }
+
+    // ─── Plan Weekly Menu Builder ───
+
+    public function planMenu(int $id, PlanApiService $planApi, PlanMenuApiService $menuApi, MealApiService $mealApi)
+    {
+        $plan = $this->apiData($planApi->show($id), fn () => []);
+
+        if (empty($plan) || !isset($plan['id'])) {
+            return redirect()->route('admin.plans')->with('error', __('Plan not found.'));
+        }
+
+        $weeklyData = $this->apiData($menuApi->weekly($id), fn () => [
+            'plan_id' => $id,
+            'plan_name' => $plan['name_en'] ?? $plan['name'] ?? 'Plan',
+            'days' => [],
+        ]);
+
+        $mealsData = $this->apiData($mealApi->list(['limit' => 200]), fn () => []);
+        $meals = [];
+        foreach ($mealsData as $meal) {
+            $meals[] = [
+                'id' => $meal['id'] ?? 0,
+                'name' => $meal['name_en'] ?? ($meal['name'] ?? 'Meal'),
+                'category_id' => $meal['category_id'] ?? 0,
+                'calories' => $meal['calories'] ?? 0,
+                'image_url' => $meal['image_url'] ?? null,
+                'is_available' => $meal['is_available'] ?? true,
+            ];
+        }
+
+        $categoriesData = $this->apiData($mealApi->categoriesList(), fn () => []);
+        $categories = [];
+        foreach ($categoriesData as $cat) {
+            $categories[] = [
+                'id' => $cat['id'] ?? 0,
+                'name' => $cat['name_en'] ?? ($cat['name'] ?? 'Category'),
+                'name_ar' => $cat['name_ar'] ?? null,
+                'is_active' => $cat['is_active'] ?? true,
+            ];
+        }
+
+        $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        $weeklyDays = $weeklyData['days'] ?? [];
+        $daysMap = [];
+        foreach ($weeklyDays as $dayData) {
+            $daysMap[$dayData['day_of_week']] = $dayData['categories'] ?? [];
+        }
+        $normalizedDays = [];
+        foreach ($days as $day) {
+            $normalizedDays[] = [
+                'day_of_week' => $day,
+                'categories' => $daysMap[$day] ?? [],
+            ];
+        }
+
+        return view('admin.plan-menu', compact('plan', 'normalizedDays', 'meals', 'categories'));
+    }
+
+    public function storeMenuItem(Request $request, PlanMenuApiService $menuApi)
+    {
+        $validated = $request->validate([
+            'plan_id' => ['required', 'integer', 'min:1'],
+            'meal_id' => ['required', 'integer', 'min:1'],
+            'category_id' => ['required', 'integer', 'min:1'],
+            'day_of_week' => ['required', 'string', 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday'],
+            'quantity' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $payload = [
+            'plan_id' => (int) $validated['plan_id'],
+            'meal_id' => (int) $validated['meal_id'],
+            'category_id' => (int) $validated['category_id'],
+            'day_of_week' => $validated['day_of_week'],
+            'quantity' => (int) ($validated['quantity'] ?? 1),
+            'sort_order' => (int) ($validated['sort_order'] ?? 0),
+        ];
+
+        $response = $this->apiData($menuApi->create($payload), fn () => []);
+
+        if (empty($response) || !empty($response['error']) || !isset($response['id'])) {
+            $message = $response['detail'] ?? $response['message'] ?? 'Failed to add menu item.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
+            return back()->with('error', $message)->withInput();
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Menu item added successfully.', 'item' => $response]);
+        }
+        return back()->with('status', 'Menu item added successfully.');
+    }
+
+    public function updateMenuItem(Request $request, int $id, PlanMenuApiService $menuApi)
+    {
+        $validated = $request->validate([
+            'meal_id' => ['nullable', 'integer', 'min:1'],
+            'category_id' => ['nullable', 'integer', 'min:1'],
+            'day_of_week' => ['nullable', 'string', 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday'],
+            'quantity' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $payload = [];
+        foreach ($validated as $key => $value) {
+            if ($value !== null) {
+                $payload[$key] = $key === 'is_active' ? (bool) $value : (is_int($validated[$key]) ? (int) $value : $value);
+            }
+        }
+
+        if (empty($payload)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'No fields to update.'], 422);
+            }
+            return back()->with('error', 'No fields to update.');
+        }
+
+        $response = $this->apiData($menuApi->update($id, $payload), fn () => []);
+
+        if (empty($response) || !empty($response['error'])) {
+            $message = $response['detail'] ?? $response['message'] ?? 'Failed to update menu item.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
+            return back()->with('error', $message)->withInput();
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Menu item updated successfully.', 'item' => $response]);
+        }
+        return back()->with('status', 'Menu item updated successfully.');
+    }
+
+    public function destroyMenuItem(int $id, PlanMenuApiService $menuApi)
+    {
+        $response = $this->apiData($menuApi->delete($id), fn () => []);
+
+        if (empty($response) || !empty($response['error'])) {
+            $message = $response['detail'] ?? $response['message'] ?? 'Failed to delete menu item.';
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
+            return back()->with('error', $message);
+        }
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Menu item deleted successfully.']);
+        }
+        return back()->with('status', 'Menu item deleted successfully.');
     }
 
     public function showSubscription(int $id, SubscriptionApiService $subscriptionApi)

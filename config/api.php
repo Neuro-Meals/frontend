@@ -112,6 +112,15 @@ return [
             'items_remove'   => '/plans/{plan_id}/items/{item_id}',
         ],
 
+        // ─── Plan Weekly Menus ───
+        'plan_menus' => [
+            'create'         => '/plan-menus/',
+            'weekly'         => '/plan-menus/plan/{plan_id}/weekly',
+            'list'           => '/plan-menus/plan/{plan_id}',
+            'update'         => '/plan-menus/{menu_item_id}',
+            'delete'         => '/plan-menus/{menu_item_id}',
+        ],
+
         // ─── Subscriptions ───
         'subscriptions' => [
             'list'         => '/subscriptions/',
@@ -217,6 +226,7 @@ return [
             'dashboard'             => '/chef/dashboard',
             'orders'                => '/chef/orders',
             'orders_today'          => '/chef/orders/today',
+            'orders_today_grouped'  => '/chef/orders/today/grouped',
             'orders_tomorrow'       => '/chef/orders/tomorrow',
             'show_order'            => '/chef/orders/{order_id}',
             'start_preparing'       => '/chef/orders/{order_id}/start-preparing',
