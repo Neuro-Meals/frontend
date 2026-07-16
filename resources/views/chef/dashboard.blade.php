@@ -56,25 +56,27 @@
     <div class="px-4 -mt-4 relative z-10 space-y-4">
 
         {{-- ============ MEAL-TIME TABS + DROPDOWN ============ --}}
-        <div class="bg-white rounded-2xl p-1.5 shadow-md border border-gray-100 flex gap-1 overflow-x-auto animate-slide-up animate-delay-1">
-            <template x-for="cat in categories" :key="cat.id">
-                <button @click="switchTab(cat.id)"
-                    :class="activeTab === cat.id ? 'bg-gradient-to-r from-brand-700 to-brand-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'"
-                    class="tab-pill flex-1 min-w-[76px] py-2.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 whitespace-nowrap">
-                    <template x-if="cat.icon === 'sunrise'"><svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v2m-4.5 3.5L6 6m9 0l1.5-1.5M4 12H2m20 0h-2M6.343 17.657L4.929 19.071M19.071 19.071l-1.414-1.414M12 18a6 6 0 00-6-6 6 6 0 006 6 6 6 0 006-6 6 6 0 00-6 6z"/></svg></template>
-                    <template x-if="cat.icon === 'sun'"><svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg></template>
-                    <template x-if="cat.icon === 'moon'"><svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg></template>
-                    <template x-if="cat.icon === 'cookie'"><svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h1a4 4 0 100-8h-1M3 8h1a4 4 0 110 8H3m5-4a4 4 0 100-8 4 4 0 000 8z"/></svg></template>
-                    <template x-if="cat.icon === 'dots'"><svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01"/></svg></template>
-                    <span x-text="cat.name"></span>
-                    <span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold" :class="activeTab === cat.id ? 'bg-white/20' : 'bg-gray-100'" x-text="cat.count"></span>
-                </button>
-            </template>
+        <div class="flex gap-2 items-stretch animate-slide-up animate-delay-1">
+            <div class="bg-white rounded-2xl p-1.5 shadow-md border border-gray-100 flex gap-1 overflow-x-auto flex-1">
+                <template x-for="cat in categories" :key="cat.id">
+                    <button @click="switchTab(cat.id)"
+                        :class="activeTab === cat.id ? 'bg-gradient-to-r from-brand-700 to-brand-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'"
+                        class="tab-pill flex-1 min-w-[76px] py-2.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 whitespace-nowrap">
+                        <template x-if="cat.icon === 'sunrise'"><svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v2m-4.5 3.5L6 6m9 0l1.5-1.5M4 12H2m20 0h-2M6.343 17.657L4.929 19.071M19.071 19.071l-1.414-1.414M12 18a6 6 0 00-6-6 6 6 0 006 6 6 6 0 006-6 6 6 0 00-6 6z"/></svg></template>
+                        <template x-if="cat.icon === 'sun'"><svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg></template>
+                        <template x-if="cat.icon === 'moon'"><svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg></template>
+                        <template x-if="cat.icon === 'cookie'"><svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h1a4 4 0 100-8h-1M3 8h1a4 4 0 110 8H3m5-4a4 4 0 100-8 4 4 0 000 8z"/></svg></template>
+                        <template x-if="cat.icon === 'dots'"><svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01"/></svg></template>
+                        <span x-text="cat.name"></span>
+                        <span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold" :class="activeTab === cat.id ? 'bg-white/20' : 'bg-gray-100'" x-text="cat.count"></span>
+                    </button>
+                </template>
+            </div>
 
             {{-- Dropdown selector --}}
-            <div class="relative flex-shrink-0" x-data="{ dropdownOpen: false }">
+            <div class="relative flex-shrink-0">
                 <button @click="dropdownOpen = !dropdownOpen"
-                    class="flex items-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold text-gray-500 hover:bg-gray-50 transition-all whitespace-nowrap">
+                    class="h-full flex items-center gap-1.5 py-2.5 px-3 rounded-2xl text-xs font-bold text-gray-500 bg-white hover:bg-gray-50 border border-gray-100 shadow-md transition-all whitespace-nowrap">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     <span>{{ __('More') }}</span>
                 </button>
@@ -85,7 +87,7 @@
                     x-transition:leave="transition ease-in duration-75"
                     x-transition:leave-start="opacity-100 scale-100"
                     x-transition:leave-end="opacity-0 scale-95"
-                    class="absolute right-0 top-full mt-1 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-20 max-h-64 overflow-y-auto"
+                    class="absolute right-0 top-full mt-1 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-30 max-h-64 overflow-y-auto"
                     style="display: none;">
                     <template x-for="cat in categories" :key="cat.id">
                         <button @click="switchTab(cat.id); dropdownOpen = false"
@@ -382,6 +384,7 @@ function chefShift() {
         tabSummaries: @json($tabSummaries),
         ordersByTab: @json($categorizedOrders),
         activeTab: '',
+        dropdownOpen: false,
         walkthrough: { open: false, index: 0 },
 
         strings: {
