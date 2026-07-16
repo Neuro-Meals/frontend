@@ -40,32 +40,25 @@ class ChefController extends Controller
         $eveningOrders = [];
 
         $stats = [
-            'total_today' => 0,
+            'total_today' => $dashboardData['total_orders'] ?? 0,
             'morning' => 0,
             'noon' => 0,
             'evening' => 0,
-            'pending' => 0,
-            'preparing' => 0,
-            'ready' => 0,
-            'completed' => 0,
+            'pending' => ($dashboardData['pending_orders'] ?? 0) + ($dashboardData['confirmed_orders'] ?? 0),
+            'preparing' => $dashboardData['preparing_orders'] ?? 0,
+            'ready' => $dashboardData['ready_for_delivery_orders'] ?? 0,
+            'completed' => ($dashboardData['out_for_delivery_orders'] ?? 0) + ($dashboardData['delivered_orders'] ?? 0),
+            'cancelled' => $dashboardData['cancelled_orders'] ?? 0,
+            'available_drivers' => $dashboardData['available_drivers'] ?? 0,
+            'total_active_drivers' => $dashboardData['total_active_drivers'] ?? 0,
+            'deliveries_needed' => $dashboardData['deliveries_needed'] ?? 0,
         ];
 
         foreach ($ordersData as $order) {
             $item = $this->formatOrder($order);
             $timeframe = $item['timeframe'];
 
-            $stats['total_today']++;
             $stats[$timeframe]++;
-
-            if (in_array($item['status'], ['pending', 'confirmed'])) {
-                $stats['pending']++;
-            } elseif ($item['status'] === 'preparing') {
-                $stats['preparing']++;
-            } elseif ($item['status'] === 'ready_for_delivery') {
-                $stats['ready']++;
-            } elseif (in_array($item['status'], ['out_for_delivery', 'delivered'])) {
-                $stats['completed']++;
-            }
 
             match ($timeframe) {
                 'morning' => $morningOrders[] = $item,
