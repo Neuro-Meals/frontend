@@ -44,11 +44,11 @@
                 <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 </div>
-                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">{{ $stats['active'] }} {{ __('active') }}</span>
+                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full" x-text="stats.active + ' {{ __('active') }}'"></span>
             </div>
             <p class="text-xs text-white/60 font-medium mb-1">{{ __('Total Meals') }}</p>
-            <p class="text-2xl font-bold tracking-tight">{{ $stats['total'] }}</p>
-            <p class="text-xs text-white/50 mt-1">{{ $stats['active'] }} {{ __('active') }} · {{ $stats['draft'] }} {{ __('draft') }}</p>
+            <p class="text-2xl font-bold tracking-tight" x-text="stats.total"></p>
+            <p class="text-xs text-white/50 mt-1" x-text="stats.active + ' {{ __('active') }} · ' + stats.draft + ' {{ __('draft') }}'"></p>
         </div>
     </div>
     <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20" style="animation-delay: 0.2s;">
@@ -59,10 +59,10 @@
                 <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
                 </div>
-                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">{{ $stats['categories'] }}</span>
+                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full" x-text="stats.categories"></span>
             </div>
             <p class="text-xs text-white/60 font-medium mb-1">{{ __('Categories') }}</p>
-            <p class="text-2xl font-bold tracking-tight">{{ $stats['categories'] }}</p>
+            <p class="text-2xl font-bold tracking-tight" x-text="stats.categories"></p>
             <p class="text-xs text-white/50 mt-1">{{ __('meal categories') }}</p>
         </div>
     </div>
@@ -74,10 +74,10 @@
                 <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                 </div>
-                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">{{ number_format($stats['totalOrders']) }}</span>
+                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full" x-text="Number(stats.totalOrders).toLocaleString()"></span>
             </div>
             <p class="text-xs text-white/60 font-medium mb-1">{{ __('Total Orders') }}</p>
-            <p class="text-2xl font-bold tracking-tight">{{ number_format($stats['totalOrders']) }}</p>
+            <p class="text-2xl font-bold tracking-tight" x-text="Number(stats.totalOrders).toLocaleString()"></p>
             <p class="text-xs text-white/50 mt-1">{{ __('meals ordered') }}</p>
         </div>
     </div>
@@ -89,10 +89,10 @@
                 <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
                     <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                 </div>
-                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">{{ $stats['avgRating'] }}/5</span>
+                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full" x-text="stats.avgRating + '/5'"></span>
             </div>
             <p class="text-xs text-white/60 font-medium mb-1">{{ __('Avg Rating') }}</p>
-            <p class="text-2xl font-bold tracking-tight">{{ $stats['avgRating'] }}<span class="text-lg">/5</span></p>
+            <p class="text-2xl font-bold tracking-tight"><span x-text="stats.avgRating"></span><span class="text-lg">/5</span></p>
             <p class="text-xs text-white/50 mt-1">{{ __('customer rating') }}</p>
         </div>
     </div>
@@ -108,13 +108,13 @@
         </button>
     </div>
     <div class="flex flex-wrap gap-3">
-        @foreach($categories as $cat)
-        <div class="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-100 hover:shadow-sm transition-all">
-            <div class="w-3 h-3 rounded-full" style="background: {{ $cat['color'] }};"></div>
-            <span class="text-xs font-semibold text-gray-700">{{ $cat['name'] }}</span>
-            <span class="text-xs font-bold text-gray-900">{{ $cat['count'] }}</span>
-        </div>
-        @endforeach
+        <template x-for="cat in categories" :key="cat.id">
+            <div class="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-100 hover:shadow-sm transition-all">
+                <div class="w-3 h-3 rounded-full" :style="`background: ${cat.color};`"></div>
+                <span class="text-xs font-semibold text-gray-700" x-text="cat.name"></span>
+                <span class="text-xs font-bold text-gray-900" x-text="cat.count"></span>
+            </div>
+        </template>
     </div>
 </div>
 
@@ -315,9 +315,9 @@
                     <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Category') }} <span class="text-red-500">*</span></label>
                     <select name="category_id" x-model="form.category_id" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none bg-white">
                         <option value="">{{ __('Select category') }}</option>
-                        @foreach($categories as $cat)
-                        <option value="{{ $cat['id'] }}">{{ $cat['name'] }}</option>
-                        @endforeach
+                        <template x-for="cat in categories" :key="cat.id">
+                            <option :value="cat.id" x-text="cat.name"></option>
+                        </template>
                     </select>
                 </div>
                 <div>
@@ -439,11 +439,10 @@
         <p class="text-sm text-gray-500 mb-6">{{ __('Are you sure? This action cannot be undone.') }}</p>
         <div class="flex items-center justify-center gap-3">
             <button @click="deleteOpen = false" class="px-4 py-2 rounded-lg border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">{{ __('Cancel') }}</button>
-            <form :action="deleteAction" method="POST" class="inline">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-colors">{{ __('Delete') }}</button>
-            </form>
+            <button @click="deleteMeal()" :disabled="saving" class="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-60">
+                <span x-show="!saving">{{ __('Delete') }}</span>
+                <span x-show="saving">{{ __('Deleting...') }}</span>
+            </button>
         </div>
     </div>
 </div>
@@ -569,6 +568,7 @@
             viewMode: localStorage.getItem('mealsViewMode') || 'grid',
             meals: @json($meals),
             categories: @json($categories),
+            stats: @json($stats),
             form: {
                 name_en: '', name_ar: '', description_en: '', description_ar: '',
                 category_id: '', calories: '', protein_g: '', carbs_g: '', fat_g: '',
@@ -737,26 +737,122 @@
                 this.saving = true;
                 this.formError = '';
                 const form = e.target;
+                const isEdit = !!this.editingId;
+                const url = isEdit ? '{{ url('admin/meals') }}/' + this.editingId : '{{ route('admin.meals.store') }}';
+                const method = isEdit ? 'PUT' : 'POST';
+
+                const formData = new FormData(form);
+                if (isEdit) {
+                    formData.append('_method', 'PUT');
+                }
+
                 try {
-                    const res = await fetch(form.action, {
+                    const res = await fetch(url, {
                         method: 'POST',
-                        body: new FormData(form)
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        },
                     });
-                    if (res.redirected) {
-                        window.location.href = res.url;
-                        return;
-                    }
                     const data = await res.json();
                     if (data.success === false) {
                         this.formError = data.message || 'Validation failed.';
                     } else {
-                        window.location.href = '{{ route('admin.meals') }}';
+                        const m = data.meal || {};
+                        const cat = this.categories.find(c => c.id === parseInt(m.category_id || this.form.category_id));
+                        const mealObj = {
+                            id: m.id || (isEdit ? this.editingId : Date.now()),
+                            name: m.name_en || this.form.name_en,
+                            name_en: m.name_en || this.form.name_en,
+                            name_ar: m.name_ar || this.form.name_ar || '',
+                            description_en: m.description_en || this.form.description_en || '',
+                            description_ar: m.description_ar || this.form.description_ar || '',
+                            category_id: parseInt(m.category_id || this.form.category_id),
+                            category: cat ? cat.name : (m.category?.name_en || 'Uncategorized'),
+                            calories: m.calories || this.form.calories,
+                            protein: m.protein_g || this.form.protein_g,
+                            carbs: m.carbs_g || this.form.carbs_g,
+                            fat: m.fat_g || this.form.fat_g,
+                            fiber: m.fiber_g || this.form.fiber_g || 0,
+                            sugar: m.sugar_g || this.form.sugar_g || 0,
+                            sodium: m.sodium_mg || this.form.sodium_mg || 0,
+                            price: m.price || this.form.price,
+                            orders: m.orders_count || 0,
+                            rating: m.rating || 0,
+                            status: (m.is_available ?? (this.form.is_available === '1')) ? 'active' : 'draft',
+                            is_available: m.is_available ?? (this.form.is_available === '1'),
+                            image: m.image_url || this.form.image_url || '',
+                            ingredients: m.ingredients || [],
+                            allergens: m.allergens || [],
+                            diet_tags: m.diet_tags || [],
+                        };
+
+                        if (isEdit) {
+                            const idx = this.meals.findIndex(ml => ml.id === this.editingId);
+                            if (idx !== -1) {
+                                this.meals[idx] = mealObj;
+                            }
+                        } else {
+                            this.meals.unshift(mealObj);
+                        }
+
+                        this.recalculateCategoryCounts();
+                        this.recalculateStats();
+                        this.closeModal();
                     }
                 } catch (err) {
                     this.formError = 'Network error while saving.';
                 } finally {
                     this.saving = false;
                 }
+            },
+
+            async deleteMeal() {
+                if (!this.deleteId) return;
+                try {
+                    const res = await fetch('{{ url('admin/meals') }}/' + this.deleteId, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        },
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.meals = this.meals.filter(m => m.id !== this.deleteId);
+                        this.recalculateCategoryCounts();
+                        this.recalculateStats();
+                        this.deleteOpen = false;
+                        this.deleteId = null;
+                    } else {
+                        alert(data.message || 'Failed to delete meal.');
+                    }
+                } catch (err) {
+                    alert('Network error while deleting.');
+                }
+            },
+
+            recalculateCategoryCounts() {
+                this.categories.forEach(cat => {
+                    cat.count = this.meals.filter(m => m.category_id === cat.id).length;
+                });
+            },
+
+            recalculateStats() {
+                const activeMeals = this.meals.filter(m => m.status === 'active').length;
+                const totalOrders = this.meals.reduce((sum, m) => sum + (m.orders || 0), 0);
+                const ratedMeals = this.meals.filter(m => m.rating > 0);
+                const avgRating = ratedMeals.length > 0 ? (ratedMeals.reduce((sum, m) => sum + m.rating, 0) / ratedMeals.length).toFixed(1) : 0;
+                this.stats = {
+                    total: this.meals.length,
+                    active: activeMeals,
+                    draft: this.meals.length - activeMeals,
+                    categories: this.categories.length,
+                    avgRating: avgRating,
+                    totalOrders: totalOrders,
+                };
             },
 
             // ─── Category Management Methods ───
@@ -821,9 +917,36 @@
                     const data = await res.json();
                     if (data.success) {
                         this.categorySuccess = data.message || 'Category saved successfully.';
+                        const catData = data.category || data.data || {};
+                        if (isEdit) {
+                            const idx = this.categories.findIndex(c => c.id === this.categoryForm.id);
+                            if (idx !== -1) {
+                                this.categories[idx].name = catData.name_en || this.categoryForm.name_en;
+                                this.categories[idx].name_en = catData.name_en || this.categoryForm.name_en;
+                                this.categories[idx].name_ar = catData.name_ar || this.categoryForm.name_ar || '';
+                                this.categories[idx].description = catData.description || this.categoryForm.description || '';
+                                this.categories[idx].is_active = catData.is_active ?? this.categoryForm.is_active;
+                                this.meals.forEach(m => {
+                                    if (m.category_id === this.categoryForm.id) {
+                                        m.category = this.categories[idx].name;
+                                    }
+                                });
+                            }
+                        } else {
+                            const colors = ['#173327', '#8b5cf6', '#3b82f6', '#f9ac00', '#033133'];
+                            this.categories.push({
+                                id: catData.id || Date.now(),
+                                name: catData.name_en || this.categoryForm.name_en,
+                                name_en: catData.name_en || this.categoryForm.name_en,
+                                name_ar: catData.name_ar || this.categoryForm.name_ar || '',
+                                description: catData.description || this.categoryForm.description || '',
+                                is_active: catData.is_active ?? true,
+                                count: 0,
+                                color: colors[this.categories.length % colors.length],
+                            });
+                        }
+                        this.recalculateStats();
                         this.resetCategoryForm();
-                        // Reload page to refresh categories
-                        setTimeout(() => window.location.reload(), 1000);
                     } else {
                         this.categoryError = data.message || 'Failed to save category.';
                     }
@@ -849,9 +972,10 @@
                     });
                     const data = await res.json();
                     if (data.success) {
+                        this.categories = this.categories.filter(c => c.id !== this.categoryDeleteTarget.id);
                         this.categoryDeleteOpen = false;
                         this.categoryDeleteTarget = null;
-                        setTimeout(() => window.location.reload(), 500);
+                        this.recalculateStats();
                     } else {
                         this.categoryError = data.message || 'Failed to delete category.';
                         this.categoryDeleteOpen = false;
