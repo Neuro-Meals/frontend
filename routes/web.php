@@ -164,6 +164,11 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
     Route::post('/plans/{id}/menu', [AdminController::class, 'storeMenuItem'])->name('plans.menu.store');
     Route::patch('/plans/menu/{id}', [AdminController::class, 'updateMenuItem'])->name('plans.menu.update');
     Route::delete('/plans/menu/{id}', [AdminController::class, 'destroyMenuItem'])->name('plans.menu.destroy');
+
+    // Kitchen Schedule (item-level transfer, not whole-order)
+    Route::get('/schedule', [AdminController::class, 'schedule'])->name('schedule');
+    Route::get('/schedule/data', [AdminController::class, 'scheduleData'])->name('schedule.data');
+    Route::post('/schedule/transfer', [AdminController::class, 'transferSchedule'])->name('schedule.transfer');
     Route::get('/meals', [AdminController::class, 'meals'])->name('meals');
     Route::post('/meals', [AdminController::class, 'storeMeal'])->name('meals.store');
     Route::get('/meals/{id}', [AdminController::class, 'showMeal'])->name('meals.show');

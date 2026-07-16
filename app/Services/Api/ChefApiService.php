@@ -99,4 +99,57 @@ class ChefApiService extends BaseApiService
         }
         return $this->get('chef.ready_for_delivery', [], $query);
     }
+
+    // ─── Kitchen Schedule (item-level workflow) ───
+
+    public function scheduleCategories(?string $date = null): array
+    {
+        $query = $date ? ['date' => $date] : [];
+        return $this->get('schedule.categories', [], $query);
+    }
+
+    public function productionRequirements(?string $date = null, ?int $categoryId = null): array
+    {
+        $query = [];
+        if ($date) {
+            $query['date'] = $date;
+        }
+        if ($categoryId) {
+            $query['category_id'] = $categoryId;
+        }
+        return $this->get('schedule.production_requirements', [], $query);
+    }
+
+    public function kitchenQueue(?string $date = null, ?int $categoryId = null): array
+    {
+        $query = [];
+        if ($date) {
+            $query['date'] = $date;
+        }
+        if ($categoryId) {
+            $query['category_id'] = $categoryId;
+        }
+        return $this->get('schedule.kitchen_queue', [], $query);
+    }
+
+    public function transferSchedule(string $deliveryDate, int $categoryId): array
+    {
+        return $this->post('schedule.transfer', [], [
+            'delivery_date' => $deliveryDate,
+            'category_id' => $categoryId,
+        ]);
+    }
+
+    public function advanceSchedule(string $deliveryDate, int $categoryId, string $action, ?int $mealId = null): array
+    {
+        $data = [
+            'delivery_date' => $deliveryDate,
+            'category_id' => $categoryId,
+            'action' => $action,
+        ];
+        if ($mealId) {
+            $data['meal_id'] = $mealId;
+        }
+        return $this->patch('schedule.advance', [], $data);
+    }
 }

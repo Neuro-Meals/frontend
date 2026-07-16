@@ -807,6 +807,98 @@ class AdminController extends Controller
         return back()->with('status', 'Menu item deleted successfully.');
     }
 
+    /**
+     * Kitchen Schedule: today's orders organized by time-period
+     * (meal category), with item-level "Transfer to Kitchen" instead
+     * of transferring whole orders. Distinct from the Weekly Plan
+     * Menu builder above, which only edits the recurring template.
+     */
+    public function schedule(Request $request, ChefApiService $chefApi)
+    {
+        $date = $request->query('date') ?: date('Y-m-d');
+
+        $categoriesData = $this->apiData($chefApi->scheduleCategories($date), fn () => ['categories' => []]);
+        $categories = $categoriesData['categories'] ?? [];
+
+        $selectedCategoryId = (int) ($request->query('category_id') ?: 0);
+        if (!$selectedCategoryId && !empty($categories)) {
+            $withPending = collect($categories)->first(fn ($c) => ($c['pending'] ?? 0) > 0);
+            $selectedCategoryId = (int) ($withPending['category_id'] ?? $categories[0]['category_id'] ?? 0);
+        }
+
+        $productionData = $selectedCategoryId
+            ? $this->apiData($chefApi->productionRequirements($date, $selectedCategoryId), fn () => ['meals' => []])
+            : ['meals' => []];
+
+        $kitchenQueueData = $selectedCategoryId
+            ? $this->apiData($chefApi->kitchenQueue($date, $selectedCategoryId), fn () => ['meals' => [], 'totals' => []])
+            : ['meals' => [], 'totals' => []];
+
+        return view('admin.schedule', [
+            'date' => $date,
+            'categories' => $categories,
+            'selectedCategoryId' => $selectedCategoryId,
+            'production' => $productionData,
+            'kitchenQueue' => $kitchenQueueData,
+        ]);
+    }
+
+    /**
+     * AJAX refresh when switching schedule tab / date without a full
+     * page reload.
+     */
+    public function scheduleData(Request $request, ChefApiService $chefApi)
+    {
+        $date = $request->query('date') ?: date('Y-m-d');
+        $categoryId = (int) $request->query('category_id', 0);
+
+        $categoriesData = $this->apiData($chefApi->scheduleCategories($date), fn () => ['categories' => []]);
+        $productionData = $categoryId
+            ? $this->apiData($chefApi->productionRequirements($date, $categoryId), fn () => ['meals' => []])
+            : ['meals' => []];
+        $kitchenQueueData = $categoryId
+            ? $this->apiData($chefApi->kitchenQueue($date, $categoryId), fn () => ['meals' => [], 'totals' => []])
+            : ['meals' => [], 'totals' => []];
+
+        return response()->json([
+            'success' => true,
+            'categories' => $categoriesData['categories'] ?? [],
+            'production' => $productionData,
+            'kitchen_queue' => $kitchenQueueData,
+        ]);
+    }
+
+    /**
+     * Transfer only the items belonging to one schedule (category) to
+     * the kitchen. Does NOT transfer whole orders -- an order with
+     * Tea/Chapati/Rice/Beef/Juice only sends Tea+Chapati here when
+     * the Morning schedule is transferred; the rest stay pending
+     * until their own schedule is transferred.
+     */
+    public function transferSchedule(Request $request, ChefApiService $chefApi)
+    {
+        $validated = $request->validate([
+            'date' => ['required', 'date'],
+            'category_id' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $response = $this->apiData(
+            $chefApi->transferSchedule($validated['date'], (int) $validated['category_id']),
+            fn () => []
+        );
+
+        if (empty($response) || !empty($response['error'])) {
+            $message = $response['detail'] ?? $response['message'] ?? __('Failed to transfer items to the kitchen.');
+            return response()->json(['success' => false, 'message' => $message], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => __('Items transferred to the kitchen.'),
+            'result' => $response,
+        ]);
+    }
+
     public function showSubscription(int $id, SubscriptionApiService $subscriptionApi)
     {
         $sub = $this->apiData($subscriptionApi->show($id), function () {
