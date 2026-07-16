@@ -36,32 +36,124 @@ class ChefController extends Controller
 
         $dashboardData = $this->apiData($dashboardResponse, fn () => $this->mockDashboardStats());
 
-        // Use /chef/orders/today for today's kitchen queue
-        $ordersResponse = $chefApi->ordersToday();
+        // Use grouped endpoint for meal-time tabs (breakfast/lunch/dinner)
+        $groupedResponse = $chefApi->ordersTodayGrouped();
 
-        if (isset($ordersResponse['success']) && $ordersResponse['success'] === false) {
-            \Log::warning('Chef orders today API failed, falling back to /chef/orders', [
-                'status' => $ordersResponse['status'] ?? null,
-                'message' => $ordersResponse['message'] ?? null,
-            ]);
-            // Fallback to general orders endpoint
-            $ordersResponse = $chefApi->orders(['limit' => 100]);
-        }
+        $useGrouped = !isset($groupedResponse['success']) || $groupedResponse['success'] !== false;
 
-        if (isset($ordersResponse['success']) && $ordersResponse['success'] === false) {
-            $ordersData = $this->apiEnabled() ? [] : $this->mockOrders();
+        if ($useGrouped) {
+            $groups = $groupedResponse['groups'] ?? [];
+
+            // Build fixed meal-time tabs: breakfast, lunch, dinner, snacks, other
+            $mealTimeConfig = [
+                'breakfast' => ['label' => __('Breakfast'), 'icon' => 'sunrise'],
+                'lunch'     => ['label' => __('Lunch'), 'icon' => 'sun'],
+                'dinner'    => ['label' => __('Dinner'), 'icon' => 'moon'],
+                'snacks'    => ['label' => __('Snacks'), 'icon' => 'cookie'],
+                'other'     => ['label' => __('Other'), 'icon' => 'dots'],
+            ];
+
+            $categories = [];
+            $categorizedOrders = [];
+            $allOrders = [];
+
+            foreach ($mealTimeConfig as $mealTime => $config) {
+                $group = collect($groups)->firstWhere('meal_time', $mealTime);
+                $orderCount = $group['order_count'] ?? 0;
+
+                // Use a string key like "breakfast", "lunch", etc. for the tab id
+                $tabId = $mealTime;
+                $categories[] = [
+                    'id' => $tabId,
+                    'name' => $config['label'],
+                    'icon' => $config['icon'],
+                    'count' => $orderCount,
+                ];
+
+                $groupOrders = [];
+                if ($group && isset($group['categories'])) {
+                    foreach ($group['categories'] as $catGroup) {
+                        foreach ($catGroup['orders'] as $order) {
+                            try {
+                                $item = $this->formatOrder($order);
+                                $item['primary_category_id'] = $tabId;
+                                $item['primary_category_name'] = $config['label'];
+                                $groupOrders[] = $item;
+                                $allOrders[] = $item;
+                            } catch (\Throwable $e) {
+                                \Log::error('Chef order format failed', [
+                                    'order_id' => $order['id'] ?? null,
+                                    'error' => $e->getMessage(),
+                                ]);
+                                continue;
+                            }
+                        }
+                    }
+                }
+
+                $categorizedOrders[$tabId] = $groupOrders;
+            }
         } else {
-            $ordersData = $ordersResponse['data'] ?? ($this->apiEnabled() ? [] : $this->mockOrders());
-        }
+            // Fallback: use the flat orders endpoint and group dynamically
+            $ordersResponse = $chefApi->ordersToday();
 
-        if (!is_array($ordersData)) {
-            $ordersData = [];
-        }
+            if (isset($ordersResponse['success']) && $ordersResponse['success'] === false) {
+                $ordersResponse = $chefApi->orders(['limit' => 100]);
+            }
 
-        // Group orders by category dynamically from order items
-        $categorizedOrders = []; // category_id => [orders]
-        $categoryMap = [];       // category_id => category_name
-        $categoryCounts = [];    // category_id => count
+            if (isset($ordersResponse['success']) && $ordersResponse['success'] === false) {
+                $ordersData = $this->apiEnabled() ? [] : $this->mockOrders();
+            } else {
+                $ordersData = $ordersResponse['data'] ?? ($this->apiEnabled() ? [] : $this->mockOrders());
+            }
+
+            if (!is_array($ordersData)) {
+                $ordersData = [];
+            }
+
+            $categorizedOrders = [];
+            $categoryMap = [];
+            $categoryCounts = [];
+            $allOrders = [];
+
+            foreach ($ordersData as $order) {
+                try {
+                    $item = $this->formatOrder($order);
+                } catch (\Throwable $e) {
+                    \Log::error('Chef order format failed', [
+                        'order_id' => $order['id'] ?? null,
+                        'error' => $e->getMessage(),
+                    ]);
+                    continue;
+                }
+
+                $catId = $item['primary_category_id'];
+                $catName = $item['primary_category_name'];
+
+                if (!isset($categoryMap[$catId])) {
+                    $categoryMap[$catId] = $catName;
+                    $categorizedOrders[$catId] = [];
+                    $categoryCounts[$catId] = 0;
+                }
+
+                $categorizedOrders[$catId][] = $item;
+                $allOrders[] = $item;
+                $categoryCounts[$catId]++;
+            }
+
+            $categories = [];
+            $sortedCatIds = array_keys($categoryMap);
+            usort($sortedCatIds, fn($a, $b) => strcmp($categoryMap[$a], $categoryMap[$b]));
+
+            foreach ($sortedCatIds as $catId) {
+                $categories[] = [
+                    'id' => $catId,
+                    'name' => $categoryMap[$catId],
+                    'icon' => 'dot',
+                    'count' => $categoryCounts[$catId],
+                ];
+            }
+        }
 
         $stats = [
             'total_today' => $dashboardData['total_orders'] ?? 0,
@@ -74,51 +166,6 @@ class ChefController extends Controller
             'total_active_drivers' => $dashboardData['total_active_drivers'] ?? 0,
             'deliveries_needed' => $dashboardData['deliveries_needed'] ?? 0,
         ];
-
-        foreach ($ordersData as $order) {
-            try {
-                $item = $this->formatOrder($order);
-            } catch (\Throwable $e) {
-                \Log::error('Chef order format failed', [
-                    'order_id' => $order['id'] ?? null,
-                    'error' => $e->getMessage(),
-                ]);
-                continue;
-            }
-
-            // An order can have items from multiple categories.
-            // Use the first item's category as the primary category for tab grouping.
-            $catId = $item['primary_category_id'];
-            $catName = $item['primary_category_name'];
-
-            if (!isset($categoryMap[$catId])) {
-                $categoryMap[$catId] = $catName;
-                $categorizedOrders[$catId] = [];
-                $categoryCounts[$catId] = 0;
-            }
-
-            $categorizedOrders[$catId][] = $item;
-            $categoryCounts[$catId]++;
-        }
-
-        // Build categories array for frontend (sorted by category name)
-        $categories = [];
-        $sortedCatIds = array_keys($categoryMap);
-        // Sort by category name alphabetically
-        usort($sortedCatIds, fn($a, $b) => strcmp($categoryMap[$a], $categoryMap[$b]));
-
-        foreach ($sortedCatIds as $catId) {
-            $categories[] = [
-                'id' => $catId,
-                'name' => $categoryMap[$catId],
-                'count' => $categoryCounts[$catId],
-            ];
-        }
-
-        // Add category counts to stats
-        foreach ($categoryCounts as $catId => $count) {
-            $stats['cat_' . $catId] = $count;
-        }
 
         // Fetch meals summary for today
         $mealsSummaryResponse = $chefApi->mealsSummary();
