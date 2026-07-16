@@ -48,7 +48,14 @@ class BaseApiService
      */
     protected function getAuthToken(): ?string
     {
-        return session('api_token');
+        $token = session('api_token');
+        if (!$token) {
+            Log::warning('No API token in session', [
+                'session_id' => session()->getId(),
+                'session_keys' => array_keys(session()->all()),
+            ]);
+        }
+        return $token;
     }
 
     /**
@@ -112,6 +119,8 @@ class BaseApiService
                         'curl' => [
                             CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
                             CURLOPT_CONNECTTIMEOUT => 10,
+                            CURLOPT_SSL_VERIFYPEER => false,
+                            CURLOPT_SSL_VERIFYHOST => false,
                         ],
                     ])
                     ->timeout($this->timeout);
@@ -214,6 +223,8 @@ class BaseApiService
                         'curl' => [
                             CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
                             CURLOPT_CONNECTTIMEOUT => 10,
+                            CURLOPT_SSL_VERIFYPEER => false,
+                            CURLOPT_SSL_VERIFYHOST => false,
                         ],
                     ])
                     ->timeout($this->timeout);
