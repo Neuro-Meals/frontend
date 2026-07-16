@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.6">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#173327">
-    <title>@yield('title', 'المطبخ - Nutrio Meals')</title>
+    <title>@yield('title', __('Kitchen') . ' - Nutrio Meals')</title>
     <link rel="icon" type="image/png" href="{{ asset('whitelogo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -66,11 +66,21 @@
 
     <script>
         // Shared confirm+fetch helper for chef actions (start preparing / mark ready).
+        const chefI18n = {
+            confirm: @json(__('Confirm?')),
+            confirmBtn: @json(__('Confirm')),
+            cancel: @json(__('Cancel')),
+            actionFailed: @json(__('Action Failed')),
+            somethingWrong: @json(__('Something went wrong.')),
+            connectionError: @json(__('Connection Error')),
+            checkConnection: @json(__('Please check your connection and try again.')),
+        };
+
         function chefAction(url, opts = {}) {
             const {
-                title = 'تأكيد؟',
+                title = chefI18n.confirm,
                 text = '',
-                confirmText = 'تأكيد',
+                confirmText = chefI18n.confirmBtn,
                 icon = 'question',
                 confirmColor = '#173327',
             } = opts;
@@ -82,7 +92,7 @@
                     confirmButtonColor: confirmColor,
                     cancelButtonColor: '#d1d5db',
                     confirmButtonText: confirmText,
-                    cancelButtonText: 'إلغاء',
+                    cancelButtonText: chefI18n.cancel,
                     reverseButtons: true,
                     customClass: { popup: 'rounded-2xl' },
                 }).then((result) => {
@@ -101,8 +111,8 @@
                                 resolve(true);
                             } else {
                                 Swal.fire({
-                                    title: 'تعذر التنفيذ',
-                                    text: data.message || 'حدث خطأ ما.',
+                                    title: chefI18n.actionFailed,
+                                    text: data.message || chefI18n.somethingWrong,
                                     icon: 'error',
                                     confirmButtonColor: '#173327',
                                     customClass: { popup: 'rounded-2xl' },
@@ -112,8 +122,8 @@
                         })
                         .catch(() => {
                             Swal.fire({
-                                title: 'خطأ في الاتصال',
-                                text: 'يرجى التحقق من الاتصال والمحاولة مرة أخرى.',
+                                title: chefI18n.connectionError,
+                                text: chefI18n.checkConnection,
                                 icon: 'error',
                                 confirmButtonColor: '#173327',
                                 customClass: { popup: 'rounded-2xl' },

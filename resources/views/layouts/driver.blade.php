@@ -48,7 +48,12 @@
     @stack('styles')
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans antialiased" style="font-family: 'Nunito', sans-serif;">
-    <div class="min-h-full flex flex-col max-w-md mx-auto bg-white shadow-2xl">
+    <div class="min-h-full flex flex-col max-w-md mx-auto bg-white shadow-2xl relative">
+        @unless(request()->routeIs('driver.deliveries.map'))
+        <div class="absolute top-3 {{ app()->getLocale() === 'ar' ? 'left-3' : 'right-3' }} z-[600]">
+            @include('partials.language_switcher', ['isDark' => true])
+        </div>
+        @endunless
         @yield('content')
 
         <!-- Bottom Navigation -->

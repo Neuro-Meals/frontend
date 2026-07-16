@@ -1,6 +1,6 @@
 @extends('layouts.chef')
 
-@section('title', 'شفت المطبخ - Nutrio Meals')
+@section('title', __('Kitchen Shift') . ' - ' . __('Nutrio Meals'))
 
 @section('content')
 <div x-data="chefShift()" x-init="init()" x-cloak class="pb-10">
@@ -12,7 +12,7 @@
         <div class="relative flex items-center justify-between mb-6">
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
-                <button type="submit" class="w-10 h-10 rounded-full bg-white/10 border border-white/15 flex items-center justify-center hover:bg-white/20 transition-colors" title="تسجيل الخروج">
+                <button type="submit" class="w-10 h-10 rounded-full bg-white/10 border border-white/15 flex items-center justify-center hover:bg-white/20 transition-colors" title="{{ __('Logout') }}">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                 </button>
             </form>
@@ -25,11 +25,14 @@
                 <span class="text-[8px] tracking-[0.35em] text-white/60">MEALS</span>
             </div>
 
-            <div class="relative w-10 h-10 rounded-full bg-white/10 border border-white/15 flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                @if(count($notifications) > 0)
-                <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-400 pulse-dot"></span>
-                @endif
+            <div class="flex items-center gap-2">
+                @include('partials.language_switcher', ['isDark' => true])
+                <div class="relative w-10 h-10 rounded-full bg-white/10 border border-white/15 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    @if(count($notifications) > 0)
+                    <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-400 pulse-dot"></span>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -37,7 +40,7 @@
             <div>
                 <p class="text-white/70 text-xs mb-1 flex items-center gap-1.5">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                    المطبخ
+                    {{ __('Kitchen') }}
                 </p>
                 <h1 class="text-2xl font-extrabold" x-text="activeLabel"></h1>
             </div>
@@ -58,7 +61,7 @@
                 <button @click="switchTab(cat.id)"
                     :class="activeTab === cat.id ? 'bg-gradient-to-r from-brand-700 to-brand-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'"
                     class="tab-pill flex-1 min-w-[76px] py-2.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 whitespace-nowrap">
-                    <span x-text="arabicLabel(cat)"></span>
+                    <span x-text="cat.name"></span>
                     <span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold" :class="activeTab === cat.id ? 'bg-white/20' : 'bg-gray-100'" x-text="cat.count"></span>
                 </button>
             </template>
@@ -71,22 +74,22 @@
                     <svg class="w-5 h-5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 100-8 4 4 0 000 8zm6 0a4 4 0 10-3-6.65"/></svg>
                 </div>
                 <p class="text-2xl font-extrabold text-gray-900" x-text="activeSummary.customers"></p>
-                <p class="text-xs text-gray-400 font-semibold">عميل</p>
+                <p class="text-xs text-gray-400 font-semibold">{{ __('Customers') }}</p>
             </div>
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 card-hover">
                 <div class="w-11 h-11 rounded-full bg-brand-50 flex items-center justify-center mb-2">
                     <svg class="w-5 h-5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 </div>
                 <p class="text-2xl font-extrabold text-gray-900" x-text="activeSummary.total_meals"></p>
-                <p class="text-xs text-gray-400 font-semibold">إجمالي الوجبات</p>
+                <p class="text-xs text-gray-400 font-semibold">{{ __('Total Meals') }}</p>
             </div>
         </div>
 
         {{-- ============ QUANTITIES NEEDED ============ --}}
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up animate-delay-3">
-            <h2 class="text-sm font-bold text-gray-900 mb-3">الكميات المطلوبة</h2>
+            <h2 class="text-sm font-bold text-gray-900 mb-3">{{ __('Quantities Needed') }}</h2>
             <template x-if="activeSummary.dishes.length === 0">
-                <p class="text-xs text-gray-400 text-center py-4">لا توجد أصناف لهذا الشفت بعد.</p>
+                <p class="text-xs text-gray-400 text-center py-4">{{ __('No items for this shift yet.') }}</p>
             </template>
             <div class="space-y-1">
                 <template x-for="(dish, i) in activeSummary.dishes" :key="dish.name">
@@ -106,7 +109,7 @@
         {{-- ============ PROGRESS + REMAINING ============ --}}
         <div class="grid grid-cols-2 gap-3 animate-slide-up animate-delay-4">
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                <p class="text-[10px] text-gray-400 font-semibold mb-2">تقدم التحضير</p>
+                <p class="text-[10px] text-gray-400 font-semibold mb-2">{{ __('Preparation Progress') }}</p>
                 <div class="flex items-center gap-2 mb-2">
                     <span class="text-lg font-extrabold text-brand-700" x-text="progressPercent + '%'"></span>
                 </div>
@@ -115,8 +118,8 @@
                 </div>
             </div>
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                <p class="text-[10px] text-gray-400 font-semibold mb-2">متبقٍ للتحضير</p>
-                <p class="text-lg font-extrabold text-gray-900"><span x-text="activeSummary.pending + activeSummary.preparing"></span> <span class="text-xs font-semibold text-gray-400">من <span x-text="activeSummary.customers"></span></span></p>
+                <p class="text-[10px] text-gray-400 font-semibold mb-2">{{ __('Remaining to Prepare') }}</p>
+                <p class="text-lg font-extrabold text-gray-900"><span x-text="activeSummary.pending + activeSummary.preparing"></span> <span class="text-xs font-semibold text-gray-400">{{ __('of') }} <span x-text="activeSummary.customers"></span></span></p>
             </div>
         </div>
 
@@ -127,8 +130,8 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                 </div>
                 <div class="text-right">
-                    <p class="text-sm font-bold">قائمة التحضير التفصيلية</p>
-                    <p class="text-[10px] text-white/70">اضغط لعرض خطوات التحضير لكل صنف</p>
+                    <p class="text-sm font-bold">{{ __('Detailed Prep List') }}</p>
+                    <p class="text-[10px] text-white/70">{{ __('Tap to view preparation steps for each item') }}</p>
                 </div>
             </div>
             <svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" transform="rotate(180 12 12)"/></svg>
@@ -141,13 +144,13 @@
                 <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
                     <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 </div>
-                <h2 class="text-sm font-bold text-red-900">تنبيهات الحساسية</h2>
+                <h2 class="text-sm font-bold text-red-900">{{ __('Allergy Alerts') }}</h2>
             </div>
             <div class="space-y-2">
                 @foreach($allergyCustomers as $customer)
                 <div class="flex items-start justify-between gap-2 p-2.5 rounded-xl bg-white border border-red-100">
                     <div class="min-w-0 flex-1">
-                        <p class="text-xs font-bold text-gray-900">{{ $customer['full_name'] ?? 'غير معروف' }}</p>
+                        <p class="text-xs font-bold text-gray-900">{{ $customer['full_name'] ?? __('Unknown') }}</p>
                         <div class="flex flex-wrap gap-1 mt-1">
                             @foreach($customer['allergies'] ?? [] as $allergy)
                             <span class="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[9px] font-bold">{{ $allergy }}</span>
@@ -163,7 +166,7 @@
         {{-- ============ NOTIFICATIONS ============ --}}
         @if(count($notifications) > 0)
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up">
-            <h2 class="text-sm font-bold text-gray-900 mb-3">الإشعارات</h2>
+            <h2 class="text-sm font-bold text-gray-900 mb-3">{{ __('Notifications') }}</h2>
             <div class="space-y-3">
                 @foreach($notifications as $notification)
                 <div class="flex items-start gap-3 p-3 rounded-xl {{ $notification['is_read'] ? 'bg-gray-50' : 'bg-brand-50 border border-brand-100' }}">
@@ -191,9 +194,9 @@
                     <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" transform="rotate(180 12 12)"/></svg>
                 </button>
                 <div class="flex-1 bg-white rounded-2xl px-4 py-2.5 shadow-sm border border-gray-100">
-                    <p class="text-xs font-bold text-gray-900" x-text="activeLabel + ' · قائمة التحضير'"></p>
+                    <p class="text-xs font-bold text-gray-900"><span x-text="activeLabel"></span> · {{ __('Prep List') }}</p>
                     <template x-if="!walkthroughDone">
-                        <p class="text-[10px] text-gray-400">طلب <span x-text="walkthrough.index + 1"></span> من <span x-text="activeOrders.length"></span> · متبقي <span x-text="activeOrders.length - walkthrough.index - 1"></span></p>
+                        <p class="text-[10px] text-gray-400">{{ __('Order') }} <span x-text="walkthrough.index + 1"></span> {{ __('of') }} <span x-text="activeOrders.length"></span> · {{ __('Remaining') }} <span x-text="activeOrders.length - walkthrough.index - 1"></span></p>
                     </template>
                 </div>
             </div>
@@ -208,7 +211,7 @@
             {{-- Empty state --}}
             <template x-if="activeOrders.length === 0">
                 <div class="bg-white rounded-2xl p-8 text-center border border-gray-100 shadow-sm animate-slide-up">
-                    <p class="text-sm text-gray-500">لا توجد طلبات في هذا الشفت.</p>
+                    <p class="text-sm text-gray-500">{{ __('No orders in this shift.') }}</p>
                 </div>
             </template>
 
@@ -218,23 +221,23 @@
                     <div class="w-20 h-20 rounded-full bg-brand-50 flex items-center justify-center mx-auto mb-4">
                         <svg class="w-10 h-10 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                     </div>
-                    <h2 class="text-xl font-extrabold text-brand-700 mb-1">أحسنت! 🎉</h2>
-                    <p class="text-sm text-gray-500 mb-6">تم تجهيز جميع وجبات <span x-text="activeLabel"></span> بنجاح.</p>
+                    <h2 class="text-xl font-extrabold text-brand-700 mb-1">{{ __('Well done!') }} 🎉</h2>
+                    <p class="text-sm text-gray-500 mb-6">{{ __('All meals for this shift have been prepared successfully.') }}</p>
                     <div class="grid grid-cols-3 gap-3 mb-6">
                         <div class="bg-brand-50 rounded-xl p-3">
                             <p class="text-lg font-extrabold text-gray-900" x-text="activeSummary.customers"></p>
-                            <p class="text-[10px] text-gray-500">الإجمالي</p>
+                            <p class="text-[10px] text-gray-500">{{ __('Total') }}</p>
                         </div>
                         <div class="bg-green-50 rounded-xl p-3">
                             <p class="text-lg font-extrabold text-green-600" x-text="readyCount"></p>
-                            <p class="text-[10px] text-gray-500">جاهز</p>
+                            <p class="text-[10px] text-gray-500">{{ __('Ready') }}</p>
                         </div>
                         <div class="bg-gray-50 rounded-xl p-3">
                             <p class="text-lg font-extrabold text-gray-400">0</p>
-                            <p class="text-[10px] text-gray-500">متبقي</p>
+                            <p class="text-[10px] text-gray-500">{{ __('Remaining') }}</p>
                         </div>
                     </div>
-                    <button @click="closeWalkthrough()" class="btn-action w-full py-3 rounded-xl bg-brand-700 text-white text-sm font-bold shadow-md">إغلاق</button>
+                    <button @click="closeWalkthrough()" class="btn-action w-full py-3 rounded-xl bg-brand-700 text-white text-sm font-bold shadow-md">{{ __('Close') }}</button>
                 </div>
             </template>
 
@@ -269,19 +272,19 @@
 
                     {{-- Items to prepare --}}
                     <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">الأصناف المطلوب تجهيزها</h3>
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Items to Prepare') }}</h3>
                         <div class="grid grid-cols-2 gap-3">
                             <template x-for="(item, idx) in currentOrder.items" :key="idx">
                                 <div class="bg-brand-50/60 rounded-xl p-3 border border-brand-100 text-center">
                                     <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center mx-auto mb-2 shadow-sm">
                                         <svg class="w-4 h-4 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                                     </div>
-                                    <p class="text-xs font-bold text-gray-800 leading-tight" x-text="item.meal_name || item.name || 'صنف'"></p>
+                                    <p class="text-xs font-bold text-gray-800 leading-tight" x-text="item.meal_name || item.name || strings.item"></p>
                                     <p class="text-[11px] text-brand-700 font-semibold mt-0.5" x-text="'× ' + (item.quantity || 1)"></p>
                                 </div>
                             </template>
                             <template x-if="!currentOrder.items || currentOrder.items.length === 0">
-                                <p class="col-span-2 text-xs text-gray-400 text-center py-2">لا توجد تفاصيل أصناف لهذا الطلب.</p>
+                                <p class="col-span-2 text-xs text-gray-400 text-center py-2">{{ __('No item details for this order.') }}</p>
                             </template>
                         </div>
                     </div>
@@ -295,33 +298,33 @@
                         <template x-if="['pending','confirmed','scheduled'].includes(currentOrder.status)">
                             <button @click="doStartPreparing()" class="btn-action w-full py-3.5 rounded-2xl bg-gradient-to-l from-brand-700 to-brand-600 text-white text-sm font-bold shadow-md shadow-brand-700/20 flex items-center justify-center gap-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                بدء التحضير
+                                {{ __('Start Preparing') }}
                             </button>
                         </template>
                         <template x-if="currentOrder.status === 'preparing'">
                             <button @click="doMarkReady()" class="btn-action w-full py-3.5 rounded-2xl bg-green-600 text-white text-sm font-bold shadow-md shadow-green-600/20 flex items-center justify-center gap-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                تم تجهيز الوجبة
+                                {{ __('Mark as Ready') }}
                             </button>
                         </template>
                         <template x-if="['ready_for_delivery','out_for_delivery','delivered'].includes(currentOrder.status)">
                             <button @click="goNext()" class="btn-action w-full py-3.5 rounded-2xl bg-gray-100 text-gray-700 text-sm font-bold flex items-center justify-center gap-2">
                                 <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                جاهزة بالفعل — التالي
+                                {{ __('Already Ready') }} — {{ __('Next') }}
                             </button>
                         </template>
                     </div>
 
-                    <p class="text-center text-[10px] text-gray-400">اضغط بعد الانتهاء من الوزن والتجهيز للانتقال للعميل التالي</p>
+                    <p class="text-center text-[10px] text-gray-400">{{ __('Tap after weighing and packing to move to the next customer') }}</p>
 
                     {{-- Prev / Next --}}
                     <div class="flex items-center justify-between pt-2">
                         <button @click="goPrev()" :disabled="walkthrough.index === 0" class="flex items-center gap-1 text-xs font-bold text-gray-500 disabled:opacity-30 disabled:cursor-not-allowed">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                            السابق
+                            {{ __('Previous') }}
                         </button>
                         <button @click="goNext()" class="flex items-center gap-1 text-xs font-bold text-brand-700">
-                            التالي
+                            {{ __('Next') }}
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" transform="rotate(180 12 12)"/></svg>
                         </button>
                     </div>
@@ -342,12 +345,17 @@ function chefShift() {
         activeTab: '',
         walkthrough: { open: false, index: 0 },
 
-        arabicMap: {
-            breakfast: { label: 'شفت الفطور', icon: 'sunrise' },
-            lunch: { label: 'شفت الغداء', icon: 'sun' },
-            dinner: { label: 'شفت العشاء', icon: 'moon' },
-            snacks: { label: 'سناكس', icon: 'cookie' },
-            other: { label: 'أخرى', icon: 'dots' },
+        strings: {
+            kitchenShift: @json(__('Kitchen Shift')),
+            item: @json(__('Item')),
+            preparingLabel: @json(__('Preparing')),
+            readyForDeliveryLabel: @json(__('Ready for Delivery')),
+            startPrepTitle: @json(__('Start preparing this order?')),
+            startPrepText: @json(__('This will mark the order as being prepared in the kitchen.')),
+            yesStart: @json(__('Yes, Start')),
+            readyTitle: @json(__('Meal ready?')),
+            readyText: @json(__('Make sure all items are weighed and packed before continuing.')),
+            yesReady: @json(__('Yes, Ready')),
         },
 
         init() {
@@ -361,18 +369,16 @@ function chefShift() {
             this.activeTab = id;
         },
 
-        arabicLabel(cat) {
-            return this.arabicMap[cat.id] ? this.arabicMap[cat.id].label.replace('شفت ', '') : cat.name;
+        get activeCategory() {
+            return this.categories.find(c => c.id === this.activeTab) || null;
         },
 
         get activeLabel() {
-            const found = this.arabicMap[this.activeTab];
-            return found ? found.label : 'شفت المطبخ';
+            return this.activeCategory ? this.activeCategory.name : this.strings.kitchenShift;
         },
 
         get activeIcon() {
-            const found = this.arabicMap[this.activeTab];
-            return found ? found.icon : 'dot';
+            return this.activeCategory ? this.activeCategory.icon : 'dot';
         },
 
         get activeSummary() {
@@ -437,14 +443,14 @@ function chefShift() {
             const order = this.currentOrder;
             if (!order) return;
             const ok = await chefAction(`{{ url('chef/orders') }}/${order.id}/start-preparing`, {
-                title: 'بدء تحضير هذا الطلب؟',
-                text: 'سيتم تعليم الطلب كقيد التحضير في المطبخ.',
-                confirmText: 'نعم، ابدأ',
+                title: this.strings.startPrepTitle,
+                text: this.strings.startPrepText,
+                confirmText: this.strings.yesStart,
                 icon: 'question',
             });
             if (ok) {
                 order.status = 'preparing';
-                order.status_label = 'قيد التحضير';
+                order.status_label = this.strings.preparingLabel;
             }
         },
 
@@ -452,15 +458,15 @@ function chefShift() {
             const order = this.currentOrder;
             if (!order) return;
             const ok = await chefAction(`{{ url('chef/orders') }}/${order.id}/mark-ready`, {
-                title: 'تم تجهيز الوجبة؟',
-                text: 'تأكد من وزن وتعبئة جميع الأصناف قبل المتابعة.',
-                confirmText: 'نعم، جاهزة',
+                title: this.strings.readyTitle,
+                text: this.strings.readyText,
+                confirmText: this.strings.yesReady,
                 icon: 'success',
                 confirmColor: '#16a34a',
             });
             if (ok) {
                 order.status = 'ready_for_delivery';
-                order.status_label = 'جاهزة للتوصيل';
+                order.status_label = this.strings.readyForDeliveryLabel;
                 this.activeSummary.ready++;
                 setTimeout(() => this.goNext(), 350);
             }
