@@ -74,26 +74,69 @@
                 </button>
             </div>
 
-            {{-- Production requirements --}}
+            {{-- Production requirements: per-meal, with ingredients + the customers/orders behind each dish --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div class="px-5 py-4 border-b border-gray-100">
                     <h3 class="font-bold text-gray-900">{{ __('Production Requirements') }}</h3>
-                    <p class="text-xs text-gray-400 mt-0.5">{{ __('Automatically aggregated quantities needed for this schedule.') }}</p>
+                    <p class="text-xs text-gray-400 mt-0.5">{{ __('Automatically aggregated quantities needed for this schedule. Tap a dish to see ingredients and who ordered it.') }}</p>
                 </div>
                 <div class="divide-y divide-gray-50">
                     <template x-for="meal in production.meals" :key="meal.meal_id ?? meal.meal_name">
-                        <div class="px-5 py-3.5 flex items-center justify-between gap-3">
-                            <div class="min-w-0">
-                                <p class="text-sm font-bold text-gray-800 truncate" x-text="meal.meal_name"></p>
-                                <div class="flex items-center gap-2 mt-1 flex-wrap">
-                                    <span x-show="meal.pending" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-gray-100 text-gray-500" x-text="meal.pending + ' {{ __('pending') }}'"></span>
-                                    <span x-show="meal.sent_to_kitchen" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-amber-100 text-amber-700" x-text="meal.sent_to_kitchen + ' {{ __('sent') }}'"></span>
-                                    <span x-show="meal.preparing" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-blue-100 text-blue-700" x-text="meal.preparing + ' {{ __('preparing') }}'"></span>
-                                    <span x-show="meal.ready" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-green-100 text-green-700" x-text="meal.ready + ' {{ __('ready') }}'"></span>
-                                    <span x-show="meal.served" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-emerald-100 text-emerald-700" x-text="meal.served + ' {{ __('served') }}'"></span>
+                        <div>
+                            <button @click="toggleMeal(meal)" type="button" class="w-full px-5 py-3.5 flex items-center justify-between gap-3 text-left hover:bg-gray-50/70 transition-colors">
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-bold text-gray-800 truncate" x-text="meal.meal_name"></p>
+                                    <div class="flex items-center gap-2 mt-1 flex-wrap">
+                                        <span x-show="meal.pending" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-gray-100 text-gray-500" x-text="meal.pending + ' {{ __('pending') }}'"></span>
+                                        <span x-show="meal.sent_to_kitchen" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-amber-100 text-amber-700" x-text="meal.sent_to_kitchen + ' {{ __('sent') }}'"></span>
+                                        <span x-show="meal.preparing" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-blue-100 text-blue-700" x-text="meal.preparing + ' {{ __('preparing') }}'"></span>
+                                        <span x-show="meal.ready" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-green-100 text-green-700" x-text="meal.ready + ' {{ __('ready') }}'"></span>
+                                        <span x-show="meal.served" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-emerald-100 text-emerald-700" x-text="meal.served + ' {{ __('served') }}'"></span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 flex-shrink-0">
+                                    <p class="text-lg font-bold text-gray-900" x-text="'×' + meal.total_required"></p>
+                                    <svg class="w-4 h-4 text-gray-400 transition-transform" :class="isMealOpen(meal) ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </div>
+                            </button>
+
+                            <div x-show="isMealOpen(meal)"
+                                x-transition:enter="transition ease-out duration-150"
+                                x-transition:enter-start="opacity-0 -translate-y-1"
+                                x-transition:enter-end="opacity-100 translate-y-0"
+                                class="px-5 pb-4 bg-gray-50/60" style="display: none;">
+                                <div x-show="meal.ingredients?.length" class="flex flex-wrap items-center gap-1.5 mb-3">
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wide mr-1">{{ __('Ingredients') }}:</span>
+                                    <template x-for="ing in meal.ingredients" :key="ing">
+                                        <span class="px-2 py-1 rounded-full bg-white border border-gray-200 text-[11px] text-gray-600" x-text="ing"></span>
+                                    </template>
+                                </div>
+                                <div x-show="meal.allergens?.length" class="flex flex-wrap items-center gap-1.5 mb-3">
+                                    <span class="text-[10px] font-bold text-red-400 uppercase tracking-wide mr-1">{{ __('Allergens') }}:</span>
+                                    <template x-for="a in meal.allergens" :key="a">
+                                        <span class="px-2 py-1 rounded-full bg-red-50 border border-red-100 text-[11px] text-red-600" x-text="a"></span>
+                                    </template>
+                                </div>
+
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">
+                                    {{ __('Customers') }} (<span x-text="meal.customers?.length ?? 0"></span>)
+                                </p>
+                                <div class="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+                                    <template x-for="c in meal.customers" :key="c.order_id">
+                                        <div class="flex items-center justify-between gap-2 bg-white rounded-lg px-3 py-2 border border-gray-100">
+                                            <div class="min-w-0">
+                                                <p class="text-xs font-bold text-gray-800 truncate" x-text="c.customer_name"></p>
+                                                <p class="text-[10px] text-gray-400 truncate" x-text="(c.order_number || ('#' + c.order_id)) + (c.address ? (' · ' + c.address) : '')"></p>
+                                            </div>
+                                            <div class="flex items-center gap-2 flex-shrink-0">
+                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full capitalize" :class="itemStatusClass(c.item_status)" x-text="c.item_status?.replaceAll('_',' ')"></span>
+                                                <span class="text-xs font-bold text-gray-700" x-text="'×' + c.quantity"></span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <div x-show="!meal.customers?.length" class="text-xs text-gray-400 text-center py-2">{{ __('No customers found.') }}</div>
                                 </div>
                             </div>
-                            <p class="text-lg font-bold text-gray-900 flex-shrink-0" x-text="'×' + meal.total_required"></p>
                         </div>
                     </template>
                     <div x-show="!production.meals?.length" class="px-5 py-8 text-center text-sm text-gray-400">{{ __('No items scheduled for this category.') }}</div>
@@ -132,6 +175,7 @@ function scheduleBoard() {
         kitchenQueue: @json($kitchenQueue),
         loading: false,
         transferring: false,
+        openMeals: [],
         strings: {
             confirmTitle: @json(__('Transfer to Kitchen?')),
             confirmText: @json(__('This sends only the items in this schedule to the kitchen. The order will stay active until every schedule is completed.')),
@@ -147,6 +191,31 @@ function scheduleBoard() {
 
         get selectedCategory() {
             return this.categories.find(c => c.category_id === this.selectedCategoryId) || null;
+        },
+
+        mealKey(meal) {
+            return meal.meal_id ?? meal.meal_name;
+        },
+
+        toggleMeal(meal) {
+            const key = this.mealKey(meal);
+            const idx = this.openMeals.indexOf(key);
+            if (idx === -1) this.openMeals.push(key);
+            else this.openMeals.splice(idx, 1);
+        },
+
+        isMealOpen(meal) {
+            return this.openMeals.includes(this.mealKey(meal));
+        },
+
+        itemStatusClass(status) {
+            return {
+                'bg-gray-100 text-gray-500': status === 'pending',
+                'bg-amber-100 text-amber-700': status === 'sent_to_kitchen',
+                'bg-blue-100 text-blue-700': status === 'preparing',
+                'bg-green-100 text-green-700': status === 'ready',
+                'bg-emerald-100 text-emerald-700': status === 'served',
+            };
         },
 
         async selectCategory(id) {

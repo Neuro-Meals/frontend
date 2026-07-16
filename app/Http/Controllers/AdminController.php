@@ -813,12 +813,33 @@ class AdminController extends Controller
      * of transferring whole orders. Distinct from the Weekly Plan
      * Menu builder above, which only edits the recurring template.
      */
+    /**
+     * Categories come back from the API alphabetically. Kitchen
+     * schedules need to read in real time-of-day order: Breakfast,
+     * Lunch, Dinner, Snacks, then anything else.
+     */
+    private function sortScheduleCategories(array $categories): array
+    {
+        $rank = function (array $cat): int {
+            $name = strtolower($cat['category_name'] ?? '');
+            if (str_contains($name, 'breakfast') || str_contains($name, 'morning')) return 0;
+            if (str_contains($name, 'lunch')) return 1;
+            if (str_contains($name, 'dinner') || str_contains($name, 'supper') || str_contains($name, 'evening')) return 2;
+            if (str_contains($name, 'snack')) return 3;
+            return 4;
+        };
+
+        usort($categories, fn ($a, $b) => $rank($a) <=> $rank($b));
+
+        return $categories;
+    }
+
     public function schedule(Request $request, ChefApiService $chefApi)
     {
         $date = $request->query('date') ?: date('Y-m-d');
 
         $categoriesData = $this->apiData($chefApi->scheduleCategories($date), fn () => ['categories' => []]);
-        $categories = $categoriesData['categories'] ?? [];
+        $categories = $this->sortScheduleCategories($categoriesData['categories'] ?? []);
 
         $selectedCategoryId = (int) ($request->query('category_id') ?: 0);
         if (!$selectedCategoryId && !empty($categories)) {
@@ -862,7 +883,7 @@ class AdminController extends Controller
 
         return response()->json([
             'success' => true,
-            'categories' => $categoriesData['categories'] ?? [],
+            'categories' => $this->sortScheduleCategories($categoriesData['categories'] ?? []),
             'production' => $productionData,
             'kitchen_queue' => $kitchenQueueData,
         ]);
