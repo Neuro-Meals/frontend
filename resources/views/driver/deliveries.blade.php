@@ -6,13 +6,25 @@
 <div x-data="{ tab: 'active', selectedHistory: null }" class="pb-4">
     {{-- Header --}}
     <div class="bg-gradient-to-br from-brand-700 to-brand-600 text-white p-5 rounded-b-3xl shadow-lg shadow-brand-700/20">
-        <div class="flex items-center gap-3 mb-2">
+        <div class="flex items-center gap-3 mb-3">
             <a href="{{ route('driver.dashboard') }}" class="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             </a>
             <h1 class="text-lg font-bold">{{ __('My Deliveries') }}</h1>
         </div>
-        <p class="text-xs text-white/70">{{ __('Manage your assigned deliveries') }}</p>
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-extrabold">{{ $driverCode }}</p>
+                <p class="text-[11px] text-white/70 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    {{ $primaryZone }}
+                </p>
+            </div>
+            <div class="text-right">
+                <p class="text-lg font-extrabold">{{ count($deliveries) }}</p>
+                <p class="text-[10px] text-white/70">{{ __('Today\'s Meals') }}</p>
+            </div>
+        </div>
     </div>
 
     @php
@@ -39,10 +51,19 @@
     @endif
 
     <div class="p-4">
-        {{-- Tabs --}}
-        <div class="bg-white rounded-2xl p-1 shadow-sm border border-gray-100 mb-4 flex">
-            <button @click="tab = 'active'" :class="tab === 'active' ? 'bg-brand-700 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all">{{ __('Active') }}</button>
-            <button @click="tab = 'history'" :class="tab === 'history' ? 'bg-brand-700 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all">{{ __('History') }}</button>
+        {{-- Tabs + Map View --}}
+        <div class="flex items-center gap-2 mb-4">
+            <div class="bg-white rounded-2xl p-1 shadow-sm border border-gray-100 flex flex-1">
+                <button @click="tab = 'active'" :class="tab === 'active' ? 'bg-brand-700 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all">{{ __('Active') }}</button>
+                <button @click="tab = 'history'" :class="tab === 'history' ? 'bg-brand-700 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all">{{ __('History') }}</button>
+            </div>
+            @php $firstActiveWithAddress = collect($deliveries)->first(fn ($d) => !in_array($d['status'], ['delivered', 'failed', 'cancelled']) && $d['address']); @endphp
+            @if($firstActiveWithAddress)
+            <a href="{{ route('driver.deliveries.map', $firstActiveWithAddress['id']) }}" class="flex items-center gap-1.5 px-3 h-[38px] rounded-2xl bg-white shadow-sm border border-gray-100 text-brand-700 text-xs font-bold flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                {{ __('Map View') }}
+            </a>
+            @endif
         </div>
 
         @php
@@ -52,7 +73,7 @@
 
         {{-- Active Tab --}}
         <div x-show="tab === 'active'" class="space-y-3 animate-slide-up">
-            @forelse($activeDeliveries as $delivery)
+            @forelse($activeDeliveries as $index => $delivery)
             @php
                 $statusColor = match($delivery['status']) {
                     'assigned' => 'bg-blue-50 text-blue-700 border-blue-200',
@@ -63,11 +84,15 @@
             @endphp
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
                 <div class="flex items-start justify-between mb-3">
-                    <div>
-                        <p class="text-xs font-bold text-gray-900">{{ $delivery['order_number'] }}</p>
-                        <p class="text-[10px] text-gray-400">{{ $delivery['zone'] }} · {{ $delivery['time'] }}</p>
+                    <div class="flex items-start gap-2.5">
+                        <div class="w-6 h-6 rounded-full bg-brand-700 text-white text-[11px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{{ $index + 1 }}</div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-900">{{ $delivery['customer'] }}</p>
+                            <p class="text-[10px] text-gray-400 mt-0.5">{{ $delivery['zone'] }} · {{ $delivery['time'] }}</p>
+                            <p class="text-[10px] text-gray-400 mt-0.5">{{ __('Meal ID') }}: {{ $delivery['order_number'] }}</p>
+                        </div>
                     </div>
-                    <span class="px-2 py-1 rounded-full text-[10px] font-semibold border {{ $statusColor }}">{{ __($delivery['status_label']) }}</span>
+                    <span class="px-2 py-1 rounded-full text-[10px] font-semibold border {{ $statusColor }} flex-shrink-0">{{ __($delivery['status_label']) }}</span>
                 </div>
                 <div class="flex items-start gap-2 mb-2">
                     <svg class="w-4 h-4 text-brand-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>

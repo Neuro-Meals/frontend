@@ -290,5 +290,26 @@
     "Toggle navigation": "تبديل التنقل",
     "Login": "تسجيل الدخول",
     "Register": "إنشاء حساب",
-    "Today's distribution": "توزيع اليوم"
+    "Today's distribution": "توزيع اليوم",
+
+    "Today's Meals": "وجبات اليوم",
+    "On Delivery": "في التوصيل",
+    "Ready for Pickup": "جاهز للاستلام",
+    "No Deliveries Yet": "لا توجد توصيلات بعد",
+    "Start Delivery": "بدء التوصيل",
+    "Contact Information": "بيانات التواصل",
+    "Not provided": "غير متوفر",
+    "Mark as read": "وضع علامة مقروء",
+    "No notifications yet.": "لا توجد إشعارات بعد.",
+    "Notification": "إشعار",
+    "Profile": "الملف الشخصي",
+    "Unassigned": "غير مُسند",
+    "Map View": "عرض الخريطة",
+    "Meal ID": "رقم الوجبة",
+    "Meal Information": "معلومات الوجبة",
+    "Prep Time": "وقت التجهيز",
+    "Stop": "محطة",
+    "Report an Issue": "الإبلاغ عن مشكلة",
+    "Previous Stop": "المحطة السابقة",
+    "Next Stop": "المحطة التالية"
 }

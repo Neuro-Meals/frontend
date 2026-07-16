@@ -36,6 +36,20 @@ $statusLabel = match($delivery['status']) {
         <p class="text-xs text-white/70">{{ $delivery['order_number'] }} · {{ $delivery['zone'] }}</p>
     </div>
 
+    @if(($stepper['total'] ?? 0) > 0)
+    <div class="px-4 -mt-4 relative z-10">
+        <div class="bg-white rounded-2xl p-4 shadow-lg border border-gray-100 animate-slide-up">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-gray-700">{{ __('Delivery') }} {{ $stepper['position'] }} {{ __('of') }} {{ $stepper['total'] }}</span>
+                <span class="text-[10px] font-bold text-gray-400">{{ $stepper['remaining'] }} {{ __('Remaining') }}</span>
+            </div>
+            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-brand-600 to-brand-700 rounded-full transition-all duration-500" style="width: {{ $stepper['total'] > 0 ? round(($stepper['position'] / $stepper['total']) * 100) : 0 }}%"></div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <div class="p-4 space-y-4">
         {{-- Status card --}}
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between animate-slide-up animate-delay-1">
@@ -55,7 +69,12 @@ $statusLabel = match($delivery['status']) {
 
         {{-- Customer info card --}}
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up animate-delay-2">
-            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Customer Information') }}</h2>
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">{{ __('Customer Information') }}</h2>
+                @if(($stepper['total'] ?? 0) > 0)
+                <span class="px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 text-[10px] font-bold">{{ __('Stop') }} {{ $stepper['position'] }}</span>
+                @endif
+            </div>
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-12 h-12 rounded-full bg-brand-50 flex items-center justify-center text-brand-700 font-bold text-lg flex-shrink-0">
                     {{ strtoupper(substr($delivery['customer'], 0, 1)) }}
@@ -104,6 +123,25 @@ $statusLabel = match($delivery['status']) {
                 @endif
             </div>
             @endif
+        </div>
+
+        {{-- Meal Information --}}
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up animate-delay-3">
+            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Meal Information') }}</h2>
+            <div class="grid grid-cols-3 gap-2">
+                <div>
+                    <p class="text-[9px] text-gray-400 uppercase mb-0.5">{{ __('Meal ID') }}</p>
+                    <p class="text-xs font-bold text-gray-900 truncate">{{ $delivery['meal_id'] ?? $delivery['order_number'] }}</p>
+                </div>
+                <div>
+                    <p class="text-[9px] text-gray-400 uppercase mb-0.5">{{ __('Meal') }}</p>
+                    <p class="text-xs font-bold text-gray-900">{{ count($delivery['items'] ?? []) }} {{ __('items') }}</p>
+                </div>
+                <div>
+                    <p class="text-[9px] text-gray-400 uppercase mb-0.5">{{ __('Prep Time') }}</p>
+                    <p class="text-xs font-bold text-gray-900">{{ $delivery['time'] }}</p>
+                </div>
+            </div>
         </div>
 
         {{-- Order items --}}
@@ -176,7 +214,34 @@ $statusLabel = match($delivery['status']) {
                 {{ __('Failed') }}
             </button>
             @endif
+
+            @if(!in_array($delivery['status'], ['delivered', 'failed', 'cancelled', 'out_for_delivery']))
+            <button type="button" onclick="confirmFailDelivery('{{ route('driver.deliveries.status', $delivery['id']) }}')" class="col-span-2 flex items-center justify-center gap-1.5 py-2.5 text-red-500 text-[11px] font-bold">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                {{ __('Report an Issue') }}
+            </button>
+            @endif
         </div>
+
+        {{-- Previous / Next Stop --}}
+        @if(($stepper['total'] ?? 0) > 1)
+        <div class="flex items-center justify-between pt-2 animate-slide-up animate-delay-3">
+            @if($stepper['prev_id'])
+            <a href="{{ route('driver.deliveries.detail', $stepper['prev_id']) }}" class="flex items-center gap-1 text-xs font-bold text-gray-500">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                {{ __('Previous Stop') }}
+            </a>
+            @else
+            <span></span>
+            @endif
+            @if($stepper['next_id'])
+            <a href="{{ route('driver.deliveries.detail', $stepper['next_id']) }}" class="flex items-center gap-1 text-xs font-bold text-brand-700">
+                {{ __('Next Stop') }}
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" transform="rotate(180 12 12)"/></svg>
+            </a>
+            @endif
+        </div>
+        @endif
     </div>
 </div>
 @endsection

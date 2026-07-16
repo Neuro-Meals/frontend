@@ -926,7 +926,19 @@ class AdminController extends Controller
 
         $meals = [];
         if (!empty($mealsData)) {
+            // Build category lookup map from categories data
+            $catLookup = [];
+            if (!empty($categoriesData)) {
+                foreach ($categoriesData as $cat) {
+                    $catLookup[$cat['id'] ?? 0] = $cat['name_en'] ?? ($cat['name_ar'] ?? 'Uncategorized');
+                }
+            }
             foreach ($mealsData as $meal) {
+                $catId = $meal['category_id'] ?? 0;
+                $catName = $meal['category']['name_en']
+                    ?? $meal['category_name']
+                    ?? $catLookup[$catId]
+                    ?? __('Uncategorized');
                 $meals[] = [
                     'id' => $meal['id'] ?? 0,
                     'name' => $meal['name_en'] ?? 'Meal',
@@ -934,8 +946,8 @@ class AdminController extends Controller
                     'name_ar' => $meal['name_ar'] ?? '',
                     'description_en' => $meal['description_en'] ?? '',
                     'description_ar' => $meal['description_ar'] ?? '',
-                    'category_id' => $meal['category_id'] ?? 0,
-                    'category' => $meal['category']['name_en'] ?? ($meal['category_name'] ?? 'Uncategorized'),
+                    'category_id' => $catId,
+                    'category' => $catName,
                     'calories' => $meal['calories'] ?? 0,
                     'protein' => $meal['protein_g'] ?? 0,
                     'carbs' => $meal['carbs_g'] ?? 0,
@@ -1020,6 +1032,7 @@ class AdminController extends Controller
                 'description_en' => $meal['description_en'] ?? '',
                 'description_ar' => $meal['description_ar'] ?? '',
                 'category_id' => $meal['category_id'] ?? 0,
+                'category_name' => $meal['category_name'] ?? ($meal['category']['name_en'] ?? ''),
                 'calories' => $meal['calories'] ?? 0,
                 'protein_g' => $meal['protein_g'] ?? 0,
                 'carbs_g' => $meal['carbs_g'] ?? 0,

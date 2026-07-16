@@ -9,48 +9,70 @@ $driverName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''
 @endphp
 
 <div x-data="driverDashboard()" x-init="init()" class="pb-4">
-    {{-- Header --}}
-    <div class="bg-gradient-to-br from-brand-700 to-brand-600 text-white p-5 rounded-b-3xl shadow-lg shadow-brand-700/20 animate-slide-up">
-        <div class="flex items-center justify-between mb-4">
-            <div>
-                <p class="text-xs text-white/70 mb-0.5">{{ __('Good day,') }}</p>
-                <h1 class="text-lg font-bold">{{ $driverName }}</h1>
-            </div>
-            <div class="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center border border-white/20">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-            </div>
+    {{-- Top bar --}}
+    <div class="flex items-center justify-between px-5 pt-5 pb-3 animate-slide-up">
+        <div>
+            <p class="text-[11px] text-gray-400 mb-0.5">{{ __('Good day,') }}</p>
+            <h1 class="text-sm font-bold text-gray-900">{{ $driverName }}</h1>
         </div>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('driver.notifications') }}" class="relative w-10 h-10 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center">
+                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                @if(count($notifications) > 0)
+                <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 pulse-dot"></span>
+                @endif
+            </a>
+        </div>
+    </div>
 
-        {{-- KPI Cards --}}
-        <div class="grid grid-cols-3 gap-3">
-            <div class="bg-white/10 backdrop-blur rounded-2xl p-3 border border-white/10 animate-slide-up animate-delay-1">
-                <div class="flex items-center gap-1.5 mb-1">
-                    <div class="w-2 h-2 rounded-full bg-blue-300 pulse-dot"></div>
-                    <span class="text-[10px] text-white/70">{{ __('Today') }}</span>
-                </div>
-                <p class="text-xl font-bold" x-text="stats.today">{{ $stats['today'] }}</p>
-            </div>
-            <div class="bg-white/10 backdrop-blur rounded-2xl p-3 border border-white/10 animate-slide-up animate-delay-2">
-                <div class="flex items-center gap-1.5 mb-1">
-                    <div class="w-2 h-2 rounded-full bg-amber-300"></div>
-                    <span class="text-[10px] text-white/70">{{ __('Active') }}</span>
-                </div>
-                <p class="text-xl font-bold" x-text="stats.in_progress">{{ $stats['in_progress'] }}</p>
-            </div>
-            <div class="bg-white/10 backdrop-blur rounded-2xl p-3 border border-white/10 animate-slide-up animate-delay-3">
-                <div class="flex items-center gap-1.5 mb-1">
-                    <div class="w-2 h-2 rounded-full bg-green-300"></div>
-                    <span class="text-[10px] text-white/70">{{ __('Done') }}</span>
-                </div>
-                <p class="text-xl font-bold" x-text="stats.completed">{{ $stats['completed'] }}</p>
-            </div>
-        </div>
+    {{-- Driver / Zone hero card --}}
+    <div class="mx-4 relative bg-gradient-to-br from-brand-700 to-brand-800 text-white rounded-3xl p-5 shadow-lg shadow-brand-700/20 overflow-hidden animate-slide-up animate-delay-1">
+        <svg class="absolute -bottom-6 -right-6 w-28 h-28 text-white/10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8 6 6 9 6 13a6 6 0 0012 0c0-4-2-7-6-11z"/></svg>
+        <p class="text-xs text-white/70 mb-1">{{ __('Driver') }}</p>
+        <h2 class="text-3xl font-extrabold tracking-tight">{{ $driverCode }}</h2>
+        <p class="text-xs text-white/70 mt-1 flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            {{ $primaryZone }}
+        </p>
     </div>
 
     <div class="p-4 space-y-4">
         @php
             $shiftComplete = ($stats['assigned'] + $stats['in_progress']) === 0 && $stats['completed'] > 0;
         @endphp
+
+        @unless($shiftComplete)
+        {{-- Today's Meals + Status cards --}}
+        <div class="grid grid-cols-2 gap-3 animate-slide-up animate-delay-2">
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                <div class="w-10 h-10 rounded-full bg-brand-50 flex items-center justify-center mb-2">
+                    <svg class="w-5 h-5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                </div>
+                <p class="text-2xl font-extrabold text-gray-900">{{ $stats['today'] }}</p>
+                <p class="text-xs text-gray-400 font-semibold">{{ __('Today\'s Meals') }}</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                <div class="w-10 h-10 rounded-full {{ $onDelivery ? 'bg-purple-50' : ($readyForPickup ? 'bg-green-50' : 'bg-gray-50') }} flex items-center justify-center mb-2">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $onDelivery ? 'bg-purple-400' : ($readyForPickup ? 'bg-green-400' : 'bg-gray-400') }} opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 {{ $onDelivery ? 'bg-purple-500' : ($readyForPickup ? 'bg-green-500' : 'bg-gray-400') }}"></span>
+                    </span>
+                </div>
+                <p class="text-sm font-extrabold {{ $onDelivery ? 'text-purple-600' : ($readyForPickup ? 'text-green-600' : 'text-gray-500') }}">
+                    {{ $onDelivery ? __('On Delivery') : ($readyForPickup ? __('Ready for Pickup') : __('No Deliveries Yet')) }}
+                </p>
+                <p class="text-[10px] text-gray-400 font-semibold">{{ __('Status') }}</p>
+            </div>
+        </div>
+
+        {{-- Start Delivery CTA --}}
+        @if(count($currentDeliveries) > 0)
+        <a href="{{ route('driver.deliveries') }}" class="btn-action w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-to-r from-brand-700 to-brand-600 text-white text-sm font-bold shadow-md shadow-brand-700/20 animate-slide-up animate-delay-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+            {{ __('Start Delivery') }}
+        </a>
+        @endif
+        @endunless
 
         {{-- Shift Completed celebration --}}
         @if($shiftComplete)

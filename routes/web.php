@@ -227,6 +227,9 @@ Route::prefix('driver')->name('driver.')->middleware(['api.auth', 'api.driver'])
     Route::get('/deliveries/{id}/map', [\App\Http\Controllers\DriverController::class, 'mapView'])->name('deliveries.map');
     Route::post('/deliveries/{id}/status', [\App\Http\Controllers\DriverController::class, 'updateStatus'])->name('deliveries.status');
     Route::post('/deliveries/{id}/location', [\App\Http\Controllers\DriverController::class, 'updateLocation'])->name('deliveries.location');
+    Route::get('/notifications', [\App\Http\Controllers\DriverController::class, 'notifications'])->name('notifications');
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\DriverController::class, 'markNotificationRead'])->name('notifications.read');
+    Route::get('/profile', [\App\Http\Controllers\DriverController::class, 'profile'])->name('profile');
 });
 
 // Chef routes

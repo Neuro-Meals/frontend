@@ -605,14 +605,15 @@
                 this.$watch('viewMode', value => localStorage.setItem('mealsViewMode', value));
             },
             categoryColor(category) {
-                const map = {
-                    'High Protein': 'bg-green-50 text-green-700',
-                    'Vegan': 'bg-purple-50 text-purple-700',
-                    'Keto': 'bg-blue-50 text-blue-700',
-                    'Breakfast': 'bg-amber-50 text-amber-700',
-                    'Maintenance': 'bg-teal-50 text-teal-700'
-                };
-                return map[category] || 'bg-gray-50 text-gray-600';
+                const cat = this.categories.find(c => c.name === category);
+                if (cat && cat.color) {
+                    const hex = cat.color.replace('#', '');
+                    const r = parseInt(hex.substring(0, 2), 16);
+                    const g = parseInt(hex.substring(2, 4), 16);
+                    const b = parseInt(hex.substring(4, 6), 16);
+                    return `bg-[rgba(${r},${g},${b},0.08)] text-[${cat.color}]`;
+                }
+                return 'bg-gray-50 text-gray-600';
             },
             resetForm() {
                 this.form = {

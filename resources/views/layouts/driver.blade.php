@@ -48,6 +48,14 @@
     @stack('styles')
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans antialiased" style="font-family: 'Nunito', sans-serif;">
+    @php
+        $driverUnreadCount = 0;
+        try {
+            $driverUnreadCount = app(\App\Services\Api\NotificationApiService::class)->unreadCount();
+        } catch (\Throwable $e) {
+            $driverUnreadCount = 0;
+        }
+    @endphp
     <div class="min-h-full flex flex-col max-w-md mx-auto bg-white shadow-2xl relative">
         @unless(request()->routeIs('driver.deliveries.map'))
         <div class="absolute top-3 {{ app()->getLocale() === 'ar' ? 'left-3' : 'right-3' }} z-[600]">
@@ -58,7 +66,7 @@
 
         <!-- Bottom Navigation -->
         <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 safe-area-pb z-40">
-            <div class="max-w-md mx-auto grid grid-cols-3 h-16">
+            <div class="max-w-md mx-auto grid grid-cols-4 h-16">
                 <a href="{{ route('driver.dashboard') }}" class="bottom-nav-item {{ request()->routeIs('driver.dashboard') ? 'active' : 'text-gray-400' }} flex flex-col items-center justify-center gap-0.5">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
                     <span class="text-[10px] font-bold">{{ __('Home') }}</span>
@@ -67,13 +75,19 @@
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 001 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
                     <span class="text-[10px] font-bold">{{ __('Deliveries') }}</span>
                 </a>
-                <form action="{{ route('logout') }}" method="POST" class="flex flex-col items-center justify-center">
-                    @csrf
-                    <button type="submit" class="bottom-nav-item text-gray-400 flex flex-col items-center justify-center gap-0.5 w-full h-full">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                        <span class="text-[10px] font-bold">{{ __('Logout') }}</span>
-                    </button>
-                </form>
+                <a href="{{ route('driver.notifications') }}" class="relative bottom-nav-item {{ request()->routeIs('driver.notifications') ? 'active' : 'text-gray-400' }} flex flex-col items-center justify-center gap-0.5">
+                    <span class="relative">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        @if($driverUnreadCount > 0)
+                        <span class="absolute -top-1 -right-1 min-w-[14px] h-[14px] px-0.5 flex items-center justify-center rounded-full bg-red-500 text-white text-[8px] font-bold">{{ $driverUnreadCount > 9 ? '9+' : $driverUnreadCount }}</span>
+                        @endif
+                    </span>
+                    <span class="text-[10px] font-bold">{{ __('Notifications') }}</span>
+                </a>
+                <a href="{{ route('driver.profile') }}" class="bottom-nav-item {{ request()->routeIs('driver.profile') ? 'active' : 'text-gray-400' }} flex flex-col items-center justify-center gap-0.5">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <span class="text-[10px] font-bold">{{ __('Profile') }}</span>
+                </a>
             </div>
         </nav>
         <div class="h-16"></div>

@@ -81,7 +81,71 @@ class DriverController extends Controller
             ];
         }
 
-        return view('driver.dashboard', compact('currentDeliveries', 'history', 'stats', 'notifications'));
+        $user = app(AuthApiService::class)->user() ?? [];
+        $driverCode = 'D-' . ($user['id'] ?? '0');
+
+        // Primary zone: the zone shared by the most current deliveries, falling back to the first available.
+        $zoneCounts = array_count_values(array_filter(array_column($currentDeliveries, 'zone'), fn ($z) => $z && $z !== 'N/A'));
+        arsort($zoneCounts);
+        $primaryZone = array_key_first($zoneCounts) ?: ($currentDeliveries[0]['zone'] ?? __('Unassigned'));
+
+        $readyForPickup = $stats['assigned'] > 0 && $stats['in_progress'] === 0;
+        $onDelivery = $stats['in_progress'] > 0;
+
+        return view('driver.dashboard', compact('currentDeliveries', 'history', 'stats', 'notifications', 'driverCode', 'primaryZone', 'readyForPickup', 'onDelivery'));
+    }
+
+    public function notifications(NotificationApiService $notificationApi)
+    {
+        $notificationsData = $this->apiData($notificationApi->my(['limit' => 50]), fn () => []);
+        $notifications = [];
+        foreach ($notificationsData as $n) {
+            $notifications[] = [
+                'id' => $n['id'] ?? 0,
+                'title' => $n['title'] ?? '',
+                'message' => $n['message'] ?? '',
+                'created_at' => $n['created_at'] ?? '',
+                'is_read' => $n['is_read'] ?? false,
+            ];
+        }
+
+        return view('driver.notifications', compact('notifications'));
+    }
+
+    public function markNotificationRead(Request $request, int $id, NotificationApiService $notificationApi)
+    {
+        $response = $this->apiData($notificationApi->markAsRead($id), fn () => []);
+        $success = is_array($response);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => $success]);
+        }
+
+        return redirect()->route('driver.notifications');
+    }
+
+    public function profile(DriverApiService $driverApi, OrderApiService $orderApi)
+    {
+        $user = app(AuthApiService::class)->user() ?? [];
+        $driverCode = 'D-' . ($user['id'] ?? '0');
+
+        $deliveriesData = $this->apiData($driverApi->myDeliveries(), fn () => []);
+        $totalDelivered = 0;
+        $totalFailed = 0;
+        $zoneCounts = [];
+        foreach ($deliveriesData as $delivery) {
+            $status = $delivery['status'] ?? 'pending';
+            if ($status === 'delivered') $totalDelivered++;
+            if ($status === 'failed') $totalFailed++;
+            $zone = $delivery['zone'] ?? null;
+            if ($zone) {
+                $zoneCounts[$zone] = ($zoneCounts[$zone] ?? 0) + 1;
+            }
+        }
+        arsort($zoneCounts);
+        $primaryZone = array_key_first($zoneCounts) ?: __('Unassigned');
+
+        return view('driver.profile', compact('user', 'driverCode', 'primaryZone', 'totalDelivered', 'totalFailed'));
     }
 
     public function deliveries(DriverApiService $driverApi, OrderApiService $orderApi)
@@ -92,7 +156,15 @@ class DriverController extends Controller
             $orderData = $this->enrichOrderData($delivery, $orderApi);
             $deliveries[] = $this->formatDelivery($delivery, $orderData);
         }
-        return view('driver.deliveries', compact('deliveries'));
+
+        $user = app(AuthApiService::class)->user() ?? [];
+        $driverCode = 'D-' . ($user['id'] ?? '0');
+
+        $zoneCounts = array_count_values(array_filter(array_column($deliveries, 'zone'), fn ($z) => $z && $z !== 'N/A'));
+        arsort($zoneCounts);
+        $primaryZone = array_key_first($zoneCounts) ?: __('Unassigned');
+
+        return view('driver.deliveries', compact('deliveries', 'driverCode', 'primaryZone'));
     }
 
     public function showDelivery(int $id, DriverApiService $driverApi)
@@ -130,8 +202,28 @@ class DriverController extends Controller
         $orderData = $this->enrichOrderData($deliveryData, $orderApi);
         $delivery = $this->formatDelivery($deliveryData, $orderData);
         $delivery['whatsapp_phone'] = $this->cleanPhoneForWhatsApp($delivery['customer_phone']);
+        $delivery['meal_id'] = $delivery['order_number'];
 
-        return view('driver.delivery-detail', compact('delivery'));
+        // Build the route stepper (Delivery X of Y, Previous/Next Stop) from today's active stops.
+        $allDeliveriesData = $this->apiData($driverApi->myDeliveries(), fn () => []);
+        $activeStops = [];
+        foreach ($allDeliveriesData as $d) {
+            $status = $d['status'] ?? 'pending';
+            if (!in_array($status, ['delivered', 'failed', 'cancelled'])) {
+                $activeStops[] = (int) ($d['id'] ?? 0);
+            }
+        }
+
+        $position = array_search($id, $activeStops, true);
+        $stepper = [
+            'total' => count($activeStops),
+            'position' => $position !== false ? $position + 1 : 1,
+            'remaining' => $position !== false ? count($activeStops) - $position - 1 : 0,
+            'prev_id' => ($position !== false && $position > 0) ? $activeStops[$position - 1] : null,
+            'next_id' => ($position !== false && $position < count($activeStops) - 1) ? $activeStops[$position + 1] : null,
+        ];
+
+        return view('driver.delivery-detail', compact('delivery', 'stepper'));
     }
 
     private function enrichOrderData(array $deliveryData, OrderApiService $orderApi): array
