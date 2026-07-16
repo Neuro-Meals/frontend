@@ -962,10 +962,21 @@ class AdminController extends Controller
             $colors = ['#173327', '#8b5cf6', '#3b82f6', '#f9ac00', '#033133'];
             $colorIndex = 0;
             foreach ($categoriesData as $category) {
+                $catId = $category['id'] ?? 0;
+                $count = 0;
+                foreach ($meals as $meal) {
+                    if (($meal['category_id'] ?? 0) === $catId) {
+                        $count++;
+                    }
+                }
                 $categories[] = [
-                    'id' => $category['id'] ?? 0,
+                    'id' => $catId,
                     'name' => $category['name_en'] ?? 'Category',
-                    'count' => $category['meals_count'] ?? 0,
+                    'name_en' => $category['name_en'] ?? '',
+                    'name_ar' => $category['name_ar'] ?? '',
+                    'description' => $category['description'] ?? '',
+                    'is_active' => $category['is_active'] ?? true,
+                    'count' => $count,
                     'color' => $colors[$colorIndex % count($colors)],
                 ];
                 $colorIndex++;
@@ -1057,9 +1068,15 @@ class AdminController extends Controller
 
         if (empty($response) || !empty($response['error']) || !isset($response['id'])) {
             $message = $response['detail'] ?? $response['message'] ?? 'Failed to create meal.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
             return back()->with('error', $message)->withInput();
         }
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Meal created successfully.', 'meal' => $response]);
+        }
         return redirect()->route('admin.meals')->with('status', 'Meal created successfully.');
     }
 
@@ -1094,9 +1111,15 @@ class AdminController extends Controller
 
         if (empty($response) || !empty($response['error'])) {
             $message = $response['detail'] ?? $response['message'] ?? 'Failed to update meal.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
             return back()->with('error', $message)->withInput();
         }
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Meal updated successfully.', 'meal' => $response]);
+        }
         return redirect()->route('admin.meals')->with('status', 'Meal updated successfully.');
     }
 
@@ -1108,9 +1131,15 @@ class AdminController extends Controller
 
         if (empty($response) || !empty($response['error'])) {
             $message = $response['detail'] ?? $response['message'] ?? 'Failed to delete meal.';
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
             return redirect()->route('admin.meals')->with('error', $message);
         }
 
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Meal deleted successfully.']);
+        }
         return redirect()->route('admin.meals')->with('status', 'Meal deleted successfully.');
     }
 
