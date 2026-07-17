@@ -78,55 +78,106 @@ class ChefController extends Controller
             $categories = [];
             $categorizedOrders = [];
             $allOrders = [];
-            $categorySeen = []; // track category_id => index in $categories
+            $categorySeen = [];
 
-            // Iterate groups in meal-time order so tabs appear in the right sequence
-            foreach ($mealTimeOrder as $mealTime) {
-                $group = collect($groups)->firstWhere('meal_time', $mealTime);
-                if (!$group || !isset($group['categories'])) {
+            // ─── Step 1: Collect ALL unique orders from all groups ───
+            $uniqueOrders = [];
+            $categoryNameMap = [];
+
+            foreach ($groups as $group) {
+                if (!isset($group['categories'])) {
                     continue;
                 }
-
                 foreach ($group['categories'] as $catGroup) {
                     $catId = $catGroup['category_id'] ?? 0;
                     $catName = $catGroup['category_name'] ?? __('Uncategorized');
-
-                    // Skip if we already added this category (can happen if API returns duplicates)
-                    if (isset($categorySeen[$catId])) {
-                        // Still process orders into the existing bucket
-                        $existingIdx = $categorySeen[$catId];
-                    } else {
-                        $categories[] = [
-                            'id' => $catId,
-                            'name' => $catName,
-                            'icon' => $getIconForName($catName),
-                            'count' => 0,
-                        ];
-                        $categorizedOrders[$catId] = [];
-                        $categorySeen[$catId] = count($categories) - 1;
-                    }
+                    $categoryNameMap[$catId] = $catName;
 
                     foreach ($catGroup['orders'] as $order) {
-                        try {
-                            $item = $this->formatOrder($order);
-                            $item['primary_category_id'] = $catId;
-                            $item['primary_category_name'] = $catName;
-                            $categorizedOrders[$catId][] = $item;
-                            $allOrders[] = $item;
-                        } catch (\Throwable $e) {
-                            \Log::error('Chef order format failed', [
-                                'order_id' => $order['id'] ?? null,
-                                'error' => $e->getMessage(),
-                            ]);
-                            continue;
+                        $orderId = $order['id'] ?? 0;
+                        if ($orderId && !isset($uniqueOrders[$orderId])) {
+                            $uniqueOrders[$orderId] = $order;
                         }
                     }
                 }
             }
 
-            // Update counts based on actual orders per category
+            // ─── Step 2: Re-categorize each order by ALL its item categories ───
+            foreach ($uniqueOrders as $orderId => $order) {
+                try {
+                    $formatted = $this->formatOrder($order);
+                } catch (\Throwable $e) {
+                    \Log::error('Chef order format failed', [
+                        'order_id' => $order['id'] ?? null,
+                        'error' => $e->getMessage(),
+                    ]);
+                    continue;
+                }
+
+                $items = $formatted['items'] ?? [];
+                $itemsByCat = [];
+                foreach ($items as $itm) {
+                    $itmCatId = $itm['category_id'] ?? 0;
+                    if (!isset($itemsByCat[$itmCatId])) {
+                        $itemsByCat[$itmCatId] = [];
+                    }
+                    $itemsByCat[$itmCatId][] = $itm;
+                    if (!isset($categoryNameMap[$itmCatId]) && !empty($itm['category_name'])) {
+                        $categoryNameMap[$itmCatId] = $itm['category_name'];
+                    }
+                }
+
+                if (empty($itemsByCat)) {
+                    $itemsByCat[0] = [];
+                }
+
+                foreach ($itemsByCat as $catId => $catItems) {
+                    $catName = $categoryNameMap[$catId] ?? __('Uncategorized');
+
+                    if (!isset($categorySeen[$catId])) {
+                        $categories[] = [
+                            'id' => $catId,
+                            'name' => $catName,
+                            'icon' => $getIconForName($catName),
+                            'count' => 0,
+                            'total_quantity' => 0,
+                        ];
+                        $categorizedOrders[$catId] = [];
+                        $categorySeen[$catId] = count($categories) - 1;
+                    }
+
+                    // Recalculate totals for this category's items
+                    $catMealNames = [];
+                    $catCalories = 0;
+                    $catTotalQty = 0;
+                    foreach ($catItems as $ci) {
+                        $qty = $ci['quantity'] ?? 1;
+                        $catTotalQty += $qty;
+                        $name = $ci['meal_name'] ?? ($ci['name'] ?? '');
+                        if ($name) {
+                            $catMealNames[] = $qty > 1 ? "{$name} x{$qty}" : $name;
+                        }
+                        $catCalories += (int) ($ci['calories'] ?? 0) * $qty;
+                    }
+
+                    $item = $formatted;
+                    $item['primary_category_id'] = $catId;
+                    $item['primary_category_name'] = $catName;
+                    $item['items'] = $catItems;
+                    $item['meal_summary'] = implode(', ', $catMealNames) ?: __('Multiple items');
+                    $item['meal_count'] = count($catItems);
+                    $item['total_quantity'] = $catTotalQty;
+                    $item['total_calories'] = $catCalories;
+
+                    $categorizedOrders[$catId][] = $item;
+                    $allOrders[] = $item;
+                }
+            }
+
             foreach ($categories as &$cat) {
-                $cat['count'] = count($categorizedOrders[$cat['id']] ?? []);
+                $catOrders = $categorizedOrders[$cat['id']] ?? [];
+                $cat['count'] = count($catOrders);
+                $cat['total_quantity'] = array_sum(array_map(fn ($o) => $o['total_quantity'] ?? 0, $catOrders));
             }
             unset($cat);
         } else {
@@ -205,6 +256,7 @@ class ChefController extends Controller
                     'name' => $catName,
                     'icon' => $getIconForName($catName),
                     'count' => 0,
+                    'total_quantity' => 0,
                 ];
             }
         }
@@ -214,8 +266,8 @@ class ChefController extends Controller
         foreach ($categories as $orderCat) {
             if (isset($allCategories[$orderCat['id']])) {
                 $allCategories[$orderCat['id']]['count'] = $orderCat['count'];
+                $allCategories[$orderCat['id']]['total_quantity'] = $orderCat['total_quantity'] ?? 0;
             } else {
-                // Category exists in orders but not in API list — add it
                 $allCategories[$orderCat['id']] = $orderCat;
             }
         }

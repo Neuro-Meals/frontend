@@ -63,7 +63,7 @@
                     <template x-if="activeIcon === 'cookie'"><svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15h18v3a3 3 0 01-3 3H6a3 3 0 01-3-3v-3zM3 15l2.5-7.5A2 2 0 017.4 6h9.2a2 2 0 011.9 1.5L21 15M9 15V11M15 15V11"/></svg></template>
                     <template x-if="activeIcon === 'dots'"><svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01"/></svg></template>
                     <span class="text-sm font-bold text-gray-900" x-text="activeLabel"></span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 text-brand-700" x-text="activeSummary.customers + ' ' + '{{ __('orders') }}'"></span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 text-brand-700" x-text="activeSummary.customers + ' {{ __('orders') }}' + (activeCategoryQty ? ' · ' + activeCategoryQty + ' {{ __('qty') }}' : '')"></span>
                 </span>
                 <svg class="w-5 h-5 text-gray-400 transition-transform flex-shrink-0 mr-2" :class="dropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
@@ -104,7 +104,7 @@
                         </span>
                         <span class="px-2.5 py-1 rounded-full text-[10px] font-bold"
                             :class="cat.count > 0 ? 'bg-brand-50 text-brand-700' : 'bg-gray-100 text-gray-400'"
-                            x-text="cat.count"></span>
+                            x-text="cat.count + (cat.total_quantity ? ' · ' + cat.total_quantity + 'qty' : '')"></span>
                     </button>
                 </template>
             </div>
@@ -140,6 +140,22 @@
                 <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-brand-50 text-brand-700" x-text="activeMeals.length + ' {{ __('meals') }}'"></span>
             </div>
             <div class="divide-y divide-gray-50 max-h-[28rem] overflow-y-auto">
+                {{-- Ingredient totals summary bar --}}
+                <div class="px-4 py-3 bg-brand-700/5 border-b border-brand-700/10" x-show="activeIngredientTotals.length > 0">
+                    <div class="flex items-center gap-2 mb-2">
+                        <svg class="w-4 h-4 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                        <p class="text-[10px] font-bold text-brand-700 uppercase tracking-wider">{{ __('Total Ingredients Needed') }}</p>
+                        <span class="ml-auto text-[10px] font-bold text-gray-500" x-text="activeIngredientTotals.length + ' {{ __('ingredients') }}'"></span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        <template x-for="(ing, idx) in activeIngredientTotals" :key="idx">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-brand-700/15 text-[11px] font-medium text-gray-700 shadow-sm">
+                                <span x-text="ing.name"></span>
+                                <span class="font-bold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded-full text-[10px]" x-text="'×' + ing.total"></span>
+                            </span>
+                        </template>
+                    </div>
+                </div>
                 <template x-for="meal in activeMeals" :key="meal.id">
                     <div class="px-4 py-3.5">
                         <div class="flex items-start gap-3">
@@ -440,7 +456,13 @@
 
                     {{-- Items to prepare --}}
                     <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Items to Prepare') }}</h3>
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">{{ __('Items to Prepare') }}</h3>
+                            <div class="flex items-center gap-2">
+                                <span x-show="currentOrder.total_quantity" class="text-[10px] font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full" x-text="currentOrder.total_quantity + ' {{ __('qty') }}'"></span>
+                                <span x-show="currentOrder.total_calories" class="text-[10px] font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full" x-text="currentOrder.total_calories + ' kcal'"></span>
+                            </div>
+                        </div>
                         <div class="space-y-2.5">
                             <template x-for="(item, idx) in currentOrder.items" :key="idx">
                                 <div class="bg-brand-50/60 rounded-xl p-3 border border-brand-100">
@@ -452,11 +474,23 @@
                                             <p class="text-xs font-bold text-gray-800 leading-tight" x-text="item.meal_name || item.name || strings.item"></p>
                                             <p class="text-[11px] text-brand-700 font-semibold mt-0.5" x-text="'× ' + (item.quantity || 1)"></p>
                                         </div>
+                                        <span x-show="item.calories" class="text-[9px] font-bold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded-full" x-text="item.calories + ' kcal'"></span>
                                     </div>
-                                    <div x-show="item.ingredients?.length" class="flex flex-wrap items-center gap-1">
-                                        <template x-for="(ing, iIdx) in item.ingredients" :key="iIdx">
-                                            <span class="px-1.5 py-0.5 rounded-full bg-white border border-brand-100 text-[10px] text-gray-600" x-text="ing"></span>
-                                        </template>
+                                    <div x-show="item.ingredients?.length" class="mb-2">
+                                        <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">{{ __('Ingredients') }}</p>
+                                        <div class="flex flex-wrap items-center gap-1">
+                                            <template x-for="(ing, iIdx) in item.ingredients" :key="iIdx">
+                                                <span class="px-1.5 py-0.5 rounded-full bg-white border border-brand-100 text-[10px] text-gray-600" x-text="ing"></span>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    <div x-show="item.allergens?.length">
+                                        <p class="text-[9px] font-bold text-red-400 uppercase tracking-wide mb-1">{{ __('Allergens') }}</p>
+                                        <div class="flex flex-wrap items-center gap-1">
+                                            <template x-for="(a, aIdx) in item.allergens" :key="aIdx">
+                                                <span class="px-1.5 py-0.5 rounded-full bg-red-50 border border-red-100 text-[10px] text-red-600" x-text="a"></span>
+                                            </template>
+                                        </div>
                                     </div>
                                 </div>
                             </template>
@@ -613,6 +647,32 @@ function chefShift() {
 
         get activeMeals() {
             return this.mealsByCategory[this.activeTab] || [];
+        },
+
+        get activeCategoryQty() {
+            const cat = this.categories.find(c => c.id === this.activeTab);
+            return cat ? (cat.total_quantity || 0) : 0;
+        },
+
+        get activeIngredientTotals() {
+            const totals = {};
+            const orders = this.activeOrders;
+            for (const order of orders) {
+                const items = order.items || [];
+                for (const item of items) {
+                    const qty = item.quantity || 1;
+                    const ings = item.ingredients || [];
+                    for (const ing of ings) {
+                        const key = String(ing).trim().toLowerCase();
+                        if (!key) continue;
+                        if (!totals[key]) {
+                            totals[key] = { name: String(ing).trim(), total: 0 };
+                        }
+                        totals[key].total += qty;
+                    }
+                }
+            }
+            return Object.values(totals).sort((a, b) => b.total - a.total);
         },
 
         mealKey(meal) {
