@@ -344,22 +344,15 @@ class ChefController extends Controller
         // cook per schedule (category), aggregated across every order
         // for today — never individual Order #1025/#1026 during prep.
         $today = date('Y-m-d');
-        $scheduleCategoriesData = $this->apiData($chefApi->scheduleCategories($today), fn () => ['categories' => []]);
         $scheduleCategoryStats = [];
-        foreach ($scheduleCategoriesData['categories'] ?? [] as $sc) {
-            $scheduleCategoryStats[$sc['category_id']] = $sc;
-        }
 
         $scheduleByTab = [];
         foreach ($categories as $cat) {
             $catId = $cat['id'];
-            $production = $this->apiData($chefApi->productionRequirements($today, $catId), fn () => ['meals' => [], 'total_required' => 0]);
-            $queue = $this->apiData($chefApi->kitchenQueue($today, $catId), fn () => ['meals' => [], 'totals' => []]);
-
             $scheduleByTab[$catId] = [
                 'stats' => $scheduleCategoryStats[$catId] ?? ['pending' => 0, 'sent_to_kitchen' => 0, 'preparing' => 0, 'ready' => 0, 'served' => 0, 'total_items' => 0],
-                'production' => $production,
-                'kitchen_queue' => $queue,
+                'production' => ['meals' => [], 'total_required' => 0],
+                'kitchen_queue' => ['meals' => [], 'totals' => []],
             ];
         }
 
