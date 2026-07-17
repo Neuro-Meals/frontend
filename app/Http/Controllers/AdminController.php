@@ -1349,17 +1349,61 @@ class AdminController extends Controller
 
         if ($useGrouped) {
             $groups = $groupedResponse['groups'] ?? [];
-            foreach ($mealTimeOrder as $mealTime) {
-                $group = collect($groups)->firstWhere('meal_time', $mealTime);
-                if (!$group || !isset($group['categories'])) {
+
+            // ─── Step 1: Collect ALL unique orders from all groups ───
+            // The backend only assigns each order to its first item's category.
+            // We need to re-categorize by looking at each order's items.
+            $uniqueOrders = []; // keyed by order_id to avoid duplicates
+            $categoryNameMap = []; // catId => catName, built from groups + all categories API later
+
+            foreach ($groups as $group) {
+                if (!isset($group['categories'])) {
                     continue;
                 }
                 foreach ($group['categories'] as $catGroup) {
                     $catId = $catGroup['category_id'] ?? 0;
                     $catName = $catGroup['category_name'] ?? __('Uncategorized');
-                    if (isset($categorySeen[$catId])) {
-                        $existingIdx = $categorySeen[$catId];
-                    } else {
+                    $categoryNameMap[$catId] = $catName;
+
+                    foreach ($catGroup['orders'] as $order) {
+                        $orderId = $order['id'] ?? 0;
+                        if ($orderId && !isset($uniqueOrders[$orderId])) {
+                            $uniqueOrders[$orderId] = $order;
+                        }
+                    }
+                }
+            }
+
+            // ─── Step 2: For each unique order, find ALL categories its items belong to ───
+            foreach ($uniqueOrders as $orderId => $order) {
+                $formatted = $this->formatAdminOrder($order);
+                $items = $formatted['items'] ?? [];
+
+                // Group items by their category_id
+                $itemsByCat = [];
+                foreach ($items as $itm) {
+                    $itmCatId = $itm['category_id'] ?? 0;
+                    if (!isset($itemsByCat[$itmCatId])) {
+                        $itemsByCat[$itmCatId] = [];
+                    }
+                    $itemsByCat[$itmCatId][] = $itm;
+                    // Learn category name from item if we don't have it
+                    if (!isset($categoryNameMap[$itmCatId]) && !empty($itm['category_name'])) {
+                        $categoryNameMap[$itmCatId] = $itm['category_name'];
+                    }
+                }
+
+                // If no category_id on items, fall back to 0 (uncategorized)
+                if (empty($itemsByCat)) {
+                    $itemsByCat[0] = [];
+                }
+
+                // ─── Step 3: Add the order to each category it has items for ───
+                foreach ($itemsByCat as $catId => $catItems) {
+                    $catName = $categoryNameMap[$catId] ?? __('Uncategorized');
+
+                    // Register category if not seen
+                    if (!isset($categorySeen[$catId])) {
                         $categories[] = [
                             'id' => $catId,
                             'name' => $catName,
@@ -1369,50 +1413,44 @@ class AdminController extends Controller
                         $categorizedOrders[$catId] = [];
                         $categorySeen[$catId] = count($categories) - 1;
                     }
-                    foreach ($catGroup['orders'] as $order) {
-                        $item = $this->formatAdminOrder($order);
-                        $item['primary_category_id'] = $catId;
-                        $item['primary_category_name'] = $catName;
 
-                        // Filter items to only those matching this category
-                        $catItems = array_values(array_filter($item['items'] ?? [], function ($i) use ($catId) {
-                            return ($i['category_id'] ?? null) === $catId;
-                        }));
-
-                        // Recalculate totals based on category-filtered items
-                        $catMealNames = [];
-                        $catCalories = 0;
-                        $catProtein = 0;
-                        $catCarbs = 0;
-                        $catFat = 0;
-                        $catAmount = 0;
-                        foreach ($catItems as $ci) {
-                            $qty = $ci['quantity'] ?? 1;
-                            $name = $ci['meal_name'] ?? '';
-                            if ($name) {
-                                $catMealNames[] = $qty > 1 ? "{$name} x{$qty}" : $name;
-                            }
-                            $catCalories += (float) ($ci['calories'] ?? 0) * $qty;
-                            $catProtein += (float) ($ci['protein_g'] ?? 0) * $qty;
-                            $catCarbs += (float) ($ci['carbs_g'] ?? 0) * $qty;
-                            $catFat += (float) ($ci['fat_g'] ?? 0) * $qty;
-                            $catAmount += (float) ($ci['line_total'] ?? 0);
+                    // Recalculate totals for this category's items only
+                    $catMealNames = [];
+                    $catCalories = 0;
+                    $catProtein = 0;
+                    $catCarbs = 0;
+                    $catFat = 0;
+                    $catAmount = 0;
+                    foreach ($catItems as $ci) {
+                        $qty = $ci['quantity'] ?? 1;
+                        $name = $ci['meal_name'] ?? '';
+                        if ($name) {
+                            $catMealNames[] = $qty > 1 ? "{$name} x{$qty}" : $name;
                         }
-
-                        $item['items'] = $catItems;
-                        $item['meal_summary'] = implode(', ', $catMealNames) ?: __('No items');
-                        $item['meal_count'] = count($catItems);
-                        $item['total_calories'] = round($catCalories);
-                        $item['total_protein_g'] = round($catProtein);
-                        $item['total_carbs_g'] = round($catCarbs);
-                        $item['total_fat_g'] = round($catFat);
-                        $item['category_amount'] = round($catAmount, 2);
-
-                        $categorizedOrders[$catId][] = $item;
-                        $allOrders[] = $item;
+                        $catCalories += (float) ($ci['calories'] ?? 0) * $qty;
+                        $catProtein += (float) ($ci['protein_g'] ?? 0) * $qty;
+                        $catCarbs += (float) ($ci['carbs_g'] ?? 0) * $qty;
+                        $catFat += (float) ($ci['fat_g'] ?? 0) * $qty;
+                        $catAmount += (float) ($ci['line_total'] ?? 0);
                     }
+
+                    $item = $formatted;
+                    $item['primary_category_id'] = $catId;
+                    $item['primary_category_name'] = $catName;
+                    $item['items'] = $catItems;
+                    $item['meal_summary'] = implode(', ', $catMealNames) ?: __('No items');
+                    $item['meal_count'] = count($catItems);
+                    $item['total_calories'] = round($catCalories);
+                    $item['total_protein_g'] = round($catProtein);
+                    $item['total_carbs_g'] = round($catCarbs);
+                    $item['total_fat_g'] = round($catFat);
+                    $item['category_amount'] = round($catAmount, 2);
+
+                    $categorizedOrders[$catId][] = $item;
+                    $allOrders[] = $item;
                 }
             }
+
             foreach ($categories as &$cat) {
                 $cat['count'] = count($categorizedOrders[$cat['id']] ?? []);
             }
@@ -1485,16 +1523,35 @@ class AdminController extends Controller
             ];
         }
 
-        // ─── Stats ───
-        $total = count($allOrders);
-        $pending = count(array_filter($allOrders, fn ($o) => in_array($o['status'], ['pending', 'preparing'])));
-        $delivered = count(array_filter($allOrders, fn ($o) => $o['status'] === 'delivered'));
-        $revenue = array_sum(array_map(fn ($o) => $o['status'] !== 'cancelled' ? $o['amount'] : 0, $allOrders));
+        // ─── Stats (count unique orders, not duplicated per category) ───
+        $uniqueOrderIds = [];
+        foreach ($allOrders as $o) {
+            $uniqueOrderIds[$o['order_id']] = true;
+        }
+        $total = count($uniqueOrderIds);
+        $pendingOrders = [];
+        $deliveredOrders = [];
+        $revenue = 0;
+        foreach ($allOrders as $o) {
+            if (isset($pendingOrders[$o['order_id']])) {
+                // already counted
+            } elseif (in_array($o['status'], ['pending', 'preparing'])) {
+                $pendingOrders[$o['order_id']] = true;
+            }
+            if ($o['status'] === 'delivered' && !isset($deliveredOrders[$o['order_id']])) {
+                $deliveredOrders[$o['order_id']] = true;
+            }
+            if ($o['status'] !== 'cancelled') {
+                $revenue += (float) ($o['category_amount'] ?? 0);
+            }
+        }
+        $pending = count($pendingOrders);
+        $delivered = count($deliveredOrders);
 
         $stats = [
             ['label' => __('Total Orders'), 'value' => number_format($total), 'color' => 'text-gray-900'],
-            ['label' => __("Today's Orders"), 'value' => number_format($total), 'color' => 'text-[#6E7A25]'],
             ['label' => __('Pending'), 'value' => number_format($pending), 'color' => 'text-amber-600'],
+            ['label' => __('Delivered'), 'value' => number_format($delivered), 'color' => 'text-[#6E7A25]'],
             ['label' => __('Revenue'), 'value' => 'SAR ' . number_format($revenue), 'color' => 'text-gray-900'],
         ];
 
