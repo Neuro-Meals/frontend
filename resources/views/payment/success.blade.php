@@ -47,6 +47,18 @@ $status = $verified ? 'paid' : ($error ? 'error' : 'pending');
                     <span class="text-xs text-gray-500">{{ __('Payment ID') }}</span>
                     <span class="text-xs font-bold text-gray-900">#{{ $payment['id'] }}</span>
                 </div>
+                @if(!empty($payment['provider_payment_id']))
+                <div class="flex justify-between py-2.5 border-b border-gray-100">
+                    <span class="text-xs text-gray-500">{{ __('Gateway Payment ID') }}</span>
+                    <span class="text-xs font-mono font-bold text-gray-900 truncate max-w-[140px]" title="{{ $payment['provider_payment_id'] }}">{{ $payment['provider_payment_id'] }}</span>
+                </div>
+                @endif
+                @if(!empty($payment['provider_reference']))
+                <div class="flex justify-between py-2.5 border-b border-gray-100">
+                    <span class="text-xs text-gray-500">{{ __('Gateway Reference') }}</span>
+                    <span class="text-xs font-mono font-bold text-gray-900 truncate max-w-[140px]" title="{{ $payment['provider_reference'] }}">{{ $payment['provider_reference'] }}</span>
+                </div>
+                @endif
                 @if(!empty($payment['tap_charge_id']))
                 <div class="flex justify-between py-2.5 border-b border-gray-100">
                     <span class="text-xs text-gray-500">{{ __('Gateway Charge ID') }}</span>
@@ -88,7 +100,7 @@ $status = $verified ? 'paid' : ($error ? 'error' : 'pending');
             @endif
 
             <div class="mt-8 space-y-3">
-                @if($status === 'pending' && $chargeId)
+                @if($status === 'pending' && ($chargeId || !empty($moyasarPaymentId)))
                 <p class="text-xs text-gray-400">
                     {{ __('Rechecking in') }} <span x-text="countdown" class="font-bold text-gray-600"></span> {{ __('seconds') }}
                 </p>
@@ -138,7 +150,7 @@ $status = $verified ? 'paid' : ($error ? 'error' : 'pending');
                     this.countdown--;
                     if (this.countdown <= 0) {
                         clearInterval(timer);
-                        @if($status === 'pending' && $chargeId)
+                        @if($status === 'pending' && ($chargeId || !empty($moyasarPaymentId)))
                             window.location.reload();
                         @else
                             window.location.href = @json($nextUrl);

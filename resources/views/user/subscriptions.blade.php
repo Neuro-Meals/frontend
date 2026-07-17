@@ -117,7 +117,7 @@
             @endif
             @elseif($activePlan['payment_status'] === 'unpaid' || $activePlan['payment_status'] === 'pending')
             <div class="text-xs text-white/70 mb-1">{{ __('Complete payment to activate') }}</div>
-            <button type="button" onclick="openTapCheckout(this)"
+            <button type="button" onclick="openMoyasarCheckout(this)"
                 data-checkout-url="{{ route('user.subscriptions.checkout', $activePlan['id']) }}"
                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white text-[#173327] hover:bg-white/90 text-xs font-bold transition-colors shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
@@ -207,7 +207,7 @@
                     <td class="px-5 py-3">
                         <div class="flex items-center gap-2">
                             @if($item['payment_status'] !== 'paid' && !empty($item['id']))
-                            <button type="button" onclick="openTapCheckout(this)"
+                            <button type="button" onclick="openMoyasarCheckout(this)"
                                 data-checkout-url="{{ route('user.subscriptions.checkout', $item['id']) }}"
                                 class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-[10px] font-bold hover:shadow-md transition-all">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
@@ -229,6 +229,34 @@
                 @endforeach
             </tbody>
         </table>
+    </div>
+</div>
+
+{{-- Moyasar Payment Modal --}}
+<div id="moyasar-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="moyasar-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onclick="closeMoyasarModal()"></div>
+    <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full pointer-events-auto transform transition-all overflow-hidden" id="moyasar-panel">
+            <div class="h-2 w-full bg-gradient-to-r from-[#173327] via-[#6E7A25] to-[#173327]"></div>
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 id="moyasar-title" class="text-base font-bold text-gray-900">{{ __('Complete Payment') }}</h3>
+                    <button type="button" onclick="closeMoyasarModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <div id="moyasar-amount-display" class="mb-4 text-center">
+                    <p class="text-2xl font-bold text-[#173327]" id="moyasar-amount-text"></p>
+                    <p class="text-xs text-gray-400 mt-1" id="moyasar-description-text"></p>
+                </div>
+                <div class="mysr-form" id="moyasar-form-container"></div>
+                <div id="moyasar-loading" class="hidden text-center py-8">
+                    <svg class="w-8 h-8 text-[#6E7A25] animate-spin mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p class="text-xs text-gray-500 mt-2">{{ __('Loading payment form...') }}</p>
+                </div>
+                <div id="moyasar-error" class="hidden mt-4 bg-red-50 border border-red-100 text-red-700 rounded-xl px-4 py-3 text-sm"></div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -264,7 +292,7 @@
             <h3 id="switch-plan-title" class="text-base font-bold text-gray-900 mb-2">{{ __('Switch Plan') }}?</h3>
             <p class="text-sm text-gray-600 mb-6">
                 {{ __('You are about to switch to') }} <strong id="switch-plan-name" class="text-gray-900"></strong> {{ __('at') }} SAR <strong id="switch-plan-price" class="text-gray-900"></strong>.
-                {{ __('This will create a new subscription and open a payment checkout in a new tab.') }}
+                {{ __('This will create a new subscription and open a payment form to complete your purchase.') }}
             </p>
             <div class="flex items-center gap-3 justify-end">
                 <button type="button" onclick="closeSwitchPlanModal()" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-xs font-bold hover:bg-gray-200 transition-colors">
@@ -281,6 +309,7 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.moyasar.com/mpf/0.3.0/moyasar.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.querySelectorAll('.swal-confirm-form').forEach(form => {
@@ -340,7 +369,93 @@
         button.classList.toggle('cursor-not-allowed', loading);
     }
 
-    async function openTapCheckout(button) {
+    let moyasarFormInstance = null;
+
+    function openMoyasarModal(checkout) {
+        const modal = document.getElementById('moyasar-modal');
+        const formContainer = document.getElementById('moyasar-form-container');
+        const loadingEl = document.getElementById('moyasar-loading');
+        const errorEl = document.getElementById('moyasar-error');
+        const amountText = document.getElementById('moyasar-amount-text');
+        const descText = document.getElementById('moyasar-description-text');
+
+        if (!modal || !formContainer) return;
+
+        const amountHalalas = checkout.amount || 0;
+        const amountSar = (amountHalalas / 100).toFixed(2);
+        const currency = checkout.currency || 'SAR';
+        const description = checkout.description || 'Subscription Payment';
+        const publishableKey = checkout.publishable_api_key;
+        const callbackUrl = checkout.callback_url || '';
+        const metadata = checkout.metadata || {};
+        const supportedNetworks = checkout.supported_networks || ['mada', 'visa', 'mastercard'];
+        const methods = checkout.methods || ['creditcard'];
+        const localPaymentId = checkout.payment_id;
+
+        amountText.textContent = `${currency} ${amountSar}`;
+        descText.textContent = description;
+
+        errorEl.classList.add('hidden');
+        errorEl.textContent = '';
+
+        formContainer.innerHTML = '';
+        loadingEl.classList.remove('hidden');
+
+        const moyasarCallbackUrl = callbackUrl + (callbackUrl.includes('?') ? '&' : '?') + 'payment_id=' + localPaymentId;
+
+        modal.classList.remove('hidden');
+
+        try {
+            moyasarFormInstance = Moyasar.init({
+                element: '#moyasar-form-container',
+                amount: amountHalalas,
+                currency: currency,
+                description: description,
+                publishable_api_key: publishableKey,
+                callback_url: moyasarCallbackUrl,
+                supported_networks: supportedNetworks,
+                methods: methods,
+                metadata: metadata,
+                language: document.documentElement.lang || 'en',
+                on_completed: function(payment) {
+                    loadingEl.classList.remove('hidden');
+                    formContainer.style.display = 'none';
+                },
+                on_failure: function(error) {
+                    loadingEl.classList.add('hidden');
+                    errorEl.textContent = (error && error.message) || 'Payment failed. Please try again.';
+                    errorEl.classList.remove('hidden');
+                },
+            });
+            loadingEl.classList.add('hidden');
+        } catch (err) {
+            loadingEl.classList.add('hidden');
+            errorEl.textContent = 'Failed to load payment form. Please try again.';
+            errorEl.classList.remove('hidden');
+            console.error('Moyasar init error:', err);
+        }
+    }
+
+    function closeMoyasarModal() {
+        const modal = document.getElementById('moyasar-modal');
+        const formContainer = document.getElementById('moyasar-form-container');
+        const loadingEl = document.getElementById('moyasar-loading');
+        const errorEl = document.getElementById('moyasar-error');
+
+        if (modal) modal.classList.add('hidden');
+        if (formContainer) {
+            formContainer.innerHTML = '';
+            formContainer.style.display = '';
+        }
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (errorEl) {
+            errorEl.classList.add('hidden');
+            errorEl.textContent = '';
+        }
+        moyasarFormInstance = null;
+    }
+
+    async function openMoyasarCheckout(button) {
         const url = button?.getAttribute('data-checkout-url');
         if (!url) {
             showPaymentError('Invalid payment link.');
@@ -361,12 +476,12 @@
 
             const result = await response.json().catch(() => ({}));
 
-            if (!response.ok || !result.success || !result.checkout_url) {
+            if (!response.ok || !result.success || !result.checkout) {
                 showPaymentError(result.message || 'Unable to start payment. Please try again.');
                 return;
             }
 
-            window.open(result.checkout_url, '_blank', 'noopener,noreferrer');
+            openMoyasarModal(result.checkout);
         } catch (err) {
             showPaymentError('Network error. Please try again.');
         } finally {
@@ -394,12 +509,12 @@
 
     document.getElementById('switch-plan-confirm-btn')?.addEventListener('click', () => {
         if (selectedSwitchPlanButton) {
-            openTapSubscribe(selectedSwitchPlanButton);
+            openMoyasarSubscribe(selectedSwitchPlanButton);
         }
         closeSwitchPlanModal();
     });
 
-    async function openTapSubscribe(button) {
+    async function openMoyasarSubscribe(button) {
         const url = button?.getAttribute('data-subscribe-url');
         const planId = button?.getAttribute('data-plan-id');
 
@@ -423,12 +538,12 @@
 
             const result = await response.json().catch(() => ({}));
 
-            if (!response.ok || !result.success || !result.checkout_url) {
+            if (!response.ok || !result.success || !result.checkout) {
                 showPaymentError(result.message || 'Unable to start subscription. Please try again.');
                 return;
             }
 
-            window.open(result.checkout_url, '_blank', 'noopener,noreferrer');
+            openMoyasarModal(result.checkout);
         } catch (err) {
             showPaymentError('Network error. Please try again.');
         } finally {

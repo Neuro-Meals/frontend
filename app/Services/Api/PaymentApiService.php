@@ -37,4 +37,17 @@ class PaymentApiService extends BaseApiService
     {
         return $this->get('payments.verify_charge', ['charge_id' => $chargeId]);
     }
+
+    public function attachMoyasarPayment(int $localPaymentId, string $moyasarPaymentId): array
+    {
+        return $this->post('payments.attach_moyasar_payment', [], [
+            'local_payment_id' => $localPaymentId,
+            'moyasar_payment_id' => $moyasarPaymentId,
+        ]);
+    }
+
+    public function verifyPayment(int $paymentId): array
+    {
+        return $this->get('payments.verify_payment', ['payment_id' => $paymentId]);
+    }
 }

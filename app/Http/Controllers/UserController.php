@@ -482,19 +482,22 @@ class UserController extends Controller
 
         $checkout = $checkoutResponse['data'] ?? $checkoutResponse;
 
-        if (!empty($checkout['checkout_url'])) {
+        if (!empty($checkout['payment_id']) && !empty($checkout['publishable_api_key'])) {
             if ($wantsJson) {
                 return response()->json([
                     'success' => true,
-                    'checkout_url' => $checkout['checkout_url'],
+                    'checkout' => $checkout,
                     'subscription_id' => $subscriptionId,
-                    'payment_id' => $checkout['payment_id'] ?? null,
+                    'payment_id' => $checkout['payment_id'],
                 ]);
             }
-            return redirect()->away($checkout['checkout_url']);
+            return view('payment.checkout', [
+                'checkout' => $checkout,
+                'subscriptionId' => $subscriptionId,
+            ]);
         }
 
-        \Illuminate\Support\Facades\Log::warning('Subscription payment checkout returned no URL', ['response' => $checkoutResponse]);
+        \Illuminate\Support\Facades\Log::warning('Subscription payment checkout returned no Moyasar data', ['response' => $checkoutResponse]);
         if ($wantsJson) {
             return response()->json(['success' => false, 'message' => 'Unable to start payment. Please try again.'], 400);
         }
@@ -527,17 +530,20 @@ class UserController extends Controller
 
         $checkout = $checkoutResponse['data'] ?? $checkoutResponse;
 
-        if (!empty($checkout['checkout_url'])) {
-            return redirect()->away($checkout['checkout_url']);
+        if (!empty($checkout['payment_id']) && !empty($checkout['publishable_api_key'])) {
+            return view('payment.checkout', [
+                'checkout' => $checkout,
+                'subscriptionId' => $subscriptionId,
+            ]);
         }
 
         if (!empty($checkout['error']) || !empty($checkout['detail'])) {
             $message = $this->apiErrorMessage($checkout);
-            \Illuminate\Support\Facades\Log::warning('Payment checkout missing URL', ['response' => $checkoutResponse]);
+            \Illuminate\Support\Facades\Log::warning('Payment checkout missing Moyasar data', ['response' => $checkoutResponse]);
             return redirect()->route('user.subscriptions')->with('error', $message);
         }
 
-        \Illuminate\Support\Facades\Log::warning('Payment checkout returned no URL', ['response' => $checkoutResponse]);
+        \Illuminate\Support\Facades\Log::warning('Payment checkout returned no Moyasar data', ['response' => $checkoutResponse]);
         return redirect()->route('user.subscriptions')->with('error', 'Unable to start payment. Please try again.');
     }
 
@@ -564,16 +570,23 @@ class UserController extends Controller
 
         $checkout = $checkoutResponse['data'] ?? $checkoutResponse;
 
-        if (!empty($checkout['checkout_url'])) {
+        if (!empty($checkout['payment_id']) && !empty($checkout['publishable_api_key'])) {
             return response()->json([
                 'success' => true,
-                'checkout_url' => $checkout['checkout_url'],
-                'payment_id' => $checkout['payment_id'] ?? null,
-                'tap_charge_id' => $checkout['tap_charge_id'] ?? null,
+                'checkout' => $checkout,
+                'payment_id' => $checkout['payment_id'],
+                'amount' => $checkout['amount'] ?? 0,
+                'currency' => $checkout['currency'] ?? 'SAR',
+                'description' => $checkout['description'] ?? '',
+                'publishable_api_key' => $checkout['publishable_api_key'],
+                'callback_url' => $checkout['callback_url'] ?? '',
+                'metadata' => $checkout['metadata'] ?? [],
+                'supported_networks' => $checkout['supported_networks'] ?? ['mada', 'visa', 'mastercard'],
+                'methods' => $checkout['methods'] ?? ['creditcard'],
             ]);
         }
 
-        \Illuminate\Support\Facades\Log::warning('Payment checkout JSON returned no URL', ['response' => $checkoutResponse]);
+        \Illuminate\Support\Facades\Log::warning('Payment checkout JSON returned no Moyasar data', ['response' => $checkoutResponse]);
         return response()->json([
             'success' => false,
             'message' => $this->apiErrorMessage($checkout),
@@ -619,17 +632,35 @@ class UserController extends Controller
 
     public function paymentSuccess(Request $request, PaymentApiService $paymentApi, AuthApiService $authApi)
     {
+        // Moyasar redirect: ?id=MOYASAR_PAYMENT_ID&payment_id=LOCAL_PAYMENT_ID
+        $moyasarPaymentId = $request->input('id');
+        $localPaymentId = $request->input('payment_id');
+
+        // Legacy Tap/Stripe params
         $chargeId = $request->input('tap_id') ?? $request->input('charge_id');
-        $paymentId = $request->input('payment_id');
-        $sessionId = $request->input('session_id'); // kept for backwards compatibility with old Stripe URLs
+        $paymentId = $localPaymentId ?? $request->input('payment_id');
+        $sessionId = $request->input('session_id');
         $isLoggedIn = $authApi->check();
 
         $payment = [];
         $verified = false;
         $error = null;
 
+        // Moyasar flow: attach + verify
+        if ($isLoggedIn && $moyasarPaymentId && $localPaymentId) {
+            $attachResponse = $paymentApi->attachMoyasarPayment((int) $localPaymentId, $moyasarPaymentId);
+            $result = $attachResponse['data'] ?? $attachResponse;
+
+            if (!empty($result['id'])) {
+                $payment = $result;
+                $verified = in_array($result['status'] ?? '', ['paid', 'PAID']);
+            } else {
+                $error = $this->apiErrorMessage($attachResponse);
+                \Illuminate\Support\Facades\Log::warning('Moyasar payment attach failed', ['response' => $attachResponse]);
+            }
+        }
         // Tap gateway: verify by charge_id (tap_id) if available.
-        if ($isLoggedIn && $chargeId) {
+        elseif ($isLoggedIn && $chargeId) {
             $response = $paymentApi->verifyCharge($chargeId);
             $result = $response['data'] ?? $response;
 
@@ -653,18 +684,20 @@ class UserController extends Controller
                 $error = $this->apiErrorMessage($response);
                 \Illuminate\Support\Facades\Log::warning('Payment session verification failed', ['response' => $response]);
             }
-        } elseif ($paymentId) {
-            // No charge/session id to verify; surface a pending state so the user can retry later.
-            $payment = ['id' => $paymentId, 'status' => 'pending'];
+        } elseif ($moyasarPaymentId && !$isLoggedIn) {
+            $payment = ['id' => $localPaymentId ?? 'pending', 'status' => 'pending'];
+            $error = 'Please log in or create an account so we can confirm your payment and activate your subscription.';
+        } elseif ($moyasarPaymentId && !$localPaymentId) {
+            $payment = ['id' => 'pending', 'status' => 'pending'];
+            $error = 'Missing local payment reference. Please contact support if your subscription is not activated.';
         } elseif ($chargeId && !$isLoggedIn) {
-            // Guest returning from Tap cannot verify because the API requires auth.
-            $payment = ['id' => $paymentId ?? 'pending', 'status' => 'pending'];
+            $payment = ['id' => $localPaymentId ?? 'pending', 'status' => 'pending'];
             $error = 'Please log in or create an account so we can confirm your payment and activate your subscription.';
         } else {
             $error = 'No payment information was received.';
         }
 
-        return view('payment.success', compact('payment', 'verified', 'error', 'chargeId', 'paymentId', 'sessionId', 'isLoggedIn'));
+        return view('payment.success', compact('payment', 'verified', 'error', 'chargeId', 'paymentId', 'sessionId', 'isLoggedIn', 'moyasarPaymentId'));
     }
 
     public function paymentCancel(Request $request)

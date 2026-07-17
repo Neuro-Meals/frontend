@@ -184,6 +184,8 @@ return [
         'payments' => [
             'create_checkout'              => '/payments/create-checkout',
             'create_plan_change_checkout' => '/payments/create-plan-change-checkout',
+            'attach_moyasar_payment'      => '/payments/attach-moyasar-payment',
+            'verify_payment'              => '/payments/verify/{payment_id}',
             'my'                           => '/payments/my',
             'list'                         => '/payments/',
             'verify_session'               => '/payments/verify-session/{session_id}',
