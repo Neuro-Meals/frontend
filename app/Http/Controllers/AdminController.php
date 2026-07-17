@@ -1306,92 +1306,136 @@ class AdminController extends Controller
         return redirect()->route('admin.meals')->with('status', 'Category deleted successfully.');
     }
 
-    public function orders(Request $request, OrderApiService $orderApi, DriverApiService $driverApi)
+    public function orders(Request $request, ChefApiService $chefApi, DriverApiService $driverApi, MealApiService $mealApi)
     {
-        $page = (int) $request->input('page', 1);
-        $limit = (int) $request->input('limit', 20);
-        $status = $request->input('status');
-        $search = $request->input('search');
-        $today = $request->input('today') === '1';
         $todayDate = date('Y-m-d');
+        $includeCompleted = $request->input('include_completed') === '1';
 
-        // The backend /orders/ endpoint only supports search, status, user_id and
-        // subscription_id filters (no delivery_date param), so when filtering for
-        // "today" we fetch a larger page and filter client-side instead.
-        $query = ['limit' => $today ? 100 : $limit];
-        if ($status) $query['status'] = $status;
-        if ($search) $query['search'] = $search;
+        // ─── Icon mapping for meal categories ───
+        $iconMap = [
+            'breakfast' => 'sunrise',
+            'lunch'     => 'sun',
+            'dinner'    => 'moon',
+            'supper'    => 'moon',
+            'snack'     => 'cookie',
+        ];
+        $getIconForName = function (string $name) use ($iconMap): string {
+            $lower = strtolower($name);
+            foreach ($iconMap as $keyword => $icon) {
+                if (str_contains($lower, $keyword)) {
+                    return $icon;
+                }
+            }
+            return 'dots';
+        };
+        $mealTimeOrder = ['breakfast', 'lunch', 'dinner', 'snacks', 'other'];
+        $getMealTimeRank = function (string $catName): int {
+            $lower = strtolower($catName);
+            if (str_contains($lower, 'breakfast')) return 0;
+            if (str_contains($lower, 'lunch')) return 1;
+            if (str_contains($lower, 'dinner') || str_contains($lower, 'supper')) return 2;
+            if (str_contains($lower, 'snack')) return 3;
+            return 4;
+        };
 
-        $ordersData = $this->apiData($orderApi->list($query), function () {
-            return [];
-        });
+        // ─── Fetch grouped orders from chef API ───
+        $groupedResponse = $chefApi->ordersTodayGrouped($includeCompleted);
+        $useGrouped = !isset($groupedResponse['success']) || $groupedResponse['success'] !== false;
 
-        $orders = [];
-        if (!empty($ordersData)) {
-            foreach ($ordersData as $order) {
-                $customer = $order['customer'] ?? ($order['user'] ?? []);
-                $plan = $order['plan'] ?? ($order['items'][0] ?? []);
-                $driver = $order['driver'] ?? [];
-                $payment = $order['payment'] ?? [];
-                $delivery = $order['delivery'] ?? [];
-                $deliveryDate = $order['delivery_date'] ?? null;
-                $orders[] = [
-                    'order_id' => $order['id'] ?? 0,
-                    'id' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
-                    'customer_id' => $customer['id'] ?? ($order['user_id'] ?? null),
-                    'customer' => trim($customer['full_name'] ?? (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) ?: 'Customer',
-                    'customer_email' => $customer['email'] ?? ($order['user']['email'] ?? ''),
-                    'customer_phone' => $customer['phone'] ?? ($order['user']['phone'] ?? ''),
-                    'plan' => $plan['name_en'] ?? ($plan['plan_name'] ?? ($plan['name'] ?? 'Plan')),
-                    'amount' => $order['total_amount'] ?? 0,
-                    'status' => $order['order_status'] ?? 'pending',
-                    'payment_status' => $payment['status'] ?? ($order['payment_status'] ?? 'unpaid'),
-                    'payment_provider' => $payment['provider'] ?? ($order['payment_method'] ?? 'N/A'),
-                    'payment_method' => $payment['provider'] ?? ($order['payment_method'] ?? 'N/A'),
-                    'date' => $order['created_at'] ?? date('Y-m-d'),
-                    'delivery_date_raw' => $deliveryDate,
-                    'delivery' => $deliveryDate ? date('M d, Y', strtotime($deliveryDate)) : 'N/A',
-                    'address' => $order['delivery_address'] ?? '',
-                    'driver' => $driver
-                        ? trim(($driver['first_name'] ?? '') . ' ' . ($driver['last_name'] ?? ''))
-                        : ($order['driver_name'] ?? 'Unassigned'),
-                    'driver_id' => $driver['id'] ?? null,
-                    'delivery_id' => $delivery['id'] ?? null,
-                    'scheduled_at' => !empty($delivery['scheduled_at']) ? date('H:i', strtotime($delivery['scheduled_at'])) : null,
-                    'items' => $order['items'] ?? [],
-                    'subscription' => $order['subscription'] ?? [],
-                    'delivery_info' => $delivery,
+        $categories = [];
+        $categorizedOrders = [];
+        $allOrders = [];
+        $categorySeen = [];
+
+        if ($useGrouped) {
+            $groups = $groupedResponse['groups'] ?? [];
+            foreach ($mealTimeOrder as $mealTime) {
+                $group = collect($groups)->firstWhere('meal_time', $mealTime);
+                if (!$group || !isset($group['categories'])) {
+                    continue;
+                }
+                foreach ($group['categories'] as $catGroup) {
+                    $catId = $catGroup['category_id'] ?? 0;
+                    $catName = $catGroup['category_name'] ?? __('Uncategorized');
+                    if (isset($categorySeen[$catId])) {
+                        $existingIdx = $categorySeen[$catId];
+                    } else {
+                        $categories[] = [
+                            'id' => $catId,
+                            'name' => $catName,
+                            'icon' => $getIconForName($catName),
+                            'count' => 0,
+                        ];
+                        $categorizedOrders[$catId] = [];
+                        $categorySeen[$catId] = count($categories) - 1;
+                    }
+                    foreach ($catGroup['orders'] as $order) {
+                        $item = $this->formatAdminOrder($order);
+                        $item['primary_category_id'] = $catId;
+                        $item['primary_category_name'] = $catName;
+                        $categorizedOrders[$catId][] = $item;
+                        $allOrders[] = $item;
+                    }
+                }
+            }
+            foreach ($categories as &$cat) {
+                $cat['count'] = count($categorizedOrders[$cat['id']] ?? []);
+            }
+            unset($cat);
+        }
+
+        // ─── Fetch ALL meal categories from API (including ones with no orders) ───
+        $allCategoriesData = $this->apiData($mealApi->categoriesList(['limit' => 100]), fn () => []);
+        $allCategories = [];
+        if (is_array($allCategoriesData)) {
+            foreach ($allCategoriesData as $cat) {
+                $catId = $cat['id'] ?? 0;
+                $catName = $cat['name_en'] ?? ($cat['name_ar'] ?? __('Uncategorized'));
+                $allCategories[$catId] = [
+                    'id' => $catId,
+                    'name' => $catName,
+                    'icon' => $getIconForName($catName),
+                    'count' => 0,
+                ];
+            }
+        }
+        foreach ($categories as $orderCat) {
+            if (isset($allCategories[$orderCat['id']])) {
+                $allCategories[$orderCat['id']]['count'] = $orderCat['count'];
+            } else {
+                $allCategories[$orderCat['id']] = $orderCat;
+            }
+        }
+        $allCategoryList = array_values($allCategories);
+        usort($allCategoryList, fn ($a, $b) => $getMealTimeRank($a['name']) <=> $getMealTimeRank($b['name']));
+        $categories = $allCategoryList;
+
+        foreach ($categories as $cat) {
+            if (!isset($categorizedOrders[$cat['id']])) {
+                $categorizedOrders[$cat['id']] = [];
+            }
+        }
+
+        // ─── Fetch ALL meals with ingredients, grouped by category ───
+        $mealsData = $this->apiData($mealApi->list(['limit' => 100]), fn () => []);
+        $mealsByCategory = [];
+        if (is_array($mealsData)) {
+            foreach ($mealsData as $meal) {
+                $catId = $meal['category_id'] ?? 0;
+                $mealsByCategory[$catId][] = [
+                    'id' => $meal['id'] ?? 0,
+                    'name' => $meal['name_en'] ?? ($meal['name_ar'] ?? 'Unknown'),
+                    'image_url' => $meal['image_url'] ?? null,
+                    'ingredients' => $meal['ingredients'] ?? [],
+                    'allergens' => $meal['allergens'] ?? [],
+                    'calories' => $meal['calories'] ?? 0,
+                    'price' => $meal['price'] ?? 0,
+                    'is_available' => $meal['is_available'] ?? true,
                 ];
             }
         }
 
-        // Count today's orders (by delivery date) before applying the today filter,
-        // so the stats card is always accurate regardless of the active filter.
-        $todayCount = count(array_filter($orders, function ($o) use ($todayDate) {
-            $d = $o['delivery_date_raw'] ?? null;
-            return $d && date('Y-m-d', strtotime($d)) === $todayDate;
-        }));
-
-        if ($today) {
-            $orders = array_values(array_filter($orders, function ($o) use ($todayDate) {
-                $d = $o['delivery_date_raw'] ?? null;
-                return $d && date('Y-m-d', strtotime($d)) === $todayDate;
-            }));
-            $orders = array_slice($orders, 0, $limit);
-        }
-
-        $total = count($orders);
-        $delivered = count(array_filter($orders, fn ($o) => $o['status'] === 'delivered'));
-        $pending = count(array_filter($orders, fn ($o) => in_array($o['status'], ['pending', 'preparing'])));
-        $revenue = array_sum(array_map(fn ($o) => $o['status'] !== 'cancelled' ? $o['amount'] : 0, $orders));
-
-        $stats = [
-            ['label' => __('Total Orders'), 'value' => number_format($total), 'color' => 'text-gray-900'],
-            ['label' => __("Today's Orders"), 'value' => number_format($todayCount), 'color' => 'text-[#6E7A25]'],
-            ['label' => __('Pending'), 'value' => number_format($pending), 'color' => 'text-amber-600'],
-            ['label' => __('Revenue'), 'value' => 'SAR ' . number_format($revenue), 'color' => 'text-gray-900'],
-        ];
-
+        // ─── Fetch drivers for delivery assignment ───
         $driversData = $this->apiData($driverApi->list(), fn () => []);
         $drivers = [];
         foreach ($driversData as $d) {
@@ -1402,18 +1446,96 @@ class AdminController extends Controller
             ];
         }
 
+        // ─── Stats ───
+        $total = count($allOrders);
+        $pending = count(array_filter($allOrders, fn ($o) => in_array($o['status'], ['pending', 'preparing'])));
+        $delivered = count(array_filter($allOrders, fn ($o) => $o['status'] === 'delivered'));
+        $revenue = array_sum(array_map(fn ($o) => $o['status'] !== 'cancelled' ? $o['amount'] : 0, $allOrders));
+
+        $stats = [
+            ['label' => __('Total Orders'), 'value' => number_format($total), 'color' => 'text-gray-900'],
+            ['label' => __("Today's Orders"), 'value' => number_format($total), 'color' => 'text-[#6E7A25]'],
+            ['label' => __('Pending'), 'value' => number_format($pending), 'color' => 'text-amber-600'],
+            ['label' => __('Revenue'), 'value' => 'SAR ' . number_format($revenue), 'color' => 'text-gray-900'],
+        ];
+
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
-                'orders' => $orders,
+                'categories' => $categories,
+                'categorizedOrders' => $categorizedOrders,
+                'mealsByCategory' => $mealsByCategory,
                 'stats' => $stats,
                 'drivers' => $drivers,
-                'has_more' => false,
                 'total' => $total,
-                'page' => $page,
             ]);
         }
 
-        return view('admin.orders', compact('orders', 'stats', 'drivers', 'todayCount'));
+        return view('admin.orders', compact('categories', 'categorizedOrders', 'mealsByCategory', 'stats', 'drivers', 'todayDate'));
+    }
+
+    private function formatAdminOrder(array $order): array
+    {
+        $statusLabels = [
+            'scheduled' => __('Scheduled'),
+            'pending' => __('Pending'),
+            'confirmed' => __('Confirmed'),
+            'preparing' => __('Preparing'),
+            'ready_for_delivery' => __('Ready for Delivery'),
+            'out_for_delivery' => __('Out for Delivery'),
+            'delivered' => __('Delivered'),
+            'cancelled' => __('Cancelled'),
+        ];
+
+        $status = $order['status'] ?? 'pending';
+        $customer = $order['customer'] ?? [];
+        $delivery = $order['delivery'] ?? [];
+        $items = $order['items'] ?? [];
+        $deliveryDate = $order['delivery_date'] ?? null;
+
+        $mealNames = [];
+        $totalCalories = 0;
+        if (is_array($items)) {
+            foreach ($items as $item) {
+                $name = $item['meal_name'] ?? ($item['name'] ?? ($item['title'] ?? ''));
+                if ($name) {
+                    $qty = $item['quantity'] ?? 1;
+                    $mealNames[] = $qty > 1 ? "{$name} x{$qty}" : $name;
+                }
+                $cal = $item['calories'] ?? 0;
+                if ($cal) {
+                    $totalCalories += (int) $cal * ($item['quantity'] ?? 1);
+                }
+            }
+        }
+
+        $customerName = trim($customer['full_name'] ?? (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) ?: __('Customer');
+
+        return [
+            'order_id' => $order['id'] ?? 0,
+            'id' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
+            'order_number' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
+            'status' => $status,
+            'status_label' => $statusLabels[$status] ?? __(ucfirst(str_replace('_', ' ', $status))),
+            'customer' => $customerName,
+            'customer_id' => $customer['id'] ?? ($order['user_id'] ?? null),
+            'customer_phone' => $customer['phone'] ?? '',
+            'customer_email' => $customer['email'] ?? '',
+            'delivery_address' => $order['delivery_address'] ?? '',
+            'delivery_notes' => $order['delivery_notes'] ?? '',
+            'delivery_date' => $deliveryDate,
+            'delivery' => $deliveryDate ? date('M d, Y', strtotime($deliveryDate)) : 'N/A',
+            'time' => $deliveryDate ? date('H:i', strtotime($deliveryDate)) : '--:--',
+            'scheduled_at' => !empty($delivery['scheduled_at']) ? date('H:i', strtotime($delivery['scheduled_at'])) : null,
+            'items' => $items,
+            'meal_summary' => implode(', ', $mealNames) ?: __('Multiple items'),
+            'meal_count' => is_array($items) ? count($items) : 0,
+            'total_calories' => $totalCalories,
+            'amount' => $order['total_amount'] ?? 0,
+            'driver' => $delivery['driver_name'] ?? 'Unassigned',
+            'driver_id' => $delivery['driver_id'] ?? null,
+            'delivery_id' => $delivery['id'] ?? null,
+            'delivery_info' => $delivery,
+        ];
     }
 
     public function approveOrder(int $id, OrderApiService $orderApi, Request $request)
