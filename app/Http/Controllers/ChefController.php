@@ -340,19 +340,140 @@ class ChefController extends Controller
             ];
         }
 
+        // ─── Fetch ALL meals with ingredients, grouped by category ───
+        $mealsData = $this->apiData($mealApi->list(['limit' => 100]), fn () => []);
+        $mealsByCategory = [];
+        if (is_array($mealsData)) {
+            foreach ($mealsData as $meal) {
+                $catId = $meal['category_id'] ?? 0;
+                $mealsByCategory[$catId][] = [
+                    'id' => $meal['id'] ?? 0,
+                    'name' => $meal['name_en'] ?? ($meal['name_ar'] ?? 'Unknown'),
+                    'image_url' => $meal['image_url'] ?? null,
+                    'ingredients' => $meal['ingredients'] ?? [],
+                    'allergens' => $meal['allergens'] ?? [],
+                    'calories' => $meal['calories'] ?? 0,
+                    'price' => $meal['price'] ?? 0,
+                    'is_available' => $meal['is_available'] ?? true,
+                    'description' => $meal['description'] ?? '',
+                ];
+            }
+        }
+
         // Item-level Kitchen Queue: what the chef is actually meant to
         // cook per schedule (category), aggregated across every order
         // for today — never individual Order #1025/#1026 during prep.
         $today = date('Y-m-d');
-        $scheduleCategoryStats = [];
+
+        // Build a meal lookup from mealsByCategory for ingredient/allergen enrichment
+        $mealLookup = [];
+        foreach ($mealsByCategory as $catMeals) {
+            foreach ($catMeals as $m) {
+                $mealLookup[$m['id']] = $m;
+            }
+        }
 
         $scheduleByTab = [];
         foreach ($categories as $cat) {
             $catId = $cat['id'];
+            $tabOrders = $categorizedOrders[$catId] ?? [];
+
+            // Aggregate meals across all orders in this category
+            $mealAgg = []; // key => aggregated meal data
+            $statsPending = 0;
+            $statsSentToKitchen = 0;
+            $statsPreparing = 0;
+            $statsReady = 0;
+            $statsServed = 0;
+
+            foreach ($tabOrders as $order) {
+                $orderStatus = $order['status'] ?? 'pending';
+                $customerName = $order['customer'] ?? __('Customer');
+                $orderNumber = $order['order_number'] ?? ('#' . ($order['id'] ?? 0));
+                $address = $order['delivery_address'] ?? '';
+
+                foreach ($order['items'] ?? [] as $item) {
+                    $mealId = $item['meal_id'] ?? ($item['id'] ?? 0);
+                    $mealName = $item['meal_name'] ?? ($item['name'] ?? 'Unknown');
+                    $qty = (int) ($item['quantity'] ?? 1);
+                    $key = $mealId ? "id:{$mealId}" : "name:" . strtolower($mealName);
+
+                    // Determine item-level status from order status
+                    $itemStatus = match ($orderStatus) {
+                        'pending', 'confirmed', 'scheduled' => 'pending',
+                        'preparing' => 'preparing',
+                        'ready_for_delivery' => 'ready',
+                        'out_for_delivery', 'delivered' => 'served',
+                        default => 'pending',
+                    };
+
+                    if (!isset($mealAgg[$key])) {
+                        $mealInfo = $mealLookup[$mealId] ?? [];
+                        $mealAgg[$key] = [
+                            'meal_id' => $mealId,
+                            'meal_name' => $mealName,
+                            'image_url' => $item['image_url'] ?? ($mealInfo['image_url'] ?? null),
+                            'ingredients' => $item['ingredients'] ?? ($mealInfo['ingredients'] ?? []),
+                            'allergens' => $item['allergens'] ?? ($mealInfo['allergens'] ?? []),
+                            'calories' => $item['calories'] ?? ($mealInfo['calories'] ?? 0),
+                            'total_required' => 0,
+                            'pending' => 0,
+                            'sent_to_kitchen' => 0,
+                            'preparing' => 0,
+                            'ready' => 0,
+                            'served' => 0,
+                            'customers' => [],
+                        ];
+                    }
+
+                    $mealAgg[$key]['total_required'] += $qty;
+                    $mealAgg[$key][$itemStatus] = ($mealAgg[$key][$itemStatus] ?? 0) + $qty;
+
+                    // Add customer entry
+                    $mealAgg[$key]['customers'][] = [
+                        'order_id' => $order['id'] ?? 0,
+                        'order_number' => $orderNumber,
+                        'customer_name' => $customerName,
+                        'address' => $address,
+                        'quantity' => $qty,
+                        'item_status' => $itemStatus,
+                    ];
+
+                    // Update stats
+                    $statsPending += ($itemStatus === 'pending') ? $qty : 0;
+                    $statsSentToKitchen += ($itemStatus === 'sent_to_kitchen') ? $qty : 0;
+                    $statsPreparing += ($itemStatus === 'preparing') ? $qty : 0;
+                    $statsReady += ($itemStatus === 'ready') ? $qty : 0;
+                    $statsServed += ($itemStatus === 'served') ? $qty : 0;
+                }
+            }
+
+            // Sort meals by total_required desc
+            $productionMeals = array_values($mealAgg);
+            usort($productionMeals, fn ($a, $b) => $b['total_required'] <=> $a['total_required']);
+
             $scheduleByTab[$catId] = [
-                'stats' => $scheduleCategoryStats[$catId] ?? ['pending' => 0, 'sent_to_kitchen' => 0, 'preparing' => 0, 'ready' => 0, 'served' => 0, 'total_items' => 0],
-                'production' => ['meals' => [], 'total_required' => 0],
-                'kitchen_queue' => ['meals' => [], 'totals' => []],
+                'stats' => [
+                    'pending' => $statsPending,
+                    'sent_to_kitchen' => $statsSentToKitchen,
+                    'preparing' => $statsPreparing,
+                    'ready' => $statsReady,
+                    'served' => $statsServed,
+                    'total_items' => $statsPending + $statsSentToKitchen + $statsPreparing + $statsReady + $statsServed,
+                ],
+                'production' => [
+                    'meals' => $productionMeals,
+                    'total_required' => array_sum(array_column($productionMeals, 'total_required')),
+                ],
+                'kitchen_queue' => [
+                    'meals' => $productionMeals,
+                    'totals' => [
+                        'pending' => $statsPending,
+                        'preparing' => $statsPreparing,
+                        'ready' => $statsReady,
+                        'served' => $statsServed,
+                    ],
+                ],
             ];
         }
 
