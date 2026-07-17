@@ -78,6 +78,22 @@
       <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#6E7A25]/10 text-[#6E7A25]" x-text="activeMeals.length + ' {{ __('meals') }}'"></span>
     </div>
     <div class="divide-y divide-gray-50 max-h-[32rem] overflow-y-auto">
+      {{-- Ingredient totals summary bar --}}
+      <div class="px-4 py-3 bg-[#173327]/5 border-b border-[#173327]/10" x-show="activeIngredientTotals.length > 0">
+        <div class="flex items-center gap-2 mb-2">
+          <svg class="w-4 h-4 text-[#173327]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+          <p class="text-[10px] font-bold text-[#173327] uppercase tracking-wider">{{ __('Total Ingredients Needed') }}</p>
+          <span class="ml-auto text-[10px] font-bold text-gray-500" x-text="activeIngredientTotals.length + ' {{ __('ingredients') }}'"></span>
+        </div>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <template x-for="(ing, idx) in activeIngredientTotals" :key="idx">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-[#173327]/15 text-[11px] font-medium text-gray-700 shadow-sm">
+              <span x-text="ing.name"></span>
+              <span class="font-bold text-[#173327] bg-[#173327]/10 px-1.5 py-0.5 rounded-full text-[10px]" x-text="'×' + ing.total"></span>
+            </span>
+          </template>
+        </div>
+      </div>
       <template x-for="meal in activeMeals" :key="meal.id">
         <div class="px-4 py-4 hover:bg-gray-50/30 transition-colors">
           <div class="flex items-start gap-3">
@@ -471,6 +487,26 @@ function ordersApp() {
     get activeCategoryQty() {
       const cat = this.categories.find(c => c.id === this.activeTab);
       return cat ? (cat.total_quantity || 0) : 0;
+    },
+    get activeIngredientTotals() {
+      const totals = {};
+      const orders = this.activeOrders;
+      for (const order of orders) {
+        const items = order.items || [];
+        for (const item of items) {
+          const qty = item.quantity || 1;
+          const ings = item.ingredients || [];
+          for (const ing of ings) {
+            const key = String(ing).trim().toLowerCase();
+            if (!key) continue;
+            if (!totals[key]) {
+              totals[key] = { name: String(ing).trim(), total: 0 };
+            }
+            totals[key].total += qty;
+          }
+        }
+      }
+      return Object.values(totals).sort((a, b) => b.total - a.total);
     },
 
     init() {
