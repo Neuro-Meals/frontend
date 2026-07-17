@@ -1429,8 +1429,12 @@ class AdminController extends Controller
                     'ingredients' => $meal['ingredients'] ?? [],
                     'allergens' => $meal['allergens'] ?? [],
                     'calories' => $meal['calories'] ?? 0,
+                    'protein_g' => $meal['protein_g'] ?? 0,
+                    'carbs_g' => $meal['carbs_g'] ?? 0,
+                    'fat_g' => $meal['fat_g'] ?? 0,
                     'price' => $meal['price'] ?? 0,
                     'is_available' => $meal['is_available'] ?? true,
+                    'description' => $meal['description'] ?? '',
                 ];
             }
         }
@@ -1492,19 +1496,44 @@ class AdminController extends Controller
         $items = $order['items'] ?? [];
         $deliveryDate = $order['delivery_date'] ?? null;
 
+        // Format items with ALL rich data from the API
+        $formattedItems = [];
         $mealNames = [];
         $totalCalories = 0;
+        $totalProtein = 0;
+        $totalCarbs = 0;
+        $totalFat = 0;
+
         if (is_array($items)) {
             foreach ($items as $item) {
                 $name = $item['meal_name'] ?? ($item['name'] ?? ($item['title'] ?? ''));
+                $qty = $item['quantity'] ?? 1;
                 if ($name) {
-                    $qty = $item['quantity'] ?? 1;
                     $mealNames[] = $qty > 1 ? "{$name} x{$qty}" : $name;
                 }
-                $cal = $item['calories'] ?? 0;
-                if ($cal) {
-                    $totalCalories += (int) $cal * ($item['quantity'] ?? 1);
-                }
+                $cal = (float) ($item['calories'] ?? 0);
+                $totalCalories += $cal * $qty;
+                $totalProtein += (float) ($item['protein_g'] ?? 0) * $qty;
+                $totalCarbs += (float) ($item['carbs_g'] ?? 0) * $qty;
+                $totalFat += (float) ($item['fat_g'] ?? 0) * $qty;
+
+                $formattedItems[] = [
+                    'meal_id' => $item['meal_id'] ?? null,
+                    'meal_name' => $name,
+                    'meal_name_ar' => $item['meal_name_ar'] ?? null,
+                    'category_id' => $item['category_id'] ?? null,
+                    'category_name' => $item['category_name'] ?? null,
+                    'quantity' => $qty,
+                    'unit_price' => $item['unit_price'] ?? 0,
+                    'line_total' => $item['line_total'] ?? 0,
+                    'calories' => $cal,
+                    'protein_g' => $item['protein_g'] ?? 0,
+                    'carbs_g' => $item['carbs_g'] ?? 0,
+                    'fat_g' => $item['fat_g'] ?? 0,
+                    'ingredients' => $item['ingredients'] ?? [],
+                    'allergens' => $item['allergens'] ?? [],
+                    'image_url' => $item['image_url'] ?? null,
+                ];
             }
         }
 
@@ -1520,16 +1549,22 @@ class AdminController extends Controller
             'customer_id' => $customer['id'] ?? ($order['user_id'] ?? null),
             'customer_phone' => $customer['phone'] ?? '',
             'customer_email' => $customer['email'] ?? '',
+            'customer_location' => $customer['location'] ?? '',
+            'customer_address' => $customer['address'] ?? '',
             'delivery_address' => $order['delivery_address'] ?? '',
             'delivery_notes' => $order['delivery_notes'] ?? '',
             'delivery_date' => $deliveryDate,
             'delivery' => $deliveryDate ? date('M d, Y', strtotime($deliveryDate)) : 'N/A',
             'time' => $deliveryDate ? date('H:i', strtotime($deliveryDate)) : '--:--',
             'scheduled_at' => !empty($delivery['scheduled_at']) ? date('H:i', strtotime($delivery['scheduled_at'])) : null,
-            'items' => $items,
+            'delivery_status' => $delivery['status'] ?? null,
+            'items' => $formattedItems,
             'meal_summary' => implode(', ', $mealNames) ?: __('Multiple items'),
             'meal_count' => is_array($items) ? count($items) : 0,
-            'total_calories' => $totalCalories,
+            'total_calories' => round($totalCalories),
+            'total_protein_g' => round($totalProtein),
+            'total_carbs_g' => round($totalCarbs),
+            'total_fat_g' => round($totalFat),
             'amount' => $order['total_amount'] ?? 0,
             'driver' => $delivery['driver_name'] ?? 'Unassigned',
             'driver_id' => $delivery['driver_id'] ?? null,
