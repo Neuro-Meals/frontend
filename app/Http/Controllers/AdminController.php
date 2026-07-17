@@ -1566,7 +1566,7 @@ class AdminController extends Controller
                     'customer_phone' => $customer['phone'] ?? ($order['user']['phone'] ?? ''),
                     'plan' => $plan['name_en'] ?? ($plan['plan_name'] ?? ($plan['name'] ?? 'Plan')),
                     'amount' => $order['total_amount'] ?? 0,
-                    'status' => $order['order_status'] ?? 'pending',
+                    'status' => $order['status'] ?? ($order['order_status'] ?? 'pending'),
                     'payment_status' => $payment['status'] ?? ($order['payment_status'] ?? 'unpaid'),
                     'payment_provider' => $payment['provider'] ?? ($order['payment_method'] ?? 'N/A'),
                     'payment_method' => $payment['provider'] ?? ($order['payment_method'] ?? 'N/A'),
@@ -1574,13 +1574,38 @@ class AdminController extends Controller
                     'delivery_date_raw' => $deliveryDate,
                     'delivery' => $deliveryDate ? date('M d, Y', strtotime($deliveryDate)) : 'N/A',
                     'address' => $order['delivery_address'] ?? '',
+                    'delivery_notes' => $order['delivery_notes'] ?? null,
                     'driver' => $driver
                         ? trim(($driver['first_name'] ?? '') . ' ' . ($driver['last_name'] ?? ''))
-                        : ($order['driver_name'] ?? 'Unassigned'),
-                    'driver_id' => $driver['id'] ?? null,
+                        : ($delivery['driver_id'] ?? null ? ('Driver #' . $delivery['driver_id']) : 'Unassigned'),
+                    'driver_id' => $driver['id'] ?? ($delivery['driver_id'] ?? null),
                     'delivery_id' => $delivery['id'] ?? null,
+                    'delivery_status' => $delivery['status'] ?? null,
+                    'delivery_scheduled_at' => $delivery['scheduled_at'] ?? null,
+                    'delivery_picked_up_at' => $delivery['picked_up_at'] ?? null,
+                    'delivery_delivered_at' => $delivery['delivered_at'] ?? null,
                     'scheduled_at' => !empty($delivery['scheduled_at']) ? date('H:i', strtotime($delivery['scheduled_at'])) : null,
-                    'items' => $order['items'] ?? [],
+                    'items' => array_map(function ($item) {
+                        return [
+                            'name' => $item['meal_name'] ?? ($item['plan_name'] ?? ($item['name'] ?? 'Item')),
+                            'meal_name' => $item['meal_name'] ?? null,
+                            'plan_name' => $item['plan_name'] ?? null,
+                            'category_name' => $item['category_name'] ?? null,
+                            'quantity' => $item['quantity'] ?? 1,
+                            'unit_price' => $item['unit_price'] ?? null,
+                            'line_total' => $item['line_total'] ?? null,
+                            'calories' => $item['calories'] ?? null,
+                            'protein_g' => $item['protein_g'] ?? null,
+                            'carbs_g' => $item['carbs_g'] ?? null,
+                            'fat_g' => $item['fat_g'] ?? null,
+                            'ingredients' => $item['ingredients'] ?? [],
+                            'allergens' => $item['allergens'] ?? [],
+                            'image_url' => $item['image_url'] ?? null,
+                            'total_meals' => $item['total_meals'] ?? null,
+                            'duration_days' => $item['duration_days'] ?? null,
+                            'meals_per_day' => $item['meals_per_day'] ?? null,
+                        ];
+                    }, $order['items'] ?? []),
                     'subscription' => $order['subscription'] ?? [],
                     'delivery_info' => $delivery,
                 ];
@@ -1720,7 +1745,7 @@ class AdminController extends Controller
         return redirect()->route('admin.orders')->with('success', 'Driver assigned successfully.');
     }
 
-    public function deliveries(DeliveryApiService $deliveryApi, DriverApiService $driverApi)
+    public function deliveries(DeliveryApiService $deliveryApi, DriverApiService $driverApi, ChefApiService $chefApi)
     {
         $deliveriesData = $this->apiData($deliveryApi->list(['limit' => 100]), function () {
             return [];
@@ -1786,7 +1811,15 @@ class AdminController extends Controller
             }
         }
 
-        return view('admin.deliveries', compact('deliveries', 'stats', 'allDrivers', 'availableDrivers'));
+        // Fetch ready-for-delivery orders (unassigned only) for the Delivery Readiness Board
+        $today = date('Y-m-d');
+        $readyOrdersResponse = $chefApi->readyForDelivery(true, $today);
+        $readyOrders = [];
+        if (!isset($readyOrdersResponse['success']) || $readyOrdersResponse['success'] !== false) {
+            $readyOrders = $readyOrdersResponse['data'] ?? [];
+        }
+
+        return view('admin.deliveries', compact('deliveries', 'stats', 'allDrivers', 'availableDrivers', 'readyOrders', 'today'));
     }
 
     public function assignDriver(Request $request, DeliveryApiService $deliveryApi, int $id)
@@ -1813,11 +1846,13 @@ class AdminController extends Controller
             'driver_id' => ['required', 'integer', 'min:1'],
             'order_ids' => ['required', 'array', 'min:1'],
             'order_ids.*' => ['required', 'integer', 'min:1'],
+            'scheduled_at' => ['nullable', 'string'],
         ]);
 
         $result = $this->apiData($chefApi->bulkAssignDriver(
             (int) $validated['driver_id'],
-            $validated['order_ids']
+            $validated['order_ids'],
+            $validated['scheduled_at'] ?? null
         ), function () {
             return [];
         });

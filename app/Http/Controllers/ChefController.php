@@ -151,6 +151,7 @@ class ChefController extends Controller
             $categoryMap = [];
             $categoryCounts = [];
             $allOrders = [];
+            $allOrderIds = []; // Track unique order IDs to avoid duplicates in allOrders
 
             foreach ($ordersData as $order) {
                 try {
@@ -163,18 +164,40 @@ class ChefController extends Controller
                     continue;
                 }
 
-                $catId = $item['primary_category_id'];
-                $catName = $item['primary_category_name'];
-
-                if (!isset($categoryMap[$catId])) {
-                    $categoryMap[$catId] = $catName;
-                    $categorizedOrders[$catId] = [];
-                    $categoryCounts[$catId] = 0;
+                // Collect ALL categories this order has items in
+                $orderCategories = [];
+                $seenCatIds = [];
+                foreach (($order['items'] ?? []) as $orderItem) {
+                    $catId = (int) ($orderItem['category_id'] ?? 0);
+                    $catName = $orderItem['category_name'] ?? __('Uncategorized');
+                    if ($catId > 0 && !isset($seenCatIds[$catId])) {
+                        $seenCatIds[$catId] = true;
+                        $orderCategories[] = [$catId, $catName];
+                    }
+                }
+                if (empty($orderCategories)) {
+                    $orderCategories[] = [$item['primary_category_id'], $item['primary_category_name']];
                 }
 
-                $categorizedOrders[$catId][] = $item;
-                $allOrders[] = $item;
-                $categoryCounts[$catId]++;
+                foreach ($orderCategories as [$catId, $catName]) {
+                    if (!isset($categoryMap[$catId])) {
+                        $categoryMap[$catId] = $catName;
+                        $categorizedOrders[$catId] = [];
+                        $categoryCounts[$catId] = 0;
+                    }
+
+                    $itemCopy = $item;
+                    $itemCopy['primary_category_id'] = $catId;
+                    $itemCopy['primary_category_name'] = $catName;
+                    $categorizedOrders[$catId][] = $itemCopy;
+                    $categoryCounts[$catId]++;
+                }
+
+                $orderId = $item['id'];
+                if (!isset($allOrderIds[$orderId])) {
+                    $allOrderIds[$orderId] = true;
+                    $allOrders[] = $item;
+                }
             }
 
             $categories = [];
@@ -235,14 +258,23 @@ class ChefController extends Controller
 
         $stats = [
             'total_today' => $dashboardData['total_orders'] ?? 0,
+            'total_orders' => $dashboardData['total_orders'] ?? 0,
             'pending' => ($dashboardData['pending_orders'] ?? 0) + ($dashboardData['confirmed_orders'] ?? 0),
+            'pending_orders' => $dashboardData['pending_orders'] ?? 0,
+            'confirmed_orders' => $dashboardData['confirmed_orders'] ?? 0,
             'preparing' => $dashboardData['preparing_orders'] ?? 0,
+            'preparing_orders' => $dashboardData['preparing_orders'] ?? 0,
             'ready' => $dashboardData['ready_for_delivery_orders'] ?? 0,
+            'ready_for_delivery_orders' => $dashboardData['ready_for_delivery_orders'] ?? 0,
             'completed' => ($dashboardData['out_for_delivery_orders'] ?? 0) + ($dashboardData['delivered_orders'] ?? 0),
+            'out_for_delivery_orders' => $dashboardData['out_for_delivery_orders'] ?? 0,
+            'delivered_orders' => $dashboardData['delivered_orders'] ?? 0,
             'cancelled' => $dashboardData['cancelled_orders'] ?? 0,
+            'cancelled_orders' => $dashboardData['cancelled_orders'] ?? 0,
             'available_drivers' => $dashboardData['available_drivers'] ?? 0,
             'total_active_drivers' => $dashboardData['total_active_drivers'] ?? 0,
             'deliveries_needed' => $dashboardData['deliveries_needed'] ?? 0,
+            'assigned_deliveries' => $dashboardData['assigned_deliveries'] ?? 0,
         ];
 
         // Fetch meals summary for today

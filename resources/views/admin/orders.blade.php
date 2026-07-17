@@ -191,16 +191,17 @@
           <div class="space-y-3">
             <div class="flex items-start gap-2">
               <svg class="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              <div>
+              <div class="flex-1">
                 <p class="text-xs text-gray-500">{{ __('Address') }}</p>
                 <p class="text-xs font-medium text-gray-900 mt-0.5" x-text="selected?.address || '—'"></p>
+                <p x-show="selected?.delivery_notes" class="text-[10px] text-gray-400 mt-0.5" x-text="selected?.delivery_notes"></p>
               </div>
             </div>
             <div class="flex items-center gap-2">
               <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               <div>
-                <p class="text-xs text-gray-500">{{ __('Window') }}</p>
-                <p class="text-xs font-medium text-gray-900 mt-0.5" x-text="selected?.delivery"></p>
+                <p class="text-xs text-gray-500">{{ __('Delivery Date') }}</p>
+                <p class="text-xs font-medium text-gray-900 mt-0.5" x-text="selected?.delivery || '—'"></p>
               </div>
             </div>
             <div class="flex items-center gap-2">
@@ -210,6 +211,28 @@
                 <p class="text-xs font-medium mt-0.5" :class="selected?.driver && selected?.driver !== 'Unassigned' ? 'text-gray-900' : 'text-red-500'" x-text="selected?.driver || 'Unassigned'"></p>
               </div>
             </div>
+            {{-- Delivery tracking timeline --}}
+            <div x-show="selected?.delivery_status || selected?.delivery_scheduled_at || selected?.delivery_delivered_at" class="pt-2 border-t border-gray-200">
+              <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Delivery Tracking') }}</p>
+              <div class="space-y-1.5">
+                <div x-show="selected?.delivery_status" class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full" :class="selected?.delivery_status === 'delivered' ? 'bg-green-500' : (selected?.delivery_status === 'out_for_delivery' ? 'bg-blue-500' : 'bg-amber-500')"></span>
+                  <span class="text-[11px] font-bold text-gray-700 capitalize" x-text="selected?.delivery_status?.replaceAll('_',' ')"></span>
+                </div>
+                <div x-show="selected?.delivery_scheduled_at" class="flex items-center gap-2">
+                  <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span class="text-[10px] text-gray-500">{{ __('Scheduled') }}: <span class="font-medium text-gray-700" x-text="selected?.delivery_scheduled_at ? new Date(selected.delivery_scheduled_at).toLocaleString() : '—'"></span></span>
+                </div>
+                <div x-show="selected?.delivery_picked_up_at" class="flex items-center gap-2">
+                  <svg class="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                  <span class="text-[10px] text-gray-500">{{ __('Picked Up') }}: <span class="font-medium text-gray-700" x-text="selected?.delivery_picked_up_at ? new Date(selected.delivery_picked_up_at).toLocaleString() : '—'"></span></span>
+                </div>
+                <div x-show="selected?.delivery_delivered_at" class="flex items-center gap-2">
+                  <svg class="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span class="text-[10px] text-gray-500">{{ __('Delivered') }}: <span class="font-medium text-gray-700" x-text="selected?.delivery_delivered_at ? new Date(selected.delivery_delivered_at).toLocaleString() : '—'"></span></span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -217,19 +240,52 @@
         <template x-if="selected?.items && selected.items.length > 0">
           <div>
             <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Items') }}</h4>
-            <div class="bg-gray-50 rounded-xl p-4 space-y-2">
+            <div class="space-y-2">
               <template x-for="(item, i) in selected.items" :key="i">
-                <div class="flex items-center justify-between py-2 border-b border-gray-200 last:border-0">
-                  <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6E7A25]/20 to-[#173327]/20 flex items-center justify-center">
-                      <svg class="w-4 h-4 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                  <div class="flex items-center justify-between gap-2 mb-2">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                      <div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#6E7A25]/20 to-[#173327]/20 flex items-center justify-center">
+                        <img x-show="item.image_url" :src="item.image_url" class="w-full h-full object-cover" alt="">
+                        <svg x-show="!item.image_url" class="w-4 h-4 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                      </div>
+                      <div class="min-w-0">
+                        <p class="text-xs font-bold text-gray-900 truncate" x-text="item.name || item.meal_name || item.plan_name || 'Item'"></p>
+                        <div class="flex items-center gap-1.5 mt-0.5">
+                          <span x-show="item.category_name" class="text-[9px] font-bold text-[#6E7A25] bg-[#6E7A25]/10 px-1.5 py-0.5 rounded-full" x-text="item.category_name"></span>
+                          <span x-show="item.total_meals" class="text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full" x-text="item.total_meals + ' meals'"></span>
+                          <span x-show="item.duration_days" class="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full" x-text="item.duration_days + 'd'"></span>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p class="text-xs font-medium text-gray-900" x-text="item.name || item.meal_name || 'Item'"></p>
-                      <p class="text-[10px] text-gray-400" x-text="item.description || ''"></p>
-                    </div>
+                    <span class="text-xs font-bold text-[#6E7A25] bg-[#6E7A25]/10 px-2 py-1 rounded-full flex-shrink-0" x-text="'×' + (item.quantity || 1)"></span>
                   </div>
-                  <span class="text-xs font-bold text-[#6E7A25 bg-[#6E7A25]/10 px-2 py-1 rounded-full" x-text="'×' + (item.quantity || 1)"></span>
+                  {{-- Nutrition info --}}
+                  <div x-show="item.calories || item.protein_g || item.carbs_g || item.fat_g" class="flex flex-wrap gap-2 mb-2">
+                    <span x-show="item.calories" class="text-[9px] text-gray-500 bg-white rounded-full px-2 py-0.5 border border-gray-100" x-text="'🔥 ' + item.calories + ' cal'"></span>
+                    <span x-show="item.protein_g" class="text-[9px] text-gray-500 bg-white rounded-full px-2 py-0.5 border border-gray-100" x-text="item.protein_g + 'g protein'"></span>
+                    <span x-show="item.carbs_g" class="text-[9px] text-gray-500 bg-white rounded-full px-2 py-0.5 border border-gray-100" x-text="item.carbs_g + 'g carbs'"></span>
+                    <span x-show="item.fat_g" class="text-[9px] text-gray-500 bg-white rounded-full px-2 py-0.5 border border-gray-100" x-text="item.fat_g + 'g fat'"></span>
+                  </div>
+                  {{-- Ingredients --}}
+                  <div x-show="item.ingredients?.length" class="flex flex-wrap items-center gap-1 mb-1.5">
+                    <span class="text-[9px] font-bold text-gray-400 uppercase">{{ __('Ingredients') }}:</span>
+                    <template x-for="ing in item.ingredients" :key="ing">
+                      <span class="px-1.5 py-0.5 rounded-full bg-white border border-gray-200 text-[10px] text-gray-600" x-text="ing"></span>
+                    </template>
+                  </div>
+                  {{-- Allergens --}}
+                  <div x-show="item.allergens?.length" class="flex flex-wrap items-center gap-1">
+                    <span class="text-[9px] font-bold text-red-400 uppercase">{{ __('Allergens') }}:</span>
+                    <template x-for="a in item.allergens" :key="a">
+                      <span class="px-1.5 py-0.5 rounded-full bg-red-50 border border-red-100 text-[10px] text-red-600 font-bold" x-text="a"></span>
+                    </template>
+                  </div>
+                  {{-- Price --}}
+                  <div x-show="item.line_total || item.unit_price" class="flex items-center justify-between mt-2 pt-2 border-t border-gray-200">
+                    <span class="text-[10px] text-gray-400" x-show="item.unit_price" x-text="'SAR ' + item.unit_price + ' each'"></span>
+                    <span class="text-xs font-bold text-gray-900" x-show="item.line_total" x-text="'SAR ' + item.line_total"></span>
+                  </div>
                 </div>
               </template>
             </div>
@@ -326,7 +382,7 @@ function ordersApp() {
     assignTime: '',
 
     statusClass(s) {
-      const m = { delivered:'bg-green-50 text-green-700 border-green-200', out_for_delivery:'bg-blue-50 text-blue-700 border-blue-200', en_route:'bg-blue-50 text-blue-700 border-blue-200', ready_for_delivery:'bg-indigo-50 text-indigo-700 border-indigo-200', preparing:'bg-amber-50 text-amber-700 border-amber-200', pending:'bg-gray-50 text-gray-600 border-gray-200', cancelled:'bg-red-50 text-red-600 border-red-200' };
+      const m = { delivered:'bg-green-50 text-green-700 border-green-200', out_for_delivery:'bg-blue-50 text-blue-700 border-blue-200', en_route:'bg-blue-50 text-blue-700 border-blue-200', ready_for_delivery:'bg-indigo-50 text-indigo-700 border-indigo-200', preparing:'bg-amber-50 text-amber-700 border-amber-200', confirmed:'bg-teal-50 text-teal-700 border-teal-200', scheduled:'bg-purple-50 text-purple-700 border-purple-200', pending:'bg-gray-50 text-gray-600 border-gray-200', cancelled:'bg-red-50 text-red-600 border-red-200' };
       return m[s] || 'bg-gray-50 text-gray-600 border-gray-200';
     },
     paymentStatusClass(s) {
@@ -334,8 +390,8 @@ function ordersApp() {
       return m[s] || 'bg-gray-50 text-gray-600 border-gray-200';
     },
     statusLabel(s) {
-      const m = { delivered:'Delivered', out_for_delivery:'Out for Delivery', en_route:'En Route', ready_for_delivery:'Ready for Delivery', preparing:'Preparing', pending:'Pending', cancelled:'Cancelled' };
-      return m[s] || s;
+      const m = { delivered:'Delivered', out_for_delivery:'Out for Delivery', en_route:'En Route', ready_for_delivery:'Ready for Delivery', preparing:'Preparing', confirmed:'Confirmed', scheduled:'Scheduled', pending:'Pending', cancelled:'Cancelled' };
+      return m[s] || (s ? s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' ') : '—');
     },
 
     init() {

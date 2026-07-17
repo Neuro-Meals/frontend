@@ -75,6 +75,108 @@
     </div>
 </div>
 
+{{-- Delivery Readiness Board --}}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
+        <div class="flex items-center gap-2">
+            <div class="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold text-gray-900">{{ __('Delivery Readiness Board') }}</h3>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Ready orders waiting for a driver assignment') }}</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="text-xs font-bold text-gray-400">{{ __('Ready Orders') }}: <span class="text-green-600">{{ count($readyOrders) }}</span></span>
+            @if(count($readyOrders) > 0)
+            <button @click="selectAllReadyOrders()" class="text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                {{ __('Select for Bulk Assign') }}
+            </button>
+            <button @click="copyReadyOrderIds()" class="text-xs font-bold text-[#6E7A25] hover:underline flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                {{ __('Copy IDs') }}
+            </button>
+            @endif
+        </div>
+    </div>
+
+    @if(count($readyOrders) > 0)
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="text-left text-xs text-gray-400 bg-gray-50/50 border-b border-gray-100">
+                    <th class="px-4 py-3 font-medium">{{ __('Order ID') }}</th>
+                    <th class="px-4 py-3 font-medium">{{ __('Customer') }}</th>
+                    <th class="px-4 py-3 font-medium">{{ __('Food') }}</th>
+                    <th class="px-4 py-3 font-medium">{{ __('Address') }}</th>
+                    <th class="px-4 py-3 font-medium">{{ __('Driver') }}</th>
+                    <th class="px-4 py-3 font-medium">{{ __('Actions') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($readyOrders as $order)
+                <tr class="border-b border-gray-50 hover:bg-gray-50/30 transition-colors">
+                    <td class="px-4 py-3.5">
+                        <span class="text-xs font-bold text-gray-900">{{ $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)) }}</span>
+                        <p class="text-[10px] text-gray-400">#{{ $order['id'] ?? '' }}</p>
+                    </td>
+                    <td class="px-4 py-3.5">
+                        <p class="text-xs font-bold text-gray-800">{{ ($order['customer']['full_name'] ?? '') ?: 'Customer' }}</p>
+                        <p class="text-[10px] text-gray-400">{{ $order['customer']['phone'] ?? '' }}</p>
+                    </td>
+                    <td class="px-4 py-3.5">
+                        @if(!empty($order['items']))
+                            @foreach($order['items'] as $item)
+                            <p class="text-[11px] text-gray-600">{{ $item['plan_name'] ?? ($item['meal_name'] ?? 'Item') }}</p>
+                            @endforeach
+                        @else
+                            <span class="text-[10px] text-gray-400">—</span>
+                        @endif
+                    </td>
+                    <td class="px-4 py-3.5">
+                        <p class="text-xs text-gray-600">{{ $order['delivery_address'] ?? ($order['customer']['address'] ?? 'N/A') }}</p>
+                        @if(!empty($order['delivery_notes']))
+                        <p class="text-[10px] text-gray-400">{{ $order['delivery_notes'] }}</p>
+                        @endif
+                    </td>
+                    <td class="px-4 py-3.5">
+                        @if(!empty($order['delivery']['driver_id']))
+                            <span class="text-xs font-bold text-green-600">{{ __('Assigned') }}</span>
+                        @else
+                            <span class="text-xs font-bold text-red-500">{{ __('Unassigned') }}</span>
+                        @endif
+                    </td>
+                    <td class="px-4 py-3.5">
+                        <form action="{{ route('admin.deliveries.assign-driver', $order['id'] ?? 0) }}" method="POST" class="inline-flex items-center gap-1">
+                            @csrf
+                            @if(count($availableDrivers) > 0)
+                            <select name="driver_id" class="text-[10px] border border-gray-200 rounded-lg px-1.5 py-1 bg-gray-50 outline-none">
+                                <option value="">{{ __('Assign...') }}</option>
+                                @foreach($availableDrivers as $driver)
+                                <option value="{{ $driver['id'] }}">{{ $driver['name'] }}</option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="text-[10px] font-bold text-[#6E7A25] hover:underline whitespace-nowrap">{{ __('Go') }}</button>
+                            @else
+                            <span class="text-[10px] text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-2 py-1">{{ __('No free drivers') }}</span>
+                            @endif
+                        </form>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @else
+    <div class="px-6 py-10 text-center">
+        <svg class="w-10 h-10 text-gray-200 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
+        <p class="text-sm font-bold text-gray-400">{{ __('No ready orders waiting for driver assignment.') }}</p>
+    </div>
+    @endif
+</div>
+
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
         <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
             <div>
@@ -212,8 +314,32 @@
                     @endforeach
                 </select>
             </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Scheduled At') }} <span class="text-gray-400 font-normal">({{ __('optional') }})</span></label>
+                <input type="datetime-local" x-model="bulkScheduledAt" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
+                <p class="text-[10px] text-gray-400 mt-1">{{ __('Leave empty to assign immediately.') }}</p>
+            </div>
+            {{-- Selected order IDs preview --}}
+            <div x-show="selectedOrderIds.length > 0">
+                <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Order IDs') }}</label>
+                <div class="bg-gray-50 rounded-lg p-2.5 border border-gray-100 max-h-24 overflow-y-auto">
+                    <p class="text-xs font-mono text-gray-600" x-text="selectedOrderIds.join(', ')"></p>
+                </div>
+            </div>
             <div x-show="bulkAssignError" x-text="bulkAssignError" class="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2"></div>
             <div x-show="bulkAssignSuccess" x-text="bulkAssignSuccess" class="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2"></div>
+            {{-- Failure details --}}
+            <div x-show="bulkAssignFailures.length > 0" class="bg-red-50 border border-red-100 rounded-lg p-3">
+                <p class="text-xs font-bold text-red-700 mb-1.5">{{ __('Failed Orders') }}</p>
+                <div class="space-y-1 max-h-32 overflow-y-auto">
+                    <template x-for="f in bulkAssignFailures" :key="f.order_id">
+                        <div class="flex items-center justify-between text-[11px]">
+                            <span class="font-mono text-red-600">#<span x-text="f.order_id"></span></span>
+                            <span class="text-red-500" x-text="f.reason"></span>
+                        </div>
+                    </template>
+                </div>
+            </div>
             <div class="flex items-center justify-end gap-2 pt-2">
                 <button @click="bulkAssignOpen = false" class="px-4 py-2 rounded-lg border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">{{ __('Cancel') }}</button>
                 <button @click="submitBulkAssign()" :disabled="bulkAssigning || !bulkDriverId" class="px-4 py-2 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-sm font-bold shadow-sm hover:shadow-md transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2">
@@ -384,6 +510,7 @@
 @push('scripts')
 @php
 $assignableOrderIds = collect($deliveries)->whereIn('status', ['pending', 'scheduled', 'assigned'])->pluck('order_id')->values();
+$readyOrderIds = collect($readyOrders)->pluck('id')->values();
 @endphp
 <script>
     function deliveryManager() {
@@ -400,10 +527,13 @@ $assignableOrderIds = collect($deliveries)->whereIn('status', ['pending', 'sched
             selectedOrderIds: [],
             bulkAssignOpen: false,
             bulkDriverId: '',
+            bulkScheduledAt: '',
             bulkAssigning: false,
             bulkAssignError: '',
             bulkAssignSuccess: '',
+            bulkAssignFailures: [],
             allAssignableOrderIds: @json($assignableOrderIds),
+            readyOrderIds: @json($readyOrderIds),
             driverForm: {
                 id: null,
                 first_name: '',
@@ -443,13 +573,41 @@ $assignableOrderIds = collect($deliveries)->whereIn('status', ['pending', 'sched
                 this.selectedOrderIds = [];
             },
 
+            async copyReadyOrderIds() {
+                const ids = this.readyOrderIds.join(', ');
+                try {
+                    await navigator.clipboard.writeText(ids);
+                    Swal.fire({ title: '{{ __("Copied!") }}', text: '{{ __("Order IDs copied to clipboard") }}', icon: 'success', timer: 1500, showConfirmButton: false });
+                } catch (e) {
+                    Swal.fire({ title: '{{ __("Copy failed") }}', text: ids, icon: 'info' });
+                }
+            },
+
+            selectAllReadyOrders() {
+                this.selectedOrderIds = [...this.readyOrderIds];
+                this.bulkAssignError = '';
+                this.bulkAssignSuccess = '';
+                this.bulkAssignFailures = [];
+                this.bulkScheduledAt = '';
+                this.bulkAssignOpen = true;
+            },
+
             async submitBulkAssign() {
                 if (!this.bulkDriverId || this.selectedOrderIds.length === 0) return;
                 this.bulkAssigning = true;
                 this.bulkAssignError = '';
                 this.bulkAssignSuccess = '';
+                this.bulkAssignFailures = [];
 
                 try {
+                    const body = {
+                        driver_id: parseInt(this.bulkDriverId),
+                        order_ids: this.selectedOrderIds.map(id => parseInt(id)),
+                    };
+                    if (this.bulkScheduledAt) {
+                        body.scheduled_at = this.bulkScheduledAt;
+                    }
+
                     const res = await fetch('{{ route('admin.deliveries.bulk-assign-driver') }}', {
                         method: 'POST',
                         headers: {
@@ -458,17 +616,20 @@ $assignableOrderIds = collect($deliveries)->whereIn('status', ['pending', 'sched
                             'X-Requested-With': 'XMLHttpRequest',
                             'Accept': 'application/json',
                         },
-                        body: JSON.stringify({
-                            driver_id: parseInt(this.bulkDriverId),
-                            order_ids: this.selectedOrderIds.map(id => parseInt(id)),
-                        }),
+                        body: JSON.stringify(body),
                     });
                     const data = await res.json();
                     if (data.success) {
                         this.bulkAssignSuccess = data.message || 'Driver assigned successfully.';
-                        setTimeout(() => window.location.reload(), 1500);
+                        if (data.failures && data.failures.length > 0) {
+                            this.bulkAssignFailures = data.failures;
+                        }
+                        setTimeout(() => window.location.reload(), 2000);
                     } else {
                         this.bulkAssignError = data.message || 'Failed to assign driver.';
+                        if (data.failures && data.failures.length > 0) {
+                            this.bulkAssignFailures = data.failures;
+                        }
                     }
                 } catch (err) {
                     this.bulkAssignError = 'Network error. Please try again.';
