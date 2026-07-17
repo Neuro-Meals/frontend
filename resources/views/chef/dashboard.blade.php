@@ -172,6 +172,13 @@
                                     </div>
                                 </div>
                                 <p x-show="meal.description" class="text-[11px] text-gray-400 line-clamp-2 mb-2" x-text="meal.description"></p>
+                                {{-- Nutrition badges --}}
+                                <div class="flex flex-wrap items-center gap-1.5 mb-2" x-show="meal.protein_g || meal.carbs_g || meal.fat_g">
+                                    <span x-show="meal.protein_g" class="text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full" x-text="'P ' + meal.protein_g + 'g'"></span>
+                                    <span x-show="meal.carbs_g" class="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full" x-text="'C ' + meal.carbs_g + 'g'"></span>
+                                    <span x-show="meal.fat_g" class="text-[9px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded-full" x-text="'F ' + meal.fat_g + 'g'"></span>
+                                    <span x-show="meal.price" class="text-[9px] font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded-full" x-text="'SAR ' + meal.price"></span>
+                                </div>
                                 {{-- Ingredients --}}
                                 <div x-show="meal.ingredients?.length" class="mb-2">
                                     <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">{{ __('Ingredients') }}</p>

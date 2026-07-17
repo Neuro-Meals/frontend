@@ -125,39 +125,125 @@ $statusLabel = match($delivery['status']) {
             @endif
         </div>
 
-        {{-- Meal Information --}}
+        {{-- Meal Summary --}}
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up animate-delay-3">
-            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Meal Information') }}</h2>
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">{{ __('Order Summary') }}</h2>
+                <span class="text-[10px] font-bold text-gray-400">{{ $delivery['order_number'] }}</span>
+            </div>
+            <div class="bg-gray-50/60 rounded-xl p-3 mb-3">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-3.5 h-3.5 text-brand-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <p class="text-xs font-semibold text-gray-700 flex-1">{{ $delivery['meal_summary'] }}</p>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-[10px] font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full">{{ $delivery['meal_count'] }} {{ __('items') }}</span>
+                    @if($delivery['total_quantity'])
+                    <span class="text-[10px] font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded-full">{{ $delivery['total_quantity'] }} {{ __('qty') }}</span>
+                    @endif
+                    @if($delivery['total_calories'])
+                    <span class="text-[10px] font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full">{{ $delivery['total_calories'] }} {{ __('kcal') }}</span>
+                    @endif
+                    @if($delivery['total_protein_g'])
+                    <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{{ $delivery['total_protein_g'] }}g {{ __('protein') }}</span>
+                    @endif
+                    @if($delivery['total_carbs_g'])
+                    <span class="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{{ $delivery['total_carbs_g'] }}g {{ __('carbs') }}</span>
+                    @endif
+                    @if($delivery['total_fat_g'])
+                    <span class="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">{{ $delivery['total_fat_g'] }}g {{ __('fat') }}</span>
+                    @endif
+                    <span class="text-[10px] font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded-full ml-auto">SAR {{ number_format($delivery['amount'], 2) }}</span>
+                </div>
+            </div>
             <div class="grid grid-cols-3 gap-2">
                 <div>
-                    <p class="text-[9px] text-gray-400 uppercase mb-0.5">{{ __('Meal ID') }}</p>
-                    <p class="text-xs font-bold text-gray-900 truncate">{{ $delivery['meal_id'] ?? $delivery['order_number'] }}</p>
-                </div>
-                <div>
-                    <p class="text-[9px] text-gray-400 uppercase mb-0.5">{{ __('Meal') }}</p>
-                    <p class="text-xs font-bold text-gray-900">{{ count($delivery['items'] ?? []) }} {{ __('items') }}</p>
-                </div>
-                <div>
-                    <p class="text-[9px] text-gray-400 uppercase mb-0.5">{{ __('Prep Time') }}</p>
+                    <p class="text-[9px] text-gray-400 uppercase mb-0.5">{{ __('Scheduled') }}</p>
                     <p class="text-xs font-bold text-gray-900">{{ $delivery['time'] }}</p>
+                </div>
+                <div>
+                    <p class="text-[9px] text-gray-400 uppercase mb-0.5">{{ __('Zone') }}</p>
+                    <p class="text-xs font-bold text-gray-900 truncate">{{ $delivery['zone'] }}</p>
+                </div>
+                <div>
+                    <p class="text-[9px] text-gray-400 uppercase mb-0.5">{{ __('ETA') }}</p>
+                    <p class="text-xs font-bold text-gray-900">{{ $delivery['eta'] }}</p>
                 </div>
             </div>
         </div>
 
-        {{-- Order items --}}
+        {{-- Order items with full details --}}
         @if(!empty($delivery['items']))
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up animate-delay-3">
-            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Order Items') }}</h2>
-            <div class="space-y-2">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">{{ __('Order Items') }}</h2>
+                <div class="flex items-center gap-2">
+                    @if($delivery['total_quantity'])
+                    <span class="text-[10px] font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded-full">{{ $delivery['total_quantity'] }} {{ __('qty') }}</span>
+                    @endif
+                    @if($delivery['total_calories'])
+                    <span class="text-[10px] font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full">{{ $delivery['total_calories'] }} {{ __('kcal') }}</span>
+                    @endif
+                </div>
+            </div>
+            <div class="space-y-3">
                 @foreach($delivery['items'] as $item)
-                <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center text-brand-700 font-bold text-xs">
-                            {{ $loop->iteration }}
+                @php
+                    $itemName = $item['meal_name'] ?? ($item['name'] ?? ($item['name_en'] ?? ($item['title'] ?? __('Meal'))));
+                    $itemQty = (int) ($item['quantity'] ?? 1);
+                    $itemCal = (int) ($item['calories'] ?? 0);
+                @endphp
+                <div class="bg-gray-50/60 rounded-xl p-3 border border-gray-100">
+                    <div class="flex items-start gap-2.5 mb-2">
+                        <div class="w-10 h-10 rounded-lg bg-white border border-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                            @if(!empty($item['image_url']))
+                            <img src="{{ $item['image_url'] }}" class="w-full h-full object-cover" alt="">
+                            @else
+                            <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            @endif
                         </div>
-                        <p class="text-xs font-semibold text-gray-900">{{ $item['name_en'] ?? ($item['name'] ?? __('Meal')) }}</p>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-bold text-gray-900 leading-tight">{{ $itemName }}</p>
+                            <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                                <span class="text-[10px] font-bold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded-full">×{{ $itemQty }}</span>
+                                @if($itemCal)
+                                <span class="text-[10px] font-bold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded-full">{{ $itemCal }} kcal</span>
+                                @endif
+                                @if(!empty($item['protein_g']))
+                                <span class="text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full">P {{ $item['protein_g'] }}g</span>
+                                @endif
+                                @if(!empty($item['carbs_g']))
+                                <span class="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">C {{ $item['carbs_g'] }}g</span>
+                                @endif
+                                @if(!empty($item['fat_g']))
+                                <span class="text-[9px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded-full">F {{ $item['fat_g'] }}g</span>
+                                @endif
+                            </div>
+                        </div>
+                        @if(!empty($item['unit_price']))
+                        <span class="text-[10px] font-bold text-gray-600 flex-shrink-0">SAR {{ number_format($item['unit_price'], 2) }}</span>
+                        @endif
                     </div>
-                    <span class="text-[10px] text-gray-400">x{{ $item['quantity'] ?? 1 }}</span>
+                    @if(!empty($item['ingredients']) && is_array($item['ingredients']))
+                    <div class="mb-2">
+                        <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">{{ __('Ingredients') }}</p>
+                        <div class="flex flex-wrap items-center gap-1">
+                            @foreach($item['ingredients'] as $ing)
+                            <span class="px-1.5 py-0.5 rounded-full bg-white border border-gray-200 text-[10px] text-gray-600">{{ $ing }}</span>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+                    @if(!empty($item['allergens']) && is_array($item['allergens']))
+                    <div>
+                        <p class="text-[9px] font-bold text-red-400 uppercase tracking-wide mb-1">{{ __('Allergens') }}</p>
+                        <div class="flex flex-wrap items-center gap-1">
+                            @foreach($item['allergens'] as $a)
+                            <span class="px-1.5 py-0.5 rounded-full bg-red-50 border border-red-100 text-[10px] text-red-600">{{ $a }}</span>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
                 </div>
                 @endforeach
             </div>

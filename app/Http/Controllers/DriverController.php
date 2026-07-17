@@ -340,6 +340,31 @@ class DriverController extends Controller
         $customer = $delivery['customer'] ?? ($order['customer'] ?? ($order['user'] ?? []));
         $address = $delivery['delivery_address'] ?? ($order['delivery_address'] ?? ($customer['address'] ?? ''));
 
+        // Enrich items and compute aggregates
+        $items = $order['items'] ?? [];
+        $mealNames = [];
+        $totalCalories = 0;
+        $totalProtein = 0;
+        $totalCarbs = 0;
+        $totalFat = 0;
+        $totalQty = 0;
+
+        if (is_array($items)) {
+            foreach ($items as $item) {
+                $name = $item['meal_name'] ?? ($item['name'] ?? ($item['name_en'] ?? ($item['title'] ?? '')));
+                $qty = (int) ($item['quantity'] ?? 1);
+                $totalQty += $qty;
+                if ($name) {
+                    $mealNames[] = $qty > 1 ? "{$name} x{$qty}" : $name;
+                }
+                $cal = (int) ($item['calories'] ?? 0);
+                $totalCalories += $cal * $qty;
+                $totalProtein += (float) ($item['protein_g'] ?? 0) * $qty;
+                $totalCarbs += (float) ($item['carbs_g'] ?? 0) * $qty;
+                $totalFat += (float) ($item['fat_g'] ?? 0) * $qty;
+            }
+        }
+
         return [
             'id' => $delivery['id'] ?? 0,
             'order_id' => $delivery['order_id'] ?? ($order['id'] ?? 0),
@@ -362,7 +387,14 @@ class DriverController extends Controller
             'time' => !empty($delivery['scheduled_at']) ? date('H:i', strtotime($delivery['scheduled_at'])) : '--:--',
             'delivered_at' => $delivery['delivered_at'] ?? null,
             'failure_reason' => $delivery['failure_reason'] ?? '',
-            'items' => $order['items'] ?? [],
+            'items' => $items,
+            'meal_summary' => implode(', ', $mealNames) ?: __('No items'),
+            'meal_count' => is_array($items) ? count($items) : 0,
+            'total_quantity' => $totalQty,
+            'total_calories' => $totalCalories,
+            'total_protein_g' => round($totalProtein, 1),
+            'total_carbs_g' => round($totalCarbs, 1),
+            'total_fat_g' => round($totalFat, 1),
             'amount' => $order['total_amount'] ?? 0,
             'lat' => $delivery['latitude'] ?? ($delivery['current_latitude'] ?? null),
             'lng' => $delivery['longitude'] ?? ($delivery['current_longitude'] ?? null),
