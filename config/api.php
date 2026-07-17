@@ -242,15 +242,6 @@ return [
             'ready_for_delivery'    => '/chef/orders/ready-for-delivery',
         ],
 
-        // ─── Kitchen Schedule (item-level transfer & production requirements) ───
-        'schedule' => [
-            'categories'               => '/chef/schedule/categories',
-            'production_requirements'  => '/chef/schedule/production-requirements',
-            'kitchen_queue'            => '/chef/schedule/kitchen-queue',
-            'transfer'                 => '/chef/schedule/transfer',
-            'advance'                  => '/chef/schedule/advance',
-        ],
-
         // ─── Meal Schedule (not in OpenAPI spec — customer dashboard requirement) ───
         'meal_schedule' => [
             'my'       => '/meal-schedule/my',

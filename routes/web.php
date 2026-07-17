@@ -165,10 +165,6 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
     Route::patch('/plans/menu/{id}', [AdminController::class, 'updateMenuItem'])->name('plans.menu.update');
     Route::delete('/plans/menu/{id}', [AdminController::class, 'destroyMenuItem'])->name('plans.menu.destroy');
 
-    // Kitchen Schedule (item-level transfer, not whole-order)
-    Route::get('/schedule', [AdminController::class, 'schedule'])->name('schedule');
-    Route::get('/schedule/data', [AdminController::class, 'scheduleData'])->name('schedule.data');
-    Route::post('/schedule/transfer', [AdminController::class, 'transferSchedule'])->name('schedule.transfer');
     Route::get('/meals', [AdminController::class, 'meals'])->name('meals');
     Route::post('/meals', [AdminController::class, 'storeMeal'])->name('meals.store');
     Route::get('/meals/{id}', [AdminController::class, 'showMeal'])->name('meals.show');
@@ -245,9 +241,6 @@ Route::prefix('chef')->name('chef.')->middleware(['api.auth', 'api.chef'])->grou
     Route::post('/orders/{id}/start-preparing', [\App\Http\Controllers\ChefController::class, 'startPreparing'])->name('orders.start_preparing');
     Route::post('/orders/{id}/mark-ready', [\App\Http\Controllers\ChefController::class, 'markReady'])->name('orders.mark_ready');
 
-    // Kitchen Queue (item-level, aggregated by schedule/category)
-    Route::post('/schedule/transfer', [\App\Http\Controllers\ChefController::class, 'transferSchedule'])->name('schedule.transfer');
-    Route::post('/schedule/advance', [\App\Http\Controllers\ChefController::class, 'advanceSchedule'])->name('schedule.advance');
 });
 
 // User routes (customer only)
