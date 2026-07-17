@@ -60,7 +60,7 @@
           <span x-text="cat.name"></span>
           <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
             :class="activeTab === cat.id ? 'bg-white/20 text-white' : (cat.count > 0 ? 'bg-[#6E7A25]/10 text-[#6E7A25]' : 'bg-gray-100 text-gray-400')"
-            x-text="cat.count"></span>
+            x-text="cat.count + (cat.total_quantity ? ' · ' + cat.total_quantity + 'qty' : '')"></span>
         </button>
       </template>
     </div>
@@ -134,7 +134,7 @@
         </div>
         <h3 class="text-sm font-bold text-gray-900" x-text="activeCategoryName + ' ' + '{{ __('Orders') }}'"></h3>
       </div>
-      <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#173327]/10 text-[#173327]" x-text="activeOrders.length + ' {{ __('orders') }}'"></span>
+      <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#173327]/10 text-[#173327]" x-text="activeOrders.length + ' {{ __('orders') }}' + (activeCategoryQty ? ' · ' + activeCategoryQty + ' {{ __('qty') }}' : '')"></span>
     </div>
 
     <template x-if="loading">
@@ -179,9 +179,9 @@
           <div class="flex items-center gap-3 flex-wrap">
             <span class="text-[10px] text-gray-500 truncate" x-text="order.meal_summary"></span>
             <div class="flex items-center gap-2 ml-auto flex-shrink-0">
+              <span x-show="order.total_quantity" class="text-[10px] font-bold text-[#173327] bg-[#173327]/10 px-2 py-0.5 rounded-full" x-text="order.total_quantity + ' {{ __('qty') }}'"></span>
               <span x-show="order.total_calories" class="text-[10px] font-bold text-[#6E7A25] bg-[#6E7A25]/10 px-2 py-0.5 rounded-full" x-text="order.total_calories + ' kcal'"></span>
               <span x-show="order.category_amount" class="text-[10px] font-bold text-gray-700" x-text="'SAR ' + order.category_amount"></span>
-              <span class="text-[10px] text-gray-400" x-text="order.meal_count + ' items'"></span>
             </div>
           </div>
         </div>
@@ -246,6 +246,7 @@
           </span>
           <span x-show="selected?.delivery_status" class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border border-white/20 bg-white/10 capitalize" x-text="selected?.delivery_status?.replaceAll('_',' ')"></span>
           <span x-show="selected?.total_calories" class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/10" x-text="selected?.total_calories + ' kcal'"></span>
+          <span x-show="selected?.total_quantity" class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/10" x-text="selected?.total_quantity + ' {{ __('qty') }}'"></span>
         </div>
       </div>
 
@@ -314,6 +315,7 @@
             <div class="flex items-center justify-between mb-3">
               <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider" x-text="activeCategoryName + ' {{ __('Items') }}'"></h4>
               <div class="flex items-center gap-2">
+                <span x-show="selected?.total_quantity" class="text-[10px] font-bold text-[#173327] bg-[#173327]/10 px-2 py-0.5 rounded-full" x-text="selected?.total_quantity + ' {{ __('qty') }}'"></span>
                 <span x-show="selected?.total_calories" class="text-[10px] font-bold text-[#6E7A25] bg-[#6E7A25]/10 px-2 py-0.5 rounded-full" x-text="selected?.total_calories + ' kcal'"></span>
                 <span class="text-[10px] font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full" x-text="selected?.meal_count + ' items'"></span>
               </div>
@@ -477,6 +479,10 @@ function ordersApp() {
     get activeCategoryName() {
       const cat = this.categories.find(c => c.id === this.activeTab);
       return cat ? cat.name : '';
+    },
+    get activeCategoryQty() {
+      const cat = this.categories.find(c => c.id === this.activeTab);
+      return cat ? (cat.total_quantity || 0) : 0;
     },
 
     init() {

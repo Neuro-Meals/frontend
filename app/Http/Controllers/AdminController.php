@@ -1421,8 +1421,10 @@ class AdminController extends Controller
                     $catCarbs = 0;
                     $catFat = 0;
                     $catAmount = 0;
+                    $catTotalQty = 0;
                     foreach ($catItems as $ci) {
                         $qty = $ci['quantity'] ?? 1;
+                        $catTotalQty += $qty;
                         $name = $ci['meal_name'] ?? '';
                         if ($name) {
                             $catMealNames[] = $qty > 1 ? "{$name} x{$qty}" : $name;
@@ -1440,6 +1442,7 @@ class AdminController extends Controller
                     $item['items'] = $catItems;
                     $item['meal_summary'] = implode(', ', $catMealNames) ?: __('No items');
                     $item['meal_count'] = count($catItems);
+                    $item['total_quantity'] = $catTotalQty;
                     $item['total_calories'] = round($catCalories);
                     $item['total_protein_g'] = round($catProtein);
                     $item['total_carbs_g'] = round($catCarbs);
@@ -1452,7 +1455,9 @@ class AdminController extends Controller
             }
 
             foreach ($categories as &$cat) {
-                $cat['count'] = count($categorizedOrders[$cat['id']] ?? []);
+                $catOrders = $categorizedOrders[$cat['id']] ?? [];
+                $cat['count'] = count($catOrders);
+                $cat['total_quantity'] = array_sum(array_map(fn ($o) => $o['total_quantity'] ?? 0, $catOrders));
             }
             unset($cat);
         }
@@ -1469,12 +1474,14 @@ class AdminController extends Controller
                     'name' => $catName,
                     'icon' => $getIconForName($catName),
                     'count' => 0,
+                    'total_quantity' => 0,
                 ];
             }
         }
         foreach ($categories as $orderCat) {
             if (isset($allCategories[$orderCat['id']])) {
                 $allCategories[$orderCat['id']]['count'] = $orderCat['count'];
+                $allCategories[$orderCat['id']]['total_quantity'] = $orderCat['total_quantity'] ?? 0;
             } else {
                 $allCategories[$orderCat['id']] = $orderCat;
             }
