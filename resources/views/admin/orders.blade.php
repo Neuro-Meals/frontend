@@ -180,7 +180,7 @@
             <span class="text-[10px] text-gray-500 truncate" x-text="order.meal_summary"></span>
             <div class="flex items-center gap-2 ml-auto flex-shrink-0">
               <span x-show="order.total_calories" class="text-[10px] font-bold text-[#6E7A25] bg-[#6E7A25]/10 px-2 py-0.5 rounded-full" x-text="order.total_calories + ' kcal'"></span>
-              <span class="text-[10px] font-bold text-gray-700" x-text="'SAR ' + order.amount"></span>
+              <span x-show="order.category_amount" class="text-[10px] font-bold text-gray-700" x-text="'SAR ' + order.category_amount"></span>
               <span class="text-[10px] text-gray-400" x-text="order.meal_count + ' items'"></span>
             </div>
           </div>
@@ -308,11 +308,11 @@
           </div>
         </div>
 
-        {{-- Items with full details --}}
+        {{-- Items with full details (filtered by active category) --}}
         <template x-if="selected?.items && selected.items.length > 0">
           <div>
             <div class="flex items-center justify-between mb-3">
-              <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ __('Order Items') }}</h4>
+              <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider" x-text="activeCategoryName + ' {{ __('Items') }}'"></h4>
               <div class="flex items-center gap-2">
                 <span x-show="selected?.total_calories" class="text-[10px] font-bold text-[#6E7A25] bg-[#6E7A25]/10 px-2 py-0.5 rounded-full" x-text="selected?.total_calories + ' kcal'"></span>
                 <span class="text-[10px] font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full" x-text="selected?.meal_count + ' items'"></span>

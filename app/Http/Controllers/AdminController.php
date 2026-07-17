@@ -1373,6 +1373,41 @@ class AdminController extends Controller
                         $item = $this->formatAdminOrder($order);
                         $item['primary_category_id'] = $catId;
                         $item['primary_category_name'] = $catName;
+
+                        // Filter items to only those matching this category
+                        $catItems = array_values(array_filter($item['items'] ?? [], function ($i) use ($catId) {
+                            return ($i['category_id'] ?? null) === $catId;
+                        }));
+
+                        // Recalculate totals based on category-filtered items
+                        $catMealNames = [];
+                        $catCalories = 0;
+                        $catProtein = 0;
+                        $catCarbs = 0;
+                        $catFat = 0;
+                        $catAmount = 0;
+                        foreach ($catItems as $ci) {
+                            $qty = $ci['quantity'] ?? 1;
+                            $name = $ci['meal_name'] ?? '';
+                            if ($name) {
+                                $catMealNames[] = $qty > 1 ? "{$name} x{$qty}" : $name;
+                            }
+                            $catCalories += (float) ($ci['calories'] ?? 0) * $qty;
+                            $catProtein += (float) ($ci['protein_g'] ?? 0) * $qty;
+                            $catCarbs += (float) ($ci['carbs_g'] ?? 0) * $qty;
+                            $catFat += (float) ($ci['fat_g'] ?? 0) * $qty;
+                            $catAmount += (float) ($ci['line_total'] ?? 0);
+                        }
+
+                        $item['items'] = $catItems;
+                        $item['meal_summary'] = implode(', ', $catMealNames) ?: __('No items');
+                        $item['meal_count'] = count($catItems);
+                        $item['total_calories'] = round($catCalories);
+                        $item['total_protein_g'] = round($catProtein);
+                        $item['total_carbs_g'] = round($catCarbs);
+                        $item['total_fat_g'] = round($catFat);
+                        $item['category_amount'] = round($catAmount, 2);
+
                         $categorizedOrders[$catId][] = $item;
                         $allOrders[] = $item;
                     }
