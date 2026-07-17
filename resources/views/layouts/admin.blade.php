@@ -101,37 +101,10 @@
         {{-- Menu --}}
         <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
 
-            {{-- Section: Kitchen Operations --}}
-            <p class="px-3 pt-2 pb-1 text-[10px] font-bold text-accent-400/60 uppercase tracking-wider">{{ __('Kitchen Operations') }}</p>
-
             <a href="{{ route('admin.dashboard') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
                 <span>{{ __('Dashboard') }}</span>
             </a>
-
-            <a href="{{ route('admin.schedule') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.schedule*') ? 'active' : '' }}">
-                <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                <span>{{ __('Kitchen Schedule') }}</span>
-            </a>
-
-            <a href="{{ route('admin.orders') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.orders*') ? 'active' : '' }}">
-                <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                <span>{{ __('Kitchen Orders') }}</span>
-            </a>
-
-            <a href="{{ route('admin.deliveries') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.deliveries*') ? 'active' : '' }}">
-                <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
-                <span>{{ __('Delivery Board') }}</span>
-            </a>
-
-            <a href="{{ route('admin.live') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.live') ? 'active' : '' }}">
-                <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
-                <span>{{ __('Live') }}</span>
-                <span class="ml-auto px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[9px] font-bold animate-pulse">●</span>
-            </a>
-
-            {{-- Section: Management --}}
-            <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-accent-400/60 uppercase tracking-wider">{{ __('Management') }}</p>
 
             <a href="{{ route('admin.customers') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.customers*') ? 'active' : '' }}">
                 <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
@@ -153,6 +126,21 @@
                 <span>{{ __('Meals & Nutrition') }}</span>
             </a>
 
+            <a href="{{ route('admin.schedule') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.schedule*') ? 'active' : '' }}">
+                <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span>{{ __('Kitchen Schedule') }}</span>
+            </a>
+
+            <a href="{{ route('admin.orders') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.orders*') ? 'active' : '' }}">
+                <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span>{{ __('Orders') }}</span>
+            </a>
+
+            <a href="{{ route('admin.deliveries') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.deliveries*') ? 'active' : '' }}">
+                <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
+                <span>{{ __('Deliveries') }}</span>
+            </a>
+
             <a href="{{ route('admin.drivers') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.drivers*') ? 'active' : '' }}">
                 <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 <span>{{ __('Drivers') }}</span>
@@ -163,8 +151,11 @@
                 <span>{{ __('Chefs') }}</span>
             </a>
 
-            {{-- Section: Insights & Settings --}}
-            <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-accent-400/60 uppercase tracking-wider">{{ __('Insights & Settings') }}</p>
+            <a href="{{ route('admin.live') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.live') ? 'active' : '' }}">
+                <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                <span>{{ __('Live') }}</span>
+                <span class="ml-auto px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[9px] font-bold animate-pulse">●</span>
+            </a>
 
             <a href="{{ route('admin.payments') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.payments*') ? 'active' : '' }}">
                 <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>

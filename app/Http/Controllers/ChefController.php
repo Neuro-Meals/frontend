@@ -151,7 +151,6 @@ class ChefController extends Controller
             $categoryMap = [];
             $categoryCounts = [];
             $allOrders = [];
-            $allOrderIds = []; // Track unique order IDs to avoid duplicates in allOrders
 
             foreach ($ordersData as $order) {
                 try {
@@ -164,40 +163,18 @@ class ChefController extends Controller
                     continue;
                 }
 
-                // Collect ALL categories this order has items in
-                $orderCategories = [];
-                $seenCatIds = [];
-                foreach (($order['items'] ?? []) as $orderItem) {
-                    $catId = (int) ($orderItem['category_id'] ?? 0);
-                    $catName = $orderItem['category_name'] ?? __('Uncategorized');
-                    if ($catId > 0 && !isset($seenCatIds[$catId])) {
-                        $seenCatIds[$catId] = true;
-                        $orderCategories[] = [$catId, $catName];
-                    }
-                }
-                if (empty($orderCategories)) {
-                    $orderCategories[] = [$item['primary_category_id'], $item['primary_category_name']];
+                $catId = $item['primary_category_id'];
+                $catName = $item['primary_category_name'];
+
+                if (!isset($categoryMap[$catId])) {
+                    $categoryMap[$catId] = $catName;
+                    $categorizedOrders[$catId] = [];
+                    $categoryCounts[$catId] = 0;
                 }
 
-                foreach ($orderCategories as [$catId, $catName]) {
-                    if (!isset($categoryMap[$catId])) {
-                        $categoryMap[$catId] = $catName;
-                        $categorizedOrders[$catId] = [];
-                        $categoryCounts[$catId] = 0;
-                    }
-
-                    $itemCopy = $item;
-                    $itemCopy['primary_category_id'] = $catId;
-                    $itemCopy['primary_category_name'] = $catName;
-                    $categorizedOrders[$catId][] = $itemCopy;
-                    $categoryCounts[$catId]++;
-                }
-
-                $orderId = $item['id'];
-                if (!isset($allOrderIds[$orderId])) {
-                    $allOrderIds[$orderId] = true;
-                    $allOrders[] = $item;
-                }
+                $categorizedOrders[$catId][] = $item;
+                $allOrders[] = $item;
+                $categoryCounts[$catId]++;
             }
 
             $categories = [];
@@ -258,23 +235,14 @@ class ChefController extends Controller
 
         $stats = [
             'total_today' => $dashboardData['total_orders'] ?? 0,
-            'total_orders' => $dashboardData['total_orders'] ?? 0,
             'pending' => ($dashboardData['pending_orders'] ?? 0) + ($dashboardData['confirmed_orders'] ?? 0),
-            'pending_orders' => $dashboardData['pending_orders'] ?? 0,
-            'confirmed_orders' => $dashboardData['confirmed_orders'] ?? 0,
             'preparing' => $dashboardData['preparing_orders'] ?? 0,
-            'preparing_orders' => $dashboardData['preparing_orders'] ?? 0,
             'ready' => $dashboardData['ready_for_delivery_orders'] ?? 0,
-            'ready_for_delivery_orders' => $dashboardData['ready_for_delivery_orders'] ?? 0,
             'completed' => ($dashboardData['out_for_delivery_orders'] ?? 0) + ($dashboardData['delivered_orders'] ?? 0),
-            'out_for_delivery_orders' => $dashboardData['out_for_delivery_orders'] ?? 0,
-            'delivered_orders' => $dashboardData['delivered_orders'] ?? 0,
             'cancelled' => $dashboardData['cancelled_orders'] ?? 0,
-            'cancelled_orders' => $dashboardData['cancelled_orders'] ?? 0,
             'available_drivers' => $dashboardData['available_drivers'] ?? 0,
             'total_active_drivers' => $dashboardData['total_active_drivers'] ?? 0,
             'deliveries_needed' => $dashboardData['deliveries_needed'] ?? 0,
-            'assigned_deliveries' => $dashboardData['assigned_deliveries'] ?? 0,
         ];
 
         // Fetch meals summary for today
@@ -287,13 +255,8 @@ class ChefController extends Controller
         // Fetch allergies summary for today
         $allergiesResponse = $chefApi->allergiesSummary();
         $allergyCustomers = [];
-        $allergySummary = ['total_orders' => 0, 'customers_with_allergies' => 0];
         if (!isset($allergiesResponse['success']) || $allergiesResponse['success'] !== false) {
             $allergyCustomers = $allergiesResponse['customers'] ?? [];
-            $allergySummary = [
-                'total_orders' => $allergiesResponse['total_orders'] ?? 0,
-                'customers_with_allergies' => $allergiesResponse['customers_with_allergies'] ?? 0,
-            ];
         }
 
         $notificationsData = $this->apiData($notificationApi->my(['limit' => 5, 'is_read' => false]), fn () => []);
@@ -348,92 +311,7 @@ class ChefController extends Controller
             ];
         }
 
-        return view('chef.dashboard', compact('categorizedOrders', 'categories', 'stats', 'notifications', 'mealsSummary', 'allergyCustomers', 'allergySummary', 'tabSummaries', 'scheduleByTab', 'today'));
-    }
-
-    /**
-     * Chef Kitchen Schedule page: shows ALL meal categories at once
-     * (Breakfast, Lunch, Dinner, Snacks) with per-meal production
-     * requirements, ingredients, allergens, calories, customer orders,
-     * and transfer/advance actions — the same data as the admin
-     * schedule but styled for the chef mobile app.
-     */
-    public function schedule(Request $request, ChefApiService $chefApi)
-    {
-        $today = $request->query('date') ?: date('Y-m-d');
-
-        $iconMap = [
-            'breakfast' => 'sunrise',
-            'lunch'     => 'sun',
-            'dinner'    => 'moon',
-            'supper'    => 'moon',
-            'snack'     => 'cookie',
-        ];
-        $getIcon = function (string $name) use ($iconMap): string {
-            $lower = strtolower($name);
-            foreach ($iconMap as $keyword => $icon) {
-                if (str_contains($lower, $keyword)) return $icon;
-            }
-            return 'dots';
-        };
-        $getRank = function (string $name): int {
-            $lower = strtolower($name);
-            if (str_contains($lower, 'breakfast')) return 0;
-            if (str_contains($lower, 'lunch')) return 1;
-            if (str_contains($lower, 'dinner') || str_contains($lower, 'supper')) return 2;
-            if (str_contains($lower, 'snack')) return 3;
-            return 4;
-        };
-
-        $categoriesData = $this->apiData($chefApi->scheduleCategories($today), fn () => ['categories' => []]);
-        $categories = $categoriesData['categories'] ?? [];
-
-        usort($categories, fn($a, $b) => $getRank($a['category_name'] ?? '') <=> $getRank($b['category_name'] ?? ''));
-
-        $allProduction = [];
-        $totalOrders = 0;
-        $distinctMeals = 0;
-        $totalPortions = 0;
-
-        foreach ($categories as $cat) {
-            $catId = (int) ($cat['category_id'] ?? 0);
-            if (!$catId) continue;
-
-            $prodData = $this->apiData(
-                $chefApi->productionRequirements($today, $catId),
-                fn () => ['meals' => [], 'total_required' => 0]
-            );
-
-            $allProduction[] = [
-                'category_id' => $catId,
-                'category_name' => $cat['category_name'] ?? '',
-                'category_name_ar' => $cat['category_name_ar'] ?? '',
-                'icon' => $getIcon($cat['category_name'] ?? ''),
-                'total_required' => $prodData['total_required'] ?? 0,
-                'meals' => $prodData['meals'] ?? [],
-                'pending' => $cat['pending'] ?? 0,
-                'sent_to_kitchen' => $cat['sent_to_kitchen'] ?? 0,
-                'preparing' => $cat['preparing'] ?? 0,
-                'ready' => $cat['ready'] ?? 0,
-                'served' => $cat['served'] ?? 0,
-                'order_count' => $cat['order_count'] ?? 0,
-            ];
-
-            $totalOrders += (int) ($cat['order_count'] ?? 0);
-            $distinctMeals += count($prodData['meals'] ?? []);
-            $totalPortions += (int) ($prodData['total_required'] ?? 0);
-        }
-
-        return view('chef.schedule', [
-            'today' => $today,
-            'allProduction' => $allProduction,
-            'summary' => [
-                'total_orders' => $totalOrders,
-                'category_count' => count($categories),
-                'distinct_meals' => $distinctMeals,
-                'total_portions' => $totalPortions,
-            ],
-        ]);
+        return view('chef.dashboard', compact('categorizedOrders', 'categories', 'stats', 'notifications', 'mealsSummary', 'allergyCustomers', 'tabSummaries', 'scheduleByTab', 'today'));
     }
 
     /**

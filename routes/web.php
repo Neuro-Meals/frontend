@@ -242,7 +242,6 @@ Route::prefix('driver')->name('driver.')->middleware(['api.auth', 'api.driver'])
 // Chef routes
 Route::prefix('chef')->name('chef.')->middleware(['api.auth', 'api.chef'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\ChefController::class, 'dashboard'])->name('dashboard');
-    Route::get('/schedule', [\App\Http\Controllers\ChefController::class, 'schedule'])->name('schedule');
     Route::post('/orders/{id}/start-preparing', [\App\Http\Controllers\ChefController::class, 'startPreparing'])->name('orders.start_preparing');
     Route::post('/orders/{id}/mark-ready', [\App\Http\Controllers\ChefController::class, 'markReady'])->name('orders.mark_ready');
 
