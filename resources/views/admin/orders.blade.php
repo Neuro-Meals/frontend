@@ -163,21 +163,9 @@
               <span x-text="statusLabel(order.status)"></span>
             </span>
           </div>
-          {{-- Item thumbnails --}}
-          <div class="flex items-center gap-1.5 mb-2" x-show="order.items?.length">
-            <template x-for="(item, i) in order.items.slice(0, 5)" :key="i">
-              <div class="w-8 h-8 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-100">
-                <img x-show="item.image_url" :src="item.image_url" class="w-full h-full object-cover" alt="">
-                <div x-show="!item.image_url" class="w-full h-full flex items-center justify-center">
-                  <svg class="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                </div>
-              </div>
-            </template>
-            <span x-show="order.items.length > 5" class="text-[10px] text-gray-400 font-medium" x-text="'+' + (order.items.length - 5) + ' more'"></span>
-          </div>
           {{-- Summary row --}}
           <div class="flex items-center gap-3 flex-wrap">
-            <span class="text-[10px] text-gray-500 truncate" x-text="order.meal_summary"></span>
+            <span class="text-xs font-medium text-gray-700 truncate" x-text="order.meal_summary"></span>
             <div class="flex items-center gap-2 ml-auto flex-shrink-0">
               <span x-show="order.total_quantity" class="text-[10px] font-bold text-[#173327] bg-[#173327]/10 px-2 py-0.5 rounded-full" x-text="order.total_quantity + ' {{ __('qty') }}'"></span>
               <span x-show="order.total_calories" class="text-[10px] font-bold text-[#6E7A25] bg-[#6E7A25]/10 px-2 py-0.5 rounded-full" x-text="order.total_calories + ' kcal'"></span>
