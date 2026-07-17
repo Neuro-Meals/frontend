@@ -311,7 +311,27 @@ class ChefController extends Controller
             ];
         }
 
-        return view('chef.dashboard', compact('categorizedOrders', 'categories', 'stats', 'notifications', 'mealsSummary', 'allergyCustomers', 'tabSummaries', 'scheduleByTab', 'today'));
+        // ─── Fetch ALL meals with ingredients, grouped by category ───
+        $mealsData = $this->apiData($mealApi->list(['limit' => 100]), fn () => []);
+        $mealsByCategory = [];
+        if (is_array($mealsData)) {
+            foreach ($mealsData as $meal) {
+                $catId = $meal['category_id'] ?? 0;
+                $mealsByCategory[$catId][] = [
+                    'id' => $meal['id'] ?? 0,
+                    'name' => $meal['name_en'] ?? ($meal['name_ar'] ?? 'Unknown'),
+                    'image_url' => $meal['image_url'] ?? null,
+                    'ingredients' => $meal['ingredients'] ?? [],
+                    'allergens' => $meal['allergens'] ?? [],
+                    'calories' => $meal['calories'] ?? 0,
+                    'price' => $meal['price'] ?? 0,
+                    'is_available' => $meal['is_available'] ?? true,
+                    'description' => $meal['description'] ?? '',
+                ];
+            }
+        }
+
+        return view('chef.dashboard', compact('categorizedOrders', 'categories', 'stats', 'notifications', 'mealsSummary', 'allergyCustomers', 'tabSummaries', 'scheduleByTab', 'today', 'mealsByCategory'));
     }
 
     /**
