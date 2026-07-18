@@ -451,27 +451,33 @@ class UserController extends Controller
 
         $subscriptionResponse = $subscriptionApi->create(['plan_id' => $planId]);
 
-        if (!empty($subscriptionResponse['success']) && $subscriptionResponse['success'] === false) {
-            $message = $this->apiErrorMessage($subscriptionResponse);
-            if ($wantsJson) {
-                return response()->json(['success' => false, 'message' => $message], 400);
+        $subscriptionId = null;
+
+        if (($subscriptionResponse['success'] ?? true) === false) {
+            // Check if error is "already has subscription" — if so, reuse that subscription
+            $existingId = $subscriptionResponse['subscription_id']
+                ?? ($subscriptionResponse['errors']['subscription_id'] ?? null);
+            if (!$existingId) {
+                $message = $this->apiErrorMessage($subscriptionResponse);
+                if ($wantsJson) {
+                    return response()->json(['success' => false, 'message' => $message], 400);
+                }
+                return redirect()->route('user.subscriptions')->with('error', $message);
             }
-            return redirect()->route('user.subscriptions')->with('error', $message);
-        }
-
-        $subscription = $subscriptionResponse['data'] ?? $subscriptionResponse;
-
-        if (empty($subscription) || !empty($subscription['error']) || !isset($subscription['id'])) {
-            if ($wantsJson) {
-                return response()->json(['success' => false, 'message' => 'Failed to subscribe. Please try again.'], 400);
+            $subscriptionId = (int) $existingId;
+        } else {
+            $subscription = $subscriptionResponse['data'] ?? $subscriptionResponse;
+            if (empty($subscription) || !empty($subscription['error']) || !isset($subscription['id'])) {
+                if ($wantsJson) {
+                    return response()->json(['success' => false, 'message' => 'Failed to subscribe. Please try again.'], 400);
+                }
+                return redirect()->route('user.subscriptions')->with('error', 'Failed to subscribe. Please try again.');
             }
-            return redirect()->route('user.subscriptions')->with('error', 'Failed to subscribe. Please try again.');
+            $subscriptionId = (int) $subscription['id'];
         }
-
-        $subscriptionId = $subscription['id'];
         $checkoutResponse = $paymentApi->createCheckout($subscriptionId);
 
-        if (!empty($checkoutResponse['success']) && $checkoutResponse['success'] === false) {
+        if (($checkoutResponse['success'] ?? true) === false) {
             $message = $this->apiErrorMessage($checkoutResponse);
             \Illuminate\Support\Facades\Log::warning('Subscription payment checkout failed', ['response' => $checkoutResponse]);
             if ($wantsJson) {
@@ -522,7 +528,7 @@ class UserController extends Controller
 
         $checkoutResponse = $paymentApi->createCheckout($subscriptionId);
 
-        if (!empty($checkoutResponse['success']) && $checkoutResponse['success'] === false) {
+        if (($checkoutResponse['success'] ?? true) === false) {
             $message = $this->apiErrorMessage($checkoutResponse);
             \Illuminate\Support\Facades\Log::warning('Payment checkout failed', ['response' => $checkoutResponse]);
             return redirect()->route('user.subscriptions')->with('error', $message);
@@ -558,7 +564,7 @@ class UserController extends Controller
 
         $checkoutResponse = $paymentApi->createCheckout($subscriptionId);
 
-        if (!empty($checkoutResponse['success']) && $checkoutResponse['success'] === false) {
+        if (($checkoutResponse['success'] ?? true) === false) {
             $message = $this->apiErrorMessage($checkoutResponse);
             \Illuminate\Support\Facades\Log::warning('Payment checkout JSON failed', ['response' => $checkoutResponse]);
             return response()->json([
@@ -606,7 +612,7 @@ class UserController extends Controller
 
         $response = $paymentApi->attachMoyasarPayment($paymentId, $moyasarPaymentId);
 
-        if (!empty($response['success']) && $response['success'] === false) {
+        if (($response['success'] ?? true) === false) {
             $message = $this->apiErrorMessage($response);
             \Illuminate\Support\Facades\Log::warning('Moyasar attach failed (AJAX)', ['response' => $response]);
             return response()->json([

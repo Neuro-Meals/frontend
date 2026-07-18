@@ -275,11 +275,29 @@ class BaseApiService
                             'errors' => $errors,
                         ];
                     }
+                    $detail = $json['detail'] ?? null;
+                    $message = $json['message'] ?? null;
+                    $extra = [];
+
+                    // FastAPI HTTPException can return detail as a dict
+                    // e.g. {"detail": {"message": "...", "subscription_id": 10}}
+                    if (is_array($detail) && !array_is_list($detail)) {
+                        if (!$message && isset($detail['message'])) {
+                            $message = $detail['message'];
+                        }
+                        $extra = $detail;
+                    } elseif (is_string($detail)) {
+                        if (!$message) {
+                            $message = $detail;
+                        }
+                    }
+
                     return [
                         'success' => false,
                         'status' => $response->status(),
-                        'message' => $json['message'] ?? $json['detail'] ?? 'Request failed',
+                        'message' => $message ?? 'Request failed',
                         'errors' => $json['errors'] ?? null,
+                        ...$extra,
                     ];
                 }
 
