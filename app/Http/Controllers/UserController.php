@@ -594,6 +594,35 @@ class UserController extends Controller
         ], 400);
     }
 
+    public function attachMoyasarAjax(int $paymentId, Request $request, PaymentApiService $paymentApi)
+    {
+        $moyasarPaymentId = $request->input('moyasar_payment_id');
+        if ($paymentId <= 0 || !$moyasarPaymentId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid payment data.',
+            ], 422);
+        }
+
+        $response = $paymentApi->attachMoyasarPayment($paymentId, $moyasarPaymentId);
+
+        if (!empty($response['success']) && $response['success'] === false) {
+            $message = $this->apiErrorMessage($response);
+            \Illuminate\Support\Facades\Log::warning('Moyasar attach failed (AJAX)', ['response' => $response]);
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+            ], 400);
+        }
+
+        $payment = $response['data'] ?? $response;
+        return response()->json([
+            'success' => true,
+            'payment' => $payment,
+            'status' => $payment['status'] ?? 'pending',
+        ]);
+    }
+
     public function pauseSubscription(int $subscriptionId, SubscriptionApiService $subscriptionApi)
     {
         if ($subscriptionId <= 0) {
@@ -646,17 +675,30 @@ class UserController extends Controller
         $verified = false;
         $error = null;
 
-        // Moyasar flow: attach + verify
+        // Moyasar flow: verify payment after 3DS redirect (attach was done before redirect via AJAX)
         if ($isLoggedIn && $moyasarPaymentId && $localPaymentId) {
-            $attachResponse = $paymentApi->attachMoyasarPayment((int) $localPaymentId, $moyasarPaymentId);
-            $result = $attachResponse['data'] ?? $attachResponse;
+            $verifyResponse = $paymentApi->verifyPayment((int) $localPaymentId);
+            $result = $verifyResponse['data'] ?? $verifyResponse;
+
+            // Fallback: if verify fails because payment wasn't attached (AJAX may have failed before 3DS),
+            // try attaching first, then verify again.
+            if (empty($result['id']) && !empty($verifyResponse['message']) && str_contains(strtolower($verifyResponse['message']), 'not been attached')) {
+                $attachResponse = $paymentApi->attachMoyasarPayment((int) $localPaymentId, $moyasarPaymentId);
+                if (empty($attachResponse['success']) || $attachResponse['success'] === false) {
+                    $error = $this->apiErrorMessage($attachResponse);
+                    \Illuminate\Support\Facades\Log::warning('Moyasar fallback attach failed', ['response' => $attachResponse]);
+                } else {
+                    $verifyResponse = $paymentApi->verifyPayment((int) $localPaymentId);
+                    $result = $verifyResponse['data'] ?? $verifyResponse;
+                }
+            }
 
             if (!empty($result['id'])) {
                 $payment = $result;
-                $verified = in_array($result['status'] ?? '', ['paid', 'PAID']);
+                $verified = strtolower($result['status'] ?? '') === 'paid';
             } else {
-                $error = $this->apiErrorMessage($attachResponse);
-                \Illuminate\Support\Facades\Log::warning('Moyasar payment attach failed', ['response' => $attachResponse]);
+                $error = $this->apiErrorMessage($verifyResponse);
+                \Illuminate\Support\Facades\Log::warning('Moyasar payment verify failed', ['response' => $verifyResponse]);
             }
         }
         // Tap gateway: verify by charge_id (tap_id) if available.

@@ -255,6 +255,10 @@
                     <p class="text-xs text-gray-500 mt-2">{{ __('Loading payment form...') }}</p>
                 </div>
                 <div id="moyasar-error" class="hidden mt-4 bg-red-50 border border-red-100 text-red-700 rounded-xl px-4 py-3 text-sm"></div>
+                <div class="mt-4 flex items-center justify-center gap-1.5 text-[10px] text-gray-400">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    {{ __('Secured by Moyasar') }} &middot; {{ __('256-bit SSL encryption') }}
+                </div>
             </div>
         </div>
     </div>
@@ -311,6 +315,22 @@
 @push('scripts')
 <script src="https://cdn.moyasar.com/mpf/0.3.0/moyasar.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+    .mysr-form { min-height: 200px; }
+    .mysr-form .mysr-btn {
+        background: linear-gradient(to right, #173327, #6E7A25) !important;
+        border-radius: 0.5rem !important;
+        font-weight: 700 !important;
+    }
+    .mysr-form .mysr-input {
+        border-radius: 0.5rem !important;
+        border-color: #e5e7eb !important;
+    }
+    .mysr-form .mysr-input:focus {
+        border-color: #6E7A25 !important;
+        box-shadow: 0 0 0 2px rgba(110, 122, 37, 0.15) !important;
+    }
+</style>
 <script>
     document.querySelectorAll('.swal-confirm-form').forEach(form => {
         form.addEventListener('submit', function (e) {
@@ -399,11 +419,19 @@
         errorEl.textContent = '';
 
         formContainer.innerHTML = '';
+        formContainer.style.display = '';
         loadingEl.classList.remove('hidden');
 
         const moyasarCallbackUrl = callbackUrl + (callbackUrl.includes('?') ? '&' : '?') + 'payment_id=' + localPaymentId;
 
         modal.classList.remove('hidden');
+
+        if (typeof Moyasar === 'undefined') {
+            loadingEl.classList.add('hidden');
+            errorEl.textContent = 'Payment SDK failed to load. Please refresh the page and try again.';
+            errorEl.classList.remove('hidden');
+            return;
+        }
 
         try {
             moyasarFormInstance = Moyasar.init({
@@ -418,12 +446,56 @@
                 metadata: metadata,
                 language: document.documentElement.lang || 'en',
                 on_completed: function(payment) {
+                    const status = (payment && payment.status || '').toLowerCase();
+                    const moyasarPaymentUuid = payment && payment.id || '';
+
+                    if (status === 'failed' || status === 'voided' || status === 'canceled' || status === 'cancelled') {
+                        loadingEl.classList.add('hidden');
+                        formContainer.style.display = '';
+                        const source = payment && payment.source || {};
+                        const errMsg = source.message || source.code || 'Payment was declined. Please try again with a different card.';
+                        errorEl.textContent = errMsg;
+                        errorEl.classList.remove('hidden');
+                        return;
+                    }
+
+                    loadingEl.classList.remove('hidden');
+                    formContainer.style.display = 'none';
+                    errorEl.classList.add('hidden');
+
+                    if (moyasarPaymentUuid && localPaymentId) {
+                        const attachUrl = '{{ route("user.payments.attach-moyasar", ["paymentId" => "__PID__"]) }}'.replace('__PID__', localPaymentId);
+                        fetch(attachUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': getCsrfToken(),
+                            },
+                            credentials: 'same-origin',
+                            body: JSON.stringify({ moyasar_payment_id: moyasarPaymentUuid }),
+                        }).then(r => r.json().catch(() => ({}))).then(result => {
+                            if (!result.success) {
+                                console.warn('Attach failed:', result);
+                            }
+                        }).catch(err => {
+                            console.warn('Attach error:', err);
+                        });
+                    }
+
+                    if (status === 'paid' || status === 'captured') {
+                        const successUrl = '{{ route("payment.success") }}' + '?payment_id=' + localPaymentId + '&id=' + moyasarPaymentUuid;
+                        window.location.href = successUrl;
+                    }
+                },
+                on_redirect: function(url) {
                     loadingEl.classList.remove('hidden');
                     formContainer.style.display = 'none';
                 },
                 on_failure: function(error) {
                     loadingEl.classList.add('hidden');
-                    errorEl.textContent = (error && error.message) || 'Payment failed. Please try again.';
+                    formContainer.style.display = '';
+                    errorEl.textContent = (error && error.message) || 'Payment form error. Please try again.';
                     errorEl.classList.remove('hidden');
                 },
             });
@@ -556,12 +628,13 @@
         const content = document.getElementById('receipt-content');
         const paidAt = item.paid_at || 'N/A';
         const createdAt = item.created_at || 'N/A';
-        const provider = item.payment_provider || 'Tap';
+        const provider = item.payment_provider || item.provider || 'Moyasar';
         const currency = item.currency || 'SAR';
         const amount = parseFloat(item.amount || 0).toFixed(2);
-        const serviceId = item.transaction_id || item.tap_charge_id || 'N/A';
+        const serviceId = item.provider_payment_id || item.transaction_id || item.tap_charge_id || 'N/A';
 
         const extraRefs = [];
+        if (item.provider_reference && item.provider_reference !== serviceId) extraRefs.push({ label: 'Gateway Reference', value: item.provider_reference });
         if (item.tap_charge_id && item.tap_charge_id !== serviceId) extraRefs.push({ label: 'Tap Charge ID', value: item.tap_charge_id });
         if (item.tap_payment_reference) extraRefs.push({ label: 'Tap Payment Ref', value: item.tap_payment_reference });
         if (item.tap_gateway_reference) extraRefs.push({ label: 'Tap Gateway Ref', value: item.tap_gateway_reference });
@@ -575,12 +648,14 @@
             `).join('')
             : '';
 
-        const responseHtml = (item.tap_response_code || item.tap_response_message)
+        const responseCode = item.provider_response_code || item.tap_response_code;
+        const responseMessage = item.provider_response_message || item.tap_response_message;
+        const responseHtml = (responseCode || responseMessage)
             ? `
                 <div class="bg-gray-50 rounded-lg p-3 mt-3">
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Payment Response') }}</p>
-                    ${item.tap_response_code ? `<div class="flex justify-between text-sm"><span class="text-gray-500">{{ __('Response Code') }}</span><span class="font-semibold text-gray-900">${escapeHtml(item.tap_response_code)}</span></div>` : ''}
-                    ${item.tap_response_message ? `<div class="flex justify-between text-sm mt-1"><span class="text-gray-500">{{ __('Response Message') }}</span><span class="font-semibold text-gray-900 text-[10px] text-right max-w-[180px]">${escapeHtml(item.tap_response_message)}</span></div>` : ''}
+                    ${responseCode ? `<div class="flex justify-between text-sm"><span class="text-gray-500">{{ __('Response Code') }}</span><span class="font-semibold text-gray-900">${escapeHtml(responseCode)}</span></div>` : ''}
+                    ${responseMessage ? `<div class="flex justify-between text-sm mt-1"><span class="text-gray-500">{{ __('Response Message') }}</span><span class="font-semibold text-gray-900 text-[10px] text-right max-w-[180px]">${escapeHtml(responseMessage)}</span></div>` : ''}
                 </div>
             `
             : '';
@@ -619,7 +694,7 @@
                     <span class="font-semibold text-gray-900">${escapeHtml(createdAt)}</span>
                 </div>
                 <div class="flex justify-between text-sm">
-                    <span class="text-gray-500">{{ __('Service ID') }}</span>
+                    <span class="text-gray-500">{{ __('Gateway Payment ID') }}</span>
                     <span class="font-semibold text-gray-900 text-[10px] truncate max-w-[180px]" title="${escapeHtml(serviceId)}">${escapeHtml(serviceId)}</span>
                 </div>
                 ${extraRefsHtml}

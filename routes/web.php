@@ -252,6 +252,7 @@ Route::prefix('user')->name('user.')->middleware(['api.auth', 'api.customer'])->
     Route::post('/subscriptions', [UserController::class, 'subscribe'])->name('subscriptions.subscribe');
     Route::post('/subscriptions/{subscriptionId}/pay', [UserController::class, 'paySubscription'])->name('subscriptions.pay');
     Route::post('/subscriptions/{subscriptionId}/checkout', [UserController::class, 'checkoutJson'])->name('subscriptions.checkout');
+    Route::post('/payments/{paymentId}/attach-moyasar', [UserController::class, 'attachMoyasarAjax'])->name('payments.attach-moyasar');
     Route::post('/subscriptions/{subscriptionId}/pause', [UserController::class, 'pauseSubscription'])->name('subscriptions.pause');
     Route::post('/subscriptions/{subscriptionId}/resume', [UserController::class, 'resumeSubscription'])->name('subscriptions.resume');
     Route::get('/meals', [UserController::class, 'meals'])->name('meals');
