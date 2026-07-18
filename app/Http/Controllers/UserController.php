@@ -465,6 +465,44 @@ class UserController extends Controller
                 return redirect()->route('user.subscriptions')->with('error', $message);
             }
             $subscriptionId = (int) $existingId;
+
+            // If existing subscription is already paid, use change-plan flow
+            $existingStatus = $subscriptionResponse['status'] ?? '';
+            $existingPaymentStatus = $subscriptionResponse['payment_status'] ?? '';
+            if ($existingPaymentStatus === 'paid') {
+                $changeResponse = $subscriptionApi->changePlan($subscriptionId, $planId);
+
+                if (($changeResponse['success'] ?? true) === false) {
+                    $message = $this->apiErrorMessage($changeResponse);
+                    if ($wantsJson) {
+                        return response()->json(['success' => false, 'message' => $message], 400);
+                    }
+                    return redirect()->route('user.subscriptions')->with('error', $message);
+                }
+
+                $changeResult = $changeResponse['data'] ?? $changeResponse;
+                $requiresPayment = $changeResult['requires_payment'] ?? false;
+                $planChangeId = $changeResult['plan_change']['id'] ?? null;
+
+                if (!$requiresPayment || !$planChangeId) {
+                    // Downgrade — no payment needed, scheduled for end of cycle
+                    $message = $changeResult['message'] ?? 'Plan change scheduled successfully.';
+                    if ($wantsJson) {
+                        return response()->json([
+                            'success' => true,
+                            'message' => $message,
+                            'requires_payment' => false,
+                        ]);
+                    }
+                    return redirect()->route('user.subscriptions')->with('success', $message);
+                }
+
+                // Upgrade — create plan change checkout
+                $checkoutResponse = $paymentApi->createPlanChangeCheckout((int) $planChangeId);
+            } else {
+                // Existing subscription is unpaid/pending — create regular checkout
+                $checkoutResponse = $paymentApi->createCheckout($subscriptionId);
+            }
         } else {
             $subscription = $subscriptionResponse['data'] ?? $subscriptionResponse;
             if (empty($subscription) || !empty($subscription['error']) || !isset($subscription['id'])) {
@@ -474,8 +512,8 @@ class UserController extends Controller
                 return redirect()->route('user.subscriptions')->with('error', 'Failed to subscribe. Please try again.');
             }
             $subscriptionId = (int) $subscription['id'];
+            $checkoutResponse = $paymentApi->createCheckout($subscriptionId);
         }
-        $checkoutResponse = $paymentApi->createCheckout($subscriptionId);
 
         if (($checkoutResponse['success'] ?? true) === false) {
             $message = $this->apiErrorMessage($checkoutResponse);

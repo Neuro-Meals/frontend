@@ -53,4 +53,11 @@ class SubscriptionApiService extends BaseApiService
     {
         return $this->post('subscriptions.resume', ['subscription_id' => $subscriptionId]);
     }
+
+    public function changePlan(int $subscriptionId, int $newPlanId): array
+    {
+        return $this->post('subscriptions.change_plan', ['subscription_id' => $subscriptionId], [
+            'new_plan_id' => $newPlanId,
+        ]);
+    }
 }
