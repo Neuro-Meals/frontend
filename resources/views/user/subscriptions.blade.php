@@ -610,8 +610,24 @@
 
             const result = await response.json().catch(() => ({}));
 
-            if (!response.ok || !result.success || !result.checkout) {
+            if (!response.ok || !result.success) {
                 showPaymentError(result.message || 'Unable to start subscription. Please try again.');
+                return;
+            }
+
+            if (result.requires_payment === false && !result.checkout) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ title: 'Success', text: result.message || 'Plan change scheduled.', icon: 'success', confirmButtonText: 'OK' })
+                        .then(() => window.location.reload());
+                } else {
+                    alert(result.message || 'Plan change scheduled.');
+                    window.location.reload();
+                }
+                return;
+            }
+
+            if (!result.checkout) {
+                showPaymentError(result.message || 'Unable to start payment. Please try again.');
                 return;
             }
 
