@@ -6,7 +6,7 @@
 <div x-data="chefShift()" x-init="init()" x-cloak class="pb-10">
 
     {{-- ============ HEADER ============ --}}
-    <div class="relative bg-gradient-to-br from-brand-700 to-brand-800 text-white px-5 pt-5 pb-9 rounded-b-[2rem] shadow-lg shadow-brand-700/30 overflow-hidden animate-slide-up">
+    <div class="relative bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white px-5 pt-5 pb-9 rounded-b-[2rem] shadow-lg shadow-[#173327]/30 overflow-hidden animate-slide-up">
         <div class="absolute inset-0 bg-diamond opacity-[0.06]"></div>
 
         <div class="relative flex items-center justify-between mb-6">
@@ -41,11 +41,11 @@
                 <h1 class="text-2xl font-extrabold" x-text="activeLabel"></h1>
             </div>
             <div class="w-14 h-14 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center animate-float">
-                <template x-if="activeIcon === 'sunrise'"><svg class="w-7 h-7 text-brand-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v2m-4.5 3.5L6 6m9 0l1.5-1.5M4 12H2m20 0h-2M6.343 17.657L4.929 19.071M19.071 19.071l-1.414-1.414M12 18a6 6 0 00-6-6 6 6 0 006 6 6 6 0 006-6 6 6 0 00-6 6z"/></svg></template>
+                <template x-if="activeIcon === 'sunrise'"><svg class="w-7 h-7 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v2m-4.5 3.5L6 6m9 0l1.5-1.5M4 12H2m20 0h-2M6.343 17.657L4.929 19.071M19.071 19.071l-1.414-1.414M12 18a6 6 0 00-6-6 6 6 0 006 6 6 6 0 006-6 6 6 0 00-6 6z"/></svg></template>
                 <template x-if="activeIcon === 'sun'"><svg class="w-7 h-7 text-amber-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg></template>
                 <template x-if="activeIcon === 'moon'"><svg class="w-7 h-7 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg></template>
                 <template x-if="activeIcon === 'cookie'"><svg class="w-7 h-7 text-orange-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15h18v3a3 3 0 01-3 3H6a3 3 0 01-3-3v-3zM3 15l2.5-7.5A2 2 0 017.4 6h9.2a2 2 0 011.9 1.5L21 15M9 15V11M15 15V11"/></svg></template>
-                <template x-if="activeIcon === 'dots'"><svg class="w-7 h-7 text-brand-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01"/></svg></template>
+                <template x-if="activeIcon === 'dots'"><svg class="w-7 h-7 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01"/></svg></template>
             </div>
         </div>
     </div>
@@ -57,13 +57,13 @@
             <button @click="dropdownOpen = !dropdownOpen"
                 class="w-full bg-white rounded-2xl p-1.5 shadow-md border border-gray-100 flex items-center justify-between gap-2 transition-all">
                 <span class="flex items-center gap-2 px-2 py-1.5">
-                    <template x-if="activeIcon === 'sunrise'"><svg class="w-5 h-5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v2m-4.5 3.5L6 6m9 0l1.5-1.5M4 12H2m20 0h-2M6.343 17.657L4.929 19.071M19.071 19.071l-1.414-1.414M12 18a6 6 0 00-6-6 6 6 0 006 6 6 6 0 006-6 6 6 0 00-6 6z"/></svg></template>
+                    <template x-if="activeIcon === 'sunrise'"><svg class="w-5 h-5 text-[#173327]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v2m-4.5 3.5L6 6m9 0l1.5-1.5M4 12H2m20 0h-2M6.343 17.657L4.929 19.071M19.071 19.071l-1.414-1.414M12 18a6 6 0 00-6-6 6 6 0 006 6 6 6 0 006-6 6 6 0 00-6 6z"/></svg></template>
                     <template x-if="activeIcon === 'sun'"><svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg></template>
                     <template x-if="activeIcon === 'moon'"><svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg></template>
                     <template x-if="activeIcon === 'cookie'"><svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15h18v3a3 3 0 01-3 3H6a3 3 0 01-3-3v-3zM3 15l2.5-7.5A2 2 0 017.4 6h9.2a2 2 0 011.9 1.5L21 15M9 15V11M15 15V11"/></svg></template>
                     <template x-if="activeIcon === 'dots'"><svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01"/></svg></template>
                     <span class="text-sm font-bold text-gray-900" x-text="activeLabel"></span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 text-brand-700" x-text="activeSummary.customers + ' {{ __('orders') }}' + (activeCategoryQty ? ' · ' + activeCategoryQty + ' {{ __('qty') }}' : '')"></span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#6E7A25]/10 text-[#173327]" x-text="activeSummary.customers + ' {{ __('orders') }}' + (activeCategoryQty ? ' · ' + activeCategoryQty + ' {{ __('qty') }}' : '')"></span>
                 </span>
                 <svg class="w-5 h-5 text-gray-400 transition-transform flex-shrink-0 mr-2" :class="dropdownOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
@@ -89,21 +89,21 @@
             <div class="max-h-80 overflow-y-auto divide-y divide-gray-50">
                 <template x-for="cat in categories" :key="cat.id">
                     <button @click="switchTab(cat.id); dropdownOpen = false"
-                        class="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold hover:bg-brand-50/30 transition-colors"
-                        :class="activeTab === cat.id ? 'text-brand-700 bg-brand-50/50' : 'text-gray-700'">
+                        class="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold hover:bg-[#6E7A25]/5 transition-colors"
+                        :class="activeTab === cat.id ? 'text-[#173327] bg-[#6E7A25]/10' : 'text-gray-700'">
                         <span class="flex items-center gap-3">
                             <span class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                                :class="activeTab === cat.id ? 'bg-brand-100' : 'bg-gray-100'">
-                                <template x-if="cat.icon === 'sunrise'"><svg class="w-5 h-5" :class="activeTab === cat.id ? 'text-brand-700' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v2m-4.5 3.5L6 6m9 0l1.5-1.5M4 12H2m20 0h-2M6.343 17.657L4.929 19.071M19.071 19.071l-1.414-1.414M12 18a6 6 0 00-6-6 6 6 0 006 6 6 6 0 006-6 6 6 0 00-6 6z"/></svg></template>
-                                <template x-if="cat.icon === 'sun'"><svg class="w-5 h-5" :class="activeTab === cat.id ? 'text-brand-700' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg></template>
-                                <template x-if="cat.icon === 'moon'"><svg class="w-5 h-5" :class="activeTab === cat.id ? 'text-brand-700' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg></template>
-                                <template x-if="cat.icon === 'cookie'"><svg class="w-5 h-5" :class="activeTab === cat.id ? 'text-brand-700' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15h18v3a3 3 0 01-3 3H6a3 3 0 01-3-3v-3zM3 15l2.5-7.5A2 2 0 017.4 6h9.2a2 2 0 011.9 1.5L21 15M9 15V11M15 15V11"/></svg></template>
-                                <template x-if="cat.icon === 'dots'"><svg class="w-5 h-5" :class="activeTab === cat.id ? 'text-brand-700' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01"/></svg></template>
+                                :class="activeTab === cat.id ? 'bg-[#6E7A25]/15' : 'bg-gray-100'">
+                                <template x-if="cat.icon === 'sunrise'"><svg class="w-5 h-5" :class="activeTab === cat.id ? 'text-[#173327]' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v2m-4.5 3.5L6 6m9 0l1.5-1.5M4 12H2m20 0h-2M6.343 17.657L4.929 19.071M19.071 19.071l-1.414-1.414M12 18a6 6 0 00-6-6 6 6 0 006 6 6 6 0 006-6 6 6 0 00-6 6z"/></svg></template>
+                                <template x-if="cat.icon === 'sun'"><svg class="w-5 h-5" :class="activeTab === cat.id ? 'text-[#173327]' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg></template>
+                                <template x-if="cat.icon === 'moon'"><svg class="w-5 h-5" :class="activeTab === cat.id ? 'text-[#173327]' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg></template>
+                                <template x-if="cat.icon === 'cookie'"><svg class="w-5 h-5" :class="activeTab === cat.id ? 'text-[#173327]' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15h18v3a3 3 0 01-3 3H6a3 3 0 01-3-3v-3zM3 15l2.5-7.5A2 2 0 017.4 6h9.2a2 2 0 011.9 1.5L21 15M9 15V11M15 15V11"/></svg></template>
+                                <template x-if="cat.icon === 'dots'"><svg class="w-5 h-5" :class="activeTab === cat.id ? 'text-[#173327]' : 'text-gray-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01"/></svg></template>
                             </span>
                             <span x-text="cat.name"></span>
                         </span>
                         <span class="px-2.5 py-1 rounded-full text-[10px] font-bold"
-                            :class="cat.count > 0 ? 'bg-brand-50 text-brand-700' : 'bg-gray-100 text-gray-400'"
+                            :class="cat.count > 0 ? 'bg-[#6E7A25]/10 text-[#173327]' : 'bg-gray-100 text-gray-400'"
                             x-text="cat.count + (cat.total_quantity ? ' · ' + cat.total_quantity + 'qty' : '')"></span>
                     </button>
                 </template>
@@ -345,16 +345,26 @@
         {{-- ============ PROGRESS + REMAINING ============ --}}
         <div class="grid grid-cols-2 gap-3 animate-slide-up animate-delay-4">
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                <p class="text-[10px] text-gray-400 font-semibold mb-2">{{ __('Preparation Progress') }}</p>
                 <div class="flex items-center gap-2 mb-2">
-                    <span class="text-lg font-extrabold text-brand-700" x-text="progressPercent + '%'"></span>
+                    <div class="w-7 h-7 rounded-lg bg-[#173327]/10 flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5 text-[#173327]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    </div>
+                    <p class="text-[10px] text-gray-400 font-semibold">{{ __('Preparation Progress') }}</p>
                 </div>
-                <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div class="progress-fill h-full bg-gradient-to-r from-brand-600 to-brand-700 rounded-full" :style="'width:' + progressPercent + '%'"></div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-lg font-extrabold text-[#173327]" x-text="progressPercent + '%'"></span>
+                </div>
+                <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="progress-fill h-full bg-gradient-to-r from-[#6E7A25] to-[#173327] rounded-full" :style="'width:' + progressPercent + '%'"></div>
                 </div>
             </div>
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                <p class="text-[10px] text-gray-400 font-semibold mb-2">{{ __('Remaining to Prepare') }}</p>
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <p class="text-[10px] text-gray-400 font-semibold">{{ __('Remaining to Prepare') }}</p>
+                </div>
                 <p class="text-lg font-extrabold text-gray-900"><span x-text="activeSummary.pending + activeSummary.preparing"></span> <span class="text-xs font-semibold text-gray-400">{{ __('of') }} <span x-text="activeSummary.customers"></span></span></p>
             </div>
         </div>
@@ -405,8 +415,8 @@
             <h2 class="text-sm font-bold text-gray-900 mb-3">{{ __('Notifications') }}</h2>
             <div class="space-y-3">
                 @foreach($notifications as $notification)
-                <div class="flex items-start gap-3 p-3 rounded-xl {{ $notification['is_read'] ? 'bg-gray-50' : 'bg-brand-50 border border-brand-100' }}">
-                    <div class="w-8 h-8 rounded-full {{ $notification['is_read'] ? 'bg-gray-100 text-gray-400' : 'bg-brand-700 text-white' }} flex items-center justify-center flex-shrink-0">
+                <div class="flex items-start gap-3 p-3 rounded-xl {{ $notification['is_read'] ? 'bg-gray-50' : 'bg-[#6E7A25]/5 border border-[#6E7A25]/15' }}">
+                    <div class="w-8 h-8 rounded-full {{ $notification['is_read'] ? 'bg-gray-100 text-gray-400' : 'bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white' }} flex items-center justify-center flex-shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                     </div>
                     <div class="min-w-0">
@@ -421,7 +431,7 @@
     </div>
 
     {{-- ============ PREP WALKTHROUGH OVERLAY ============ --}}
-    <div x-show="walkthrough.open" x-cloak class="fixed inset-0 z-50 bg-brand-50 overflow-y-auto" x-transition:enter="animate-fade-in">
+    <div x-show="walkthrough.open" x-cloak class="fixed inset-0 z-50 bg-[#f8f9f5] overflow-y-auto" x-transition:enter="animate-fade-in">
         <div class="max-w-3xl mx-auto px-4 pt-5 pb-10">
 
             {{-- Overlay top bar --}}
@@ -440,7 +450,7 @@
             {{-- Progress bar --}}
             <template x-if="!walkthroughDone">
                 <div class="h-2 bg-gray-200 rounded-full overflow-hidden mb-5 animate-slide-up animate-delay-1">
-                    <div class="progress-fill h-full bg-gradient-to-r from-brand-600 to-brand-700 rounded-full" :style="'width:' + walkthroughPercent + '%'"></div>
+                    <div class="progress-fill h-full bg-gradient-to-r from-[#6E7A25] to-[#173327] rounded-full" :style="'width:' + walkthroughPercent + '%'"></div>
                 </div>
             </template>
 
@@ -454,13 +464,15 @@
             {{-- Completed celebration --}}
             <template x-if="activeOrders.length > 0 && walkthroughDone">
                 <div class="bg-white rounded-3xl p-8 text-center shadow-lg border border-gray-100 animate-pop-in">
-                    <div class="w-20 h-20 rounded-full bg-brand-50 flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-10 h-10 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <div class="w-20 h-20 rounded-full bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 flex items-center justify-center mx-auto mb-4">
+                        <div class="w-14 h-14 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center shadow-lg">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </div>
                     </div>
-                    <h2 class="text-xl font-extrabold text-brand-700 mb-1">{{ __('Well done!') }} 🎉</h2>
+                    <h2 class="text-xl font-extrabold text-[#173327] mb-1">{{ __('Well done!') }} 🎉</h2>
                     <p class="text-sm text-gray-500 mb-6">{{ __('All meals for this shift have been prepared successfully.') }}</p>
                     <div class="grid grid-cols-3 gap-3 mb-6">
-                        <div class="bg-brand-50 rounded-xl p-3">
+                        <div class="bg-[#6E7A25]/5 rounded-xl p-3">
                             <p class="text-lg font-extrabold text-gray-900" x-text="activeSummary.customers"></p>
                             <p class="text-[10px] text-gray-500">{{ __('Total') }}</p>
                         </div>
@@ -473,7 +485,7 @@
                             <p class="text-[10px] text-gray-500">{{ __('Remaining') }}</p>
                         </div>
                     </div>
-                    <button @click="closeWalkthrough()" class="btn-action w-full py-3 rounded-xl bg-brand-700 text-white text-sm font-bold shadow-md">{{ __('Close') }}</button>
+                    <button @click="closeWalkthrough()" class="btn-action w-full py-3 rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-sm font-bold shadow-lg">{{ __('Close') }}</button>
                 </div>
             </template>
 
@@ -486,15 +498,15 @@
                                 <p class="text-base font-extrabold text-gray-900 truncate" x-text="currentOrder.customer"></p>
                                 <p class="text-[11px] text-gray-400 mt-0.5">#<span x-text="currentOrder.id"></span> &nbsp;|&nbsp; <span x-text="currentOrder.order_number"></span></p>
                             </div>
-                            <div class="w-12 h-12 rounded-full bg-brand-50 flex items-center justify-center text-brand-700 font-bold flex-shrink-0" x-text="currentOrder.customer.charAt(0)"></div>
+                            <div class="w-12 h-12 rounded-full bg-[#6E7A25]/10 flex items-center justify-center text-[#173327] font-bold flex-shrink-0" x-text="currentOrder.customer.charAt(0)"></div>
                         </div>
                         <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500">
                             <span class="flex items-center gap-1" x-show="currentOrder.delivery_address">
-                                <svg class="w-3.5 h-3.5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <svg class="w-3.5 h-3.5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 <span x-text="currentOrder.delivery_address"></span>
                             </span>
                             <span class="flex items-center gap-1" x-show="currentOrder.customer_phone">
-                                <svg class="w-3.5 h-3.5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                <svg class="w-3.5 h-3.5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                                 <span x-text="currentOrder.customer_phone"></span>
                             </span>
                         </div>
@@ -511,28 +523,28 @@
                         <div class="flex items-center justify-between mb-3">
                             <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">{{ __('Items to Prepare') }}</h3>
                             <div class="flex items-center gap-2">
-                                <span x-show="currentOrder.total_quantity" class="text-[10px] font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full" x-text="currentOrder.total_quantity + ' {{ __('qty') }}'"></span>
-                                <span x-show="currentOrder.total_calories" class="text-[10px] font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full" x-text="currentOrder.total_calories + ' kcal'"></span>
+                                <span x-show="currentOrder.total_quantity" class="text-[10px] font-bold text-[#173327] bg-[#6E7A25]/10 px-2 py-0.5 rounded-full" x-text="currentOrder.total_quantity + ' {{ __('qty') }}'"></span>
+                                <span x-show="currentOrder.total_calories" class="text-[10px] font-bold text-[#173327] bg-[#6E7A25]/10 px-2 py-0.5 rounded-full" x-text="currentOrder.total_calories + ' kcal'"></span>
                             </div>
                         </div>
                         <div class="space-y-2.5">
                             <template x-for="(item, idx) in currentOrder.items" :key="idx">
-                                <div class="bg-brand-50/60 rounded-xl p-3 border border-brand-100">
+                                <div class="bg-[#6E7A25]/5 rounded-xl p-3 border border-[#6E7A25]/15">
                                     <div class="flex items-center gap-2 mb-2">
-                                        <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
-                                            <svg class="w-4 h-4 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center flex-shrink-0 shadow-sm">
+                                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                                         </div>
                                         <div class="flex-1 min-w-0">
                                             <p class="text-xs font-bold text-gray-800 leading-tight" x-text="item.meal_name || item.name || strings.item"></p>
-                                            <p class="text-[11px] text-brand-700 font-semibold mt-0.5" x-text="'× ' + (item.quantity || 1)"></p>
+                                            <p class="text-[11px] text-[#173327] font-semibold mt-0.5" x-text="'× ' + (item.quantity || 1)"></p>
                                         </div>
-                                        <span x-show="item.calories" class="text-[9px] font-bold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded-full" x-text="item.calories + ' kcal'"></span>
+                                        <span x-show="item.calories" class="text-[9px] font-bold text-[#6E7A25] bg-[#6E7A25]/10 px-1.5 py-0.5 rounded-full" x-text="item.calories + ' kcal'"></span>
                                     </div>
                                     <div x-show="item.ingredients?.length" class="mb-2">
                                         <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">{{ __('Ingredients') }}</p>
                                         <div class="flex flex-wrap items-center gap-1">
                                             <template x-for="(ing, iIdx) in item.ingredients" :key="iIdx">
-                                                <span class="px-1.5 py-0.5 rounded-full bg-white border border-brand-100 text-[10px] text-gray-600" x-text="ing"></span>
+                                                <span class="px-1.5 py-0.5 rounded-full bg-white border border-[#6E7A25]/15 text-[10px] text-gray-600" x-text="ing"></span>
                                             </template>
                                         </div>
                                     </div>
@@ -559,7 +571,7 @@
 
                     <div class="grid grid-cols-1 gap-2">
                         <template x-if="['pending','confirmed','scheduled'].includes(currentOrder.status)">
-                            <button @click="doStartPreparing()" class="btn-action w-full py-3.5 rounded-2xl bg-gradient-to-l from-brand-700 to-brand-600 text-white text-sm font-bold shadow-md shadow-brand-700/20 flex items-center justify-center gap-2">
+                            <button @click="doStartPreparing()" class="btn-action w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-sm font-bold shadow-lg shadow-[#173327]/20 flex items-center justify-center gap-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                                 {{ __('Start Preparing') }}
                             </button>
@@ -586,7 +598,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                             {{ __('Previous') }}
                         </button>
-                        <button @click="goNext()" class="flex items-center gap-1 text-xs font-bold text-brand-700">
+                        <button @click="goNext()" class="flex items-center gap-1 text-xs font-bold text-[#173327]">
                             {{ __('Next') }}
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" transform="rotate(180 12 12)"/></svg>
                         </button>
