@@ -160,12 +160,12 @@
 
 {{-- Available Plans --}}
 <div class="mb-6">
-    <h3 class="text-sm font-bold text-gray-900 mb-4">Available <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Plans</span></h3>
+    <h3 class="text-sm font-bold text-gray-900 mb-4">{{ __('Available') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Plans') }}</span></h3>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         @foreach($availablePlans as $plan)
         <div class="bg-white rounded-xl border {{ $plan['current'] ? 'border-[#6E7A25] ring-2 ring-[#6E7A25]/20' : 'border-gray-100' }} p-5 shadow-sm hover:shadow-md transition-all relative overflow-hidden">
             @if($plan['current'])
-            <span class="absolute top-3 right-3 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#6E7A25]/10 text-[#6E7A25]">Current</span>
+            <span class="absolute top-3 right-3 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#6E7A25]/10 text-[#6E7A25]">{{ __('Current') }}</span>
             @endif
             <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style="background: {{ $plan['color'] }}20">
                 <svg class="w-5 h-5" style="color: {{ $plan['color'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -197,17 +197,17 @@
 {{-- Subscription History --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-5 py-4 border-b border-gray-50">
-        <h3 class="text-sm font-bold text-gray-900">Subscription <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">History</span></h3>
+        <h3 class="text-sm font-bold text-gray-900">{{ __('Subscription') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('History') }}</span></h3>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="text-left text-xs text-gray-500 border-b border-gray-50">
-                    <th class="px-5 py-3 font-medium">Plan</th>
-                    <th class="px-5 py-3 font-medium">Period</th>
-                    <th class="px-5 py-3 font-medium">Amount</th>
-                    <th class="px-5 py-3 font-medium">Status</th>
-                    <th class="px-5 py-3 font-medium">Payment</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Plan') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Period') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Amount') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Status') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Payment') }}</th>
                     <th class="px-5 py-3 font-medium">{{ __('Actions') }}</th>
                 </tr>
             </thead>
@@ -257,7 +257,7 @@
 {{-- Payment History --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mt-6">
     <div class="px-5 py-4 border-b border-gray-50">
-        <h3 class="text-sm font-bold text-gray-900">Payment <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">History</span></h3>
+        <h3 class="text-sm font-bold text-gray-900">{{ __('Payment') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('History') }}</span></h3>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -278,7 +278,7 @@
                     <td class="px-5 py-3 text-xs font-semibold text-gray-900">
                         {{ $pm['plan_name'] }}
                         @if($pm['is_plan_change'])
-                        <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-600">Upgrade</span>
+                        <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-600">{{ __('Upgrade') }}</span>
                         @endif
                     </td>
                     <td class="px-5 py-3 text-xs font-bold text-gray-900">{{ $pm['currency'] }} {{ number_format($pm['amount'], 2) }}</td>
@@ -308,7 +308,7 @@
                     <td class="px-5 py-3 text-xs text-gray-500">{{ ucfirst($pm['provider']) }}</td>
                     <td class="px-5 py-3 text-xs text-gray-500">
                         @if($pm['is_plan_change'])
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-600">Plan Change</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-600">{{ __('Plan Change') }}</span>
                         @else
                         <span class="text-gray-400">{{ __('Subscription') }}</span>
                         @endif

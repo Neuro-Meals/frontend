@@ -6,12 +6,12 @@ if (!function_exists('meal_image_url')) {
      *
      * Backend stores images as relative paths such as /static/uploads/xxx.jpg.
      * This helper prepends the configured backend base URL when needed and
-     * falls back to the local placeholder logo.
+     * falls back to a placeholder.
      */
     function meal_image_url(?string $url): string
     {
         if (empty($url)) {
-            return asset('whitelogo.png');
+            return asset('images/meal-placeholder.svg');
         }
 
         if (str_starts_with($url, 'http://') || str_starts_with($url, 'https://')) {
@@ -22,5 +22,30 @@ if (!function_exists('meal_image_url')) {
         $path = ltrim($url, '/');
 
         return $baseUrl . '/' . $path;
+    }
+}
+
+if (!function_exists('meal_image_srcset')) {
+    /**
+     * Build a srcset string for responsive meal images.
+     * Returns empty string if the URL is a placeholder.
+     */
+    function meal_image_srcset(?string $url): string
+    {
+        if (empty($url)) {
+            return '';
+        }
+
+        $full = meal_image_url($url);
+
+        // If it's a placeholder, no srcset needed
+        if (str_contains($full, 'meal-placeholder')) {
+            return '';
+        }
+
+        // For backend images, we can't generate variants server-side,
+        // so we return the same URL at different nominal widths for
+        // browser hinting. The browser will still only download one.
+        return $full . ' 400w, ' . $full . ' 800w';
     }
 }

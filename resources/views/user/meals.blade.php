@@ -1,7 +1,7 @@
 @extends('layouts.user')
 
-@section('title', 'My Meals - Nutrio Meals')
-@section('page_title', 'My Meals')
+@section('title', __('My Meals') . ' - ' . __('Nutrio Meals'))
+@section('page_title', __('My Meals'))
 
 @section('content')
 
@@ -13,7 +13,7 @@
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </div>
         <div>
-            <p class="text-sm font-bold">{{ $activeSubscription['plan_name'] ?? 'Active Plan' }}</p>
+            <p class="text-sm font-bold">{{ $activeSubscription['plan_name'] ?? __('Active Plan') }}</p>
             <p class="text-xs text-white/70">{{ $stats['remaining'] }} {{ __('meals remaining') }} · {{ $stats['totalPlan'] }} {{ __('total') }}</p>
         </div>
     </div>
@@ -212,7 +212,7 @@
 
 {{-- Today's Meals grouped by Category --}}
 <div class="mb-6">
-    <h3 class="text-sm font-bold text-gray-900 mb-4">Today's <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Meals</span></h3>
+    <h3 class="text-sm font-bold text-gray-900 mb-4">{{ __("Today's") }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Meals') }}</span></h3>
 
     @if(!empty($todayMealsByCategory))
     <div class="space-y-5">
@@ -243,21 +243,41 @@
             <div class="p-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     @foreach($catGroup['meals'] as $meal)
-                    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all">
-                        <div class="h-32 bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 relative flex items-center justify-center overflow-hidden">
-                            <img src="{{ meal_image_url($meal['image'] ?? null) }}" alt="{{ $meal['name'] ?? __('Meal') }}" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
-                            <svg class="w-12 h-12 text-[#6E7A25]/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group">
+                        <div class="h-40 sm:h-48 bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 relative overflow-hidden">
+                            <img src="{{ meal_image_url($meal['image'] ?? null) }}"
+                                 srcset="{{ meal_image_srcset($meal['image'] ?? null) }}"
+                                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                 alt="{{ $meal['name'] ?? __('Meal') }}"
+                                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                 loading="lazy"
+                                 onerror="this.onerror=null;this.src='{{ asset('images/meal-placeholder.svg') }}';">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
                             @if(isset($meal['quantity']) && $meal['quantity'] > 1)
-                            <span class="absolute top-3 left-3 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#173327] text-white">x{{ $meal['quantity'] }}</span>
+                            <span class="absolute top-3 left-3 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#173327] text-white shadow-md">x{{ $meal['quantity'] }}</span>
                             @endif
+                            <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/90 text-[#173327] backdrop-blur-sm">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                    {{ number_format($meal['calories'] ?? 0) }} kcal
+                                </span>
+                            </div>
                         </div>
                         <div class="p-4">
-                            <h4 class="text-sm font-bold text-gray-900 mt-1">{{ $meal['name'] ?? '' }}</h4>
-                            <div class="flex items-center gap-3 mt-3 text-[10px] text-gray-500">
-                                <span class="font-bold text-gray-900">{{ number_format($meal['calories'] ?? 0) }} kcal</span>
-                                <span>P: {{ $meal['protein'] ?? 0 }}g</span>
-                                <span>C: {{ $meal['carbs'] ?? 0 }}g</span>
-                                <span>F: {{ $meal['fat'] ?? 0 }}g</span>
+                            <h4 class="text-sm font-bold text-gray-900">{{ $meal['name'] ?? '' }}</h4>
+                            <div class="flex items-center gap-2 mt-3 flex-wrap">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#6E7A25]/10 text-[#6E7A25]">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4"/></svg>
+                                    {{ $meal['protein'] ?? 0 }}g {{ __('Protein') }}
+                                </span>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#025C5F]/10 text-[#025C5F]">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                                    {{ $meal['carbs'] ?? 0 }}g {{ __('Carbs') }}
+                                </span>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#949B50]/10 text-[#949B50]">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                                    {{ $meal['fat'] ?? 0 }}g {{ __('Fat') }}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -282,7 +302,7 @@
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sm:p-6">
     <div class="flex items-center justify-between mb-5">
         <div>
-            <h3 class="text-lg font-bold text-gray-900">Weekly <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Schedule</span></h3>
+            <h3 class="text-lg font-bold text-gray-900">{{ __('Weekly') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Schedule') }}</span></h3>
             <p class="text-xs text-gray-400 mt-0.5">{{ __('Your meals for each day of the week') }}</p>
         </div>
     </div>
@@ -336,19 +356,30 @@
                         <div class="p-3">
                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                 @foreach($catGroup['meals'] as $meal)
-                                <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-                                    <div class="h-24 sm:h-28 bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 relative flex items-center justify-center overflow-hidden">
-                                        <img src="{{ meal_image_url($meal['image'] ?? null) }}" alt="{{ $meal['name'] ?? __('Meal') }}" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
-                                        <svg class="w-8 h-8 text-[#6E7A25]/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group">
+                                    <div class="h-28 sm:h-32 bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 relative overflow-hidden">
+                                        <img src="{{ meal_image_url($meal['image'] ?? null) }}"
+                                             srcset="{{ meal_image_srcset($meal['image'] ?? null) }}"
+                                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                             alt="{{ $meal['name'] ?? __('Meal') }}"
+                                             class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                             loading="lazy"
+                                             onerror="this.onerror=null;this.src='{{ asset('images/meal-placeholder.svg') }}';">
+                                        <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
                                         @if(isset($meal['quantity']) && $meal['quantity'] > 1)
-                                        <span class="absolute top-2 left-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[#173327] text-white">x{{ $meal['quantity'] }}</span>
+                                        <span class="absolute top-2 left-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[#173327] text-white shadow-md">x{{ $meal['quantity'] }}</span>
                                         @endif
+                                        <span class="absolute bottom-2 left-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-white/90 text-[#173327] backdrop-blur-sm">
+                                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                            {{ number_format($meal['calories'] ?? 0) }} kcal
+                                        </span>
                                     </div>
                                     <div class="p-2.5">
                                         <h4 class="text-xs font-bold text-gray-900 truncate">{{ $meal['name'] ?? '' }}</h4>
-                                        <div class="flex items-center gap-2 mt-1.5 text-[10px] text-gray-500">
-                                            <span class="font-bold text-gray-900">{{ number_format($meal['calories'] ?? 0) }} kcal</span>
-                                            <span>P: {{ $meal['protein'] ?? 0 }}g</span>
+                                        <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold bg-[#6E7A25]/10 text-[#6E7A25]">P {{ $meal['protein'] ?? 0 }}g</span>
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold bg-[#025C5F]/10 text-[#025C5F]">C {{ $meal['carbs'] ?? 0 }}g</span>
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold bg-[#949B50]/10 text-[#949B50]">F {{ $meal['fat'] ?? 0 }}g</span>
                                         </div>
                                     </div>
                                 </div>
