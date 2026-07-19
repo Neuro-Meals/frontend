@@ -250,35 +250,40 @@
                 </div>
             </div>
 
-            {{-- Meal cards for this category --}}
+            {{-- Meal cards for this category - Flex layout --}}
             <div class="p-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="flex flex-col gap-3">
                     @foreach($catGroup['meals'] as $meal)
-                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
-                        <div class="h-28 sm:h-32 bg-gradient-to-br from-[#173327] to-[#6E7A25] relative overflow-hidden flex items-center justify-center">
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex">
+                        {{-- Left gradient sidebar with icon --}}
+                        <div class="w-20 sm:w-24 bg-gradient-to-br from-[#173327] to-[#6E7A25] relative overflow-hidden flex flex-col items-center justify-center flex-shrink-0 py-4">
                             <div class="absolute inset-0 bg-diamond opacity-[0.08]"></div>
-                            <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
-                            <svg class="w-12 h-12 text-white/80 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <div class="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8"></div>
+                            <svg class="w-8 h-8 text-white/80 relative z-10 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                             @if(isset($meal['quantity']) && $meal['quantity'] > 1)
-                            <span class="absolute top-3 left-3 inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white border border-white/20 backdrop-blur-sm">x{{ $meal['quantity'] }}</span>
+                            <span class="relative z-10 inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-white/20 text-white border border-white/20 backdrop-blur-sm">x{{ $meal['quantity'] }}</span>
                             @endif
-                            <span class="absolute bottom-3 left-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/95 text-[#173327] backdrop-blur-sm shadow-sm">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                {{ number_format($meal['calories'] ?? 0) }} kcal
-                            </span>
                         </div>
-                        <div class="p-4">
-                            <h4 class="text-sm font-bold text-gray-900 leading-snug">{{ $meal['name'] ?? '' }}</h4>
+
+                        {{-- Right content area --}}
+                        <div class="flex-1 p-4 flex flex-col justify-between">
+                            <div class="flex items-start justify-between gap-3">
+                                <h4 class="text-base sm:text-lg font-extrabold text-gray-900 leading-tight tracking-tight">{{ $meal['name'] ?? '' }}</h4>
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white shadow-sm flex-shrink-0">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                    {{ number_format($meal['calories'] ?? 0) }} kcal
+                                </span>
+                            </div>
                             <div class="flex items-center gap-2 mt-3 flex-wrap">
-                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold bg-[#6E7A25]/10 text-[#6E7A25]">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#6E7A25]/10 text-[#6E7A25] border border-[#6E7A25]/10">
                                     <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4"/></svg>
                                     {{ $meal['protein'] ?? 0 }}g {{ __('Protein') }}
                                 </span>
-                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold bg-[#025C5F]/10 text-[#025C5F]">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#025C5F]/10 text-[#025C5F] border border-[#025C5F]/10">
                                     <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
                                     {{ $meal['carbs'] ?? 0 }}g {{ __('Carbs') }}
                                 </span>
-                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold bg-[#949B50]/10 text-[#949B50]">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#949B50]/10 text-[#949B50] border border-[#949B50]/10">
                                     <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                                     {{ $meal['fat'] ?? 0 }}g {{ __('Fat') }}
                                 </span>
