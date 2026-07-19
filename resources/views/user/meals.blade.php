@@ -311,13 +311,7 @@
     $totalWeekCalories = array_sum(array_map(fn($d) => $d['calories'] ?? 0, $weekMeals));
     $totalWeekMeals = array_sum(array_map(fn($d) => $d['mealCount'] ?? 0, $weekMeals));
     $todayIndex = (new DateTime())->format('N') - 1;
-    $defaultDay = 0;
-    for ($i = 0; $i < 7; $i++) {
-        if ($weekMeals[$i]['mealCount'] > 0) {
-            $defaultDay = $i;
-            if ($i === $todayIndex) break;
-        }
-    }
+    $defaultDay = $todayIndex;
 @endphp
 
 <div x-data="{ selectedDay: {{ $defaultDay }} }" class="mb-6">
