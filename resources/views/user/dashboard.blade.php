@@ -128,74 +128,55 @@
 
 {{-- Charts Row --}}
 <div class="grid grid-cols-1 gap-4 lg:grid-cols-3 mb-6">
-    <div class="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 lg:col-span-2 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.7s;">
-        <div class="flex items-center justify-between mb-4">
+    {{-- Calorie Line Chart --}}
+    <div class="bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 lg:col-span-2 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.7s;">
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div>
                 <h3 class="text-sm font-bold text-gray-900">{{ __('Calorie') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Tracking') }}</span></h3>
-                <p class="text-xs text-gray-400">{{ __('Last 7 days') }}</p>
+                <p class="text-xs text-gray-400">{{ __('Last 7 days · Target') }}: {{ number_format($chartData['calorieTarget']) }} kcal</p>
             </div>
             <div class="text-right">
                 <div class="text-lg font-bold text-gray-900">{{ number_format($stats['dailyCalories']) }} {{ __('kcal') }}</div>
-                <div class="text-xs text-[#6E7A25] font-medium">{{ __('On track') }}</div>
+                <div class="text-xs text-[#6E7A25] font-medium">{{ __('Today') }}</div>
             </div>
         </div>
-        @php $calMax = max(array_column($weeklyProgress, 'calories')) ?: 2000; @endphp
-        <div class="flex items-end gap-2 h-48">
-            @foreach($weeklyProgress as $day)
-                @php $pct = ($day['calories'] / $calMax) * 100; $isOver = $day['calories'] > $day['target']; @endphp
-                <div class="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
-                    <div class="w-full bg-gray-50 rounded-t-md relative h-40 overflow-hidden">
-                        <div class="absolute bottom-0 left-0 right-0 rounded-t-md transition-all duration-300 {{ $isOver ? 'bg-gradient-to-t from-[#949B50] to-[#6E7A25]' : 'bg-gradient-to-t from-[#6E7A25] to-[#6E7A25]/70' }} group-hover:opacity-80" style="height: {{ max($pct, 4) }}%"></div>
-                        <div class="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-md whitespace-nowrap">
-                            {{ number_format($day['calories']) }} {{ __('kcal') }}
-                        </div>
-                    </div>
-                    <span class="text-[10px] text-gray-400 font-medium">{{ $day['day'] }}</span>
-                </div>
-            @endforeach
+        <div class="relative h-56 sm:h-64">
+            <canvas id="calorieChart"></canvas>
         </div>
     </div>
 
-    <div class="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.8s;">
-        <h3 class="text-sm font-bold text-gray-900 mb-4">{{ __('Nutrition') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Breakdown') }}</span></h3>
-        <div class="space-y-4">
-            @php
-                $proteinPct = round($stats['proteinToday'] / $stats['proteinTarget'] * 100);
-                $carbsPct = round($stats['carbsToday'] / $stats['carbsTarget'] * 100);
-                $fatPct = round($stats['fatToday'] / $stats['fatTarget'] * 100);
-            @endphp
-            <div>
-                <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs font-medium text-gray-700">{{ __('Protein') }}</span>
-                    <span class="text-xs font-semibold text-gray-900">{{ $stats['proteinToday'] }}g / {{ $stats['proteinTarget'] }}g</span>
-                </div>
-                <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                    <div class="bg-[#6E7A25] h-2.5 rounded-full transition-all duration-500" style="width: {{ min($proteinPct, 100) }}%"></div>
-                </div>
-            </div>
-            <div>
-                <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs font-medium text-gray-700">{{ __('Carbs') }}</span>
-                    <span class="text-xs font-semibold text-gray-900">{{ $stats['carbsToday'] }}g / {{ $stats['carbsTarget'] }}g</span>
-                </div>
-                <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                    <div class="bg-[#949B50] h-2.5 rounded-full transition-all duration-500" style="width: {{ min($carbsPct, 100) }}%"></div>
-                </div>
-            </div>
-            <div>
-                <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs font-medium text-gray-700">{{ __('Fats') }}</span>
-                    <span class="text-xs font-semibold text-gray-900">{{ $stats['fatToday'] }}g / {{ $stats['fatTarget'] }}g</span>
-                </div>
-                <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                    <div class="bg-[#025C5F] h-2.5 rounded-full transition-all duration-500" style="width: {{ min($fatPct, 100) }}%"></div>
-                </div>
+    {{-- Macro Donut Chart --}}
+    <div class="bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: 0.8s;">
+        <h3 class="text-sm font-bold text-gray-900 mb-1">{{ __('Nutrition') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Breakdown') }}</span></h3>
+        <p class="text-xs text-gray-400 mb-4">{{ __('Today\'s macros') }}</p>
+        <div class="relative h-40 sm:h-48 mb-4">
+            <canvas id="macroChart"></canvas>
+            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <p class="text-xl font-bold text-gray-900">{{ number_format($stats['dailyCalories']) }}</p>
+                <p class="text-[10px] text-gray-400">{{ __('kcal today') }}</p>
             </div>
         </div>
-        <div class="mt-5 pt-4 border-t border-gray-50">
-            <div class="flex items-center gap-2">
-                <span class="w-2 h-2 bg-[#6E7A25] rounded-full animate-pulse"></span>
-                <p class="text-[11px] text-gray-400">{{ __('Tracking in real-time') }}</p>
+        <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#6E7A25]"></span>
+                    <span class="text-xs font-medium text-gray-700">{{ __('Protein') }}</span>
+                </div>
+                <span class="text-xs font-bold text-gray-900">{{ $stats['proteinToday'] }}g</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#949B50]"></span>
+                    <span class="text-xs font-medium text-gray-700">{{ __('Carbs') }}</span>
+                </div>
+                <span class="text-xs font-bold text-gray-900">{{ $stats['carbsToday'] }}g</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#025C5F]"></span>
+                    <span class="text-xs font-medium text-gray-700">{{ __('Fats') }}</span>
+                </div>
+                <span class="text-xs font-bold text-gray-900">{{ $stats['fatToday'] }}g</span>
             </div>
         </div>
     </div>
@@ -254,24 +235,19 @@
 
 {{-- Weight Progress & Next Delivery --}}
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-    <div class="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 shadow-sm lg:col-span-2 animate__animated animate__fadeInUp" style="animation-delay: 1.1s;">
-        <div class="flex items-center justify-between mb-4">
+    <div class="bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 shadow-sm lg:col-span-2 animate__animated animate__fadeInUp" style="animation-delay: 1.1s;">
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div>
                 <h3 class="text-sm font-bold text-gray-900">{{ __('Weight') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Progress') }}</span></h3>
                 <p class="text-xs text-gray-400">{{ __('From') }} {{ $stats['weightStart'] }}kg {{ __('to goal') }} {{ $stats['weightGoal'] }}kg</p>
             </div>
             <div class="text-right">
-                <div class="text-lg font-bold text-[#6E7A25]">-{{ number_format($stats['weightStart'] - $stats['weightCurrent'], 1) }}kg</div>
+                <div class="text-lg font-bold text-[#6E7A25]">{{ $stats['weightStart'] > $stats['weightCurrent'] ? '-' : '+' }}{{ number_format(abs($stats['weightStart'] - $stats['weightCurrent']), 1) }}kg</div>
                 <div class="text-xs text-gray-400">{{ __('Current') }}: {{ $stats['weightCurrent'] }}kg</div>
             </div>
         </div>
-        @php $weightRange = $stats['weightStart'] - $stats['weightGoal']; $currentProgress = ($stats['weightStart'] - $stats['weightCurrent']) / $weightRange * 100; @endphp
-        <div class="relative h-4 bg-gray-100 rounded-full overflow-hidden">
-            <div class="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-full transition-all duration-1000" style="width: {{ min($currentProgress, 100) }}%"></div>
-        </div>
-        <div class="flex items-center justify-between mt-2">
-            <span class="text-[10px] text-gray-400 font-medium">{{ __('Start') }}: {{ $stats['weightStart'] }}kg</span>
-            <span class="text-[10px] text-gray-400 font-medium">{{ __('Goal') }}: {{ $stats['weightGoal'] }}kg</span>
+        <div class="relative h-48 sm:h-56">
+            <canvas id="weightChart"></canvas>
         </div>
     </div>
 
@@ -337,5 +313,160 @@
 </div>
 
 <x-ai-chat-widget context="customer" position="bottom-right" />
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+    Chart.defaults.font.family = "'Nunito', sans-serif";
+    Chart.defaults.color = '#9ca3af';
+
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: '#173327',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                padding: 10,
+                cornerRadius: 8,
+            }
+        },
+        scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+            y: { beginAtZero: true, grid: { color: '#f3f4f6' }, ticks: { font: { size: 10 } } }
+        }
+    };
+
+    // Calorie Line Chart
+    new Chart(document.getElementById('calorieChart'), {
+        type: 'line',
+        data: {
+            labels: @json($chartData['labels']),
+            datasets: [{
+                label: '{{ __("Calories") }}',
+                data: @json($chartData['calories']),
+                borderColor: '#6E7A25',
+                backgroundColor: (ctx) => {
+                    const canvas = ctx.chart.ctx;
+                    const gradient = canvas.createLinearGradient(0, 0, 0, 250);
+                    gradient.addColorStop(0, 'rgba(110, 122, 37, 0.25)');
+                    gradient.addColorStop(1, 'rgba(110, 122, 37, 0.0)');
+                    return gradient;
+                },
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#6E7A25',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 7,
+                borderWidth: 2.5,
+            }, {
+                label: '{{ __("Target") }}',
+                data: Array(@json($chartData['calories']).length).fill(@json($chartData['calorieTarget'])),
+                borderColor: 'rgba(2, 92, 95, 0.4)',
+                borderDash: [6, 4],
+                borderWidth: 1.5,
+                pointRadius: 0,
+                fill: false,
+            }]
+        },
+        options: {
+            ...commonOptions,
+            plugins: {
+                ...commonOptions.plugins,
+                tooltip: {
+                    ...commonOptions.plugins.tooltip,
+                    callbacks: {
+                        label: (ctx) => ctx.dataset.label + ': ' + Number(ctx.raw).toLocaleString() + ' kcal'
+                    }
+                }
+            }
+        }
+    });
+
+    // Macro Donut Chart
+    new Chart(document.getElementById('macroChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['{{ __("Protein") }}', '{{ __("Carbs") }}', '{{ __("Fats") }}'],
+            datasets: [{
+                data: [{{ $stats['proteinToday'] }}, {{ $stats['carbsToday'] }}, {{ $stats['fatToday'] }}],
+                backgroundColor: ['#6E7A25', '#949B50', '#025C5F'],
+                borderWidth: 0,
+                hoverOffset: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#173327',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    padding: 10,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: (ctx) => ctx.label + ': ' + ctx.raw + 'g'
+                    }
+                }
+            }
+        }
+    });
+
+    // Weight Line Chart
+    new Chart(document.getElementById('weightChart'), {
+        type: 'line',
+        data: {
+            labels: @json($weightHistory['labels']),
+            datasets: [{
+                label: '{{ __("Weight") }}',
+                data: @json($weightHistory['data']),
+                borderColor: '#025C5F',
+                backgroundColor: (ctx) => {
+                    const canvas = ctx.chart.ctx;
+                    const gradient = canvas.createLinearGradient(0, 0, 0, 220);
+                    gradient.addColorStop(0, 'rgba(2, 92, 95, 0.2)');
+                    gradient.addColorStop(1, 'rgba(2, 92, 95, 0.0)');
+                    return gradient;
+                },
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#025C5F',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 7,
+                borderWidth: 2.5,
+            }, {
+                label: '{{ __("Goal") }}',
+                data: Array(@json($weightHistory['data']).length).fill(@json($weightHistory['goal'])),
+                borderColor: 'rgba(110, 122, 37, 0.4)',
+                borderDash: [6, 4],
+                borderWidth: 1.5,
+                pointRadius: 0,
+                fill: false,
+            }]
+        },
+        options: {
+            ...commonOptions,
+            plugins: {
+                ...commonOptions.plugins,
+                tooltip: {
+                    ...commonOptions.plugins.tooltip,
+                    callbacks: {
+                        label: (ctx) => ctx.dataset.label + ': ' + ctx.raw + ' kg'
+                    }
+                }
+            }
+        }
+    });
+</script>
+@endpush
 
 @endsection

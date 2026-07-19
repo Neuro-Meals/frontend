@@ -184,9 +184,72 @@ class UserController extends Controller
         $weeklyProgress = $this->buildWeeklyProgressFromSchedule($weekMeals, (int) $calorieTarget);
         $recentOrders = $this->buildRecentOrders($activeSubscription ?? []);
 
+        // Build chart data for Chart.js
+        $weekLabels = [];
+        $weekCalories = [];
+        $weekProtein = [];
+        $weekCarbs = [];
+        $weekFat = [];
+        $weekMealCounts = [];
+
+        foreach ($weekMeals as $day) {
+            $weekLabels[] = $day['day'] ?? '';
+            $dayCalories = 0;
+            $dayProtein = 0;
+            $dayCarbs = 0;
+            $dayFat = 0;
+            $dayMealCount = 0;
+            foreach ($day['meals'] ?? [] as $meal) {
+                if (($meal['status'] ?? '') !== 'skipped') {
+                    $dayCalories += (int) ($meal['calories'] ?? 0);
+                    $dayProtein += (int) ($meal['protein'] ?? 0);
+                    $dayCarbs += (int) ($meal['carbs'] ?? 0);
+                    $dayFat += (int) ($meal['fat'] ?? 0);
+                    $dayMealCount++;
+                }
+            }
+            $weekCalories[] = $dayCalories;
+            $weekProtein[] = $dayProtein;
+            $weekCarbs[] = $dayCarbs;
+            $weekFat[] = $dayFat;
+            $weekMealCounts[] = $dayMealCount;
+        }
+
+        $chartData = [
+            'labels' => $weekLabels,
+            'calories' => $weekCalories,
+            'protein' => $weekProtein,
+            'carbs' => $weekCarbs,
+            'fat' => $weekFat,
+            'mealCounts' => $weekMealCounts,
+            'calorieTarget' => (int) $calorieTarget,
+        ];
+
         $currentWeight = $user['weight_kg'] ?? 0;
         $weightGoal = $user['fitness_goal'] === 'weight_loss' ? $currentWeight - 5 : ($user['fitness_goal'] === 'muscle_gain' ? $currentWeight + 3 : $currentWeight);
         $weightStart = $currentWeight + (($user['fitness_goal'] === 'weight_loss' ? 4.3 : -2) * -1);
+
+        // Build weight history data points (simulated trend from start to current)
+        $weightHistory = [];
+        $weightLabels = [];
+        $weightData = [];
+        $daysToShow = 7;
+        for ($i = $daysToShow - 1; $i >= 0; $i--) {
+            $weightLabels[] = date('D', strtotime("-{$i} days"));
+            if ($weightStart != $currentWeight) {
+                $ratio = ($daysToShow - 1 - $i) / max($daysToShow - 1, 1);
+                $weightData[] = round($weightStart + ($currentWeight - $weightStart) * $ratio, 1);
+            } else {
+                $weightData[] = round($currentWeight, 1);
+            }
+        }
+        $weightHistory = [
+            'labels' => $weightLabels,
+            'data' => $weightData,
+            'start' => round($weightStart, 1),
+            'current' => round($currentWeight, 1),
+            'goal' => round($weightGoal, 1),
+        ];
 
         $todayStats = $this->calculateTodayStats($todayMeals);
 
