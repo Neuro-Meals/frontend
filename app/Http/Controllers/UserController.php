@@ -291,7 +291,7 @@ class UserController extends Controller
             'subscriptionStatus' => $activeSubscription['status'] ?? 'none',
         ];
 
-        return view('user.dashboard', compact('user', 'stats', 'weeklyProgress', 'upcomingMeals', 'recentOrders', 'activeSubscription'));
+        return view('user.dashboard', compact('user', 'stats', 'weeklyProgress', 'upcomingMeals', 'recentOrders', 'activeSubscription', 'chartData', 'weightHistory'));
     }
 
     /**
