@@ -285,18 +285,55 @@
 
         <div class="border-t border-gray-50"></div>
 
-        {{-- Orders --}}
-        <div x-show="selected?.orders && selected.orders.length > 0">
-          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Recent Orders') }}</h4>
-          <div class="space-y-1.5">
-            <template x-for="o in selected.orders" :key="o.id">
-              <div class="flex items-center justify-between py-1.5">
-                <div>
-                  <p class="text-xs font-semibold text-gray-900" x-text="o.id"></p>
-                  <p class="text-[10px] text-gray-400" x-text="o.date"></p>
+        {{-- Payments --}}
+        <div x-show="!detailLoading">
+          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Payment History') }} <span class="text-gray-300" x-text="'(' + (selected?.payments?.length || 0) + ')'"></span></h4>
+          <div x-show="selected?.payments && selected.payments.length > 0" class="space-y-2">
+            <template x-for="p in selected.payments" :key="p.id">
+              <div class="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-gray-50 to-white border border-gray-100 hover:shadow-sm transition-all">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" :class="paymentStatusBg(p.status)">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  </div>
+                  <div>
+                    <p class="text-xs font-semibold text-gray-900" x-text="p.id"></p>
+                    <p class="text-[10px] text-gray-400" x-text="p.date"></p>
+                    <p class="text-[10px] text-gray-300" x-show="p.provider" x-text="p.provider + (p.plan_name ? ' · ' + p.plan_name : '')"></p>
+                  </div>
                 </div>
                 <div class="text-right">
-                  <p class="text-xs font-bold text-gray-900" x-text="'SAR ' + (o.amount || 0)"></p>
+                  <p class="text-xs font-bold text-gray-900" x-text="(p.currency || 'SAR') + ' ' + Number(p.amount || 0).toLocaleString(undefined, {minimumFractionDigits: 2})"></p>
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold border" :class="paymentStatusClass(p.status)">
+                    <span x-text="p.status?.charAt(0)?.toUpperCase() + p.status?.slice(1)"></span>
+                  </span>
+                </div>
+              </div>
+            </template>
+          </div>
+          <div x-show="!selected?.payments || selected.payments.length === 0" class="flex flex-col items-center justify-center py-6 text-center">
+            <svg class="w-10 h-10 text-gray-200 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <p class="text-xs text-gray-400">{{ __('No payments yet') }}</p>
+          </div>
+        </div>
+
+        {{-- Orders --}}
+        <div x-show="!detailLoading">
+          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Order History') }} <span class="text-gray-300" x-text="'(' + (selected?.orders?.length || 0) + ')'"></span></h4>
+          <div x-show="selected?.orders && selected.orders.length > 0" class="space-y-2">
+            <template x-for="o in selected.orders" :key="o.id">
+              <div class="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-gray-50 to-white border border-gray-100 hover:shadow-sm transition-all">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#033133] to-[#025C5F] flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                  </div>
+                  <div>
+                    <p class="text-xs font-semibold text-gray-900" x-text="o.id"></p>
+                    <p class="text-[10px] text-gray-400" x-text="o.date"></p>
+                    <p class="text-[10px] text-gray-300" x-show="o.delivery_date && o.delivery_date !== '—'" x-text="'Delivery: ' + o.delivery_date"></p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="text-xs font-bold text-gray-900" x-text="'SAR ' + Number(o.amount || 0).toLocaleString(undefined, {minimumFractionDigits: 2})"></p>
                   <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold border" :class="statusClass(o.status)">
                     <span x-text="o.status?.charAt(0)?.toUpperCase() + o.status?.slice(1)"></span>
                   </span>
@@ -304,29 +341,9 @@
               </div>
             </template>
           </div>
-        </div>
-
-        {{-- Payments --}}
-        <div x-show="selected?.payments && selected.payments.length > 0">
-          <div class="border-t border-gray-50"></div>
-          <div class="mt-4">
-            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Payments') }}</h4>
-            <div class="space-y-1.5">
-              <template x-for="p in selected.payments" :key="p.id">
-                <div class="flex items-center justify-between py-1.5">
-                  <div>
-                    <p class="text-xs font-semibold text-gray-900" x-text="p.id"></p>
-                    <p class="text-[10px] text-gray-400" x-text="p.date"></p>
-                  </div>
-                  <div class="text-right">
-                    <p class="text-xs font-bold text-gray-900" x-text="'SAR ' + (p.amount || 0)"></p>
-                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold border" :class="paymentStatusClass(p.status)">
-                      <span x-text="p.status?.charAt(0)?.toUpperCase() + p.status?.slice(1)"></span>
-                    </span>
-                  </div>
-                </div>
-              </template>
-            </div>
+          <div x-show="!selected?.orders || selected.orders.length === 0" class="flex flex-col items-center justify-center py-6 text-center">
+            <svg class="w-10 h-10 text-gray-200 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            <p class="text-xs text-gray-400">{{ __('No orders yet') }}</p>
           </div>
         </div>
 
@@ -442,6 +459,7 @@ function customersApp() {
     showDelete: false,
     deleteTarget: null,
     deleting: false,
+    detailLoading: false,
     search: '',
     statusFilter: '',
     planFilter: '',
@@ -454,8 +472,12 @@ function customersApp() {
       return m[s] || 'bg-gray-50 text-gray-600 border-gray-200';
     },
     paymentStatusClass(s) {
-      const m = { paid:'bg-green-50 text-green-700 border-green-200', unpaid:'bg-amber-50 text-amber-700 border-amber-200', pending:'bg-amber-50 text-amber-700 border-amber-200', failed:'bg-red-50 text-red-600 border-red-200', refunded:'bg-purple-50 text-purple-700 border-purple-200' };
+      const m = { paid:'bg-green-50 text-green-700 border-green-200', unpaid:'bg-amber-50 text-amber-700 border-amber-200', pending:'bg-amber-50 text-amber-700 border-amber-200', failed:'bg-red-50 text-red-600 border-red-200', refunded:'bg-purple-50 text-purple-700 border-purple-200', captured:'bg-green-50 text-green-700 border-green-200' };
       return m[s] || 'bg-gray-50 text-gray-600 border-gray-200';
+    },
+    paymentStatusBg(s) {
+      const m = { paid:'bg-green-100 text-green-600', unpaid:'bg-amber-100 text-amber-600', pending:'bg-amber-100 text-amber-600', failed:'bg-red-100 text-red-600', refunded:'bg-purple-100 text-purple-600', captured:'bg-green-100 text-green-600' };
+      return m[s] || 'bg-gray-100 text-gray-500';
     },
 
     init() {
@@ -490,11 +512,13 @@ function customersApp() {
 
     async showDetail(c) {
       this.selected = c;
+      this.detailLoading = true;
       try {
         const r = await fetch(`{{ url('admin/customers') }}/${c.id}/details`, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
         const d = await r.json();
         if (d.customer) Object.assign(this.selected, d.customer);
       } catch(e) { console.error('Failed to fetch customer details', e); }
+      finally { this.detailLoading = false; }
     },
 
     assignPlan(c) {
