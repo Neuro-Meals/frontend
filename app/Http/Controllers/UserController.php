@@ -1837,7 +1837,7 @@ class UserController extends Controller
 
     public function notifications(NotificationApiService $notificationApi, AuthApiService $authApi)
     {
-        $apiNotifications = $this->apiData($notificationApi->my(), function () {
+        $apiNotifications = $this->apiData($notificationApi->my(['limit' => 100]), function () {
             return [];
         });
 
@@ -1853,27 +1853,63 @@ class UserController extends Controller
             foreach ($apiNotifications as $notification) {
                 $createdAt = $notification['created_at'] ?? null;
                 $time = $createdAt ? $this->timeAgo($createdAt) : 'Just now';
+                $type = $notification['notification_type'] ?? 'general';
                 $notifications[] = [
                     'id' => $notification['id'],
-                    'title' => $notification['title'],
-                    'message' => $notification['message'],
-                    'type' => $notification['notification_type'] ?? 'general',
+                    'title' => $notification['title'] ?? 'Notification',
+                    'message' => $notification['message'] ?? '',
+                    'type' => $type,
+                    'channel' => $notification['channel'] ?? 'in_app',
                     'time' => $time,
                     'read' => (bool) ($notification['is_read'] ?? false),
+                    'created_at' => $createdAt,
                 ];
             }
         }
 
-        $preferences = [];
-
         $unread = count(array_filter($notifications, fn ($n) => !($n['read'] ?? false)));
+
+        // Count by type
+        $byType = [];
+        foreach ($notifications as $n) {
+            $type = $n['type'];
+            if (!isset($byType[$type])) {
+                $byType[$type] = 0;
+            }
+            $byType[$type]++;
+        }
 
         $stats = [
             'unread' => $unread,
             'total' => count($notifications),
+            'byType' => $byType,
         ];
 
-        return view('user.notifications', compact('notifications', 'preferences', 'stats', 'userName'));
+        return view('user.notifications', compact('notifications', 'stats', 'userName'));
+    }
+
+    public function markNotificationRead(Request $request, int $id, NotificationApiService $notificationApi)
+    {
+        $response = $this->apiData($notificationApi->markAsRead($id), fn () => []);
+        $success = is_array($response);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => $success]);
+        }
+
+        return redirect()->route('user.notifications')->with('success', __('Notification marked as read.'));
+    }
+
+    public function markAllNotificationsRead(Request $request, NotificationApiService $notificationApi)
+    {
+        $response = $this->apiData($notificationApi->markAllAsRead(), fn () => []);
+        $success = is_array($response) || !empty($response);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => $success]);
+        }
+
+        return redirect()->route('user.notifications')->with('success', __('All notifications marked as read.'));
     }
 
     /**
@@ -1900,7 +1936,7 @@ class UserController extends Controller
         return date('M d', $time);
     }
 
-    public function settings(ProfileApiService $profileApi)
+    public function settings(ProfileApiService $profileApi, SubscriptionApiService $subscriptionApi, PlanApiService $planApi, PaymentApiService $paymentApi)
     {
         $apiUser = $this->apiData($profileApi->fetch(), function () use ($profileApi) {
             return app(AuthApiService::class)->user() ?? [];
@@ -1908,6 +1944,8 @@ class UserController extends Controller
 
         $profile = [
             'name' => trim(($apiUser['first_name'] ?? '') . ' ' . ($apiUser['last_name'] ?? '')),
+            'first_name' => $apiUser['first_name'] ?? '',
+            'last_name' => $apiUser['last_name'] ?? '',
             'email' => $apiUser['email'] ?? '',
             'phone' => $apiUser['phone'] ?? '',
             'dob' => $apiUser['date_of_birth'] ?? '',
@@ -1920,6 +1958,99 @@ class UserController extends Controller
             'zone' => $apiUser['location'] ?? '',
         ];
 
-        return view('user.settings', compact('profile'));
+        // Fetch active subscription
+        $mySubscriptions = $this->apiData($subscriptionApi->my(), function () {
+            return [];
+        });
+
+        $activeSubscription = null;
+        foreach ($mySubscriptions as $sub) {
+            $status = $sub['status'] ?? '';
+            $paymentStatus = $sub['payment_status'] ?? '';
+            if ($status === 'active' || ($status === 'pending_payment' && $paymentStatus === 'paid') || $status === 'paused') {
+                $activeSubscription = $sub;
+                break;
+            }
+        }
+
+        $planDetails = [];
+        if ($activeSubscription && !empty($activeSubscription['plan_id'])) {
+            $planDetails = $this->apiData($planApi->show($activeSubscription['plan_id']), function () {
+                return [];
+            });
+        }
+
+        $subscriptionInfo = null;
+        if ($activeSubscription) {
+            $mealsConsumed = $activeSubscription['meals_consumed'] ?? 0;
+            $totalPlanMeals = $planDetails['total_meals'] ?? 84;
+            $remaining = max(0, $totalPlanMeals - $mealsConsumed);
+            $subscriptionInfo = [
+                'id' => $activeSubscription['id'] ?? null,
+                'plan_name' => $planDetails['name_en'] ?? $activeSubscription['plan_name'] ?? 'Active Plan',
+                'status' => $activeSubscription['status'] ?? 'active',
+                'payment_status' => $activeSubscription['payment_status'] ?? 'unpaid',
+                'meals_consumed' => $mealsConsumed,
+                'total_meals' => $totalPlanMeals,
+                'remaining' => $remaining,
+                'progress' => $totalPlanMeals > 0 ? round(($mealsConsumed / $totalPlanMeals) * 100) : 0,
+                'meals_per_day' => $planDetails['meals_per_day'] ?? 3,
+                'start_date' => !empty($activeSubscription['start_date']) ? date('M d, Y', strtotime($activeSubscription['start_date'])) : 'N/A',
+                'end_date' => !empty($activeSubscription['end_date']) ? date('M d, Y', strtotime($activeSubscription['end_date'])) : 'N/A',
+                'price' => $planDetails['price'] ?? ($activeSubscription['amount'] ?? 0),
+                'duration_days' => $planDetails['duration_days'] ?? 28,
+                'calories' => $planDetails['calories'] ?? '1500-1800',
+                'pause_count' => (int) ($activeSubscription['pause_count'] ?? 0),
+                'remaining_pauses' => max(0, 2 - (int) ($activeSubscription['pause_count'] ?? 0)),
+            ];
+        }
+
+        // Fetch payment history
+        $myPayments = $this->apiData($paymentApi->my(), function () {
+            return [];
+        });
+
+        $paymentHistory = [];
+        $totalSpent = 0;
+        if (!empty($myPayments) && is_array($myPayments)) {
+            foreach ($myPayments as $pm) {
+                $sub = null;
+                foreach ($mySubscriptions as $s) {
+                    if (($s['id'] ?? null) === ($pm['subscription_id'] ?? null)) {
+                        $sub = $s;
+                        break;
+                    }
+                }
+                $plan = $planDetails;
+                if ($sub && !empty($sub['plan_id']) && $sub['plan_id'] !== ($activeSubscription['plan_id'] ?? null)) {
+                    $plan = $this->apiData($planApi->show($sub['plan_id']), function () use ($plan) {
+                        return $plan;
+                    });
+                }
+                $pmStatus = $pm['status'] ?? 'pending';
+                $amount = (float) ($pm['amount'] ?? 0);
+                if ($pmStatus === 'paid' || $pmStatus === 'completed') {
+                    $totalSpent += $amount;
+                }
+                $paymentHistory[] = [
+                    'id' => $pm['id'] ?? null,
+                    'plan_name' => $plan['name_en'] ?? 'Plan',
+                    'amount' => $amount,
+                    'currency' => $pm['currency'] ?? 'SAR',
+                    'status' => $pmStatus,
+                    'provider' => $pm['provider'] ?? 'moyasar',
+                    'provider_payment_id' => $pm['provider_payment_id'] ?? null,
+                    'paid_at' => !empty($pm['paid_at']) ? date('M d, Y H:i', strtotime($pm['paid_at'])) : null,
+                    'created_at' => !empty($pm['created_at']) ? date('M d, Y H:i', strtotime($pm['created_at'])) : 'N/A',
+                ];
+            }
+        }
+
+        // Sort payment history by date desc
+        usort($paymentHistory, function ($a, $b) {
+            return strcmp($b['created_at'], $a['created_at']);
+        });
+
+        return view('user.settings', compact('profile', 'subscriptionInfo', 'paymentHistory', 'totalSpent'));
     }
 }

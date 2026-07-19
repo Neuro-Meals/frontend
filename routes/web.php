@@ -261,5 +261,7 @@ Route::prefix('user')->name('user.')->middleware(['api.auth', 'api.customer'])->
     Route::post('/orders/from-subscription', [UserController::class, 'createOrderFromSubscription'])->name('orders.from-subscription');
     Route::get('/delivery', [UserController::class, 'delivery'])->name('delivery');
     Route::get('/notifications', [UserController::class, 'notifications'])->name('notifications');
+    Route::post('/notifications/{id}/read', [UserController::class, 'markNotificationRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [UserController::class, 'markAllNotificationsRead'])->name('notifications.read-all');
     Route::get('/settings', [UserController::class, 'settings'])->name('settings');
 });
