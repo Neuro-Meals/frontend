@@ -302,130 +302,168 @@
     @endif
 </div>
 
-{{-- Weekly Meal Schedule --}}
-<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6">
-    <div class="flex items-center justify-between mb-5">
-        <div class="flex items-center gap-2">
-            <span class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center text-white">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            </span>
-            <div>
-                <h3 class="text-base font-bold text-gray-900">{{ __('Weekly') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Schedule') }}</span></h3>
-                <p class="text-[10px] text-gray-400 mt-0.5">{{ __('Your meals for each day of the week') }}</p>
+{{-- Weekly Meal Schedule - Interactive Calendar --}}
+<div x-data="weekSchedule(@json($weekMeals))" class="mb-6">
+    {{-- Calendar Header with gradient --}}
+    <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white shadow-lg shadow-[#173327]/20 relative overflow-hidden mb-4">
+        <div class="absolute inset-0 bg-diamond opacity-[0.06]"></div>
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+        <div class="relative z-10 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold">{{ __('Weekly') }} {{ __('Schedule') }}</h3>
+                    <p class="text-[10px] text-white/60 mt-0.5">{{ __('Your meals for each day of the week') }}</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="text-2xl font-extrabold" x-text="totalWeekMeals"></p>
+                <p class="text-[10px] text-white/60 font-medium" x-text="totalWeekCalories + ' kcal ' + '{{ __('total') }}'"></p>
             </div>
         </div>
-        @php $totalWeekCalories = array_sum(array_map(fn($d) => $d['calories'] ?? 0, $weekMeals)); @endphp
-        <span class="text-[10px] text-gray-400 font-medium">{{ number_format($totalWeekCalories) }} kcal {{ __('total') }}</span>
     </div>
 
-    <div class="space-y-3">
-        @foreach($weekMeals as $day)
-        <div class="bg-gray-50/50 rounded-2xl border border-gray-100 overflow-hidden transition-all hover:shadow-sm">
-            {{-- Day header --}}
-            <div class="px-4 sm:px-5 py-3 border-b border-gray-100 flex items-center justify-between cursor-pointer" onclick="this.parentElement.classList.toggle('day-collapsed')">
+    {{-- Day Selector Pills --}}
+    <div class="grid grid-cols-7 gap-1.5 sm:gap-2 mb-4">
+        <template x-for="(day, idx) in days" :key="idx">
+            <button @click="selectDay(idx)"
+                class="rounded-2xl p-2 sm:p-3 text-center transition-all duration-300 border-2 relative"
+                :class="selectedDay === idx
+                    ? 'bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white border-transparent shadow-lg shadow-[#173327]/20 scale-105'
+                    : 'bg-white border-gray-100 hover:border-[#6E7A25]/30 hover:shadow-sm'">
+                <p class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide" :class="selectedDay === idx ? 'text-white/60' : 'text-gray-400'" x-text="day.day"></p>
+                <div class="my-1.5 sm:my-2 mx-auto w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center font-bold text-xs sm:text-sm"
+                    :class="selectedDay === idx ? 'bg-white/15 text-white' : (day.mealCount > 0 ? 'bg-[#6E7A25]/10 text-[#173327]' : 'bg-gray-100 text-gray-300')"
+                    x-text="day.mealCount"></div>
+                <p class="text-[8px] sm:text-[9px] font-medium" :class="selectedDay === idx ? 'text-white/50' : 'text-gray-400'" x-text="day.calories > 0 ? day.calories + ' kcal' : '—'"></p>
+                <template x-if="day.mealCount > 0 && selectedDay !== idx">
+                    <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#6E7A25]"></span>
+                </template>
+            </button>
+        </template>
+    </div>
+
+    {{-- Selected Day Detail --}}
+    <template x-if="selectedDayData">
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-5 py-4 bg-gradient-to-r from-[#173327]/5 to-[#6E7A25]/5 border-b border-gray-100 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                        {{ substr($day['day'], 0, 1) }}
-                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center text-white font-bold text-sm shadow-sm" x-text="selectedDayData.day.charAt(0)"></div>
                     <div>
-                        <p class="text-sm font-bold text-gray-900">{{ $day['day'] }}</p>
-                        <p class="text-[10px] text-gray-500">{{ $day['mealCount'] }} {{ __('meals') }} · {{ number_format($day['calories']) }} kcal</p>
+                        <p class="text-sm font-bold text-gray-900"><span x-text="selectedDayData.day"></span> {{ __('Schedule') }}</p>
+                        <p class="text-[10px] text-gray-500"><span x-text="selectedDayData.mealCount"></span> {{ __('meals') }} · <span x-text="selectedDayData.calories"></span> kcal</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    @if($day['mealCount'] > 0)
-                    @if($day['completed'])
+                <template x-if="selectedDayData.mealCount > 0">
                     <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-green-700 bg-green-50 px-2.5 py-1 rounded-full">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> {{ __('Scheduled') }}
                     </span>
-                    @else
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-[#949B50]/10 text-[#949B50]">{{ __('In Progress') }}</span>
-                    @endif
-                    @endif
-                    <svg class="w-4 h-4 text-gray-300 transition-transform day-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </div>
+                </template>
+                <template x-if="selectedDayData.mealCount === 0">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-400">{{ __('No meals') }}</span>
+                </template>
             </div>
 
-            {{-- Meals for the day grouped by category --}}
-            <div class="day-content transition-all duration-300">
-                <div class="p-4 sm:p-5">
-                @if(!empty($day['categories']))
-                <div class="space-y-4">
-                    @foreach($day['categories'] as $catGroup)
-                    @php $dayCatCalories = array_sum(array_map(fn($m) => $m['calories'] ?? 0, $catGroup['meals'])); @endphp
-                    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
-                        <div class="px-3 py-2.5 border-b border-gray-100 flex items-center gap-2 bg-gradient-to-r from-[#173327]/3 to-[#6E7A25]/3">
-                            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center text-white flex-shrink-0">
-                                @if($catGroup['icon'] === 'sunrise')
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v2m-4.5 3.5L6 6m9 0l1.5-1.5M4 12H2m20 0h-2M6.343 17.657L4.929 19.071M19.071 19.071l-1.414-1.414M12 18a6 6 0 00-6-6 6 6 0 006 6 6 6 0 006-6 6 6 0 00-6 6z"/></svg>
-                                @elseif($catGroup['icon'] === 'sun')
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                                @elseif($catGroup['icon'] === 'moon')
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-                                @elseif($catGroup['icon'] === 'cookie')
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15h18v3a3 3 0 01-3 3H6a3 3 0 01-3-3v-3zM3 15l2.5-7.5A2 2 0 017.4 6h9.2a2 2 0 011.9 1.5L21 15M9 15V11M15 15V11"/></svg>
-                                @else
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01"/></svg>
-                                @endif
-                            </div>
-                            <span class="text-xs font-bold text-gray-700">{{ $catGroup['name'] }}</span>
-                            <span class="text-[10px] text-gray-400">{{ count($catGroup['meals']) }} {{ __('meal(s)') }} · {{ number_format($dayCatCalories) }} kcal</span>
-                        </div>
-                        <div class="p-3">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                @foreach($catGroup['meals'] as $meal)
-                                <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group">
-                                    <div class="h-32 sm:h-36 bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 relative overflow-hidden">
-                                        <img src="{{ meal_image_url($meal['image'] ?? null) }}"
-                                             srcset="{{ meal_image_srcset($meal['image'] ?? null) }}"
-                                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                             alt="{{ $meal['name'] ?? __('Meal') }}"
-                                             class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                             loading="lazy"
-                                             onerror="this.onerror=null;this.src='{{ asset('images/meal-placeholder.svg') }}';">
-                                        <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"></div>
-                                        @if(isset($meal['quantity']) && $meal['quantity'] > 1)
-                                        <span class="absolute top-2 left-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[#173327] text-white shadow-md">x{{ $meal['quantity'] }}</span>
-                                        @endif
-                                        <span class="absolute bottom-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-white/95 text-[#173327] backdrop-blur-sm shadow-sm">
-                                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                            {{ number_format($meal['calories'] ?? 0) }} kcal
-                                        </span>
+            {{-- Categories with meals (Alpine.js driven) --}}
+            <div class="p-5">
+                <template x-if="selectedDayData.categories && selectedDayData.categories.length > 0">
+                    <div class="space-y-4">
+                        <template x-for="(catGroup, catIdx) in selectedDayData.categories" :key="catIdx">
+                            <div class="bg-gray-50/50 rounded-xl border border-gray-100 overflow-hidden">
+                                <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-2 bg-gradient-to-r from-[#173327]/3 to-[#6E7A25]/3">
+                                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center text-white flex-shrink-0">
+                                        <template x-if="catGroup.icon === 'sunrise'"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v2m-4.5 3.5L6 6m9 0l1.5-1.5M4 12H2m20 0h-2M6.343 17.657L4.929 19.071M19.071 19.071l-1.414-1.414M12 18a6 6 0 00-6-6 6 6 0 006 6 6 6 0 006-6 6 6 0 00-6 6z"/></svg></template>
+                                        <template x-if="catGroup.icon === 'sun'"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg></template>
+                                        <template x-if="catGroup.icon === 'moon'"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg></template>
+                                        <template x-if="catGroup.icon === 'cookie'"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15h18v3a3 3 0 01-3 3H6a3 3 0 01-3-3v-3zM3 15l2.5-7.5A2 2 0 017.4 6h9.2a2 2 0 011.9 1.5L21 15M9 15V11M15 15V11"/></svg></template>
+                                        <template x-if="!['sunrise','sun','moon','cookie'].includes(catGroup.icon)"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01"/></svg></template>
                                     </div>
-                                    <div class="p-3">
-                                        <h4 class="text-xs font-bold text-gray-900 truncate">{{ $meal['name'] ?? '' }}</h4>
-                                        <div class="flex items-center gap-1.5 mt-2 flex-wrap">
-                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-[#6E7A25]/10 text-[#6E7A25]">P {{ $meal['protein'] ?? 0 }}g</span>
-                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-[#025C5F]/10 text-[#025C5F]">C {{ $meal['carbs'] ?? 0 }}g</span>
-                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-[#949B50]/10 text-[#949B50]">F {{ $meal['fat'] ?? 0 }}g</span>
-                                        </div>
+                                    <span class="text-xs font-bold text-gray-700" x-text="catGroup.name"></span>
+                                    <span class="text-[10px] text-gray-400" x-text="catGroup.meals.length + ' {{ __('meal(s)') }}'"></span>
+                                </div>
+                                <div class="p-3">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                        <template x-for="(meal, mealIdx) in catGroup.meals" :key="mealIdx">
+                                            <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+                                                <div class="h-24 bg-gradient-to-br from-[#173327] to-[#6E7A25] relative overflow-hidden flex items-center justify-center">
+                                                    <div class="absolute inset-0 bg-diamond opacity-[0.08]"></div>
+                                                    <div class="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8"></div>
+                                                    <svg class="w-10 h-10 text-white/80 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                                    <template x-if="meal.quantity > 1">
+                                                        <span class="absolute top-2 left-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-white/20 text-white border border-white/20 backdrop-blur-sm" x-text="'x' + meal.quantity"></span>
+                                                    </template>
+                                                    <span class="absolute bottom-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-white/95 text-[#173327] backdrop-blur-sm shadow-sm">
+                                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                                        <span x-text="meal.calories + ' kcal'"></span>
+                                                    </span>
+                                                </div>
+                                                <div class="p-3">
+                                                    <h4 class="text-xs font-bold text-gray-900 truncate" x-text="meal.name"></h4>
+                                                    <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+                                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-[#6E7A25]/10 text-[#6E7A25]" x-text="'P ' + meal.protein + 'g'"></span>
+                                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-[#025C5F]/10 text-[#025C5F]" x-text="'C ' + meal.carbs + 'g'"></span>
+                                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-[#949B50]/10 text-[#949B50]" x-text="'F ' + meal.fat + 'g'"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
                                     </div>
                                 </div>
-                                @endforeach
                             </div>
+                        </template>
+                    </div>
+                </template>
+
+                {{-- Empty state --}}
+                <template x-if="!selectedDayData.categories || selectedDayData.categories.length === 0">
+                    <div class="flex flex-col items-center justify-center py-12 text-center">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-[#6E7A25]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                         </div>
+                        <p class="text-sm font-medium text-gray-500">{{ __('No meals scheduled for this day yet.') }}</p>
                     </div>
-                    @endforeach
-                </div>
-                @else
-                <div class="flex flex-col items-center justify-center py-8 text-center">
-                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 flex items-center justify-center mb-3">
-                        <svg class="w-7 h-7 text-[#6E7A25]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                    </div>
-                    <p class="text-sm font-medium text-gray-500">{{ __('No meals scheduled for this day yet.') }}</p>
-                </div>
-                @endif
-                </div>
+                </template>
             </div>
         </div>
-        @endforeach
-    </div>
+    </template>
 </div>
 
-<style>
-.day-collapsed .day-content { max-height: 0; overflow: hidden; padding: 0; }
-.day-collapsed .day-content > div { padding: 0; }
-.day-collapsed .day-chevron { transform: rotate(-90deg); }
-</style>
+<script>
+function weekSchedule(weekMeals) {
+    return {
+        days: weekMeals,
+        selectedDay: 0,
+
+        init() {
+            const today = new Date().getDay();
+            const todayIdx = today === 0 ? 6 : today - 1;
+            if (this.days[todayIdx] && this.days[todayIdx].mealCount > 0) {
+                this.selectedDay = todayIdx;
+            } else {
+                const firstWithMeals = this.days.findIndex(d => d.mealCount > 0);
+                this.selectedDay = firstWithMeals >= 0 ? firstWithMeals : 0;
+            }
+        },
+
+        get selectedDayData() {
+            return this.days[this.selectedDay] || null;
+        },
+
+        get totalWeekCalories() {
+            return this.days.reduce((sum, d) => sum + (d.calories || 0), 0);
+        },
+
+        get totalWeekMeals() {
+            return this.days.reduce((sum, d) => sum + (d.mealCount || 0), 0);
+        },
+
+        selectDay(idx) {
+            this.selectedDay = idx;
+        }
+    }
+}
+</script>
 
 @endsection
