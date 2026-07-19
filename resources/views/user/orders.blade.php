@@ -1,7 +1,7 @@
 @extends('layouts.user')
 
-@section('title', 'Orders - Nutrio Meals')
-@section('page_title', 'My Orders')
+@section('title', __('Orders') . ' - ' . __('Nutrio Meals'))
+@section('page_title', __('My Orders'))
 
 @section('content')
 
@@ -22,7 +22,7 @@
     <form action="{{ route('user.orders.from-subscription') }}" method="POST">
         @csrf
         <button type="submit" class="px-4 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-md transition-all">
-            + Create Order from Subscription
+            + {{ __('Create Order from Subscription') }}
         </button>
     </form>
 </div>
@@ -30,19 +30,19 @@
 {{-- Stats --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
     <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-4 text-white shadow-lg shadow-[#6E7A25]/20">
-        <span class="text-[10px] font-medium text-white/60">Total Orders</span>
+        <span class="text-[10px] font-medium text-white/60">{{ __('Total Orders') }}</span>
         <div class="text-2xl font-bold mt-1">{{ $stats['total'] }}</div>
     </div>
     <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-        <span class="text-[10px] font-medium text-gray-400">Delivered</span>
+        <span class="text-[10px] font-medium text-gray-400">{{ __('Delivered') }}</span>
         <div class="text-2xl font-bold text-green-600 mt-1">{{ $stats['delivered'] }}</div>
     </div>
     <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-        <span class="text-[10px] font-medium text-gray-400">Cancelled</span>
+        <span class="text-[10px] font-medium text-gray-400">{{ __('Cancelled') }}</span>
         <div class="text-2xl font-bold text-red-500 mt-1">{{ $stats['cancelled'] }}</div>
     </div>
     <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-        <span class="text-[10px] font-medium text-gray-400">Total Spent</span>
+        <span class="text-[10px] font-medium text-gray-400">{{ __('Total Spent') }}</span>
         <div class="text-2xl font-bold text-gray-900 mt-1">SAR {{ number_format($stats['totalSpent']) }}</div>
     </div>
 </div>
@@ -50,18 +50,18 @@
 {{-- Orders Table --}}
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-5 py-4 border-b border-gray-50">
-        <h3 class="text-sm font-bold text-gray-900">Order <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">History</span></h3>
+        <h3 class="text-sm font-bold text-gray-900">{{ __('Order') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('History') }}</span></h3>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="text-left text-xs text-gray-500 border-b border-gray-50">
-                    <th class="px-5 py-3 font-medium">Order ID</th>
-                    <th class="px-5 py-3 font-medium">Plan</th>
-                    <th class="px-5 py-3 font-medium">Meals</th>
-                    <th class="px-5 py-3 font-medium">Amount</th>
-                    <th class="px-5 py-3 font-medium">Date</th>
-                    <th class="px-5 py-3 font-medium">Status</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Order ID') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Plan') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Meals') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Amount') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Date') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Status') }}</th>
                 </tr>
             </thead>
             <tbody>

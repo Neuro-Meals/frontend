@@ -118,11 +118,11 @@ class RegisterController extends Controller
             return response()->json([
                 'success' => true,
                 'requires_verification' => true,
-                'message' => 'Account created! Please verify your email to continue.',
+                'message' => __('Account created! Please verify your email to continue.'),
                 'redirect' => $redirect,
             ]);
         }
 
-        return redirect($redirect)->with('status', 'Account created! Please verify your email to continue.');
+        return redirect($redirect)->with('status', __('Account created! Please verify your email to continue.'));
     }
 }

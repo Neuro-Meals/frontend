@@ -52,6 +52,6 @@ class ResetPasswordController extends Controller
         }
 
         return redirect()->route('login')
-            ->with('status', 'Your password has been reset. You can now log in.');
+            ->with('status', __('Your password has been reset. You can now log in.'));
     }
 }

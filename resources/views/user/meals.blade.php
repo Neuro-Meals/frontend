@@ -33,45 +33,182 @@
 </div>
 @endif
 
-{{-- Stats --}}
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+{{-- KPI Cards --}}
+<div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 mb-6">
+    {{-- Meals Consumed --}}
     <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-4 text-white shadow-lg shadow-[#6E7A25]/20 relative overflow-hidden">
         <div class="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8"></div>
-        <span class="text-[10px] font-medium text-white/60">This Week</span>
-        <div class="text-2xl font-bold mt-1">{{ $stats['totalThisWeek'] }}<span class="text-sm text-white/50">/{{ $stats['totalPlan'] }}</span></div>
-        <span class="text-[10px] text-white/50">{{ $stats['remaining'] }} remaining</span>
-    </div>
-    <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center flex-shrink-0">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
-        </div>
-        <div>
-            <span class="text-[10px] font-medium text-gray-400">Avg Calories</span>
-            <div class="text-lg font-bold text-gray-900">{{ number_format($stats['avgCalories']) }}</div>
-            <span class="text-[10px] text-gray-400">kcal per day</span>
+        <div class="relative z-10">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-medium text-white/60">{{ __('Meals Consumed') }}</span>
+                <svg class="w-3.5 h-3.5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            </div>
+            <div class="text-2xl font-bold">{{ $stats['mealsConsumed'] }}<span class="text-sm text-white/50">/{{ $stats['totalPlan'] }}</span></div>
+            <div class="mt-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div class="h-full bg-white rounded-full transition-all duration-1000" style="width: {{ $stats['planProgress'] }}%"></div>
+            </div>
+            <div class="mt-1 text-[10px] text-white/50">{{ $stats['planProgress'] }}% {{ __('complete') }}</div>
         </div>
     </div>
-    <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center flex-shrink-0">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-        </div>
-        <div>
-            <span class="text-[10px] font-medium text-gray-400">Favorite Meal</span>
-            <div class="text-sm font-bold text-gray-900 truncate">{{ $stats['favoriteMeal'] }}</div>
-            <span class="text-[10px] text-gray-400">{{ $stats['favoriteCount'] }} times ordered</span>
+
+    {{-- Today's Calories --}}
+    <div class="bg-gradient-to-br from-[#033133] to-[#025C5F] rounded-xl p-4 text-white shadow-lg shadow-[#025C5F]/20 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8"></div>
+        <div class="relative z-10">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-medium text-white/60">{{ __('Today Calories') }}</span>
+                <svg class="w-3.5 h-3.5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <div class="text-2xl font-bold">{{ number_format($stats['todayCalories']) }}</div>
+            <div class="mt-1 text-[10px] text-white/50">{{ __('Target') }}: {{ number_format($stats['calorieTarget']) }} kcal</div>
+            @php $calPct = $stats['calorieTarget'] > 0 ? min(100, round($stats['todayCalories'] / $stats['calorieTarget'] * 100)) : 0; @endphp
+            <div class="mt-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div class="h-full bg-white rounded-full transition-all duration-1000" style="width: {{ $calPct }}%"></div>
+            </div>
         </div>
     </div>
-    <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center flex-shrink-0">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+
+    {{-- Today's Protein --}}
+    <div class="bg-gradient-to-br from-[#6E7A25] to-[#949B50] rounded-xl p-4 text-white shadow-lg shadow-[#949B50]/20 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8"></div>
+        <div class="relative z-10">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-medium text-white/60">{{ __('Today Protein') }}</span>
+                <svg class="w-3.5 h-3.5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17"/></svg>
+            </div>
+            <div class="text-2xl font-bold">{{ $stats['todayProtein'] }}<span class="text-sm text-white/50">g</span></div>
+            <div class="mt-1 text-[10px] text-white/50">{{ __('Target') }}: {{ $stats['proteinTarget'] }}g</div>
+            @php $protPct = $stats['proteinTarget'] > 0 ? min(100, round($stats['todayProtein'] / $stats['proteinTarget'] * 100)) : 0; @endphp
+            <div class="mt-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div class="h-full bg-white rounded-full transition-all duration-1000" style="width: {{ $protPct }}%"></div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Meals Remaining --}}
+    <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-medium text-gray-400">{{ __('Meals Remaining') }}</span>
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center flex-shrink-0">
+                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
         </div>
         <div>
-            <span class="text-[10px] font-medium text-gray-400">Plan Total</span>
-            <div class="text-lg font-bold text-gray-900">{{ $stats['totalPlan'] }}</div>
-            <span class="text-[10px] text-gray-400">meals in plan</span>
+            <div class="text-2xl font-bold text-gray-900">{{ $stats['remaining'] }}</div>
+            <div class="mt-1 text-[10px] text-gray-400">{{ __('of') }} {{ $stats['totalPlan'] }} {{ __('total meals') }}</div>
+        </div>
+    </div>
+
+    {{-- Days Remaining --}}
+    <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-medium text-gray-400">{{ __('Days Remaining') }}</span>
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#033133] to-[#025C5F] flex items-center justify-center flex-shrink-0">
+                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>
+        </div>
+        <div>
+            <div class="text-2xl font-bold text-gray-900">{{ $stats['daysRemaining'] }}</div>
+            <div class="mt-1 text-[10px] text-gray-400">{{ __('until') }} {{ $stats['planRenewal'] }}</div>
+        </div>
+    </div>
+
+    {{-- Avg Calories --}}
+    <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-medium text-gray-400">{{ __('Avg Calories') }}</span>
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#6E7A25] to-[#949B50] flex items-center justify-center flex-shrink-0">
+                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
+            </div>
+        </div>
+        <div>
+            <div class="text-2xl font-bold text-gray-900">{{ number_format($stats['avgCalories']) }}</div>
+            <div class="mt-1 text-[10px] text-gray-400">{{ __('kcal per day') }}</div>
         </div>
     </div>
 </div>
+
+{{-- Today's Nutrition Summary --}}
+@if($hasActiveSubscription && $stats['todayCalories'] > 0)
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-bold text-gray-900">{{ __('Today\'s Nutrition') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Summary') }}</span></h3>
+        <span class="text-[10px] text-gray-400">{{ count($todayMeals) }} {{ __('meal(s) scheduled') }}</span>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {{-- Calories --}}
+        <div class="text-center">
+            <div class="w-16 h-16 mx-auto relative">
+                <svg class="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="#f3f4f6" stroke-width="6"/>
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="#173327" stroke-width="6" stroke-linecap="round"
+                        stroke-dasharray="{{ 2 * pi() * 28 }}"
+                        stroke-dashoffset="{{ 2 * pi() * 28 * (1 - ($calPct ?? 0) / 100) }}"
+                        style="transition: stroke-dashoffset 1s ease;"/>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="text-sm font-bold text-gray-900">{{ $calPct ?? 0 }}%</span>
+                </div>
+            </div>
+            <div class="mt-2 text-xs font-bold text-gray-900">{{ number_format($stats['todayCalories']) }} kcal</div>
+            <div class="text-[10px] text-gray-400">{{ __('of') }} {{ number_format($stats['calorieTarget']) }}</div>
+        </div>
+        {{-- Protein --}}
+        <div class="text-center">
+            <div class="w-16 h-16 mx-auto relative">
+                <svg class="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="#f3f4f6" stroke-width="6"/>
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="#6E7A25" stroke-width="6" stroke-linecap="round"
+                        stroke-dasharray="{{ 2 * pi() * 28 }}"
+                        stroke-dashoffset="{{ 2 * pi() * 28 * (1 - ($protPct ?? 0) / 100) }}"
+                        style="transition: stroke-dashoffset 1s ease;"/>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="text-sm font-bold text-gray-900">{{ $protPct ?? 0 }}%</span>
+                </div>
+            </div>
+            <div class="mt-2 text-xs font-bold text-gray-900">{{ $stats['todayProtein'] }}g</div>
+            <div class="text-[10px] text-gray-400">{{ __('of') }} {{ $stats['proteinTarget'] }}g</div>
+        </div>
+        {{-- Carbs --}}
+        <div class="text-center">
+            @php $carbPct = $stats['carbsTarget'] > 0 ? min(100, round($stats['todayCarbs'] / $stats['carbsTarget'] * 100)) : 0; @endphp
+            <div class="w-16 h-16 mx-auto relative">
+                <svg class="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="#f3f4f6" stroke-width="6"/>
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="#025C5F" stroke-width="6" stroke-linecap="round"
+                        stroke-dasharray="{{ 2 * pi() * 28 }}"
+                        stroke-dashoffset="{{ 2 * pi() * 28 * (1 - $carbPct / 100) }}"
+                        style="transition: stroke-dashoffset 1s ease;"/>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="text-sm font-bold text-gray-900">{{ $carbPct }}%</span>
+                </div>
+            </div>
+            <div class="mt-2 text-xs font-bold text-gray-900">{{ $stats['todayCarbs'] }}g</div>
+            <div class="text-[10px] text-gray-400">{{ __('of') }} {{ $stats['carbsTarget'] }}g</div>
+        </div>
+        {{-- Fat --}}
+        <div class="text-center">
+            @php $fatPct = $stats['fatTarget'] > 0 ? min(100, round($stats['todayFat'] / $stats['fatTarget'] * 100)) : 0; @endphp
+            <div class="w-16 h-16 mx-auto relative">
+                <svg class="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="#f3f4f6" stroke-width="6"/>
+                    <circle cx="32" cy="32" r="28" fill="none" stroke="#949B50" stroke-width="6" stroke-linecap="round"
+                        stroke-dasharray="{{ 2 * pi() * 28 }}"
+                        stroke-dashoffset="{{ 2 * pi() * 28 * (1 - $fatPct / 100) }}"
+                        style="transition: stroke-dashoffset 1s ease;"/>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="text-sm font-bold text-gray-900">{{ $fatPct }}%</span>
+                </div>
+            </div>
+            <div class="mt-2 text-xs font-bold text-gray-900">{{ $stats['todayFat'] }}g</div>
+            <div class="text-[10px] text-gray-400">{{ __('of') }} {{ $stats['fatTarget'] }}g</div>
+        </div>
+    </div>
+</div>
+@endif
 
 {{-- Today's Meals grouped by Category --}}
 <div class="mb-6">

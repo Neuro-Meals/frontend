@@ -478,7 +478,7 @@ class UserController extends Controller
 
         if ($planId <= 0) {
             if ($wantsJson) {
-                return response()->json(['success' => false, 'message' => 'Invalid plan selected.'], 422);
+                return response()->json(['success' => false, 'message' => __('Invalid plan selected.')], 422);
             }
             return redirect()->route('user.subscriptions')->with('error', __('Invalid plan selected.'));
         }
@@ -541,7 +541,7 @@ class UserController extends Controller
             $subscription = $subscriptionResponse['data'] ?? $subscriptionResponse;
             if (empty($subscription) || !empty($subscription['error']) || !isset($subscription['id'])) {
                 if ($wantsJson) {
-                    return response()->json(['success' => false, 'message' => 'Failed to subscribe. Please try again.'], 400);
+                    return response()->json(['success' => false, 'message' => __('Failed to subscribe. Please try again.')], 400);
                 }
                 return redirect()->route('user.subscriptions')->with('error', __('Failed to subscribe. Please try again.'));
             }
@@ -577,7 +577,7 @@ class UserController extends Controller
 
         \Illuminate\Support\Facades\Log::warning('Subscription payment checkout returned no Moyasar data', ['response' => $checkoutResponse]);
         if ($wantsJson) {
-            return response()->json(['success' => false, 'message' => 'Unable to start payment. Please try again.'], 400);
+            return response()->json(['success' => false, 'message' => __('Unable to start payment. Please try again.')], 400);
         }
         return redirect()->route('user.subscriptions')->with('success', __('Subscription created! Please complete payment.'));
     }
@@ -630,7 +630,7 @@ class UserController extends Controller
         if ($subscriptionId <= 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid subscription.',
+                'message' => __('Invalid subscription.'),
             ], 422);
         }
 
@@ -678,7 +678,7 @@ class UserController extends Controller
         if ($paymentId <= 0 || !$moyasarPaymentId) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid payment data.',
+                'message' => __('Invalid payment data.'),
             ], 422);
         }
 
@@ -1033,13 +1033,57 @@ class UserController extends Controller
         $avgCalories = $this->calculateAvgCalories($todayMeals);
         $favoriteMeal = $this->findFavoriteMeal($todayMeals);
 
+        // Calculate today's nutrition totals from real meal data
+        $todayStats = $this->calculateTodayStats($todayMeals);
+
+        // Plan targets from API
+        $calorieTarget = $planDetails['calories'] ?? $activeSubscription['calorie_target'] ?? 1800;
+        $proteinTarget = $planDetails['protein_target'] ?? $activeSubscription['protein_target'] ?? 140;
+        $carbsTarget = $planDetails['carbs_target'] ?? $activeSubscription['carbs_target'] ?? 200;
+        $fatTarget = $planDetails['fat_target'] ?? $activeSubscription['fat_target'] ?? 55;
+
+        // Subscription progress
+        $remainingMeals = max(0, $totalPlanMeals - $mealsConsumed);
+        $planProgress = $totalPlanMeals > 0 ? round(($mealsConsumed / $totalPlanMeals) * 100) : 0;
+
+        // Days remaining in subscription
+        $daysRemaining = 0;
+        if (!empty($activeSubscription['end_date'])) {
+            $endDate = strtotime($activeSubscription['end_date']);
+            $now = time();
+            $daysRemaining = max(0, (int) ceil(($endDate - $now) / 86400));
+        }
+
+        $subscriptionStatus = $activeSubscription['status'] ?? 'none';
+        $subscriptionPaymentStatus = $activeSubscription['payment_status'] ?? 'unpaid';
+
         $stats = [
             'totalThisWeek' => $totalThisWeek,
             'totalPlan' => $totalPlanMeals,
-            'remaining' => max(0, $totalPlanMeals - $mealsConsumed),
+            'remaining' => $remainingMeals,
+            'mealsConsumed' => $mealsConsumed,
+            'planProgress' => $planProgress,
             'avgCalories' => $avgCalories,
             'favoriteMeal' => $favoriteMeal['name'] ?? 'N/A',
             'favoriteCount' => $favoriteMeal['count'] ?? 0,
+            // Today's real macros from API meal data
+            'todayCalories' => $todayStats['calories'],
+            'todayProtein' => $todayStats['protein'],
+            'todayCarbs' => $todayStats['carbs'],
+            'todayFat' => $todayStats['fat'],
+            // Plan targets from API
+            'calorieTarget' => (int) $calorieTarget,
+            'proteinTarget' => (int) $proteinTarget,
+            'carbsTarget' => (int) $carbsTarget,
+            'fatTarget' => (int) $fatTarget,
+            'mealsPerDay' => $mealsPerDay,
+            // Subscription info
+            'daysRemaining' => $daysRemaining,
+            'subscriptionStatus' => $subscriptionStatus,
+            'subscriptionPaymentStatus' => $subscriptionPaymentStatus,
+            'planName' => $planDetails['name_en'] ?? $activeSubscription['plan_name'] ?? 'Active Plan',
+            'planPrice' => $planDetails['price'] ?? $activeSubscription['amount'] ?? 0,
+            'planRenewal' => !empty($activeSubscription['end_date']) ? date('M d, Y', strtotime($activeSubscription['end_date'])) : 'N/A',
         ];
 
         $hasActiveSubscription = $activeSubscription !== null;
@@ -1483,7 +1527,7 @@ class UserController extends Controller
         }
 
         if ($subscriptionId <= 0) {
-            return redirect()->route('user.orders')->with('error', 'No active subscription found.');
+            return redirect()->route('user.orders')->with('error', __('No active subscription found.'));
         }
 
         $result = $this->apiData($orderApi->fromSubscription($subscriptionId), function () {
@@ -1491,10 +1535,10 @@ class UserController extends Controller
         });
 
         if (empty($result) || !empty($result['error'])) {
-            return redirect()->route('user.orders')->with('error', 'Failed to create order. Please try again.');
+            return redirect()->route('user.orders')->with('error', __('Failed to create order. Please try again.'));
         }
 
-        return redirect()->route('user.orders')->with('success', 'Order created successfully!');
+        return redirect()->route('user.orders')->with('success', __('Order created successfully!'));
     }
 
     /**

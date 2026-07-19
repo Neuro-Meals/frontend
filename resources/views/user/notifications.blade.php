@@ -1,18 +1,18 @@
 @extends('layouts.user')
 
-@section('title', 'Notifications - Nutrio Meals')
-@section('page_title', 'Notifications')
+@section('title', __('Notifications') . ' - ' . __('Nutrio Meals'))
+@section('page_title', __('Notifications'))
 
 @section('content')
 
 {{-- Stats --}}
 <div class="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
     <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-4 text-white shadow-lg shadow-[#6E7A25]/20">
-        <span class="text-[10px] font-medium text-white/60">Unread</span>
+        <span class="text-[10px] font-medium text-white/60">{{ __('Unread') }}</span>
         <div class="text-2xl font-bold mt-1">{{ $stats['unread'] }}</div>
     </div>
     <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-        <span class="text-[10px] font-medium text-gray-400">Total Notifications</span>
+        <span class="text-[10px] font-medium text-gray-400">{{ __('Total Notifications') }}</span>
         <div class="text-2xl font-bold text-gray-900 mt-1">{{ $stats['total'] }}</div>
     </div>
 </div>
@@ -69,7 +69,7 @@
 
     {{-- Preferences --}}
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-        <h3 class="text-sm font-bold text-gray-900 mb-4">Notification <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">Preferences</span></h3>
+        <h3 class="text-sm font-bold text-gray-900 mb-4">{{ __('Notification') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Preferences') }}</span></h3>
         <div class="space-y-3">
             @foreach($preferences as $pref)
             <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
