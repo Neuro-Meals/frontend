@@ -606,13 +606,13 @@
                         window.location.href = successUrl;
                     }
                 },
-                on_redirect: function(url) {
+                on_redirect: async function(url) {
                     loadingEl.classList.remove('hidden');
                     formContainer.style.display = 'none';
                     const loadingText = loadingEl.querySelector('p');
                     if (loadingText) loadingText.textContent = '{{ __("Redirecting to your bank for verification...") }}';
                 },
-                on_failure: function(error) {
+                on_failure: async function(error) {
                     loadingEl.classList.add('hidden');
                     formContainer.style.display = '';
                     errorEl.textContent = (error && error.message) || 'Payment form error. Please try again.';
