@@ -6,18 +6,35 @@
 @section('content')
 <div x-data="ordersApp()" x-init="init()" class="space-y-4">
 
-  {{-- Stats Row --}}
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3" x-show="!loading">
-    <template x-for="s in stats" :key="s.label">
-      <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition-shadow">
-        <p class="text-[10px] text-gray-400 mb-1 font-medium" x-text="s.label"></p>
-        <p class="text-xl font-extrabold" :class="s.color" x-text="s.value"></p>
+  {{-- KPI Cards --}}
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" x-show="!loading">
+    <template x-for="(s, idx) in stats" :key="s.label">
+      <div class="animate__animated animate__fadeInUp rounded-2xl p-5 text-white relative overflow-hidden shadow-lg" :class="`bg-gradient-to-br ${s.gradient}`" :style="`animation-delay: ${0.1 + idx * 0.05}s; shadow-color: rgba(110, 122, 37, 0.15);`">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="absolute inset-0 opacity-[0.05]" style="background-image: repeating-linear-gradient(45deg, white 0px, white 1px, transparent 1px, transparent 12px);"></div>
+        <div class="relative z-10">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
+              <template x-if="s.icon === 'clipboard'"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></template>
+              <template x-if="s.icon === 'fire'"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2-6 1.5 1 2 4 2 6 2-1 2.657-2.657 2.657-2.657z"/></svg></template>
+              <template x-if="s.icon === 'truck'"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg></template>
+              <template x-if="s.icon === 'check'"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></template>
+              <template x-if="s.icon === 'food'"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg></template>
+              <template x-if="s.icon === 'flame'"><svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M2.993 4.706L3 14a2 2 0 002 2h10a2 2 0 002-2l.007-9.293a1 1 0 00-1.5-.867L13 6.5l-2.5-3a1 1 0 00-1.6 0L6.5 6.5 4.493 3.84a1 1 0 00-1.5.866zM11 10a1 1 0 11-2 0 1 1 0 012 0z"/></svg></template>
+              <template x-if="s.icon === 'money'"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/></svg></template>
+              <template x-if="s.icon === 'shopping'"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg></template>
+            </div>
+          </div>
+          <p class="text-xs text-white/60 font-medium mb-1" x-text="s.label"></p>
+          <p class="text-2xl font-bold tracking-tight" x-text="s.value"></p>
+        </div>
       </div>
     </template>
   </div>
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3" x-show="loading">
-    <template x-for="i in 4">
-      <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm animate-pulse"><div class="h-3 bg-gray-100 rounded w-1/2 mb-2"></div><div class="h-6 bg-gray-100 rounded w-3/4"></div></div>
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" x-show="loading">
+    <template x-for="i in 8">
+      <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm animate-pulse"><div class="h-3 bg-gray-100 rounded w-1/2 mb-2"></div><div class="h-6 bg-gray-100 rounded w-3/4"></div></div>
     </template>
   </div>
 

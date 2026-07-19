@@ -198,9 +198,16 @@
                         </div>
                         <span class="text-xs text-gray-400" x-text="meal.orders + ' {{ __('orders') }}'"></span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button @click="openEdit(meal.id)" class="text-xs font-bold text-[#6E7A25] hover:text-[#173327] transition-colors">{{ __('Edit') }} →</button>
-                        <button @click="confirmDelete(meal.id)" class="text-xs font-bold text-red-600 hover:text-red-800 transition-colors">{{ __('Delete') }}</button>
+                    <div class="flex items-center gap-1">
+                        <button @click="viewMeal(meal)" class="w-8 h-8 rounded-lg bg-gray-50 text-gray-500 hover:bg-[#033133] hover:text-white flex items-center justify-center transition-all" title="{{ __('View') }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        </button>
+                        <button @click="openEdit(meal.id)" class="w-8 h-8 rounded-lg bg-gray-50 text-[#6E7A25] hover:bg-[#6E7A25] hover:text-white flex items-center justify-center transition-all" title="{{ __('Edit') }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        </button>
+                        <button @click="confirmDelete(meal.id)" class="w-8 h-8 rounded-lg bg-gray-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all" title="{{ __('Delete') }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -254,9 +261,16 @@
                             <span class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-semibold border" :class="meal.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'" x-text="meal.status.charAt(0).toUpperCase() + meal.status.slice(1)"></span>
                         </td>
                         <td class="px-5 py-4 text-right">
-                            <div class="flex items-center justify-end gap-3 opacity-80 group-hover:opacity-100 transition-opacity">
-                                <button @click="openEdit(meal.id)" class="text-xs font-bold text-[#6E7A25] hover:text-[#173327] transition-colors">{{ __('Edit') }} →</button>
-                                <button @click="confirmDelete(meal.id)" class="text-xs font-bold text-red-600 hover:text-red-800 transition-colors">{{ __('Delete') }}</button>
+                            <div class="flex items-center justify-end gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                                <button @click="viewMeal(meal)" class="w-8 h-8 rounded-lg bg-gray-50 text-gray-500 hover:bg-[#033133] hover:text-white flex items-center justify-center transition-all" title="{{ __('View') }}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                </button>
+                                <button @click="openEdit(meal.id)" class="w-8 h-8 rounded-lg bg-gray-50 text-[#6E7A25] hover:bg-[#6E7A25] hover:text-white flex items-center justify-center transition-all" title="{{ __('Edit') }}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                </button>
+                                <button @click="confirmDelete(meal.id)" class="w-8 h-8 rounded-lg bg-gray-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all" title="{{ __('Delete') }}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -429,6 +443,169 @@
     </div>
 </div>
 
+{{-- View Meal Detail Slide-Out Panel --}}
+<div x-show="viewOpen" x-cloak class="fixed inset-0 z-50" aria-labelledby="meal-view-title" role="dialog" aria-modal="true">
+    <div x-show="viewOpen" x-transition:enter="ease-in-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in-out duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" @click="viewOpen = false"></div>
+
+    <div x-show="viewOpen"
+         x-transition:enter="transform transition ease-in-out duration-300"
+         x-transition:enter-start="translate-x-full rtl:-translate-x-full"
+         x-transition:enter-end="translate-x-0"
+         x-transition:leave="transform transition ease-in-out duration-300"
+         x-transition:leave-start="translate-x-0"
+         x-transition:leave-end="translate-x-full rtl:-translate-x-full"
+         class="absolute inset-y-0 right-0 rtl:right-auto rtl:left-0 w-full sm:w-[32rem] lg:w-[36rem] bg-white shadow-2xl"
+         style="max-width: 100vw;">
+        <div class="h-full flex flex-col">
+            {{-- Gradient Header --}}
+            <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] px-6 py-5 flex-shrink-0 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+                <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <h3 id="meal-view-title" class="text-lg font-bold text-white flex items-center gap-2">
+                            <svg class="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            {{ __('Meal Details') }}
+                        </h3>
+                        <p class="text-xs text-white/60 mt-1" x-text="viewData?.name"></p>
+                    </div>
+                    <button @click="viewOpen = false" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6 space-y-5">
+                <div x-show="viewLoading" class="flex items-center justify-center py-12">
+                    <svg class="animate-spin w-8 h-8 text-[#6E7A25]" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                </div>
+
+                <template x-if="viewData && !viewLoading">
+                    <div class="space-y-5">
+                        {{-- Image --}}
+                        <div class="h-48 rounded-xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                            <template x-if="viewData.image">
+                                <img :src="viewData.image" :alt="viewData.name" class="w-full h-full object-cover">
+                            </template>
+                            <template x-if="!viewData.image">
+                                <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            </template>
+                        </div>
+
+                        {{-- Category & Status --}}
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-semibold" :class="categoryColor(viewData.category)" x-text="viewData.category"></span>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border" :class="viewData.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'" x-text="viewData.status === 'active' ? '{{ __('Available') }}' : '{{ __('Unavailable') }}'"></span>
+                        </div>
+
+                        {{-- Price & Rating --}}
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <p class="text-[10px] text-gray-400 uppercase tracking-wider mb-1">{{ __('Price') }}</p>
+                                <p class="text-xl font-bold text-[#6E7A25]" x-text="'SAR ' + parseFloat(viewData.price || 0).toFixed(2)"></p>
+                            </div>
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <p class="text-[10px] text-gray-400 uppercase tracking-wider mb-1">{{ __('Rating') }}</p>
+                                <div class="flex items-center gap-1">
+                                    <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    <p class="text-xl font-bold text-gray-900" x-text="viewData.rating > 0 ? viewData.rating : '—'"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Nutrition --}}
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Nutrition Facts') }}</h4>
+                            <div class="grid grid-cols-4 gap-2">
+                                <div class="bg-white rounded-lg p-2.5 text-center">
+                                    <p class="text-[9px] text-gray-400 uppercase">{{ __('Kcal') }}</p>
+                                    <p class="text-sm font-bold text-gray-900" x-text="viewData.calories || 0"></p>
+                                </div>
+                                <div class="bg-white rounded-lg p-2.5 text-center">
+                                    <p class="text-[9px] text-green-400 uppercase">{{ __('Protein') }}</p>
+                                    <p class="text-sm font-bold text-green-700" x-text="(viewData.protein_g || viewData.protein || 0) + 'g'"></p>
+                                </div>
+                                <div class="bg-white rounded-lg p-2.5 text-center">
+                                    <p class="text-[9px] text-amber-400 uppercase">{{ __('Carbs') }}</p>
+                                    <p class="text-sm font-bold text-amber-700" x-text="(viewData.carbs_g || viewData.carbs || 0) + 'g'"></p>
+                                </div>
+                                <div class="bg-white rounded-lg p-2.5 text-center">
+                                    <p class="text-[9px] text-blue-400 uppercase">{{ __('Fat') }}</p>
+                                    <p class="text-sm font-bold text-blue-700" x-text="(viewData.fat_g || viewData.fat || 0) + 'g'"></p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 mt-2">
+                                <div class="bg-white rounded-lg p-2 text-center">
+                                    <p class="text-[9px] text-gray-400">{{ __('Fiber') }}</p>
+                                    <p class="text-xs font-bold text-gray-700" x-text="(viewData.fiber_g || viewData.fiber || 0) + 'g'"></p>
+                                </div>
+                                <div class="bg-white rounded-lg p-2 text-center">
+                                    <p class="text-[9px] text-gray-400">{{ __('Sugar') }}</p>
+                                    <p class="text-xs font-bold text-gray-700" x-text="(viewData.sugar_g || viewData.sugar || 0) + 'g'"></p>
+                                </div>
+                                <div class="bg-white rounded-lg p-2 text-center">
+                                    <p class="text-[9px] text-gray-400">{{ __('Sodium') }}</p>
+                                    <p class="text-xs font-bold text-gray-700" x-text="(viewData.sodium_mg || viewData.sodium || 0) + 'mg'"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Description --}}
+                        <div x-show="viewData.description_en">
+                            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Description') }}</h4>
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <p class="text-xs text-gray-700 leading-relaxed" x-text="viewData.description_en"></p>
+                            </div>
+                        </div>
+
+                        {{-- Ingredients --}}
+                        <div x-show="viewData.ingredients && viewData.ingredients.length > 0">
+                            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Ingredients') }}</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="ing in viewData.ingredients" :key="ing">
+                                    <span class="px-2.5 py-1 rounded-lg bg-gray-50 text-xs font-medium text-gray-700 border border-gray-100" x-text="ing"></span>
+                                </template>
+                            </div>
+                        </div>
+
+                        {{-- Allergens --}}
+                        <div x-show="viewData.allergens && viewData.allergens.length > 0">
+                            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Allergens') }}</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="alg in viewData.allergens" :key="alg">
+                                    <span class="px-2.5 py-1 rounded-lg bg-red-50 text-xs font-medium text-red-600 border border-red-100" x-text="alg"></span>
+                                </template>
+                            </div>
+                        </div>
+
+                        {{-- Diet Tags --}}
+                        <div x-show="viewData.diet_tags && viewData.diet_tags.length > 0">
+                            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Diet Tags') }}</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="tag in viewData.diet_tags" :key="tag">
+                                    <span class="px-2.5 py-1 rounded-lg bg-green-50 text-xs font-medium text-green-700 border border-green-100" x-text="tag"></span>
+                                </template>
+                            </div>
+                        </div>
+
+                        {{-- Actions --}}
+                        <div class="flex gap-2 pt-2">
+                            <button @click="viewOpen = false; openEdit(viewData.id)" class="flex-1 px-4 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                {{ __('Edit Meal') }}
+                            </button>
+                            <button @click="viewOpen = false; confirmDelete(viewData.id)" class="px-4 py-2.5 text-xs font-bold text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                {{ __('Delete') }}
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- Delete Confirmation --}}
 <div x-show="deleteOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.5);">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
@@ -447,7 +624,7 @@
     </div>
 </div>
 
-{{-- Category Management Modal --}}
+{{-- Category Management Sidebar --}}
 <div x-show="categoryModalOpen" x-cloak class="fixed inset-0 z-50" aria-labelledby="category-modal-title" role="dialog" aria-modal="true">
     <div x-show="categoryModalOpen" x-transition:enter="ease-in-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in-out duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" @click="closeCategoryModal()"></div>
 
@@ -461,70 +638,99 @@
          class="absolute inset-y-0 right-0 rtl:right-auto rtl:left-0 w-full sm:w-[32rem] lg:w-[36rem] bg-white shadow-2xl"
          style="max-width: 100vw;">
         <div class="h-full flex flex-col">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
-                <h3 id="category-modal-title" class="text-lg font-bold text-gray-900">{{ __('Manage Categories') }}</h3>
-                <button @click="closeCategoryModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
+            {{-- Gradient Header --}}
+            <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] px-6 py-5 flex-shrink-0 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+                <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <h3 id="category-modal-title" class="text-lg font-bold text-white flex items-center gap-2">
+                            <svg class="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+                            {{ __('Manage Categories') }}
+                        </h3>
+                        <p class="text-xs text-white/60 mt-1" x-text="categories.length + ' {{ __('categories total') }}'"></p>
+                    </div>
+                    <button @click="closeCategoryModal()" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
             </div>
 
             <div class="flex-1 overflow-y-auto p-6">
                 {{-- Category Form --}}
-                <form class="space-y-4 mb-6" @submit.prevent="submitCategory">
-                    <input type="hidden" x-model="categoryForm.id">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Name (EN)') }} <span class="text-red-500">*</span></label>
-                            <input type="text" x-model="categoryForm.name_en" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
+                <div class="bg-gray-50 rounded-xl p-4 mb-6">
+                    <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <span x-text="categoryForm.id ? '{{ __('Edit Category') }}' : '{{ __('Add New Category') }}'"></span>
+                    </h4>
+                    <form class="space-y-3" @submit.prevent="submitCategory">
+                        <input type="hidden" x-model="categoryForm.id">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Name (EN)') }} <span class="text-red-500">*</span></label>
+                                <input type="text" x-model="categoryForm.name_en" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Name (AR)') }}</label>
+                                <input type="text" x-model="categoryForm.name_ar" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none bg-white" dir="rtl">
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Name (AR)') }}</label>
-                            <input type="text" x-model="categoryForm.name_ar" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none" dir="rtl">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Description') }}</label>
+                            <textarea x-model="categoryForm.description" rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none resize-none bg-white"></textarea>
                         </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Description') }}</label>
-                        <textarea x-model="categoryForm.description" rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none resize-none"></textarea>
-                    </div>
-                    <div x-show="categoryForm.id" class="flex items-center gap-2 p-3 rounded-lg bg-gray-50 border border-gray-100">
-                        <input type="checkbox" id="catActive" x-model="categoryForm.is_active" class="w-4 h-4 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]">
-                        <label for="catActive" class="text-xs font-bold text-gray-700">{{ __('Active category') }}</label>
-                    </div>
-                    <div x-show="categoryError" x-text="categoryError" class="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2"></div>
-                    <div x-show="categorySuccess" x-text="categorySuccess" class="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2"></div>
-                    <div class="flex items-center justify-end gap-2 pt-2">
-                        <button type="button" @click="resetCategoryForm()" class="px-4 py-2 rounded-lg border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors">{{ __('Reset') }}</button>
-                        <button type="submit" :disabled="categorySaving" class="px-4 py-2 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-xs font-bold shadow-sm hover:shadow-md transition-all disabled:opacity-60">
-                            <span x-show="!categorySaving" x-text="categoryForm.id ? '{{ __('Update Category') }}' : '{{ __('Add Category') }}'"></span>
-                            <span x-show="categorySaving">{{ __('Saving...') }}</span>
-                        </button>
-                    </div>
-                </form>
+                        <div x-show="categoryForm.id" class="flex items-center gap-2 p-2.5 rounded-lg bg-white border border-gray-100">
+                            <input type="checkbox" id="catActive" x-model="categoryForm.is_active" class="w-4 h-4 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]">
+                            <label for="catActive" class="text-xs font-bold text-gray-700">{{ __('Active category') }}</label>
+                        </div>
+                        <div x-show="categoryError" x-text="categoryError" class="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2"></div>
+                        <div x-show="categorySuccess" x-text="categorySuccess" class="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2"></div>
+                        <div class="flex items-center justify-end gap-2 pt-1">
+                            <button type="button" @click="resetCategoryForm()" class="px-4 py-2 rounded-lg border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-100 transition-colors">{{ __('Reset') }}</button>
+                            <button type="submit" :disabled="categorySaving" class="px-4 py-2 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-xs font-bold shadow-sm hover:shadow-md transition-all disabled:opacity-60 flex items-center gap-1.5">
+                                <svg x-show="!categorySaving" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <svg x-show="categorySaving" class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                                <span x-text="categoryForm.id ? '{{ __('Update') }}' : '{{ __('Add') }}'"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
 
                 {{-- Category List --}}
-                <h4 class="text-sm font-bold text-gray-900 mb-3">{{ __('Categories') }}</h4>
-                <div class="space-y-3">
+                <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    {{ __('All Categories') }}
+                </h4>
+                <div class="space-y-2">
                     <template x-for="cat in categories" :key="cat.id">
-                        <div class="flex items-center justify-between p-3 rounded-xl border border-gray-100 hover:shadow-sm transition-all bg-white">
+                        <div class="flex items-center justify-between p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all bg-white group">
                             <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-3 h-3 rounded-full flex-shrink-0" :style="`background: ${cat.color || '#6E7A25'};`"></div>
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" :style="`background: ${cat.color || '#6E7A25'}15;`">
+                                    <div class="w-4 h-4 rounded-full" :style="`background: ${cat.color || '#6E7A25'};`"></div>
+                                </div>
                                 <div class="min-w-0">
                                     <p class="text-sm font-bold text-gray-900 truncate" x-text="cat.name"></p>
-                                    <p class="text-[10px] text-gray-400 truncate" x-text="cat.count + ' {{ __('meals') }}'"></p>
+                                    <div class="flex items-center gap-2 mt-0.5">
+                                        <span class="text-[10px] text-gray-400" x-text="cat.count + ' {{ __('meals') }}'"></span>
+                                        <span x-show="cat.is_active === false" class="text-[10px] font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">{{ __('Inactive') }}</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2 flex-shrink-0">
-                                <button @click="editCategory(cat)" class="p-1.5 text-[#6E7A25] hover:bg-[#6E7A25]/10 rounded-lg transition-colors" title="{{ __('Edit') }}">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.43-9.121a2.948 2.948 0 00-4.172 0L11.879 5.88a2.948 2.948 0 000 4.172l5.586 5.586a2.948 2.948 0 004.172 0l.586-.586a2.948 2.948 0 000-4.172l-5.586-5.586z"/></svg>
+                            <div class="flex items-center gap-1 flex-shrink-0">
+                                <button @click="editCategory(cat)" class="w-8 h-8 rounded-lg bg-gray-50 text-[#6E7A25] hover:bg-[#6E7A25] hover:text-white flex items-center justify-center transition-all" title="{{ __('Edit') }}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
-                                <button @click="confirmDeleteCategory(cat)" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="{{ __('Delete') }}">
+                                <button @click="confirmDeleteCategory(cat)" class="w-8 h-8 rounded-lg bg-gray-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all" title="{{ __('Delete') }}">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                 </button>
                             </div>
                         </div>
                     </template>
-                    <div x-show="categories.length === 0" class="p-8 text-center text-gray-400 text-sm">
-                        {{ __('No categories found.') }}
+                    <div x-show="categories.length === 0" class="p-8 text-center">
+                        <div class="w-14 h-14 mx-auto rounded-full bg-gray-50 flex items-center justify-center mb-3">
+                            <svg class="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                        </div>
+                        <p class="text-gray-400 text-sm">{{ __('No categories found.') }}</p>
                     </div>
                 </div>
             </div>
@@ -565,6 +771,9 @@
             uploadProgress: 0,
             uploadError: '',
             formError: '',
+            viewOpen: false,
+            viewData: null,
+            viewLoading: false,
             viewMode: localStorage.getItem('mealsViewMode') || 'grid',
             meals: @json($meals),
             categories: @json($categories),
@@ -629,6 +838,26 @@
                 this.editingId = null;
                 this.resetForm();
                 this.modalOpen = true;
+            },
+            viewMeal(meal) {
+                this.viewData = meal;
+                this.viewOpen = true;
+                this.viewLoading = true;
+                fetch('{{ url('admin/meals') }}/' + meal.id)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success && data.meal) {
+                            this.viewData = {
+                                ...meal,
+                                ...data.meal,
+                                ingredients: Array.isArray(data.meal.ingredients) ? data.meal.ingredients : [],
+                                allergens: Array.isArray(data.meal.allergens) ? data.meal.allergens : [],
+                                diet_tags: Array.isArray(data.meal.diet_tags) ? data.meal.diet_tags : [],
+                            };
+                        }
+                    })
+                    .catch(() => {})
+                    .finally(() => { this.viewLoading = false; });
             },
             async openEdit(id) {
                 this.editingId = id;

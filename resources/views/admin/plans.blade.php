@@ -16,23 +16,60 @@
         </template>
     </div>
 
-    {{-- Stats Row --}}
+    {{-- KPI Cards --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-            <p class="text-xs text-gray-400 mb-1">{{ __('Total Plans') }}</p>
-            <p class="text-2xl font-bold text-gray-900">{{ $stats['total'] }}</p>
+        <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20 animate__animated animate__fadeInUp" style="animation-delay: 0.1s">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+            <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+            <div class="relative z-10">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs text-white/60 font-medium">{{ __('Total Plans') }}</p>
+                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold tracking-tight">{{ $stats['total'] }}</p>
+                <p class="text-xs text-white/50 mt-1">{{ $stats['active'] }} {{ __('active') }}</p>
+            </div>
         </div>
-        <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-            <p class="text-xs text-gray-400 mb-1">{{ __('Active Plans') }}</p>
-            <p class="text-2xl font-bold text-green-600">{{ $stats['active'] }}</p>
+        <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-green-500/20 animate__animated animate__fadeInUp" style="animation-delay: 0.2s">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+            <div class="relative z-10">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs text-white/60 font-medium">{{ __('Subscribers') }}</p>
+                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6-3a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM5 3a2.5 2.5 0 100 5 2.5 2.5 0 000-5z"/></svg>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold tracking-tight">{{ number_format($stats['totalSubscribers']) }}</p>
+                <p class="text-xs text-white/50 mt-1">{{ __('Real subscribers') }}</p>
+            </div>
         </div>
-        <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-            <p class="text-xs text-gray-400 mb-1">{{ __('Total Subscribers') }}</p>
-            <p class="text-2xl font-bold text-gray-900">{{ number_format($stats['totalSubscribers']) }}</p>
+        <div class="bg-gradient-to-br from-[#033133] to-[#025C5F] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#033133]/20 animate__animated animate__fadeInUp" style="animation-delay: 0.3s">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+            <div class="relative z-10">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs text-white/60 font-medium">{{ __('Total Meals Served') }}</p>
+                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold tracking-tight">{{ number_format($stats['totalMealsServed'] ?? 0) }}</p>
+                <p class="text-xs text-white/50 mt-1">{{ __('Across all plans') }}</p>
+            </div>
         </div>
-        <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-            <p class="text-xs text-gray-400 mb-1">{{ __('Avg Revenue / Plan') }}</p>
-            <p class="text-2xl font-bold text-gray-900">SAR {{ $stats['avgRevenue'] }}</p>
+        <div class="bg-gradient-to-br from-[#6E7A25] to-[#949B50] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20 animate__animated animate__fadeInUp" style="animation-delay: 0.4s">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+            <div class="relative z-10">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs text-white/60 font-medium">{{ __('Avg Price') }}</p>
+                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold tracking-tight">SAR {{ number_format($stats['avgRevenue']) }}</p>
+                <p class="text-xs text-white/50 mt-1">{{ __('Per plan') }}</p>
+            </div>
         </div>
     </div>
 
@@ -57,20 +94,25 @@
 
     {{-- Plans Grid --}}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <template x-for="plan in filteredPlans" :key="plan.id">
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                {{-- Header --}}
-                <div class="p-5 border-b border-gray-50" :style="`background: linear-gradient(135deg, ${plan.color}15, ${plan.color}05);`">
-                    <div class="flex items-start justify-between mb-3">
-                        <div class="w-12 h-12 rounded-xl flex items-center justify-center" :style="`background: ${plan.color}20;`">
-                            <svg class="w-6 h-6" :style="`color: ${plan.color};`" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <template x-for="(plan, index) in filteredPlans" :key="plan.id">
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 animate__animated animate__fadeInUp" :style="`animation-delay: ${0.1 + index * 0.05}s`">
+                {{-- Header with line pattern background --}}
+                <div class="p-5 border-b border-gray-50 relative overflow-hidden" :style="`background: linear-gradient(135deg, ${plan.color}15, ${plan.color}05);`">
+                    {{-- Line pattern overlay --}}
+                    <div class="absolute inset-0 opacity-[0.07]" :style="`background-image: repeating-linear-gradient(45deg, ${plan.color} 0px, ${plan.color} 1px, transparent 1px, transparent 12px);`"></div>
+                    <div class="absolute top-0 right-0 w-20 h-20 rounded-full -mr-10 -mt-10" :style="`background: ${plan.color}10;`"></div>
+                    <div class="relative z-10">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm" :style="`background: ${plan.color}20;`">
+                                <svg class="w-6 h-6" :style="`color: ${plan.color};`" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            </div>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border" :class="plan.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'">
+                                <span x-text="statusLabel(plan.status)"></span>
+                            </span>
                         </div>
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border" :class="plan.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'">
-                            <span x-text="statusLabel(plan.status)"></span>
-                        </span>
+                        <h3 class="text-base font-bold text-gray-900" x-text="plan.name"></h3>
+                        <p class="text-xs text-gray-400 mt-1" x-text="plan.calories + ' {{ __('kcal/day') }}'"></p>
                     </div>
-                    <h3 class="text-base font-bold text-gray-900" x-text="plan.name"></h3>
-                    <p class="text-xs text-gray-400 mt-1" x-text="plan.calories + ' {{ __('kcal/day') }}'"></p>
                 </div>
                 {{-- Body --}}
                 <div class="p-5">
@@ -78,14 +120,27 @@
                         <span class="text-2xl font-bold text-gray-900" x-text="'SAR ' + Number(plan.price).toLocaleString()"></span>
                         <span class="text-xs text-gray-400 mb-1" x-text="'/ ' + plan.duration"></span>
                     </div>
-                    <div class="grid grid-cols-2 gap-3 mb-4">
-                        <div class="bg-gray-50 rounded-lg p-3">
-                            <p class="text-[10px] text-gray-400 uppercase tracking-wider">{{ __('Meals') }}</p>
+                    <div class="grid grid-cols-3 gap-2 mb-4">
+                        <div class="bg-gray-50 rounded-lg p-2.5 text-center">
+                            <div class="w-7 h-7 mx-auto rounded-lg bg-[#6E7A25]/10 flex items-center justify-center mb-1.5">
+                                <svg class="w-3.5 h-3.5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            </div>
+                            <p class="text-[9px] text-gray-400 uppercase tracking-wider">{{ __('Meals') }}</p>
                             <p class="text-sm font-bold text-gray-900" x-text="plan.meals"></p>
                         </div>
-                        <div class="bg-gray-50 rounded-lg p-3">
-                            <p class="text-[10px] text-gray-400 uppercase tracking-wider">{{ __('Subscribers') }}</p>
+                        <div class="bg-gray-50 rounded-lg p-2.5 text-center">
+                            <div class="w-7 h-7 mx-auto rounded-lg bg-blue-50 flex items-center justify-center mb-1.5">
+                                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            </div>
+                            <p class="text-[9px] text-gray-400 uppercase tracking-wider">{{ __('Subs') }}</p>
                             <p class="text-sm font-bold text-gray-900" x-text="plan.subscribers"></p>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-2.5 text-center">
+                            <div class="w-7 h-7 mx-auto rounded-lg bg-emerald-50 flex items-center justify-center mb-1.5">
+                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <p class="text-[9px] text-gray-400 uppercase tracking-wider">{{ __('Served') }}</p>
+                            <p class="text-sm font-bold text-gray-900" x-text="plan.total_meals_served || 0"></p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
@@ -259,6 +314,10 @@
                             <span class="text-xs text-gray-500">{{ __('Subscribers') }}</span>
                             <span class="text-xs font-semibold text-gray-900 dark:text-white" x-text="selected?.subscribers || 0"></span>
                         </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
+                            <span class="text-xs text-gray-500">{{ __('Total Meals Served') }}</span>
+                            <span class="text-xs font-bold text-[#6E7A25]" x-text="selected?.total_meals_served || 0"></span>
+                        </div>
                     </div>
                 </div>
 
@@ -269,14 +328,27 @@
                         <span class="text-3xl font-bold text-[#6E7A25]" x-text="'SAR ' + Number(selected?.price || 0).toLocaleString()"></span>
                         <span class="text-xs text-gray-400 mb-1" x-text="'/ ' + selected?.duration"></span>
                     </div>
-                    <div class="mt-3 grid grid-cols-2 gap-3">
-                        <div class="bg-white dark:bg-gray-700 rounded-lg p-3">
-                            <p class="text-[10px] text-gray-400 uppercase tracking-wider">{{ __('Meals') }}</p>
+                    <div class="mt-3 grid grid-cols-3 gap-2">
+                        <div class="bg-white dark:bg-gray-700 rounded-lg p-2.5 text-center">
+                            <div class="w-7 h-7 mx-auto rounded-lg bg-[#6E7A25]/10 flex items-center justify-center mb-1">
+                                <svg class="w-3.5 h-3.5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            </div>
+                            <p class="text-[9px] text-gray-400 uppercase tracking-wider">{{ __('Meals') }}</p>
                             <p class="text-sm font-bold text-gray-900 dark:text-white" x-text="selected?.meals || 0"></p>
                         </div>
-                        <div class="bg-white dark:bg-gray-700 rounded-lg p-3">
-                            <p class="text-[10px] text-gray-400 uppercase tracking-wider">{{ __('Meals/Day') }}</p>
+                        <div class="bg-white dark:bg-gray-700 rounded-lg p-2.5 text-center">
+                            <div class="w-7 h-7 mx-auto rounded-lg bg-blue-50 flex items-center justify-center mb-1">
+                                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <p class="text-[9px] text-gray-400 uppercase tracking-wider">{{ __('Meals/Day') }}</p>
                             <p class="text-sm font-bold text-gray-900 dark:text-white" x-text="selected?.meals_per_day || 0"></p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-700 rounded-lg p-2.5 text-center">
+                            <div class="w-7 h-7 mx-auto rounded-lg bg-emerald-50 flex items-center justify-center mb-1">
+                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <p class="text-[9px] text-gray-400 uppercase tracking-wider">{{ __('Served') }}</p>
+                            <p class="text-sm font-bold text-gray-900 dark:text-white" x-text="selected?.total_meals_served || 0"></p>
                         </div>
                     </div>
                 </div>

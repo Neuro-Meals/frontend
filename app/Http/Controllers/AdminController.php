@@ -749,23 +749,45 @@ class AdminController extends Controller
             return [];
         });
 
-        $subscriptionsData = $this->apiData($subscriptionApi->list(['limit' => 100]), function () {
-            return [];
+        $subscriptionsData = $this->apiData($subscriptionApi->list(['limit' => 100, 'page' => 1]), function () {
+            return ['data' => []];
         });
+
+        // Build a count of subscribers per plan_id from subscription data
+        $subscriberMap = [];
+        if (!empty($subscriptionsData['data'])) {
+            foreach ($subscriptionsData['data'] as $sub) {
+                $pid = $sub['plan_id'] ?? ($sub['plan']['id'] ?? 0);
+                if ($pid) {
+                    if (!isset($subscriberMap[$pid])) {
+                        $subscriberMap[$pid] = 0;
+                    }
+                    $subscriberMap[$pid]++;
+                }
+            }
+        } elseif (!empty($subscriptionsData) && is_array($subscriptionsData)) {
+            foreach ($subscriptionsData as $sub) {
+                $pid = $sub['plan_id'] ?? ($sub['plan']['id'] ?? 0);
+                if ($pid) {
+                    if (!isset($subscriberMap[$pid])) {
+                        $subscriberMap[$pid] = 0;
+                    }
+                    $subscriberMap[$pid]++;
+                }
+            }
+        }
 
         $plans = [];
         if (!empty($plansData)) {
-            $colors = ['#173327', '#033133', '#f9ac00', '#3b82f6', '#8b5cf6', '#ef4444'];
+            $colors = ['#173327', '#033133', '#f9ac00', '#3b82f6', '#8b5cf6', '#ef4444', '#ec4899', '#14b8a6'];
             $colorIndex = 0;
             foreach ($plansData as $plan) {
-                $subscriberCount = 0;
-                if (!empty($subscriptionsData)) {
-                    foreach ($subscriptionsData as $sub) {
-                        if (($sub['plan_id'] ?? 0) === ($plan['id'] ?? 0)) {
-                            $subscriberCount++;
-                        }
-                    }
-                }
+                $planId = $plan['id'] ?? 0;
+                $subscriberCount = $subscriberMap[$planId] ?? 0;
+                $totalMeals = $plan['total_meals'] ?? 84;
+                $mealsPerDay = $plan['meals_per_day'] ?? 3;
+                $durationDays = $plan['duration_days'] ?? 28;
+                $totalMealsServed = $subscriberCount * $totalMeals;
                 $plans[] = [
                     'id' => $plan['id'] ?? 0,
                     'name' => $plan['name_en'] ?? 'Plan',
@@ -778,10 +800,11 @@ class AdminController extends Controller
                     'price' => $plan['price'] ?? 0,
                     'duration' => ($plan['duration_days'] ?? 28) . ' days',
                     'duration_days' => $plan['duration_days'] ?? 28,
-                    'meals' => $plan['total_meals'] ?? 84,
-                    'meals_per_day' => $plan['meals_per_day'] ?? 3,
-                    'total_meals' => $plan['total_meals'] ?? 84,
+                    'meals' => $totalMeals,
+                    'meals_per_day' => $mealsPerDay,
+                    'total_meals' => $totalMeals,
                     'subscribers' => $subscriberCount,
+                    'total_meals_served' => $totalMealsServed,
                     'status' => ($plan['is_active'] ?? true) ? 'active' : 'draft',
                     'is_active' => $plan['is_active'] ?? true,
                     'calories' => $plan['calories'] ?? '1500-1800',
@@ -794,12 +817,14 @@ class AdminController extends Controller
         $totalSubscribers = array_sum(array_column($plans, 'subscribers'));
         $activePlans = count(array_filter($plans, fn ($p) => $p['status'] === 'active'));
         $avgPrice = count($plans) > 0 ? round(array_sum(array_column($plans, 'price')) / count($plans)) : 0;
+        $totalMealsServed = array_sum(array_column($plans, 'total_meals_served'));
 
         $stats = [
             'total' => count($plans),
             'active' => $activePlans,
             'totalSubscribers' => $totalSubscribers,
             'avgRevenue' => $avgPrice,
+            'totalMealsServed' => $totalMealsServed,
         ];
 
         return view('admin.plans', compact('plans', 'stats'));
@@ -1866,11 +1891,58 @@ class AdminController extends Controller
         $pending = count($pendingOrders);
         $delivered = count($deliveredOrders);
 
+        // ─── Richer KPIs: preparing, ready, total quantity, total calories ───
+        $preparingOrders = [];
+        $readyOrders = [];
+        $totalQuantity = 0;
+        $totalCalories = 0;
+        $shoppingList = []; // ingredient_name => total qty needed
+
+        foreach ($allOrders as $o) {
+            if (in_array($o['status'] ?? '', ['preparing']) && !isset($preparingOrders[$o['order_id']])) {
+                $preparingOrders[$o['order_id']] = true;
+            }
+            if (in_array($o['status'] ?? '', ['ready_for_delivery']) && !isset($readyOrders[$o['order_id']])) {
+                $readyOrders[$o['order_id']] = true;
+            }
+            $totalQuantity += (int) ($o['total_quantity'] ?? 0);
+            $totalCalories += (int) ($o['total_calories'] ?? 0);
+
+            // Build shopping list from order items' ingredients
+            $items = $o['items'] ?? [];
+            foreach ($items as $item) {
+                $qty = $item['quantity'] ?? 1;
+                $ings = $item['ingredients'] ?? [];
+                foreach ($ings as $ing) {
+                    $key = trim(strtolower($ing));
+                    if (!$key) continue;
+                    if (!isset($shoppingList[$key])) {
+                        $shoppingList[$key] = ['name' => trim($ing), 'total' => 0, 'meals' => []];
+                    }
+                    $shoppingList[$key]['total'] += $qty;
+                    $mealName = $item['meal_name'] ?? '';
+                    if ($mealName && !in_array($mealName, $shoppingList[$key]['meals'])) {
+                        $shoppingList[$key]['meals'][] = $mealName;
+                    }
+                }
+            }
+        }
+
+        $shoppingList = array_values($shoppingList);
+        usort($shoppingList, fn($a, $b) => $b['total'] <=> $a['total']);
+
+        $preparing = count($preparingOrders);
+        $ready = count($readyOrders);
+
         $stats = [
-            ['label' => __('Total Orders'), 'value' => number_format($total), 'color' => 'text-gray-900'],
-            ['label' => __('Pending'), 'value' => number_format($pending), 'color' => 'text-amber-600'],
-            ['label' => __('Delivered'), 'value' => number_format($delivered), 'color' => 'text-[#6E7A25]'],
-            ['label' => __('Revenue'), 'value' => 'SAR ' . number_format($revenue), 'color' => 'text-gray-900'],
+            ['label' => __('Total Orders'), 'value' => number_format($total), 'color' => 'text-gray-900', 'icon' => 'clipboard', 'gradient' => 'from-[#173327] to-[#6E7A25]'],
+            ['label' => __('Preparing'), 'value' => number_format($preparing), 'color' => 'text-amber-600', 'icon' => 'fire', 'gradient' => 'from-amber-500 to-orange-600'],
+            ['label' => __('Ready for Delivery'), 'value' => number_format($ready), 'color' => 'text-indigo-600', 'icon' => 'truck', 'gradient' => 'from-indigo-500 to-blue-600'],
+            ['label' => __('Delivered'), 'value' => number_format($delivered), 'color' => 'text-[#6E7A25]', 'icon' => 'check', 'gradient' => 'from-[#6E7A25] to-[#8b5cf6]'],
+            ['label' => __('Total Meals'), 'value' => number_format($totalQuantity), 'color' => 'text-gray-900', 'icon' => 'food', 'gradient' => 'from-[#033133] to-[#6E7A25]'],
+            ['label' => __('Total Calories'), 'value' => number_format($totalCalories), 'color' => 'text-gray-900', 'icon' => 'flame', 'gradient' => 'from-rose-500 to-red-600'],
+            ['label' => __('Revenue'), 'value' => 'SAR ' . number_format($revenue), 'color' => 'text-gray-900', 'icon' => 'money', 'gradient' => 'from-[#173327] to-[#033133]'],
+            ['label' => __('Ingredients Needed'), 'value' => count($shoppingList), 'color' => 'text-gray-900', 'icon' => 'shopping', 'gradient' => 'from-[#6E7A25] to-[#173327]'],
         ];
 
         if ($request->ajax() || $request->wantsJson()) {
@@ -1881,10 +1953,11 @@ class AdminController extends Controller
                 'stats' => $stats,
                 'drivers' => $drivers,
                 'total' => $total,
+                'shoppingList' => $shoppingList,
             ]);
         }
 
-        return view('admin.orders', compact('categories', 'categorizedOrders', 'mealsByCategory', 'stats', 'drivers', 'todayDate'));
+        return view('admin.orders', compact('categories', 'categorizedOrders', 'mealsByCategory', 'stats', 'drivers', 'todayDate', 'shoppingList'));
     }
 
     private function formatAdminOrder(array $order): array
