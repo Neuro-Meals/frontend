@@ -206,6 +206,7 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
     Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
     Route::get('/content', [AdminController::class, 'content'])->name('content');
     Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
+    Route::post('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
 
     // Reports - Phase 11
     Route::prefix('reports')->name('reports.')->group(function () {
