@@ -32,13 +32,17 @@
     </div>
 </div>
 @else
-<div class="bg-white border border-gray-100 rounded-xl p-5 sm:p-6 shadow-sm mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate__animated animate__fadeInUp" style="animation-delay: 0.15s;">
-    <div>
-        <p class="text-sm font-bold text-gray-900">{{ __('No active subscription') }}</p>
-        <p class="text-xs text-gray-500 mt-0.5">{{ __('Subscribe to a plan to start your nutrition journey.') }}</p>
+<div class="bg-gradient-to-r from-[#173327] to-[#025C5F] rounded-2xl p-5 sm:p-6 text-white shadow-lg mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate__animated animate__fadeInUp relative overflow-hidden" style="animation-delay: 0.15s;">
+    <div class="absolute top-0 right-0 w-32 h-32 bg-[#6E7A25]/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+    <div class="relative z-10">
+        <div class="flex items-center gap-2 mb-1">
+            <svg class="w-5 h-5 text-[#949B50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <p class="text-sm font-bold">{{ __('Start Your Nutrition Journey') }}</p>
+        </div>
+        <p class="text-xs text-white/60">{{ __('Subscribe to a plan to get personalized meals, calorie tracking, and delivery.') }}</p>
     </div>
-    <a href="{{ route('user.subscriptions') }}" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-xs font-bold hover:shadow-lg transition-all w-fit">
-        {{ __('Subscribe Now') }}
+    <a href="{{ route('user.subscriptions') }}" class="relative z-10 inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-[#6E7A25] hover:bg-[#949B50] text-white text-xs font-bold hover:shadow-lg transition-all w-fit active:scale-95">
+        {{ __('View Plans') }} →
     </a>
 </div>
 @endif
@@ -52,18 +56,20 @@
     <div class="relative z-10 p-5 sm:p-8 lg:p-10 flex flex-col justify-center min-h-[200px] sm:min-h-[240px]">
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#6E7A25]/30 backdrop-blur-sm text-[#949B50] text-[10px] font-bold uppercase tracking-wider w-fit mb-3">
             <span class="w-1.5 h-1.5 bg-[#949B50] rounded-full animate-pulse"></span>
-            {{ __('Today\'s Pick') }}
+            {{ $stats['hasSubscription'] ? __("Today's Pick") : __('Featured Meal') }}
         </span>
         <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight max-w-md leading-tight">{{ $heroMeal['name'] ?? 'Meal' }}</h2>
-        <p class="text-xs sm:text-sm text-white/60 mt-2 max-w-sm leading-relaxed">{{ $heroMeal['description'] ?? '' }}</p>
+        @if(!empty($heroMeal['description']))
+        <p class="text-xs sm:text-sm text-white/60 mt-2 max-w-sm leading-relaxed line-clamp-2">{{ $heroMeal['description'] }}</p>
+        @endif
         <div class="flex items-center gap-4 mt-4">
             <div class="flex items-center gap-1.5">
                 <svg class="w-4 h-4 text-[#949B50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                <span class="text-xs font-bold text-white">{{ $heroMeal['calories'] ?? 520 }} {{ __('kcal') }}</span>
+                <span class="text-xs font-bold text-white">{{ $heroMeal['calories'] ?? 0 }} {{ __('kcal') }}</span>
             </div>
             <div class="flex items-center gap-1.5">
                 <svg class="w-4 h-4 text-[#949B50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17"/></svg>
-                <span class="text-xs font-bold text-white">{{ $heroMeal['protein'] ?? 42 }}g {{ __('Protein') }}</span>
+                <span class="text-xs font-bold text-white">{{ $heroMeal['protein'] ?? 0 }}g {{ __('Protein') }}</span>
             </div>
             <a href="{{ route('user.meals') }}" class="ml-auto px-4 py-2 bg-[#6E7A25] hover:bg-[#949B50] text-white text-xs font-bold rounded-lg transition-all hover:shadow-lg hover:shadow-[#6E7A25]/30 active:scale-95">
                 {{ __('View Meal') }} →
@@ -78,21 +84,31 @@
     <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20" style="animation-delay: 0.3s;">
         <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
         <div class="flex items-start justify-between relative z-10">
-            <span class="text-[10px] sm:text-xs font-medium text-white/60">{{ __('Active Plan') }}</span>
+            <span class="text-[10px] sm:text-xs font-medium text-white/60">{{ $stats['hasSubscription'] ? __('Active Plan') : __('Subscription') }}</span>
             <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         </div>
+        @if($stats['hasSubscription'])
         <div class="mt-2 sm:mt-3 text-base sm:text-xl font-bold tracking-tight text-white relative z-10 truncate">{{ $stats['activePlan'] }}</div>
         <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">{{ __('Renews') }} {{ $stats['planRenewal'] }}</div>
+        @else
+        <div class="mt-2 sm:mt-3 text-base sm:text-xl font-bold tracking-tight text-white relative z-10">{{ __('No Plan') }}</div>
+        <a href="{{ route('user.subscriptions') }}" class="mt-1 text-[10px] sm:text-xs text-[#949B50] font-bold relative z-10 hover:text-white transition-colors">{{ __('Subscribe Now') }} →</a>
+        @endif
     </div>
 
     <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#033133] to-[#025C5F] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#025C5F]/20" style="animation-delay: 0.4s;">
         <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
         <div class="flex items-start justify-between relative z-10">
-            <span class="text-[10px] sm:text-xs font-medium text-white/60">{{ __('Meals Consumed') }}</span>
+            <span class="text-[10px] sm:text-xs font-medium text-white/60">{{ $stats['hasSubscription'] ? __('Meals Consumed') : __('Available Meals') }}</span>
             <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
         </div>
+        @if($stats['hasSubscription'])
         <div class="mt-2 sm:mt-3 text-xl sm:text-3xl font-bold tracking-tight text-white relative z-10">{{ $stats['mealsConsumed'] }}<span class="text-sm text-white/50">/{{ $stats['mealsTotal'] > 0 ? $stats['mealsTotal'] : '?' }}</span></div>
         <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">{{ $stats['remainingMeals'] }} {{ __('remaining') }}</div>
+        @else
+        <div class="mt-2 sm:mt-3 text-xl sm:text-3xl font-bold tracking-tight text-white relative z-10">{{ $stats['availableMealsCount'] }}</div>
+        <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">{{ __('meals to explore') }}</div>
+        @endif
     </div>
 
     <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#6E7A25] to-[#949B50] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#949B50]/20" style="animation-delay: 0.5s;">
@@ -108,11 +124,11 @@
     <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#025C5F] to-[#033133] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#025C5F]/20" style="animation-delay: 0.6s;">
         <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
         <div class="flex items-start justify-between relative z-10">
-            <span class="text-[10px] sm:text-xs font-medium text-white/60">{{ __('Total Orders') }}</span>
+            <span class="text-[10px] sm:text-xs font-medium text-white/60">{{ $stats['hasSubscription'] ? __('Total Orders') : __('Total Orders') }}</span>
             <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
         </div>
         <div class="mt-2 sm:mt-3 text-xl sm:text-3xl font-bold tracking-tight text-white relative z-10">{{ $stats['totalOrders'] }}</div>
-        <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">{{ __('Next') }}: {{ $stats['nextDelivery'] }}</div>
+        <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">{{ $stats['totalOrders'] > 0 ? __('Next') ~ ': ' ~ $stats['nextDelivery'] : __('No orders yet') }}</div>
     </div>
 </div>
 
@@ -123,7 +139,7 @@
         <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div>
                 <h3 class="text-sm font-bold text-gray-900">{{ __('Calorie') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Tracking') }}</span></h3>
-                <p class="text-xs text-gray-400">{{ __('Last 7 days · Target') }}: {{ number_format($chartData['calorieTarget']) }} kcal</p>
+                <p class="text-xs text-gray-400">{{ $stats['hasSubscription'] ? __('Last 7 days · Target') ~ ': ' ~ number_format($chartData['calorieTarget']) ~ ' kcal' : __('Sample week · Target') ~ ': ' ~ number_format($chartData['calorieTarget']) ~ ' kcal' }}</p>
             </div>
             <div class="text-right">
                 <div class="text-lg font-bold text-gray-900">{{ number_format($stats['dailyCalories']) }} {{ __('kcal') }}</div>
@@ -176,8 +192,8 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden animate__animated animate__fadeInUp" style="animation-delay: 0.9s;">
         <div class="px-4 sm:px-5 py-4 border-b border-gray-50">
-            <h3 class="text-sm font-bold text-gray-900">{{ __('Upcoming') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Meals') }}</span></h3>
-            <p class="text-xs text-gray-400">{{ __('Your next scheduled meals') }}</p>
+            <h3 class="text-sm font-bold text-gray-900">{{ $stats['hasSubscription'] ? __('Upcoming') : __('Today\'s') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Meals') }}</span></h3>
+            <p class="text-xs text-gray-400">{{ $stats['hasSubscription'] ? __('Your next scheduled meals') : __('Discover our available meals') }}</p>
         </div>
         <div class="divide-y divide-gray-50">
             @foreach($upcomingMeals as $meal)

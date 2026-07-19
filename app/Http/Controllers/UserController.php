@@ -172,10 +172,68 @@ class UserController extends Controller
         ksort($weekMeals);
         $weekMeals = array_values($weekMeals);
 
-        // Fallback to generic meals if nothing is scheduled yet
-        if (empty($todayMeals)) {
-            foreach (array_slice($meals, 0, $mealsPerDay) as $meal) {
-                $todayMeals[] = $this->normalizeMealForView($meal);
+        // Fallback: build real meal data from available meals when no subscription
+        $hasSubscription = !empty($activeSubscription);
+        if (empty($todayMeals) && !empty($meals)) {
+            // Pick real meals for today - get variety from different categories
+            $todayMeals = [];
+            $usedIds = [];
+            $categoryMeals = [];
+            foreach ($meals as $meal) {
+                $cat = $meal['category']['name_en'] ?? ($meal['category_name'] ?? 'Other');
+                if (!isset($categoryMeals[$cat])) {
+                    $categoryMeals[$cat] = [];
+                }
+                $categoryMeals[$cat][] = $meal;
+            }
+            // Pick one meal per category for variety
+            foreach ($categoryMeals as $cat => $catMeals) {
+                if (count($todayMeals) >= $mealsPerDay) break;
+                $pick = $catMeals[array_rand($catMeals)];
+                $normalized = $this->normalizeMealForView($pick);
+                $normalized['description'] = $pick['description_en'] ?? ($pick['description'] ?? '');
+                $todayMeals[] = $normalized;
+                $usedIds[] = $pick['id'] ?? 0;
+            }
+            // Fill remaining slots
+            if (count($todayMeals) < $mealsPerDay) {
+                foreach ($meals as $meal) {
+                    if (count($todayMeals) >= $mealsPerDay) break;
+                    if (in_array($meal['id'] ?? 0, $usedIds)) continue;
+                    $normalized = $this->normalizeMealForView($meal);
+                    $normalized['description'] = $meal['description_en'] ?? ($meal['description'] ?? '');
+                    $todayMeals[] = $normalized;
+                    $usedIds[] = $meal['id'] ?? 0;
+                }
+            }
+        }
+
+        // Build weekly chart data from real meals when no subscription
+        if (empty($weekMeals) || (count(array_filter(array_column($weekMeals, 'mealCount'))) === 0)) {
+            if (!empty($meals)) {
+                $mealsPerDay = max($mealsPerDay, 3);
+                for ($i = 0; $i < 7; $i++) {
+                    if (isset($weekMeals[$i]) && $weekMeals[$i]['mealCount'] > 0) continue;
+                    $dayMeals = [];
+                    $offset = $i * $mealsPerDay;
+                    for ($j = 0; $j < $mealsPerDay; $j++) {
+                        $idx = ($offset + $j) % count($meals);
+                        $meal = $meals[$idx];
+                        $normalized = $this->normalizeMealForView($meal);
+                        $dayMeals[] = $normalized;
+                    }
+                    $calories = array_sum(array_column($dayMeals, 'calories'));
+                    $weekMeals[$i] = [
+                        'day' => $dayLabels[$i],
+                        'date' => null,
+                        'meals' => $dayMeals,
+                        'mealCount' => count($dayMeals),
+                        'calories' => $calories,
+                        'completed' => false,
+                    ];
+                }
+                ksort($weekMeals);
+                $weekMeals = array_values($weekMeals);
             }
         }
 
@@ -190,6 +248,7 @@ class UserController extends Controller
                 'carbs' => $meal['carbs'] ?? 0,
                 'fat' => $meal['fat'] ?? 0,
                 'image' => $meal['image'] ?? null,
+                'description' => $meal['description'] ?? '',
                 'status' => $meal['status'] ?? 'upcoming',
             ];
         }
@@ -386,6 +445,8 @@ class UserController extends Controller
             'weightGoal' => (float) $weightGoal,
             'subscriptionStatus' => $realSubscription['status'] ?? 'none',
             'subscriptionPaymentStatus' => $realSubscription['payment_status'] ?? 'none',
+            'hasSubscription' => $hasSubscription,
+            'availableMealsCount' => count($meals),
         ];
 
         return view('user.dashboard', compact('user', 'stats', 'weeklyProgress', 'upcomingMeals', 'recentOrders', 'activeSubscription', 'chartData', 'weightHistory'));
