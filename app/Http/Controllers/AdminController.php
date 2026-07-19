@@ -602,7 +602,7 @@ class AdminController extends Controller
         $paymentStatus = $request->input('payment_status');
         $search = $request->input('search');
         $page = (int) $request->input('page', 1);
-        $limit = (int) $request->input('limit', 20);
+        $limit = (int) $request->input('limit', 50);
 
         $query = ['page' => $page, 'limit' => $limit];
         if ($status) $query['status'] = $status;
@@ -612,6 +612,19 @@ class AdminController extends Controller
             return [];
         });
 
+        // Fetch plans for color mapping
+        $plansData = $this->apiData(app(PlanApiService::class)->list(['limit' => 100, 'is_active' => true]), fn () => []);
+        $planColors = [];
+        $planPriceMap = [];
+        $colors = ['#173327', '#033133', '#f9ac00', '#3b82f6', '#8b5cf6', '#ef4444', '#ec4899', '#14b8a6'];
+        $colorIndex = 0;
+        foreach ($plansData as $plan) {
+            $pid = $plan['id'] ?? 0;
+            $planColors[$pid] = $colors[$colorIndex % count($colors)];
+            $planPriceMap[$pid] = $plan['price'] ?? 0;
+            $colorIndex++;
+        }
+
         $subscriptions = [];
         $meta = ['total' => 0, 'pages' => 1, 'page' => $page, 'limit' => $limit];
 
@@ -620,22 +633,28 @@ class AdminController extends Controller
             foreach ($subscriptionsData['data'] ?? $subscriptionsData as $sub) {
                 $customer = $sub['customer'] ?? ($sub['user'] ?? []);
                 $plan = $sub['plan'] ?? [];
+                $planIdVal = $sub['plan_id'] ?? ($plan['id'] ?? 0);
                 $subscriptions[] = [
                     'id' => $sub['id'] ?? 0,
                     'user_id' => $sub['user_id'] ?? ($customer['id'] ?? 0),
                     'customer' => trim($customer['full_name'] ?? (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) ?: 'Customer',
                     'customer_email' => $customer['email'] ?? '',
                     'customer_phone' => $customer['phone'] ?? '',
-                    'plan_id' => $sub['plan_id'] ?? ($plan['id'] ?? 0),
+                    'customer_avatar' => strtoupper(substr($customer['first_name'] ?? 'C', 0, 1)),
+                    'plan_id' => $planIdVal,
                     'plan_name' => $plan['name_en'] ?? ($sub['plan_name'] ?? 'Plan'),
+                    'plan_color' => $planColors[$planIdVal] ?? '#6E7A25',
                     'duration_days' => $plan['duration_days'] ?? 0,
                     'amount' => $sub['amount'] ?? 0,
                     'status' => $sub['status'] ?? 'pending_payment',
                     'payment_status' => $sub['payment_status'] ?? 'unpaid',
                     'start_date' => $sub['start_date'] ?? null,
                     'end_date' => $sub['end_date'] ?? null,
+                    'start_formatted' => !empty($sub['start_date']) ? date('M d, Y', strtotime($sub['start_date'])) : '—',
+                    'end_formatted' => !empty($sub['end_date']) ? date('M d, Y', strtotime($sub['end_date'])) : '—',
                     'notes' => $sub['notes'] ?? '',
                     'created_at' => $sub['created_at'] ?? null,
+                    'created_formatted' => !empty($sub['created_at']) ? date('M d, Y', strtotime($sub['created_at'])) : '—',
                 ];
             }
         }
@@ -651,18 +670,22 @@ class AdminController extends Controller
 
         $total = count($subscriptions);
         $active = count(array_filter($subscriptions, fn ($s) => $s['status'] === 'active'));
+        $paused = count(array_filter($subscriptions, fn ($s) => $s['status'] === 'paused'));
         $pending = count(array_filter($subscriptions, fn ($s) => in_array($s['status'], ['pending_payment', 'pending'])));
         $cancelled = count(array_filter($subscriptions, fn ($s) => $s['status'] === 'cancelled'));
         $paid = count(array_filter($subscriptions, fn ($s) => $s['payment_status'] === 'paid'));
         $mrr = array_sum(array_map(fn ($s) => in_array($s['status'], ['active', 'paused']) ? $s['amount'] : 0, $subscriptions));
+        $totalRevenue = array_sum(array_map(fn ($s) => $s['payment_status'] === 'paid' ? $s['amount'] : 0, $subscriptions));
 
         $stats = [
             'total' => $total,
             'active' => $active,
+            'paused' => $paused,
             'pending' => $pending,
             'cancelled' => $cancelled,
             'paid' => $paid,
             'mrr' => $mrr,
+            'total_revenue' => $totalRevenue,
         ];
 
         if ($request->ajax() || $request->wantsJson()) {
@@ -674,7 +697,29 @@ class AdminController extends Controller
             ]);
         }
 
-        $plansData = $this->apiData(app(PlanApiService::class)->list(['limit' => 100, 'is_active' => true]), fn () => []);
+        // Export as CSV/Excel
+        if ($request->input('export') === 'excel') {
+            $filename = 'subscriptions_' . date('Y-m-d_His') . '.csv';
+            $headers = [
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            ];
+            $callback = function () use ($subscriptions) {
+                $f = fopen('php://output', 'w');
+                fprintf($f, chr(0xEF) . chr(0xBB) . chr(0xBF));
+                fputcsv($f, ['ID', 'Customer', 'Email', 'Phone', 'Plan', 'Amount (SAR)', 'Status', 'Payment', 'Start Date', 'End Date', 'Created']);
+                foreach ($subscriptions as $s) {
+                    fputcsv($f, [
+                        $s['id'], $s['customer'], $s['customer_email'], $s['customer_phone'],
+                        $s['plan_name'], $s['amount'], $s['status'], $s['payment_status'],
+                        $s['start_formatted'], $s['end_formatted'], $s['created_formatted'],
+                    ]);
+                }
+                fclose($f);
+            };
+            return response()->stream($callback, 200, $headers);
+        }
+
         $plans = [];
         foreach ($plansData as $plan) {
             $plans[] = [
@@ -1070,6 +1115,17 @@ class AdminController extends Controller
         $user = $sub['user'] ?? [];
         $plan = $sub['plan'] ?? [];
 
+        // Fetch plan color
+        $plansData = $this->apiData(app(PlanApiService::class)->list(['limit' => 100]), fn () => []);
+        $planColors = [];
+        $colors = ['#173327', '#033133', '#f9ac00', '#3b82f6', '#8b5cf6', '#ef4444', '#ec4899', '#14b8a6'];
+        $colorIndex = 0;
+        foreach ($plansData as $p) {
+            $planColors[$p['id'] ?? 0] = $colors[$colorIndex % count($colors)];
+            $colorIndex++;
+        }
+        $planIdVal = $sub['plan_id'] ?? ($plan['id'] ?? 0);
+
         return response()->json([
             'success' => true,
             'subscription' => [
@@ -1077,17 +1133,22 @@ class AdminController extends Controller
                 'user_id' => $sub['user_id'] ?? 0,
                 'customer' => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: 'Customer',
                 'customer_email' => $user['email'] ?? '',
-                'plan_id' => $sub['plan_id'] ?? 0,
+                'customer_phone' => $user['phone'] ?? '',
+                'plan_id' => $planIdVal,
                 'plan_name' => $plan['name_en'] ?? 'Plan',
+                'plan_color' => $planColors[$planIdVal] ?? '#6E7A25',
                 'amount' => $sub['amount'] ?? 0,
                 'status' => $sub['status'] ?? 'pending_payment',
                 'payment_status' => $sub['payment_status'] ?? 'unpaid',
                 'start_date' => $sub['start_date'] ?? null,
                 'end_date' => $sub['end_date'] ?? null,
+                'start_formatted' => !empty($sub['start_date']) ? date('M d, Y', strtotime($sub['start_date'])) : '—',
+                'end_formatted' => !empty($sub['end_date']) ? date('M d, Y', strtotime($sub['end_date'])) : '—',
                 'paused_at' => $sub['paused_at'] ?? null,
                 'cancelled_at' => $sub['cancelled_at'] ?? null,
                 'notes' => $sub['notes'] ?? '',
                 'created_at' => $sub['created_at'] ?? null,
+                'created_formatted' => !empty($sub['created_at']) ? date('M d, Y', strtotime($sub['created_at'])) : '—',
             ],
         ]);
     }

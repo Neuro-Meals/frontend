@@ -152,6 +152,7 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
     Route::put('/customers/{id}', [AdminController::class, 'updateCustomer'])->name('customers.update');
     Route::delete('/customers/{id}', [AdminController::class, 'deleteCustomer'])->name('customers.delete');
     Route::get('/subscriptions', [AdminController::class, 'subscriptions'])->name('subscriptions');
+    Route::get('/subscriptions/export', [AdminController::class, 'subscriptions'])->name('subscriptions.export');
     Route::get('/subscriptions/{id}', [AdminController::class, 'showSubscription'])->name('subscriptions.show');
     Route::post('/subscriptions', [AdminController::class, 'storeSubscription'])->name('subscriptions.store');
     Route::patch('/subscriptions/{id}', [AdminController::class, 'updateSubscription'])->name('subscriptions.update');
