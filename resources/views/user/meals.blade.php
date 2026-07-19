@@ -312,6 +312,16 @@
     $totalWeekMeals = array_sum(array_map(fn($d) => $d['mealCount'] ?? 0, $weekMeals));
     $todayIndex = (new DateTime())->format('N') - 1;
     $defaultDay = $todayIndex;
+
+    // Build date range label from weekMeals dates
+    $firstDate = collect($weekMeals)->pluck('date')->filter()->first();
+    $lastDate = collect($weekMeals)->pluck('date')->filter()->last();
+    $weekRangeLabel = '';
+    if ($firstDate && $lastDate) {
+        $f = \Carbon\Carbon::parse($firstDate);
+        $l = \Carbon\Carbon::parse($lastDate);
+        $weekRangeLabel = $f->format('M d') . ' - ' . $l->format('M d, Y');
+    }
 @endphp
 
 <div x-data="{ selectedDay: {{ $defaultDay }} }" class="mb-6">
@@ -326,12 +336,21 @@
                 </div>
                 <div>
                     <h3 class="text-base font-bold">{{ __('Weekly') }} {{ __('Schedule') }}</h3>
-                    <p class="text-[10px] text-white/60 mt-0.5">{{ __('Your meals for each day of the week') }}</p>
+                    <p class="text-[10px] text-white/60 mt-0.5">{{ $weekRangeLabel ?: __('Your meals for each day of the week') }}</p>
                 </div>
             </div>
-            <div class="text-right">
-                <p class="text-2xl font-extrabold">{{ $totalWeekMeals }}</p>
-                <p class="text-[10px] text-white/60 font-medium">{{ number_format($totalWeekCalories) }} kcal {{ __('total') }}</p>
+            {{-- Week navigation --}}
+            <div class="flex items-center gap-2">
+                <a href="{{ route('user.meals', ['week' => 'prev']) }}" class="w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center transition-all" title="{{ __('Previous Week') }}">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </a>
+                <div class="text-center px-2">
+                    <p class="text-2xl font-extrabold leading-none">{{ $totalWeekMeals }}</p>
+                    <p class="text-[9px] text-white/60 font-medium mt-0.5">{{ number_format($totalWeekCalories) }} kcal</p>
+                </div>
+                <a href="{{ route('user.meals', ['week' => 'next']) }}" class="w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center transition-all" title="{{ __('Next Week') }}">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </a>
             </div>
         </div>
     </div>

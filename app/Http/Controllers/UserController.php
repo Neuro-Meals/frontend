@@ -1186,6 +1186,15 @@ class UserController extends Controller
             'friday' => 4, 'saturday' => 5, 'sunday' => 6,
         ];
 
+        // Calculate this week's dates (Monday to Sunday)
+        $todayDate = new \DateTime();
+        $mondayDate = (clone $todayDate)->modify('monday this week');
+        $weekDates = [];
+        for ($i = 0; $i < 7; $i++) {
+            $d = (clone $mondayDate)->modify("+{$i} days");
+            $weekDates[$i] = $d->format('Y-m-d');
+        }
+
         if (!empty($currentDetails['weekly_menu'])) {
             foreach ($currentDetails['weekly_menu'] as $dayMenu) {
                 $dayKey = $dayMenu['day_of_week'] ?? '';
@@ -1219,7 +1228,7 @@ class UserController extends Controller
                 $calories = array_sum(array_column($dayMeals, 'calories'));
                 $weekMeals[$dayIndex] = [
                     'day' => $dayLabels[$dayIndex] ?? ucfirst($dayKey),
-                    'date' => null,
+                    'date' => $weekDates[$dayIndex] ?? null,
                     'meals' => $dayMeals,
                     'categories' => $dayCategories,
                     'mealCount' => count($dayMeals),
@@ -1234,7 +1243,7 @@ class UserController extends Controller
             if (!isset($weekMeals[$i])) {
                 $weekMeals[$i] = [
                     'day' => $dayLabels[$i],
-                    'date' => null,
+                    'date' => $weekDates[$i] ?? null,
                     'meals' => [],
                     'categories' => [],
                     'mealCount' => 0,
