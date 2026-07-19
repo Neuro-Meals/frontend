@@ -1059,6 +1059,7 @@ class UserController extends Controller
     }
 
     public function meals(
+        Request $request,
         MealApiService $mealApi,
         MealScheduleApiService $scheduleApi,
         SubscriptionApiService $subscriptionApi,
@@ -1186,9 +1187,14 @@ class UserController extends Controller
             'friday' => 4, 'saturday' => 5, 'sunday' => 6,
         ];
 
-        // Calculate this week's dates (Monday to Sunday)
+        // Calculate this week's dates (Monday to Sunday) with optional week offset
+        $weekParam = $request->query('week', 'current');
+        $weekOffset = 0;
+        if ($weekParam === 'prev') $weekOffset = -1;
+        elseif ($weekParam === 'next') $weekOffset = 1;
+
         $todayDate = new \DateTime();
-        $mondayDate = (clone $todayDate)->modify('monday this week');
+        $mondayDate = (clone $todayDate)->modify('monday this week')->modify("{$weekOffset} week");
         $weekDates = [];
         for ($i = 0; $i < 7; $i++) {
             $d = (clone $mondayDate)->modify("+{$i} days");
