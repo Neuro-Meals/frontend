@@ -371,7 +371,12 @@
             @endif
             <p class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide"
                :class="selectedDay === {{ $idx }} ? 'text-white/60' : '{{ $isToday ? "text-[#6E7A25]" : "text-gray-400" }}'">{{ $day['day'] }}</p>
-            <div class="my-1.5 sm:my-2 mx-auto w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center font-bold text-xs sm:text-sm"
+            @if(!empty($day['date']))
+            @php $dayNum = \Carbon\Carbon::parse($day['date'])->format('d'); @endphp
+            <p class="text-[8px] sm:text-[9px] font-bold"
+               :class="selectedDay === {{ $idx }} ? 'text-white/80' : '{{ $isToday ? "text-[#6E7A25]/70" : "text-gray-300" }}'">{{ $dayNum }}</p>
+            @endif
+            <div class="my-1 sm:my-1.5 mx-auto w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center font-bold text-xs sm:text-sm"
                 :class="selectedDay === {{ $idx }} ? 'bg-white/15 text-white' : '{{ $day['mealCount'] > 0 ? "bg-[#6E7A25]/10 text-[#173327]" : "bg-gray-100 text-gray-300" }}'">{{ $day['mealCount'] }}</div>
             <p class="text-[8px] sm:text-[9px] font-medium"
                :class="selectedDay === {{ $idx }} ? 'text-white/50' : 'text-gray-400'">{{ $day['calories'] > 0 ? $day['calories'] . ' kcal' : '—' }}</p>
@@ -395,6 +400,10 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <p class="text-sm font-bold {{ $isTodayPanel ? 'text-white' : 'text-gray-900' }}">{{ $day['day'] }} {{ __('Schedule') }}</p>
+                        @if(!empty($day['date']))
+                        @php $formattedDate = \Carbon\Carbon::parse($day['date'])->format('F j, Y'); @endphp
+                        <span class="text-[10px] font-medium {{ $isTodayPanel ? 'text-white/60' : 'text-gray-400' }}">{{ $formattedDate }}</span>
+                        @endif
                         @if($isTodayPanel)
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wide bg-white text-[#173327] shadow-sm">
                             <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
