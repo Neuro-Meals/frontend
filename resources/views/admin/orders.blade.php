@@ -33,7 +33,7 @@
     </template>
   </div>
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" x-show="loading">
-    <template x-for="i in 8">
+    <template x-for="i in 4">
       <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm animate-pulse"><div class="h-3 bg-gray-100 rounded w-1/2 mb-2"></div><div class="h-6 bg-gray-100 rounded w-3/4"></div></div>
     </template>
   </div>
@@ -64,30 +64,30 @@
 
   {{-- Shopping List (All ingredients needed for today) --}}
   <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden" x-show="shoppingList.length > 0">
-    <div class="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-[#173327]/5 to-transparent flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-[#173327]/10 flex items-center justify-center">
-          <svg class="w-4 h-4 text-[#173327]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+    <div class="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-[#173327] to-[#6E7A25] flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center shadow-sm">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
         </div>
         <div>
-          <h3 class="text-sm font-bold text-gray-900">{{ __('Shopping List') }}</h3>
-          <p class="text-[10px] text-gray-400">{{ __('All ingredients needed for today') }}</p>
+          <h3 class="text-sm font-bold text-white">{{ __('Shopping List — Ingredients for Today') }}</h3>
+          <p class="text-[10px] text-white/60">{{ __('Everything the chef needs to prepare') }}</p>
         </div>
       </div>
-      <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#173327]/10 text-[#173327]" x-text="shoppingList.length + ' {{ __('items') }}'"></span>
+      <span class="px-3 py-1.5 rounded-full text-[11px] font-bold bg-white/15 text-white border border-white/20" x-text="shoppingList.length + ' {{ __('items') }}'"></span>
     </div>
-    <div class="p-4 max-h-64 overflow-y-auto">
-      <div class="flex flex-wrap gap-2">
+    <div class="p-5 max-h-80 overflow-y-auto">
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
         <template x-for="(ing, idx) in shoppingList" :key="idx">
-          <div class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100 hover:border-[#6E7A25]/30 hover:bg-[#6E7A25]/5 transition-all group">
-            <div class="w-6 h-6 rounded-lg bg-[#6E7A25]/10 flex items-center justify-center flex-shrink-0">
-              <svg class="w-3.5 h-3.5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <div class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100/50 border border-gray-100 hover:border-[#6E7A25]/30 hover:shadow-md transition-all group">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center flex-shrink-0 shadow-sm">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
             </div>
-            <div class="min-w-0">
-              <p class="text-xs font-bold text-gray-900" x-text="ing.name"></p>
-              <p class="text-[9px] text-gray-400" x-show="ing.meals.length > 0" x-text="ing.meals.slice(0, 2).join(', ') + (ing.meals.length > 2 ? ' +' + (ing.meals.length - 2) : '')"></p>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-bold text-gray-900 truncate" x-text="ing.name"></p>
+              <p class="text-[9px] text-gray-400 truncate" x-show="ing.meals.length > 0" x-text="ing.meals.slice(0, 2).join(', ') + (ing.meals.length > 2 ? ' +' + (ing.meals.length - 2) : '')"></p>
             </div>
-            <span class="text-[10px] font-bold text-white bg-[#173327] px-2 py-0.5 rounded-full flex-shrink-0" x-text="'×' + ing.total"></span>
+            <span class="text-[11px] font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] px-2.5 py-1 rounded-full flex-shrink-0 shadow-sm" x-text="'×' + ing.total"></span>
           </div>
         </template>
       </div>
@@ -151,9 +151,8 @@
       <template x-for="meal in activeMeals" :key="meal.id">
         <div class="px-4 py-4 hover:bg-gray-50/30 transition-colors">
           <div class="flex items-start gap-3">
-            <div class="w-14 h-14 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center shadow-sm">
-              <img x-show="meal.image_url" :src="meal.image_url" class="w-full h-full object-cover" alt="">
-              <svg x-show="!meal.image_url" class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6E7A25] to-[#173327] flex-shrink-0 flex items-center justify-center shadow-sm">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between gap-2 mb-1">
@@ -403,9 +402,8 @@
               <template x-for="(item, i) in selected.items" :key="i">
                 <div class="bg-gray-50 rounded-2xl p-3.5 border border-gray-100">
                   <div class="flex items-start gap-3 mb-2">
-                    <div class="w-12 h-12 rounded-xl bg-white border border-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center shadow-sm">
-                      <img x-show="item.image_url" :src="item.image_url" class="w-full h-full object-cover" alt="">
-                      <svg x-show="!item.image_url" class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6E7A25] to-[#173327] flex-shrink-0 flex items-center justify-center shadow-sm">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     </div>
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center justify-between gap-2">
