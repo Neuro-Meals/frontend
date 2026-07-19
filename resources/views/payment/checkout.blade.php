@@ -76,7 +76,7 @@
                 methods: checkout.methods || ['creditcard'],
                 metadata: checkout.metadata || {},
                 language: document.documentElement.lang || 'en',
-                on_completed: function(payment) {
+                on_completed: async function(payment) {
                     const status = (payment && payment.status || '').toLowerCase();
                     const moyasarPaymentUuid = payment && payment.id || '';
 
@@ -94,27 +94,33 @@
                     formContainer.style.display = 'none';
                     errorEl.classList.add('hidden');
 
-                    if (moyasarPaymentUuid && localPaymentId) {
-                        const attachUrl = '{{ route("user.payments.attach-moyasar", ["paymentId" => "__PID__"]) }}'.replace('__PID__', localPaymentId);
-                        fetch(attachUrl, {
-                            method: 'POST',
-                            headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            },
-                            credentials: 'same-origin',
-                            body: JSON.stringify({ moyasar_payment_id: moyasarPaymentUuid }),
-                        }).then(r => r.json().catch(() => ({}))).then(result => {
-                            if (!result.success) {
-                                console.warn('Attach failed:', result);
-                            }
-                        }).catch(err => {
-                            console.warn('Attach error:', err);
-                        });
-                    }
-
                     if (status === 'paid' || status === 'captured') {
+                        const loadingText = loadingEl.querySelector('p');
+                        if (loadingText) loadingText.textContent = '{{ __('Confirming payment...') }}';
+
+                        if (moyasarPaymentUuid && localPaymentId) {
+                            const attachUrl = '{{ route("user.payments.attach-moyasar", ["paymentId" => "__PID__"]) }}'.replace('__PID__', localPaymentId);
+                            try {
+                                const attachResponse = await fetch(attachUrl, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    },
+                                    credentials: 'same-origin',
+                                    body: JSON.stringify({ moyasar_payment_id: moyasarPaymentUuid }),
+                                });
+                                const attachResult = await attachResponse.json().catch(() => ({}));
+
+                                if (!attachResult.success) {
+                                    console.warn('Attach failed, redirecting to success page for fallback:', attachResult);
+                                }
+                            } catch (err) {
+                                console.warn('Attach error, redirecting to success page for fallback:', err);
+                            }
+                        }
+
                         const successUrl = '{{ route("payment.success") }}' + '?payment_id=' + localPaymentId + '&id=' + moyasarPaymentUuid;
                         window.location.href = successUrl;
                     }
