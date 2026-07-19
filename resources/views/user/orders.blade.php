@@ -215,59 +215,61 @@
 
                             {{-- Meal cards --}}
                             <div class="p-3">
-                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <div class="space-y-2">
                                     @foreach($catGroup['meals'] as $meal)
-                                    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group">
-                                        <div class="h-32 sm:h-36 bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 relative overflow-hidden">
-                                            <img src="{{ meal_image_url($meal['image'] ?? null) }}"
-                                                 srcset="{{ meal_image_srcset($meal['image'] ?? null) }}"
-                                                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                                 alt="{{ $meal['name'] ?? __('Meal') }}"
-                                                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                 loading="lazy"
-                                                 onerror="this.onerror=null;this.src='{{ asset('images/meal-placeholder.svg') }}';">
-                                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-                                            @if($meal['quantity'] > 1)
-                                            <span class="absolute top-2 left-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[#173327] text-white shadow-md">x{{ $meal['quantity'] }}</span>
-                                            @endif
-                                            {{-- Per-meal delivery status badge --}}
-                                            @if($order['status'] === 'delivered')
-                                            <span class="absolute top-2 right-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-green-500/90 text-white backdrop-blur-sm shadow-md">
-                                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                                {{ __('Delivered') }}
-                                            </span>
-                                            @elseif($order['status'] === 'out_for_delivery')
-                                            <span class="absolute top-2 right-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-orange-500/90 text-white backdrop-blur-sm shadow-md">
-                                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                                {{ __('On the way') }}
-                                            </span>
-                                            @elseif($order['status'] === 'preparing')
-                                            <span class="absolute top-2 right-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-500/90 text-white backdrop-blur-sm shadow-md">
-                                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                                {{ __('Preparing') }}
-                                            </span>
-                                            @elseif($order['status'] === 'cancelled')
-                                            <span class="absolute top-2 right-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-red-500/90 text-white backdrop-blur-sm shadow-md">
-                                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                                {{ __('Cancelled') }}
-                                            </span>
-                                            @else
-                                            <span class="absolute top-2 right-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-yellow-500/90 text-white backdrop-blur-sm shadow-md">
-                                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                                {{ __('Pending') }}
-                                            </span>
-                                            @endif
-                                            <span class="absolute bottom-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-white/95 text-[#173327] backdrop-blur-sm shadow-sm">
-                                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                                {{ number_format($meal['calories']) }} kcal
-                                            </span>
-                                        </div>
-                                        <div class="p-3">
-                                            <h4 class="text-xs font-bold text-gray-900 truncate">{{ $meal['name'] }}</h4>
-                                            <div class="flex items-center gap-1.5 mt-2 flex-wrap">
-                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-[#6E7A25]/10 text-[#6E7A25]">P {{ $meal['protein'] }}g</span>
-                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-[#025C5F]/10 text-[#025C5F]">C {{ $meal['carbs'] }}g</span>
-                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-[#949B50]/10 text-[#949B50]">F {{ $meal['fat'] }}g</span>
+                                    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group">
+                                        <div class="p-3 flex items-center gap-3">
+                                            {{-- Status indicator dot --}}
+                                            <div class="w-2 h-2 rounded-full flex-shrink-0 {{ $order['status'] === 'delivered' ? 'bg-green-500' : ($order['status'] === 'out_for_delivery' ? 'bg-orange-500' : ($order['status'] === 'preparing' ? 'bg-blue-500' : ($order['status'] === 'cancelled' ? 'bg-red-500' : 'bg-yellow-500'))) }}"></div>
+
+                                            {{-- Meal info --}}
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-center gap-2 flex-wrap">
+                                                    <h4 class="text-xs font-bold text-gray-900 truncate">{{ $meal['name'] }}</h4>
+                                                    @if($meal['quantity'] > 1)
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[#173327] text-white">x{{ $meal['quantity'] }}</span>
+                                                    @endif
+                                                </div>
+                                                <div class="flex items-center gap-2 mt-1.5 flex-wrap">
+                                                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-[#6E7A25]">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                                        {{ number_format($meal['calories']) }} kcal
+                                                    </span>
+                                                    <span class="text-gray-300">·</span>
+                                                    <span class="text-[10px] font-semibold text-[#6E7A25]">P {{ $meal['protein'] }}g</span>
+                                                    <span class="text-[10px] font-semibold text-[#025C5F]">C {{ $meal['carbs'] }}g</span>
+                                                    <span class="text-[10px] font-semibold text-[#949B50]">F {{ $meal['fat'] }}g</span>
+                                                </div>
+                                            </div>
+
+                                            {{-- Delivery status badge --}}
+                                            <div class="flex-shrink-0">
+                                                @if($order['status'] === 'delivered')
+                                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold bg-green-50 text-green-700">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                    {{ __('Delivered') }}
+                                                </span>
+                                                @elseif($order['status'] === 'out_for_delivery')
+                                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold bg-orange-50 text-orange-700">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                    {{ __('On the way') }}
+                                                </span>
+                                                @elseif($order['status'] === 'preparing')
+                                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold bg-blue-50 text-blue-700">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                    {{ __('Preparing') }}
+                                                </span>
+                                                @elseif($order['status'] === 'cancelled')
+                                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold bg-red-50 text-red-700">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                    {{ __('Cancelled') }}
+                                                </span>
+                                                @else
+                                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold bg-yellow-50 text-yellow-700">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                    {{ __('Pending') }}
+                                                </span>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
