@@ -1937,13 +1937,9 @@ class AdminController extends Controller
 
         $stats = [
             ['label' => __('Total Orders'), 'value' => number_format($total), 'color' => 'text-gray-900', 'icon' => 'clipboard', 'gradient' => 'from-[#173327] to-[#6E7A25]'],
-            ['label' => __('Preparing'), 'value' => number_format($preparing), 'color' => 'text-amber-600', 'icon' => 'fire', 'gradient' => 'from-amber-500 to-orange-600'],
-            ['label' => __('Ready for Delivery'), 'value' => number_format($ready), 'color' => 'text-indigo-600', 'icon' => 'truck', 'gradient' => 'from-indigo-500 to-blue-600'],
-            ['label' => __('Delivered'), 'value' => number_format($delivered), 'color' => 'text-[#6E7A25]', 'icon' => 'check', 'gradient' => 'from-[#6E7A25] to-[#8b5cf6]'],
-            ['label' => __('Total Meals'), 'value' => number_format($totalQuantity), 'color' => 'text-gray-900', 'icon' => 'food', 'gradient' => 'from-[#033133] to-[#6E7A25]'],
+            ['label' => __('Total Meals'), 'value' => number_format($totalQuantity), 'color' => 'text-gray-900', 'icon' => 'food', 'gradient' => 'from-amber-500 to-orange-600'],
             ['label' => __('Total Calories'), 'value' => number_format($totalCalories), 'color' => 'text-gray-900', 'icon' => 'flame', 'gradient' => 'from-rose-500 to-red-600'],
-            ['label' => __('Revenue'), 'value' => 'SAR ' . number_format($revenue), 'color' => 'text-gray-900', 'icon' => 'money', 'gradient' => 'from-[#173327] to-[#033133]'],
-            ['label' => __('Ingredients Needed'), 'value' => count($shoppingList), 'color' => 'text-gray-900', 'icon' => 'shopping', 'gradient' => 'from-[#6E7A25] to-[#173327]'],
+            ['label' => __('Revenue'), 'value' => 'SAR ' . number_format($revenue), 'color' => 'text-gray-900', 'icon' => 'money', 'gradient' => 'from-[#6E7A25] to-[#173327]'],
         ];
 
         if ($request->ajax() || $request->wantsJson()) {
