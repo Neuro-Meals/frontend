@@ -31,7 +31,14 @@
 </div>
 
 @push('scripts')
-<script src="https://cdn.moyasar.com/mpf/0.3.0/moyasar.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moyasar-payment-form@2.2.9/dist/moyasar.umd.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/moyasar-payment-form@2.2.9/dist/moyasar.css">
+<script>
+    // Fallback: load from official CDN if jsDelivr fails
+    if (typeof Moyasar === 'undefined') {
+        document.write('<script src="https://cdn.moyasar.com/mpf/1.0.0/moyasar.min.js"><\/script>');
+    }
+</script>
 <style>
     .mysr-form { min-height: 200px; }
     .mysr-form .mysr-btn {

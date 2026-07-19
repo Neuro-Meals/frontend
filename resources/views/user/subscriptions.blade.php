@@ -407,7 +407,14 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.moyasar.com/mpf/0.3.0/moyasar.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moyasar-payment-form@2.2.9/dist/moyasar.umd.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/moyasar-payment-form@2.2.9/dist/moyasar.css">
+<script>
+    // Fallback: load from official CDN if jsDelivr fails
+    if (typeof Moyasar === 'undefined') {
+        document.write('<script src="https://cdn.moyasar.com/mpf/1.0.0/moyasar.min.js"><\/script>');
+    }
+</script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
     .mysr-form { min-height: 200px; }
@@ -525,12 +532,13 @@
 
         modal.classList.remove('hidden');
 
-        if (typeof Moyasar === 'undefined') {
-            loadingEl.classList.add('hidden');
-            errorEl.textContent = 'Payment SDK failed to load. Please refresh the page and try again.';
-            errorEl.classList.remove('hidden');
-            return;
-        }
+        function initMoyasarForm() {
+            if (typeof Moyasar === 'undefined') {
+                loadingEl.classList.add('hidden');
+                errorEl.textContent = 'Payment SDK failed to load. Please refresh the page and try again.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
 
         try {
             moyasarFormInstance = Moyasar.init({
@@ -617,6 +625,25 @@
             errorEl.textContent = 'Failed to load payment form. Please try again.';
             errorEl.classList.remove('hidden');
             console.error('Moyasar init error:', err);
+        }
+        }
+
+        // Retry SDK loading if not yet available
+        if (typeof Moyasar === 'undefined') {
+            let retries = 0;
+            const maxRetries = 5;
+            const retryInterval = setInterval(() => {
+                retries++;
+                if (typeof Moyasar !== 'undefined') {
+                    clearInterval(retryInterval);
+                    initMoyasarForm();
+                } else if (retries >= maxRetries) {
+                    clearInterval(retryInterval);
+                    initMoyasarForm();
+                }
+            }, 1000);
+        } else {
+            initMoyasarForm();
         }
     }
 
