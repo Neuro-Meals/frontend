@@ -334,7 +334,7 @@ class AdminController extends Controller
             'user_id' => $id,
             'plan_id' => $planId,
         ]), function () {
-            return ['success' => false, 'message' => 'Failed to create subscription.'];
+            return ['success' => false, 'message' => __('Failed to create subscription.')];
         });
 
         $success = isset($result['success']) ? $result['success'] !== false : true;
@@ -541,7 +541,7 @@ class AdminController extends Controller
         $data['is_active'] = $request->boolean('is_active', true);
 
         $response = $this->apiData($planApi->create($data), function () {
-            return ['success' => false, 'message' => 'Failed to create plan.'];
+            return ['success' => false, 'message' => __('Failed to create plan.')];
         });
 
         $success = is_array($response) && ($response['success'] ?? true) !== false && !isset($response['errors']);
@@ -610,7 +610,7 @@ class AdminController extends Controller
         $data['is_active'] = $request->boolean('is_active', true);
 
         $response = $this->apiData($planApi->update($id, $data), function () {
-            return ['success' => false, 'message' => 'Failed to update plan.'];
+            return ['success' => false, 'message' => __('Failed to update plan.')];
         });
 
         $success = is_array($response) && ($response['success'] ?? true) !== false && !isset($response['errors']);
@@ -634,7 +634,7 @@ class AdminController extends Controller
     public function destroyPlan(Request $request, int $id, PlanApiService $planApi)
     {
         $response = $this->apiData($planApi->destroy($id), function () {
-            return ['success' => false, 'message' => 'Failed to delete plan.'];
+            return ['success' => false, 'message' => __('Failed to delete plan.')];
         });
 
         $success = is_array($response) && ($response['success'] ?? true) !== false && !isset($response['errors']);
@@ -743,9 +743,9 @@ class AdminController extends Controller
         }
 
         if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['success' => true, 'message' => 'Menu item added successfully.', 'item' => $response]);
+            return response()->json(['success' => true, 'message' => __('Menu item added successfully.'), 'item' => $response]);
         }
-        return back()->with('status', 'Menu item added successfully.');
+        return back()->with('status', __('Menu item added successfully.'));
     }
 
     public function updateMenuItem(Request $request, int $id, PlanMenuApiService $menuApi)
@@ -768,9 +768,9 @@ class AdminController extends Controller
 
         if (empty($payload)) {
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'No fields to update.'], 422);
+                return response()->json(['success' => false, 'message' => __('No fields to update.')], 422);
             }
-            return back()->with('error', 'No fields to update.');
+            return back()->with('error', __('No fields to update.'));
         }
 
         $response = $this->apiData($menuApi->update($id, $payload), fn () => []);
@@ -784,9 +784,9 @@ class AdminController extends Controller
         }
 
         if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['success' => true, 'message' => 'Menu item updated successfully.', 'item' => $response]);
+            return response()->json(['success' => true, 'message' => __('Menu item updated successfully.'), 'item' => $response]);
         }
-        return back()->with('status', 'Menu item updated successfully.');
+        return back()->with('status', __('Menu item updated successfully.'));
     }
 
     public function destroyMenuItem(int $id, PlanMenuApiService $menuApi)
@@ -802,9 +802,9 @@ class AdminController extends Controller
         }
 
         if (request()->ajax() || request()->wantsJson()) {
-            return response()->json(['success' => true, 'message' => 'Menu item deleted successfully.']);
+            return response()->json(['success' => true, 'message' => __('Menu item deleted successfully.')]);
         }
-        return back()->with('status', 'Menu item deleted successfully.');
+        return back()->with('status', __('Menu item deleted successfully.'));
     }
 
     public function showSubscription(int $id, SubscriptionApiService $subscriptionApi)
@@ -1020,7 +1020,7 @@ class AdminController extends Controller
         });
 
         if (empty($meal)) {
-            return response()->json(['success' => false, 'message' => 'Meal not found.'], 404);
+            return response()->json(['success' => false, 'message' => __('Meal not found.')], 404);
         }
 
         return response()->json([
@@ -1088,9 +1088,9 @@ class AdminController extends Controller
         }
 
         if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['success' => true, 'message' => 'Meal created successfully.', 'meal' => $response]);
+            return response()->json(['success' => true, 'message' => __('Meal created successfully.'), 'meal' => $response]);
         }
-        return redirect()->route('admin.meals')->with('status', 'Meal created successfully.');
+        return redirect()->route('admin.meals')->with('status', __('Meal created successfully.'));
     }
 
     public function updateMeal(Request $request, int $id, MealApiService $mealApi)
@@ -1131,9 +1131,9 @@ class AdminController extends Controller
         }
 
         if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['success' => true, 'message' => 'Meal updated successfully.', 'meal' => $response]);
+            return response()->json(['success' => true, 'message' => __('Meal updated successfully.'), 'meal' => $response]);
         }
-        return redirect()->route('admin.meals')->with('status', 'Meal updated successfully.');
+        return redirect()->route('admin.meals')->with('status', __('Meal updated successfully.'));
     }
 
     public function destroyMeal(int $id, MealApiService $mealApi)
@@ -1151,9 +1151,9 @@ class AdminController extends Controller
         }
 
         if (request()->ajax() || request()->wantsJson()) {
-            return response()->json(['success' => true, 'message' => 'Meal deleted successfully.']);
+            return response()->json(['success' => true, 'message' => __('Meal deleted successfully.')]);
         }
-        return redirect()->route('admin.meals')->with('status', 'Meal deleted successfully.');
+        return redirect()->route('admin.meals')->with('status', __('Meal deleted successfully.'));
     }
 
     private function buildMealPayload(array $validated): array
@@ -1222,9 +1222,9 @@ class AdminController extends Controller
         }
 
         if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['success' => true, 'message' => 'Category created successfully.', 'category' => $response]);
+            return response()->json(['success' => true, 'message' => __('Category created successfully.'), 'category' => $response]);
         }
-        return redirect()->route('admin.meals')->with('status', 'Category created successfully.');
+        return redirect()->route('admin.meals')->with('status', __('Category created successfully.'));
     }
 
     public function showCategory(int $id, MealApiService $mealApi)
@@ -1234,7 +1234,7 @@ class AdminController extends Controller
         });
 
         if (empty($category)) {
-            return response()->json(['success' => false, 'message' => 'Category not found.'], 404);
+            return response()->json(['success' => false, 'message' => __('Category not found.')], 404);
         }
 
         return response()->json([
@@ -1281,9 +1281,9 @@ class AdminController extends Controller
         }
 
         if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['success' => true, 'message' => 'Category updated successfully.', 'category' => $response]);
+            return response()->json(['success' => true, 'message' => __('Category updated successfully.'), 'category' => $response]);
         }
-        return redirect()->route('admin.meals')->with('status', 'Category updated successfully.');
+        return redirect()->route('admin.meals')->with('status', __('Category updated successfully.'));
     }
 
     public function destroyCategory(int $id, MealApiService $mealApi)
@@ -1301,9 +1301,9 @@ class AdminController extends Controller
         }
 
         if (request()->ajax() || request()->wantsJson()) {
-            return response()->json(['success' => true, 'message' => 'Category deleted successfully.']);
+            return response()->json(['success' => true, 'message' => __('Category deleted successfully.')]);
         }
-        return redirect()->route('admin.meals')->with('status', 'Category deleted successfully.');
+        return redirect()->route('admin.meals')->with('status', __('Category deleted successfully.'));
     }
 
     public function orders(Request $request, ChefApiService $chefApi, DriverApiService $driverApi, MealApiService $mealApi)
@@ -1684,15 +1684,15 @@ class AdminController extends Controller
 
         if (empty($result)) {
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'Failed to update order status.'], 400);
+                return response()->json(['success' => false, 'message' => __('Failed to update order status.')], 400);
             }
-            return redirect()->route('admin.orders')->with('error', 'Failed to update order status.');
+            return redirect()->route('admin.orders')->with('error', __('Failed to update order status.'));
         }
 
         if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['success' => true, 'message' => 'Order status updated.']);
+            return response()->json(['success' => true, 'message' => __('Order status updated.')]);
         }
-        return redirect()->route('admin.orders')->with('success', 'Order status updated.');
+        return redirect()->route('admin.orders')->with('success', __('Order status updated.'));
     }
 
     public function assignDriverToOrder(int $id, Request $request, OrderApiService $orderApi, DeliveryApiService $deliveryApi)
@@ -1701,18 +1701,18 @@ class AdminController extends Controller
 
         if ($driverId <= 0) {
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'Please select a driver.'], 422);
+                return response()->json(['success' => false, 'message' => __('Please select a driver.')], 422);
             }
-            return redirect()->route('admin.orders')->with('error', 'Please select a driver.');
+            return redirect()->route('admin.orders')->with('error', __('Please select a driver.'));
         }
 
         $order = $this->apiData($orderApi->show($id), fn () => []);
 
         if (empty($order)) {
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'Order not found.'], 404);
+                return response()->json(['success' => false, 'message' => __('Order not found.')], 404);
             }
-            return redirect()->route('admin.orders')->with('error', 'Order not found.');
+            return redirect()->route('admin.orders')->with('error', __('Order not found.'));
         }
 
         // The backend rejects creating a second delivery for the same order,
@@ -1743,15 +1743,15 @@ class AdminController extends Controller
 
         if (empty($result)) {
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'Failed to assign driver.'], 400);
+                return response()->json(['success' => false, 'message' => __('Failed to assign driver.')], 400);
             }
-            return redirect()->route('admin.orders')->with('error', 'Failed to assign driver.');
+            return redirect()->route('admin.orders')->with('error', __('Failed to assign driver.'));
         }
 
         if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['success' => true, 'message' => 'Driver assigned successfully.', 'delivery' => $result]);
+            return response()->json(['success' => true, 'message' => __('Driver assigned successfully.'), 'delivery' => $result]);
         }
-        return redirect()->route('admin.orders')->with('success', 'Driver assigned successfully.');
+        return redirect()->route('admin.orders')->with('success', __('Driver assigned successfully.'));
     }
 
     public function deliveries(DeliveryApiService $deliveryApi, DriverApiService $driverApi)
@@ -1827,7 +1827,7 @@ class AdminController extends Controller
     {
         $driverId = (int) $request->input('driver_id');
         if ($driverId <= 0) {
-            return redirect()->route('admin.deliveries')->with('error', 'Invalid driver selected.');
+            return redirect()->route('admin.deliveries')->with('error', __('Invalid driver selected.'));
         }
 
         $result = $this->apiData($deliveryApi->assignDriver($id, $driverId), function () {
@@ -1835,10 +1835,10 @@ class AdminController extends Controller
         });
 
         if (empty($result)) {
-            return redirect()->route('admin.deliveries')->with('error', 'Failed to assign driver. Please try again.');
+            return redirect()->route('admin.deliveries')->with('error', __('Failed to assign driver. Please try again.'));
         }
 
-        return redirect()->route('admin.deliveries')->with('success', 'Driver assigned successfully.');
+        return redirect()->route('admin.deliveries')->with('success', __('Driver assigned successfully.'));
     }
 
     public function bulkAssignDriver(Request $request, ChefApiService $chefApi)
@@ -1894,7 +1894,7 @@ class AdminController extends Controller
     {
         $status = $request->input('status');
         if (empty($status)) {
-            return redirect()->route('admin.deliveries')->with('error', 'Invalid status.');
+            return redirect()->route('admin.deliveries')->with('error', __('Invalid status.'));
         }
 
         $result = $this->apiData($deliveryApi->updateStatus($id, $status), function () {
@@ -1902,10 +1902,10 @@ class AdminController extends Controller
         });
 
         if (empty($result)) {
-            return redirect()->route('admin.deliveries')->with('error', 'Failed to update delivery status.');
+            return redirect()->route('admin.deliveries')->with('error', __('Failed to update delivery status.'));
         }
 
-        return redirect()->route('admin.deliveries')->with('success', 'Delivery status updated.');
+        return redirect()->route('admin.deliveries')->with('success', __('Delivery status updated.'));
     }
 
     public function drivers(Request $request, DriverApiService $driverApi)

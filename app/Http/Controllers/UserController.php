@@ -480,7 +480,7 @@ class UserController extends Controller
             if ($wantsJson) {
                 return response()->json(['success' => false, 'message' => 'Invalid plan selected.'], 422);
             }
-            return redirect()->route('user.subscriptions')->with('error', 'Invalid plan selected.');
+            return redirect()->route('user.subscriptions')->with('error', __('Invalid plan selected.'));
         }
 
         $subscriptionResponse = $subscriptionApi->create(['plan_id' => $planId]);
@@ -543,7 +543,7 @@ class UserController extends Controller
                 if ($wantsJson) {
                     return response()->json(['success' => false, 'message' => 'Failed to subscribe. Please try again.'], 400);
                 }
-                return redirect()->route('user.subscriptions')->with('error', 'Failed to subscribe. Please try again.');
+                return redirect()->route('user.subscriptions')->with('error', __('Failed to subscribe. Please try again.'));
             }
             $subscriptionId = (int) $subscription['id'];
             $checkoutResponse = $paymentApi->createCheckout($subscriptionId);
@@ -579,7 +579,7 @@ class UserController extends Controller
         if ($wantsJson) {
             return response()->json(['success' => false, 'message' => 'Unable to start payment. Please try again.'], 400);
         }
-        return redirect()->route('user.subscriptions')->with('success', 'Subscription created! Please complete payment.');
+        return redirect()->route('user.subscriptions')->with('success', __('Subscription created! Please complete payment.'));
     }
 
     protected function apiErrorMessage(array $response): string
@@ -595,7 +595,7 @@ class UserController extends Controller
     public function paySubscription(int $subscriptionId, PaymentApiService $paymentApi)
     {
         if ($subscriptionId <= 0) {
-            return redirect()->route('user.subscriptions')->with('error', 'Invalid subscription.');
+            return redirect()->route('user.subscriptions')->with('error', __('Invalid subscription.'));
         }
 
         $checkoutResponse = $paymentApi->createCheckout($subscriptionId);
@@ -622,7 +622,7 @@ class UserController extends Controller
         }
 
         \Illuminate\Support\Facades\Log::warning('Payment checkout returned no Moyasar data', ['response' => $checkoutResponse]);
-        return redirect()->route('user.subscriptions')->with('error', 'Unable to start payment. Please try again.');
+        return redirect()->route('user.subscriptions')->with('error', __('Unable to start payment. Please try again.'));
     }
 
     public function checkoutJson(int $subscriptionId, PaymentApiService $paymentApi)
@@ -704,7 +704,7 @@ class UserController extends Controller
     public function pauseSubscription(int $subscriptionId, SubscriptionApiService $subscriptionApi)
     {
         if ($subscriptionId <= 0) {
-            return redirect()->route('user.subscriptions')->with('error', 'Invalid subscription.');
+            return redirect()->route('user.subscriptions')->with('error', __('Invalid subscription.'));
         }
 
         $response = $subscriptionApi->pause($subscriptionId);
@@ -727,7 +727,7 @@ class UserController extends Controller
     public function resumeSubscription(int $subscriptionId, SubscriptionApiService $subscriptionApi)
     {
         if ($subscriptionId <= 0) {
-            return redirect()->route('user.subscriptions')->with('error', 'Invalid subscription.');
+            return redirect()->route('user.subscriptions')->with('error', __('Invalid subscription.'));
         }
 
         $response = $subscriptionApi->resume($subscriptionId);
