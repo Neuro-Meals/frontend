@@ -128,7 +128,7 @@
             <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
         </div>
         <div class="mt-2 sm:mt-3 text-xl sm:text-3xl font-bold tracking-tight text-white relative z-10">{{ $stats['totalOrders'] }}</div>
-        <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">{{ $stats['totalOrders'] > 0 ? __('Next') ~ ': ' ~ $stats['nextDelivery'] : __('No orders yet') }}</div>
+        <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">{{ $stats['totalOrders'] > 0 ? __('Next') . ': ' . $stats['nextDelivery'] : __('No orders yet') }}</div>
     </div>
 </div>
 
@@ -139,7 +139,7 @@
         <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div>
                 <h3 class="text-sm font-bold text-gray-900">{{ __('Calorie') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Tracking') }}</span></h3>
-                <p class="text-xs text-gray-400">{{ $stats['hasSubscription'] ? __('Last 7 days · Target') ~ ': ' ~ number_format($chartData['calorieTarget']) ~ ' kcal' : __('Sample week · Target') ~ ': ' ~ number_format($chartData['calorieTarget']) ~ ' kcal' }}</p>
+                <p class="text-xs text-gray-400">{{ $stats['hasSubscription'] ? __('Last 7 days · Target') . ': ' . number_format($chartData['calorieTarget']) . ' kcal' : __('Sample week · Target') . ': ' . number_format($chartData['calorieTarget']) . ' kcal' }}</p>
             </div>
             <div class="text-right">
                 <div class="text-lg font-bold text-gray-900">{{ number_format($stats['dailyCalories']) }} {{ __('kcal') }}</div>
