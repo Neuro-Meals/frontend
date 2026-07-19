@@ -1706,49 +1706,133 @@ class UserController extends Controller
             return $authApi->user() ?? [];
         });
 
-        $zone = $user['location'] ?? '';
+        $today = date('Y-m-d');
+        $todayDeliveries = [];
+        $totalToday = 0;
+        $deliveredToday = 0;
+        $inTransitToday = 0;
+        $pendingToday = 0;
+        $totalMealsToday = 0;
 
-        $upcoming = [];
-        $history = [];
+        // Delivery status steps for stepper
+        $statusSteps = [
+            'pending' => ['label' => 'Order Placed', 'icon' => 'clipboard', 'step' => 1],
+            'assigned' => ['label' => 'Driver Assigned', 'icon' => 'user', 'step' => 2],
+            'picked_up' => ['label' => 'Picked Up', 'icon' => 'bag', 'step' => 3],
+            'out_for_delivery' => ['label' => 'On the Way', 'icon' => 'truck', 'step' => 4],
+            'delivered' => ['label' => 'Delivered', 'icon' => 'check', 'step' => 5],
+        ];
 
         if (!empty($apiDeliveries) && is_array($apiDeliveries)) {
             foreach ($apiDeliveries as $delivery) {
                 $status = $delivery['status'] ?? 'pending';
                 $scheduledAt = $delivery['scheduled_at'] ?? null;
-                $date = $scheduledAt ? date('M d', strtotime($scheduledAt)) : 'Pending';
-                $time = $scheduledAt ? date('H:i', strtotime($scheduledAt)) : '--:--';
+                $createdAt = $delivery['created_at'] ?? null;
+                $pickedUpAt = $delivery['picked_up_at'] ?? null;
+                $deliveredAt = $delivery['delivered_at'] ?? null;
 
-                $item = [
+                // Filter: only today's deliveries
+                $deliveryDate = $scheduledAt ?? $createdAt;
+                if ($deliveryDate && date('Y-m-d', strtotime($deliveryDate)) !== $today) {
+                    continue;
+                }
+
+                $order = $delivery['order'] ?? [];
+                $driver = $delivery['driver'] ?? null;
+                $mealCount = $delivery['meal_count'] ?? 0;
+
+                // Parse order items for meal names
+                $mealNames = [];
+                if (!empty($order['items']) && is_array($order['items'])) {
+                    $items = $order['items'];
+                    if (isset($items['items']) && is_array($items['items'])) {
+                        $items = $items['items'];
+                    }
+                    foreach ($items as $item) {
+                        if (is_array($item) && isset($item['meal_name'])) {
+                            $mealNames[] = $item['meal_name'];
+                        }
+                    }
+                }
+
+                // Build stepper data
+                $currentStep = $statusSteps[$status]['step'] ?? 1;
+                $stepper = [];
+                foreach ($statusSteps as $stepKey => $stepInfo) {
+                    $stepReached = $stepInfo['step'] <= $currentStep;
+                    $stepTime = null;
+                    if ($stepKey === 'pending' && $createdAt) {
+                        $stepTime = date('H:i', strtotime($createdAt));
+                    } elseif ($stepKey === 'picked_up' && $pickedUpAt) {
+                        $stepTime = date('H:i', strtotime($pickedUpAt));
+                    } elseif ($stepKey === 'delivered' && $deliveredAt) {
+                        $stepTime = date('H:i', strtotime($deliveredAt));
+                    } elseif ($stepKey === 'assigned' && $driver) {
+                        $stepTime = $driver ? 'Assigned' : null;
+                    } elseif ($stepKey === 'out_for_delivery' && $status === 'out_for_delivery') {
+                        $stepTime = date('H:i', strtotime($delivery['updated_at'] ?? 'now'));
+                    }
+
+                    $stepper[] = [
+                        'key' => $stepKey,
+                        'label' => $stepInfo['label'],
+                        'icon' => $stepInfo['icon'],
+                        'step' => $stepInfo['step'],
+                        'completed' => $stepReached && $status !== 'pending' ? true : ($stepKey === 'pending' ? true : $stepReached),
+                        'active' => $stepKey === $status,
+                        'time' => $stepTime,
+                    ];
+                }
+
+                $todayDeliveries[] = [
                     'id' => 'DLV-' . $delivery['id'],
-                    'order' => 'ORD-' . $delivery['order_id'],
-                    'date' => $date,
-                    'time' => $time,
-                    'zone' => $delivery['zone'] ?? $zone,
-                    'driver' => $delivery['driver_name'] ?? 'Unassigned',
-                    'status' => $status === 'out_for_delivery' ? 'out' : $status,
-                    'meals' => $delivery['meals'] ?? 3,
-                    'eta' => $delivery['eta'] ?? 'On time',
+                    'order_number' => $order['order_number'] ?? ('ORD-' . $delivery['order_id']),
+                    'status' => $status,
+                    'scheduled_time' => $scheduledAt ? date('H:i', strtotime($scheduledAt)) : '--:--',
+                    'scheduled_date' => $scheduledAt ? date('M d, Y', strtotime($scheduledAt)) : 'Today',
+                    'address' => $delivery['delivery_address'] ?? $user['address'] ?? '',
+                    'notes' => $delivery['delivery_notes'] ?? '',
+                    'driver_name' => $driver['full_name'] ?? null,
+                    'driver_phone' => $driver['phone'] ?? null,
+                    'meal_count' => $mealCount,
+                    'meal_names' => $mealNames,
+                    'stepper' => $stepper,
+                    'current_step' => $currentStep,
+                    'total_steps' => 5,
+                    'picked_up_at' => $pickedUpAt ? date('H:i', strtotime($pickedUpAt)) : null,
+                    'delivered_at' => $deliveredAt ? date('H:i', strtotime($deliveredAt)) : null,
+                    'latitude' => $delivery['current_latitude'] ?? null,
+                    'longitude' => $delivery['current_longitude'] ?? null,
+                    'failure_reason' => $delivery['failure_reason'] ?? null,
                 ];
 
-                if (in_array($status, ['pending', 'assigned', 'picked_up', 'out_for_delivery'])) {
-                    $upcoming[] = $item;
-                } else {
-                    $history[] = $item;
+                $totalToday++;
+                $totalMealsToday += $mealCount;
+                if ($status === 'delivered') {
+                    $deliveredToday++;
+                } elseif (in_array($status, ['picked_up', 'out_for_delivery'])) {
+                    $inTransitToday++;
+                } elseif (in_array($status, ['pending', 'assigned'])) {
+                    $pendingToday++;
                 }
             }
         }
 
-        $totalDeliveries = count($upcoming) + count($history);
-        $delivered = count(array_filter($history, fn ($d) => ($d['status'] ?? '') === 'delivered'));
+        // Sort by scheduled time ascending
+        usort($todayDeliveries, function ($a, $b) {
+            return strcmp($a['scheduled_time'], $b['scheduled_time']);
+        });
 
         $stats = [
-            'totalDeliveries' => $totalDeliveries,
-            'onTimeRate' => $totalDeliveries > 0 ? round(($delivered / $totalDeliveries) * 100, 1) : 0,
-            'avgDeliveryTime' => 'N/A',
-            'preferredSlot' => 'N/A',
+            'totalToday' => $totalToday,
+            'deliveredToday' => $deliveredToday,
+            'inTransitToday' => $inTransitToday,
+            'pendingToday' => $pendingToday,
+            'totalMealsToday' => $totalMealsToday,
+            'completionRate' => $totalToday > 0 ? round(($deliveredToday / $totalToday) * 100) : 0,
         ];
 
-        return view('user.delivery', compact('upcoming', 'history', 'stats'));
+        return view('user.delivery', compact('todayDeliveries', 'stats'));
     }
 
     public function notifications(NotificationApiService $notificationApi, AuthApiService $authApi)
