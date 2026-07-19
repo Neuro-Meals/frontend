@@ -82,7 +82,7 @@
         <div class="text-right flex flex-col items-end gap-2">
             @if($activePlan['payment_status'] === 'paid')
             <div class="text-3xl font-bold">{{ $activePlan['mealsRemaining'] }}<span class="text-sm text-white/50">/{{ $activePlan['mealsTotal'] }}</span></div>
-            <div class="text-xs text-white/50">Meals remaining</div>
+            <div class="text-xs text-white/50">{{ __('Meals remaining') }}</div>
             @if(!empty($activePlan['receipt']))
             <button type="button" onclick="showReceipt({{ json_encode($activePlan) }})"
                 class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 text-white hover:bg-white/20 text-xs font-bold transition-colors">
@@ -91,9 +91,10 @@
             </button>
             @endif
             @if($activePlan['status'] === 'active')
+            @if($activePlan['remaining_pauses'] > 0)
             <form action="{{ route('user.subscriptions.pause', $activePlan['id']) }}" method="POST" class="swal-confirm-form"
                 data-title="{{ __('Pause Subscription?') }}"
-                data-text="{{ __('Deliveries will be stopped until you resume your subscription.') }}"
+                data-text="{{ __('Deliveries will be stopped until you resume. You have') }} {{ $activePlan['remaining_pauses'] }} {{ __('pause(s) remaining.') }}"
                 data-confirm-text="{{ __('Pause') }}"
                 data-cancel-text="{{ __('Cancel') }}">
                 @csrf
@@ -102,10 +103,16 @@
                     {{ __('Pause') }}
                 </button>
             </form>
+            @else
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 text-white/30 text-xs font-bold cursor-not-allowed">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {{ __('Pause limit reached') }}
+            </span>
+            @endif
             @elseif($activePlan['status'] === 'paused')
             <form action="{{ route('user.subscriptions.resume', $activePlan['id']) }}" method="POST" class="swal-confirm-form"
                 data-title="{{ __('Resume Subscription?') }}"
-                data-text="{{ __('Deliveries will start again once you resume your subscription.') }}"
+                data-text="{{ __('Deliveries will start again and your end date will be extended by the paused duration.') }}"
                 data-confirm-text="{{ __('Resume') }}"
                 data-cancel-text="{{ __('Cancel') }}">
                 @csrf
@@ -128,10 +135,25 @@
         </div>
         @endif
     </div>
-    @if($activePlan['status'] === 'active' && $activePlan['payment_status'] === 'paid')
+    @if($activePlan['payment_status'] === 'paid' && in_array($activePlan['status'], ['active', 'paused']))
     @php $progressWidth = ($activePlan['mealsTotal'] ?? 0) > 0 ? round($activePlan['mealsRemaining'] / $activePlan['mealsTotal'] * 100) : 0; @endphp
     <div class="mt-4 h-2 bg-white/10 rounded-full overflow-hidden">
         <div class="h-full bg-white rounded-full transition-all duration-1000" style="width: {{ $progressWidth }}%"></div>
+    </div>
+    @if($activePlan['status'] === 'paused')
+    <div class="mt-3 flex items-center gap-3 text-[10px] text-white/40">
+        <span class="inline-flex items-center gap-1">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            {{ __('Paused') }} — {{ __('Resume anytime to continue') }}
+        </span>
+    </div>
+    @endif
+    <div class="mt-2 flex items-center gap-3 text-[10px] text-white/30">
+        <span>{{ __('Pauses used') }}: {{ $activePlan['pause_count'] }}/{{ $activePlan['max_pauses'] }}</span>
+        @if($activePlan['total_paused_days'] > 0)
+        <span class="w-1 h-1 bg-white/20 rounded-full"></span>
+        <span>{{ __('Total paused') }}: {{ $activePlan['total_paused_days'] }}/{{ $activePlan['max_pause_days'] }} {{ __('days') }}</span>
+        @endif
     </div>
     @endif
 </div>

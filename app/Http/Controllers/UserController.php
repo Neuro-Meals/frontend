@@ -355,6 +355,13 @@ class UserController extends Controller
             'payment_provider' => $activePayment['provider'] ?? 'Tap',
             'currency' => $activePayment['currency'] ?? 'SAR',
             'receipt' => !empty($activePayment) && ($activeSubscription['payment_status'] ?? 'unpaid') === 'paid',
+            'pause_count' => (int) ($activeSubscription['pause_count'] ?? 0),
+            'max_pauses' => 2,
+            'remaining_pauses' => max(0, 2 - (int) ($activeSubscription['pause_count'] ?? 0)),
+            'total_paused_seconds' => (int) ($activeSubscription['total_paused_seconds'] ?? 0),
+            'total_paused_days' => round((int) ($activeSubscription['total_paused_seconds'] ?? 0) / 86400, 1),
+            'max_pause_days' => 7,
+            'paused_at' => $activeSubscription['paused_at'] ?? null,
         ];
 
         // Fallback if no active subscription
@@ -700,16 +707,21 @@ class UserController extends Controller
             return redirect()->route('user.subscriptions')->with('error', 'Invalid subscription.');
         }
 
-        $result = $this->apiData($subscriptionApi->pause($subscriptionId), function () {
-            return [];
-        });
+        $response = $subscriptionApi->pause($subscriptionId);
 
-        if (empty($result) || !empty($result['error']) || !isset($result['id'])) {
+        if (($response['success'] ?? true) === false) {
+            $message = $this->apiErrorMessage($response);
+            return redirect()->route('user.subscriptions')->with('error', $message);
+        }
+
+        $result = $response['data'] ?? $response;
+        if (empty($result['subscription_id']) && empty($result['id'])) {
             $message = $result['detail'] ?? $result['message'] ?? 'Failed to pause subscription. Please try again.';
             return redirect()->route('user.subscriptions')->with('error', $message);
         }
 
-        return redirect()->route('user.subscriptions')->with('success', 'Subscription paused successfully.');
+        $message = $result['message'] ?? 'Subscription paused successfully.';
+        return redirect()->route('user.subscriptions')->with('success', $message);
     }
 
     public function resumeSubscription(int $subscriptionId, SubscriptionApiService $subscriptionApi)
@@ -718,16 +730,21 @@ class UserController extends Controller
             return redirect()->route('user.subscriptions')->with('error', 'Invalid subscription.');
         }
 
-        $result = $this->apiData($subscriptionApi->resume($subscriptionId), function () {
-            return [];
-        });
+        $response = $subscriptionApi->resume($subscriptionId);
 
-        if (empty($result) || !empty($result['error']) || !isset($result['id'])) {
+        if (($response['success'] ?? true) === false) {
+            $message = $this->apiErrorMessage($response);
+            return redirect()->route('user.subscriptions')->with('error', $message);
+        }
+
+        $result = $response['data'] ?? $response;
+        if (empty($result['subscription_id']) && empty($result['id'])) {
             $message = $result['detail'] ?? $result['message'] ?? 'Failed to resume subscription. Please try again.';
             return redirect()->route('user.subscriptions')->with('error', $message);
         }
 
-        return redirect()->route('user.subscriptions')->with('success', 'Subscription resumed successfully.');
+        $message = $result['message'] ?? 'Subscription resumed successfully.';
+        return redirect()->route('user.subscriptions')->with('success', $message);
     }
 
     public function paymentSuccess(Request $request, PaymentApiService $paymentApi, AuthApiService $authApi)
