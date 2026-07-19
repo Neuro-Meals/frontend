@@ -81,17 +81,17 @@
             <span class="text-[10px] sm:text-xs font-medium text-white/60">{{ __('Active Plan') }}</span>
             <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         </div>
-        <div class="mt-2 sm:mt-3 text-base sm:text-xl font-bold tracking-tight text-white relative z-10">{{ $stats['activePlan'] }}</div>
+        <div class="mt-2 sm:mt-3 text-base sm:text-xl font-bold tracking-tight text-white relative z-10 truncate">{{ $stats['activePlan'] }}</div>
         <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">{{ __('Renews') }} {{ $stats['planRenewal'] }}</div>
     </div>
 
     <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#033133] to-[#025C5F] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#025C5F]/20" style="animation-delay: 0.4s;">
         <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
         <div class="flex items-start justify-between relative z-10">
-            <span class="text-[10px] sm:text-xs font-medium text-white/60">{{ __('Meals This Week') }}</span>
+            <span class="text-[10px] sm:text-xs font-medium text-white/60">{{ __('Meals Consumed') }}</span>
             <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
         </div>
-        <div class="mt-2 sm:mt-3 text-xl sm:text-3xl font-bold tracking-tight text-white relative z-10">{{ $stats['mealsThisWeek'] }}<span class="text-sm text-white/50">/{{ $stats['mealsTotal'] }}</span></div>
+        <div class="mt-2 sm:mt-3 text-xl sm:text-3xl font-bold tracking-tight text-white relative z-10">{{ $stats['mealsConsumed'] }}<span class="text-sm text-white/50">/{{ $stats['mealsTotal'] > 0 ? $stats['mealsTotal'] : '?' }}</span></div>
         <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">{{ $stats['remainingMeals'] }} {{ __('remaining') }}</div>
     </div>
 
@@ -108,11 +108,11 @@
     <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#025C5F] to-[#033133] rounded-xl p-3 sm:p-5 text-white relative overflow-hidden shadow-lg shadow-[#025C5F]/20" style="animation-delay: 0.6s;">
         <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
         <div class="flex items-start justify-between relative z-10">
-            <span class="text-[10px] sm:text-xs font-medium text-white/60">{{ __('Streak Days') }}</span>
-            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.24 17 7c.586 1.172 1.5 2 3 2.5a8 8 0 01-2.343 9.157z"/></svg>
+            <span class="text-[10px] sm:text-xs font-medium text-white/60">{{ __('Total Orders') }}</span>
+            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
         </div>
-        <div class="mt-2 sm:mt-3 text-xl sm:text-3xl font-bold tracking-tight text-white relative z-10">{{ $stats['streakDays'] }}</div>
-        <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">{{ __('Keep it up!') }} 🔥</div>
+        <div class="mt-2 sm:mt-3 text-xl sm:text-3xl font-bold tracking-tight text-white relative z-10">{{ $stats['totalOrders'] }}</div>
+        <div class="mt-1 text-[10px] sm:text-xs text-white/50 font-medium relative z-10">{{ __('Next') }}: {{ $stats['nextDelivery'] }}</div>
     </div>
 </div>
 
@@ -207,6 +207,7 @@
             <a href="{{ route('user.orders') }}" class="text-xs font-bold text-[#6E7A25] hover:text-[#173327] transition-colors">{{ __('View all') }} →</a>
         </div>
         <div class="divide-y divide-gray-50">
+            @if(!empty($recentOrders))
             @foreach($recentOrders as $order)
             <div class="px-5 py-3 flex items-center justify-between hover:bg-gray-50/30 transition-colors">
                 <div>
@@ -214,11 +215,25 @@
                     <p class="text-[10px] text-gray-400">{{ $order['plan'] }} · {{ date('M d', strtotime($order['date'])) }}</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold text-gray-900">SAR {{ $order['amount'] }}</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-50 text-green-700">{{ ucfirst($order['status']) }}</span>
+                    <span class="text-xs font-bold text-gray-900">SAR {{ number_format($order['amount'], 2) }}</span>
+                    @if($order['status'] === 'delivered')
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-50 text-green-700">{{ __('Delivered') }}</span>
+                    @elseif($order['status'] === 'cancelled')
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-700">{{ __('Cancelled') }}</span>
+                    @elseif(in_array($order['status'], ['pending', 'scheduled', 'confirmed', 'preparing', 'ready_for_delivery', 'out_for_delivery']))
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-yellow-50 text-yellow-700">{{ __('Active') }}</span>
+                    @else
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-600">{{ ucfirst($order['status']) }}</span>
+                    @endif
                 </div>
             </div>
             @endforeach
+            @else
+            <div class="px-5 py-8 text-center">
+                <p class="text-xs font-medium text-gray-400">{{ __('No orders yet') }}</p>
+                <p class="text-[10px] text-gray-400 mt-1">{{ __('Your recent orders will appear here.') }}</p>
+            </div>
+            @endif
         </div>
     </div>
 </div>

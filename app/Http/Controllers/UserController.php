@@ -38,7 +38,8 @@ class UserController extends Controller
         MealApiService $mealApi,
         SubscriptionApiService $subscriptionApi,
         PlanApiService $planApi,
-        MealSelectionApiService $selectionApi
+        MealSelectionApiService $selectionApi,
+        OrderApiService $orderApi
     ) {
         $user = $this->apiData($authApi->me(), function () use ($authApi) {
             return $authApi->user() ?? [];
@@ -97,6 +98,18 @@ class UserController extends Controller
                 return [];
             });
         }
+
+        // Use real plan data from current-details if available
+        if (!empty($currentDetails['plan'])) {
+            $planDetails = $currentDetails['plan'];
+        }
+        // Use real subscription data from current-details if available
+        $realSubscription = $currentDetails['subscription'] ?? $activeSubscription ?? [];
+
+        // Fetch real orders from API
+        $apiOrders = $this->apiData($orderApi->my(), function () {
+            return [];
+        });
 
         // Build today's meals from current-details API
         $todayMeals = [];
@@ -182,7 +195,90 @@ class UserController extends Controller
         }
 
         $weeklyProgress = $this->buildWeeklyProgressFromSchedule($weekMeals, (int) $calorieTarget);
-        $recentOrders = $this->buildRecentOrders($activeSubscription ?? []);
+
+        // Build recent orders from real API orders
+        $recentOrders = [];
+        $mealsConsumed = 0;
+        $streakDays = 0;
+        $nextDelivery = 'N/A';
+        $totalOrders = 0;
+
+        if (!empty($apiOrders) && is_array($apiOrders)) {
+            $totalOrders = count($apiOrders);
+            $deliveredDates = [];
+            $upcomingOrders = [];
+
+            foreach ($apiOrders as $order) {
+                $status = $order['status'] ?? 'pending';
+                $deliveryDate = $order['delivery_date'] ?? ($order['created_at'] ?? date('Y-m-d'));
+                $orderDate = date('Y-m-d', strtotime($deliveryDate));
+
+                // Count meals from delivered orders
+                if ($status === 'delivered') {
+                    $items = $order['items'] ?? [];
+                    if (is_array($items)) {
+                        foreach ($items as $item) {
+                            $mealsConsumed += (int) ($item['quantity'] ?? 1);
+                        }
+                    }
+                    $deliveredDates[] = $orderDate;
+                }
+
+                // Track upcoming deliveries
+                if (in_array($status, ['scheduled', 'pending', 'confirmed', 'preparing', 'ready_for_delivery', 'out_for_delivery'])) {
+                    if (strtotime($deliveryDate) >= strtotime(date('Y-m-d'))) {
+                        $upcomingOrders[] = $order;
+                    }
+                }
+            }
+
+            // Calculate streak days from consecutive delivered dates
+            if (!empty($deliveredDates)) {
+                $deliveredDates = array_unique($deliveredDates);
+                sort($deliveredDates);
+                $streakDays = 1;
+                for ($i = count($deliveredDates) - 1; $i > 0; $i--) {
+                    $prev = strtotime($deliveredDates[$i - 1]);
+                    $curr = strtotime($deliveredDates[$i]);
+                    $diff = ($curr - $prev) / 86400;
+                    if ($diff == 1) {
+                        $streakDays++;
+                    } else {
+                        break;
+                    }
+                }
+                // Only count streak if last delivery was today or yesterday
+                $lastDelivery = end($deliveredDates);
+                $dayDiff = (strtotime(date('Y-m-d')) - strtotime($lastDelivery)) / 86400;
+                if ($dayDiff > 1) {
+                    $streakDays = 0;
+                }
+            }
+
+            // Get next delivery from upcoming orders
+            if (!empty($upcomingOrders)) {
+                usort($upcomingOrders, function ($a, $b) {
+                    return strtotime($a['delivery_date'] ?? '') <=> strtotime($b['delivery_date'] ?? '');
+                });
+                $nextOrder = $upcomingOrders[0];
+                $nextDelivery = !empty($nextOrder['delivery_date']) ? date('M d, Y', strtotime($nextOrder['delivery_date'])) : 'Soon';
+            }
+
+            // Build recent orders list (latest 4)
+            $sortedOrders = $apiOrders;
+            usort($sortedOrders, function ($a, $b) {
+                return strtotime($b['created_at'] ?? '') <=> strtotime($a['created_at'] ?? '');
+            });
+            foreach (array_slice($sortedOrders, 0, 4) as $order) {
+                $recentOrders[] = [
+                    'id' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
+                    'plan' => $planName,
+                    'amount' => (float) ($order['total_amount'] ?? 0),
+                    'status' => $order['status'] ?? 'pending',
+                    'date' => $order['delivery_date'] ?? ($order['created_at'] ?? date('Y-m-d')),
+                ];
+            }
+        }
 
         // Build chart data for Chart.js
         $weekLabels = [];
@@ -253,8 +349,7 @@ class UserController extends Controller
 
         $todayStats = $this->calculateTodayStats($todayMeals);
 
-        $totalPlanMeals = $planDetails['total_meals'] ?? $activeSubscription['total_meals'] ?? 84;
-        $mealsConsumed = $activeSubscription['meals_consumed'] ?? 0;
+        $totalPlanMeals = (int) ($planDetails['total_meals'] ?? 0);
         $remainingMeals = max(0, $totalPlanMeals - $mealsConsumed);
 
         $mealsThisWeek = 0;
@@ -268,12 +363,13 @@ class UserController extends Controller
 
         $stats = [
             'activePlan' => $planName,
-            'planPrice' => $planDetails['price'] ?? $activeSubscription['amount'] ?? 0,
-            'planRenewal' => !empty($activeSubscription['end_date']) ? date('M d, Y', strtotime($activeSubscription['end_date'])) : 'N/A',
+            'planPrice' => $planDetails['price'] ?? $realSubscription['amount'] ?? 0,
+            'planRenewal' => !empty($realSubscription['end_date']) ? date('M d, Y', strtotime($realSubscription['end_date'])) : 'N/A',
             'mealsThisWeek' => $mealsThisWeek,
             'mealsTotal' => $totalPlanMeals,
+            'mealsConsumed' => $mealsConsumed,
             'remainingMeals' => $remainingMeals,
-            'totalOrders' => $activeSubscription['orders_count'] ?? 0,
+            'totalOrders' => $totalOrders,
             'dailyCalories' => $todayStats['calories'],
             'calorieTarget' => (int) $calorieTarget,
             'proteinTarget' => (int) $proteinTarget,
@@ -282,13 +378,14 @@ class UserController extends Controller
             'carbsToday' => $todayStats['carbs'],
             'fatTarget' => (int) $fatTarget,
             'fatToday' => $todayStats['fat'],
-            'streakDays' => $user['streak_days'] ?? 0,
-            'nextDelivery' => $activeSubscription['next_delivery'] ?? 'N/A',
+            'streakDays' => $streakDays,
+            'nextDelivery' => $nextDelivery,
             'nextMeal' => $upcomingMeals[0]['name'] ?? 'N/A',
             'weightStart' => (float) $weightStart,
             'weightCurrent' => (float) $currentWeight,
             'weightGoal' => (float) $weightGoal,
-            'subscriptionStatus' => $activeSubscription['status'] ?? 'none',
+            'subscriptionStatus' => $realSubscription['status'] ?? 'none',
+            'subscriptionPaymentStatus' => $realSubscription['payment_status'] ?? 'none',
         ];
 
         return view('user.dashboard', compact('user', 'stats', 'weeklyProgress', 'upcomingMeals', 'recentOrders', 'activeSubscription', 'chartData', 'weightHistory'));
