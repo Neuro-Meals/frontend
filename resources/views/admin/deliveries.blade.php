@@ -460,12 +460,15 @@
                 </div>
 
                 {{-- Driver List --}}
-                <h4 class="text-sm font-bold text-gray-900 mb-3">{{ __('Driver List') }}</h4>
+                <h4 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    {{ __('Driver List') }}
+                </h4>
                 <div class="space-y-3">
                     <template x-for="driver in filteredDrivers" :key="driver.id">
-                        <div class="flex items-center justify-between p-3 rounded-xl border border-gray-100 hover:shadow-sm transition-all bg-white">
+                        <div class="flex items-center justify-between p-3 rounded-xl border border-gray-100 hover:border-[#6E7A25]/30 hover:shadow-md transition-all bg-white">
                             <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center text-white font-bold text-xs flex-shrink-0" x-text="(driver.name || 'D').charAt(0)"></div>
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-sm" x-text="(driver.name || 'D').charAt(0)"></div>
                                 <div class="min-w-0">
                                     <p class="text-sm font-bold text-gray-900 truncate" x-text="driver.name"></p>
                                     <p class="text-[10px] text-gray-400 truncate" x-text="driver.email + ' · ' + driver.phone"></p>
@@ -473,12 +476,16 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-2 flex-shrink-0">
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border" :class="driver.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'" x-text="driver.status === 'active' ? '{{ __('Active') }}' : '{{ __('Inactive') }}'"></span>
-                                <button @click="editDriver(driver)" class="p-1.5 text-[#6E7A25] hover:bg-[#6E7A25]/10 rounded-lg transition-colors" title="{{ __('Edit') }}">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border" :class="driver.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'">
+                                    <span class="w-1.5 h-1.5 rounded-full" :class="driver.status === 'active' ? 'bg-green-500' : 'bg-gray-400'"></span>
+                                    <span x-text="driver.status === 'active' ? '{{ __('Active') }}' : '{{ __('Inactive') }}'"></span>
+                                </span>
+                                <button @click="editDriver(driver)" class="w-8 h-8 rounded-lg bg-gray-50 text-[#6E7A25] hover:bg-[#6E7A25] hover:text-white flex items-center justify-center transition-all" title="{{ __('Edit') }}">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.43-9.121a2.948 2.948 0 00-4.172 0L11.879 5.88a2.948 2.948 0 000 4.172l5.586 5.586a2.948 2.948 0 004.172 0l.586-.586a2.948 2.948 0 000-4.172l-5.586-5.586z"/></svg>
                                 </button>
-                                <button @click="toggleDriverStatus(driver)" class="p-1.5 rounded-lg transition-colors" :class="driver.status === 'active' ? 'text-amber-600 hover:bg-amber-50' : 'text-green-600 hover:bg-green-50'" :title="driver.status === 'active' ? '{{ __('Deactivate') }}' : '{{ __('Activate') }}">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                <button @click="toggleDriverStatus(driver)" class="w-8 h-8 rounded-lg flex items-center justify-center transition-all" :class="driver.status === 'active' ? 'bg-gray-50 text-amber-600 hover:bg-amber-500 hover:text-white' : 'bg-gray-50 text-green-600 hover:bg-green-500 hover:text-white'" :title="driver.status === 'active' ? '{{ __('Deactivate') }}' : '{{ __('Activate') }}'">
+                                    <svg x-show="driver.status === 'active'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                    <svg x-show="driver.status !== 'active'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 </button>
                             </div>
                         </div>

@@ -7,36 +7,52 @@
 @php $todayOrdersLabel = __("Today's Orders"); @endphp
 <div x-data="liveApp()" x-init="init()" class="space-y-4">
 
-  {{-- Header Stats --}}
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3" x-show="!loading">
-    <template x-for="s in stats" :key="s.label">
-      <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-        <p class="text-[10px] text-gray-400 mb-0.5" x-text="s.label"></p>
-        <p class="text-lg font-bold" :class="s.color" x-text="s.value"></p>
+  {{-- KPI Cards --}}
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" x-show="!loading">
+    <template x-for="(s, idx) in stats" :key="s.label">
+      <div class="animate__animated animate__fadeInUp rounded-2xl p-5 text-white relative overflow-hidden shadow-lg" :class="`bg-gradient-to-br ${s.gradient}`" :style="`animation-delay: ${0.1 + idx * 0.05}s;`">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="absolute inset-0 opacity-[0.05]" style="background-image: repeating-linear-gradient(45deg, white 0px, white 1px, transparent 1px, transparent 12px);"></div>
+        <div class="relative z-10">
+          <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center mb-3">
+            <template x-if="s.icon === 'truck'"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 001 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg></template>
+            <template x-if="s.icon === 'alert'"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></template>
+            <template x-if="s.icon === 'clipboard'"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></template>
+            <template x-if="s.icon === 'users'"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></template>
+          </div>
+          <p class="text-xs text-white/60 font-medium mb-1" x-text="s.label"></p>
+          <p class="text-2xl font-bold tracking-tight" x-text="s.value"></p>
+        </div>
       </div>
+    </template>
+  </div>
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" x-show="loading">
+    <template x-for="i in 4">
+      <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm animate-pulse"><div class="h-3 bg-gray-100 rounded w-1/2 mb-2"></div><div class="h-6 bg-gray-100 rounded w-3/4"></div></div>
     </template>
   </div>
 
   {{-- Controls --}}
-  <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm flex items-center justify-between">
+  <div class="bg-white rounded-2xl border border-gray-100 p-3 shadow-sm flex items-center justify-between">
     <div class="flex items-center gap-2">
-      <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+      <span class="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse shadow-sm shadow-green-400/50"></span>
       <span class="text-xs font-bold text-gray-700">{{ __('Live') }}</span>
       <span class="text-[10px] text-gray-400" x-text="'{{ __('Updated') }}: ' + lastUpdated"></span>
     </div>
     <div class="flex items-center gap-2">
-      <button @click="tab = 'deliveries'" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all" :class="tab === 'deliveries' ? 'bg-[#6E7A25] text-white shadow-sm' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'">
-        <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
+      <button @click="tab = 'deliveries'" class="px-3 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5" :class="tab === 'deliveries' ? 'bg-gradient-to-r from-[#6E7A25] to-[#173327] text-white shadow-sm' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
         {{ __('Deliveries') }}
-        <span class="ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-white/20" x-text="counts.pending_deliveries"></span>
+        <span class="ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold" :class="tab === 'deliveries' ? 'bg-white/20' : 'bg-gray-100'" x-text="counts.pending_deliveries"></span>
       </button>
-      <button @click="tab = 'orders'" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all" :class="tab === 'orders' ? 'bg-[#6E7A25] text-white shadow-sm' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'">
-        <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      <button @click="tab = 'orders'" class="px-3 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5" :class="tab === 'orders' ? 'bg-gradient-to-r from-[#6E7A25] to-[#173327] text-white shadow-sm' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
         {{ __('Orders') }}
-        <span class="ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-white/20" x-text="counts.today_orders"></span>
+        <span class="ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold" :class="tab === 'orders' ? 'bg-white/20' : 'bg-gray-100'" x-text="counts.today_orders"></span>
       </button>
       <div class="w-px h-6 bg-gray-100 mx-1"></div>
-      <button @click="fetchLiveData()" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 transition-all flex items-center gap-1">
+      <button @click="fetchLiveData()" class="px-3 py-2 text-xs font-bold rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 transition-all flex items-center gap-1">
         <svg class="w-3.5 h-3.5" :class="{'animate-spin': refreshing}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         {{ __('Refresh') }}
       </button>
@@ -49,19 +65,19 @@
       <div class="space-y-2"><template x-for="i in 4"><div class="h-16 bg-gray-50 rounded-xl animate-pulse"></div></template></div>
     </template>
     <template x-for="d in deliveries" :key="d.id">
-      <div class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:shadow-sm hover:border-gray-200 transition-all bg-white">
-        <div class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center" :class="{
-          'bg-green-50 text-green-600': d.status === 'delivered',
-          'bg-blue-50 text-blue-600': ['en_route','out_for_delivery'].includes(d.status),
-          'bg-purple-50 text-purple-600': d.status === 'assigned',
-          'bg-amber-50 text-amber-600': ['pending','preparing','scheduled'].includes(d.status),
-          'bg-red-50 text-red-600': ['failed','cancelled'].includes(d.status)
+      <div class="flex items-center gap-3 p-3.5 rounded-2xl border border-gray-100 hover:shadow-md hover:border-[#6E7A25]/20 transition-all bg-white">
+        <div class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm" :class="{
+          'bg-gradient-to-br from-green-400 to-green-600 text-white': d.status === 'delivered',
+          'bg-gradient-to-br from-blue-400 to-indigo-600 text-white': ['en_route','out_for_delivery'].includes(d.status),
+          'bg-gradient-to-br from-purple-400 to-purple-600 text-white': d.status === 'assigned',
+          'bg-gradient-to-br from-amber-400 to-orange-500 text-white': ['pending','preparing','scheduled'].includes(d.status),
+          'bg-gradient-to-br from-red-400 to-red-600 text-white': ['failed','cancelled'].includes(d.status)
         }">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
         </div>
         <div class="flex-1 min-w-0 grid grid-cols-4 gap-2 text-xs">
-          <div><p class="text-[10px] text-gray-400">{{ __('Delivery') }}</p><p class="font-semibold text-gray-900 truncate" x-text="d.label"></p></div>
-          <div><p class="text-[10px] text-gray-400">{{ __('Order') }}</p><p class="font-semibold text-gray-900 truncate" x-text="d.order"></p></div>
+          <div><p class="text-[10px] text-gray-400">{{ __('Delivery') }}</p><p class="font-bold text-gray-900 truncate" x-text="d.label"></p></div>
+          <div><p class="text-[10px] text-gray-400">{{ __('Order') }}</p><p class="font-semibold text-gray-700 truncate" x-text="d.order"></p></div>
           <div><p class="text-[10px] text-gray-400">{{ __('Customer') }}</p><p class="font-medium text-gray-700 truncate" x-text="d.customer"></p></div>
           <div><p class="text-[10px] text-gray-400">{{ __('Zone') }}</p><p class="font-medium text-gray-700 truncate" x-text="d.zone"></p></div>
         </div>
@@ -107,9 +123,9 @@
       <div class="space-y-2"><template x-for="i in 4"><div class="h-16 bg-gray-50 rounded-xl animate-pulse"></div></template></div>
     </template>
     <template x-for="o in orders" :key="o.id">
-      <div class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:shadow-sm hover:border-gray-200 transition-all bg-white">
-        <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 flex items-center justify-center">
-          <svg class="w-5 h-5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      <div class="flex items-center gap-3 p-3.5 rounded-2xl border border-gray-100 hover:shadow-md hover:border-[#6E7A25]/20 transition-all bg-white">
+        <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center shadow-sm">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
         </div>
         <div class="flex-1 min-w-0 grid grid-cols-4 gap-2 text-xs">
           <div><p class="text-[10px] text-gray-400">{{ __('Order') }}</p><p class="font-semibold text-gray-900 truncate" x-text="o.id"></p></div>
@@ -170,10 +186,10 @@ function liveApp() {
         this.drivers = d.drivers || [];
         this.counts = d.counts || { pending_deliveries: 0, unassigned: 0, today_orders: 0 };
         this.stats = [
-          { label: '{{ __('Pending Deliveries') }}', value: this.counts.pending_deliveries, color: 'text-amber-600' },
-          { label: '{{ __('Unassigned') }}', value: this.counts.unassigned, color: 'text-red-600' },
-          { label: '{{ $todayOrdersLabel }}', value: this.counts.today_orders, color: 'text-[#6E7A25]' },
-          { label: '{{ __('Available Drivers') }}', value: this.drivers.length, color: 'text-gray-900' },
+          { label: '{{ __('Pending Deliveries') }}', value: this.counts.pending_deliveries, icon: 'truck', gradient: 'from-amber-500 to-orange-600' },
+          { label: '{{ __('Unassigned') }}', value: this.counts.unassigned, icon: 'alert', gradient: 'from-rose-500 to-red-600' },
+          { label: '{{ $todayOrdersLabel }}', value: this.counts.today_orders, icon: 'clipboard', gradient: 'from-[#173327] to-[#6E7A25]' },
+          { label: '{{ __('Available Drivers') }}', value: this.drivers.length, icon: 'users', gradient: 'from-[#033133] to-[#6E7A25]' },
         ];
         this.lastUpdated = new Date().toLocaleTimeString();
       } catch(e) { console.error('Failed to fetch live data', e); }

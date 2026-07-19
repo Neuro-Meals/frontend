@@ -17,6 +17,7 @@ use App\Services\Api\PaymentApiService;
 use App\Services\Api\PlanApiService;
 use App\Services\Api\PlanMenuApiService;
 use App\Services\Api\ReportsApiService;
+use App\Services\Api\RbacApiService;
 use App\Services\Api\SubscriptionApiService;
 use App\Services\Api\HasApiData;
 
@@ -2816,7 +2817,7 @@ class AdminController extends Controller
         return view('admin.content', compact('pages', 'stats'));
     }
 
-    public function settings()
+    public function settings(RbacApiService $rbacApi, PaymentApiService $paymentApi, PlanApiService $planApi, DriverApiService $driverApi)
     {
         $settings = [
             'company' => [
@@ -2826,21 +2827,105 @@ class AdminController extends Controller
                 'address' => 'King Fahd Road, Riyadh, Saudi Arabia',
                 'currency' => 'SAR',
                 'timezone' => 'Asia/Riyadh',
+                'language' => 'en',
+                'tax_rate' => 15,
+                'website' => 'https://nutriomeals.com',
             ],
             'delivery' => [
                 'cutoff_time' => '18:00',
                 'delivery_hours' => '08:00 - 20:00',
                 'min_order' => 100,
                 'free_delivery_threshold' => 300,
+                'max_delivery_distance' => 30,
+                'delivery_fee' => 15,
+                'auto_assign_driver' => false,
+                'gps_tracking' => true,
             ],
             'payment' => [
                 'methods' => ['Credit Card', 'Apple Pay', 'Mada', 'Bank Transfer'],
                 'auto_capture' => true,
                 'refund_window' => 7,
+                'min_amount' => 50,
+                'max_amount' => 10000,
+            ],
+            'notifications' => [
+                'email_enabled' => true,
+                'sms_enabled' => false,
+                'push_enabled' => true,
+                'whatsapp_enabled' => false,
+                'order_updates' => true,
+                'delivery_alerts' => true,
+                'payment_receipts' => true,
+                'marketing_emails' => false,
+            ],
+            'security' => [
+                'two_factor' => false,
+                'session_timeout' => 30,
+                'password_expiry' => 90,
+                'max_login_attempts' => 5,
+                'ip_whitelist' => '',
             ],
         ];
 
-        return view('admin.settings', compact('settings'));
+        // Fetch roles from API
+        $rolesData = $this->apiData($rbacApi->listRoles(), fn () => []);
+        $roles = [];
+        foreach ($rolesData as $role) {
+            $roles[] = [
+                'id' => $role['id'] ?? 0,
+                'name' => $role['name'] ?? 'Unknown',
+                'description' => $role['description'] ?? '',
+                'permissions_count' => count($role['permissions'] ?? []),
+                'users_count' => $role['users_count'] ?? 0,
+            ];
+        }
+
+        // Fetch permissions
+        $permissionsData = $this->apiData($rbacApi->listPermissions(), fn () => []);
+        $permissions = [];
+        foreach ($permissionsData as $perm) {
+            $permissions[] = [
+                'id' => $perm['id'] ?? 0,
+                'name' => $perm['name'] ?? 'Unknown',
+                'description' => $perm['description'] ?? '',
+                'module' => $perm['module'] ?? 'general',
+            ];
+        }
+
+        // Fetch payment stats
+        $paymentsData = $this->apiData($paymentApi->list(['limit' => 50]), fn () => []);
+        $paymentStats = [
+            'total' => count($paymentsData),
+            'paid' => count(array_filter($paymentsData, fn ($p) => ($p['status'] ?? '') === 'paid')),
+            'pending' => count(array_filter($paymentsData, fn ($p) => in_array($p['status'] ?? '', ['pending', 'initiated']))),
+            'failed' => count(array_filter($paymentsData, fn ($p) => ($p['status'] ?? '') === 'failed')),
+        ];
+
+        // Fetch plans count
+        $plansData = $this->apiData($planApi->list(), fn () => []);
+        $plansCount = count($plansData);
+
+        // Fetch drivers count
+        $driversData = $this->apiData($driverApi->list(), fn () => []);
+        $driversCount = count($driversData);
+        $activeDrivers = count(array_filter($driversData, fn ($d) => ($d['is_active'] ?? false) === true));
+
+        // System info
+        $systemInfo = [
+            'php_version' => PHP_VERSION,
+            'laravel_version' => app()->version(),
+            'server_time' => now()->format('Y-m-d H:i:s'),
+            'timezone' => config('app.timezone'),
+            'environment' => config('app.env'),
+            'debug_mode' => config('app.debug'),
+            'plans_count' => $plansCount,
+            'drivers_count' => $driversCount,
+            'active_drivers' => $activeDrivers,
+            'roles_count' => count($roles),
+            'permissions_count' => count($permissions),
+        ];
+
+        return view('admin.settings', compact('settings', 'roles', 'permissions', 'paymentStats', 'systemInfo'));
     }
 
     // ─── Phase 11: Reporting (connected to real backend endpoints) ───

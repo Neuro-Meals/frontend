@@ -147,9 +147,12 @@
             </a>
 
             <a href="{{ route('admin.live') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.live') ? 'active' : '' }}">
-                <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12c0-4.97 4.03-9 9-9s9 4.03 9 9-4.03 9-9 9-9-4.03-9-9z M7.5 12c0-2.485 2.015-4.5 4.5-4.5s4.5 2.015 4.5 4.5-2.015 4.5-4.5 4.5-4.5-2.015-4.5-4.5z M12 12 m-1.5 0 a1.5 1.5 0 1 0 3 0 a1.5 1.5 0 1 0 -3 0"/></svg>
                 <span>{{ __('Live') }}</span>
-                <span class="ml-auto px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[9px] font-bold animate-pulse">●</span>
+                <span class="ml-auto px-1.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-[8px] font-bold tracking-wider flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                    LIVE
+                </span>
             </a>
 
             <a href="{{ route('admin.payments') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.payments*') ? 'active' : '' }}">
@@ -160,6 +163,7 @@
             <a href="{{ route('admin.notifications') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.notifications*') ? 'active' : '' }}">
                 <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                 <span>{{ __('Notifications') }}</span>
+                <span class="ml-auto w-2 h-2 rounded-full bg-gradient-to-r from-[#6E7A25] to-accent-400 animate-pulse shadow-sm shadow-accent-400/50"></span>
             </a>
 
             <a href="{{ route('admin.reports.dashboard') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">

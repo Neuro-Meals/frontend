@@ -1,6 +1,7 @@
 @php
     $revArrays = array_merge($revenueTrend['current'] ?? [], $revenueTrend['previous'] ?? []);
     $revMax = !empty($revArrays) ? max($revArrays) : 500000;
+    $funnelColors = !empty(array_column($subscriptionFunnel, 'color')) ? array_column($subscriptionFunnel, 'color') : ['#6E7A25', '#3b82f6', '#949B50', '#173327'];
 @endphp
 
 {{-- KPI Row --}}
@@ -138,7 +139,7 @@
         funnel: {
             labels: @json(array_column($subscriptionFunnel, 'stage')),
             counts: @json(array_column($subscriptionFunnel, 'count')),
-            colors: @json(!empty(array_column($subscriptionFunnel, 'color')) ? array_column($subscriptionFunnel, 'color') : ['#6E7A25', '#3b82f6', '#949B50', '#173327']),
+            colors: @json($funnelColors),
         },
         sla: {
             labels: @json(array_column($deliverySla, 'zone')),

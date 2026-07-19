@@ -36,31 +36,51 @@
 
 {{-- KPI Cards --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div class="kpi-card bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20">
+    <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20" style="animation-delay: 0.1s;">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="absolute inset-0 opacity-[0.05]" style="background-image: repeating-linear-gradient(45deg, white 0px, white 1px, transparent 1px, transparent 12px);"></div>
         <div class="relative z-10">
+            <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+            </div>
             <p class="text-xs text-white/60 font-medium mb-1">{{ __('Total Sent') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ number_format($stats['totalSent']) }}</p>
             <p class="text-xs text-white/50 mt-1">{{ $stats['todaySent'] }} {{ __('today') }}</p>
         </div>
     </div>
-    <div class="kpi-card bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-blue-500/20">
+    <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-blue-500/20" style="animation-delay: 0.15s;">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="absolute inset-0 opacity-[0.05]" style="background-image: repeating-linear-gradient(45deg, white 0px, white 1px, transparent 1px, transparent 12px);"></div>
         <div class="relative z-10">
+            <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
             <p class="text-xs text-white/60 font-medium mb-1">{{ __('Delivery Rate') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ $stats['deliveryRate'] }}%</p>
         </div>
     </div>
-    <div class="kpi-card bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-amber-500/20">
+    <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-amber-500/20" style="animation-delay: 0.2s;">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="absolute inset-0 opacity-[0.05]" style="background-image: repeating-linear-gradient(45deg, white 0px, white 1px, transparent 1px, transparent 12px);"></div>
         <div class="relative z-10">
+            <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            </div>
             <p class="text-xs text-white/60 font-medium mb-1">{{ __('Open Rate') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ $stats['openRate'] }}%</p>
         </div>
     </div>
-    <div class="kpi-card bg-gradient-to-br from-violet-500 to-purple-700 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-violet-500/20">
+    <div class="kpi-card animate__animated animate__fadeInUp bg-gradient-to-br from-violet-500 to-purple-700 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-violet-500/20" style="animation-delay: 0.25s;">
         <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="absolute inset-0 opacity-[0.05]" style="background-image: repeating-linear-gradient(45deg, white 0px, white 1px, transparent 1px, transparent 12px);"></div>
         <div class="relative z-10">
+            <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
             <p class="text-xs text-white/60 font-medium mb-1">{{ __('Failed / Pending') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ $stats['failed'] }} / {{ $stats['pending'] }}</p>
         </div>
@@ -70,10 +90,15 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
     {{-- Notifications Log --}}
     <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
-            <div>
-                <h3 class="text-base font-bold text-gray-900">{{ __('Recent') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Notifications') }}</span></h3>
-                <p class="text-xs text-gray-400 mt-0.5">{{ __('Latest notification activity') }}</p>
+        <div class="px-6 py-4 border-b border-gray-50 bg-gradient-to-r from-[#173327]/5 to-transparent flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center shadow-sm">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-gray-900">{{ __('Recent') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Notifications') }}</span></h3>
+                    <p class="text-xs text-gray-400 mt-0.5">{{ __('Latest notification activity') }}</p>
+                </div>
             </div>
         </div>
         <div class="divide-y divide-gray-50">
@@ -107,9 +132,14 @@
 
     {{-- Templates --}}
     <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-        <div class="mb-5">
-            <h3 class="text-base font-bold text-gray-900">{{ __('Notification') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Templates') }}</span></h3>
-            <p class="text-xs text-gray-400 mt-0.5">{{ __('Active message templates') }}</p>
+        <div class="mb-5 flex items-center gap-2">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center shadow-sm">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            </div>
+            <div>
+                <h3 class="text-base font-bold text-gray-900">{{ __('Notification') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Templates') }}</span></h3>
+                <p class="text-xs text-gray-400 mt-0.5">{{ __('Active message templates') }}</p>
+            </div>
         </div>
         <div class="space-y-3">
             @foreach($templates as $template)
