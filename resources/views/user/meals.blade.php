@@ -257,7 +257,6 @@
                     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex">
                         {{-- Left gradient sidebar with icon --}}
                         <div class="w-20 sm:w-24 bg-gradient-to-br from-[#173327] to-[#6E7A25] relative overflow-hidden flex flex-col items-center justify-center flex-shrink-0 py-4">
-                            <div class="absolute inset-0 bg-diamond opacity-[0.08]"></div>
                             <div class="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8"></div>
                             <svg class="w-8 h-8 text-white/80 relative z-10 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                             @if(isset($meal['quantity']) && $meal['quantity'] > 1)
@@ -321,7 +320,7 @@
     }
 @endphp
 
-<div x-data="{ selectedDay: {{ $defaultDay }} }" x-cloak class="mb-6">
+<div x-data="{ selectedDay: {{ $defaultDay }} }" class="mb-6">
     {{-- Calendar Header with gradient --}}
     <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white shadow-lg shadow-[#173327]/20 relative overflow-hidden mb-4">
         <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
@@ -366,7 +365,7 @@
 
     {{-- Day Detail Panels --}}
     @foreach($weekMeals as $idx => $day)
-    <div x-show="selectedDay === {{ $idx }}" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform translate-y-2" x-transition:enter-end="opacity-100 transform translate-y-0" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div x-show="selectedDay === {{ $idx }}" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform translate-y-2" x-transition:enter-end="opacity-100 transform translate-y-0" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden" @if($idx !== $defaultDay) style="display:none" @endif>
         {{-- Day header bar --}}
         <div class="px-5 py-4 bg-gradient-to-r from-[#173327]/5 to-[#6E7A25]/5 border-b border-gray-100 flex items-center justify-between">
             <div class="flex items-center gap-3">
