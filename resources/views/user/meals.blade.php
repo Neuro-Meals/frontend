@@ -345,13 +345,19 @@
     {{-- Day Selector Pills --}}
     <div class="grid grid-cols-7 gap-1.5 sm:gap-2 mb-4">
         @foreach($weekMeals as $idx => $day)
+        @php $isToday = ($idx === $todayIndex); @endphp
         <button @click="selectedDay = {{ $idx }}"
-            class="rounded-2xl p-2 sm:p-3 text-center transition-all duration-300 border-2 relative"
+            class="rounded-2xl p-2 sm:p-3 text-center transition-all duration-300 border-2 relative
+                {{ $isToday ? 'ring-2 ring-[#6E7A25] ring-offset-1' : '' }}"
             :class="selectedDay === {{ $idx }}
                 ? 'bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white border-transparent shadow-lg shadow-[#173327]/20 scale-105'
-                : 'bg-white border-gray-100 hover:border-[#6E7A25]/30 hover:shadow-sm'">
+                : '{{ $isToday ? "bg-[#6E7A25]/5 border-[#6E7A25]/40" : "bg-white border-gray-100 hover:border-[#6E7A25]/30 hover:shadow-sm" }}'">
+            @if($isToday)
+            <span class="absolute -top-1.5 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-full text-[7px] sm:text-[8px] font-extrabold uppercase tracking-wide bg-gradient-to-r from-[#6E7A25] to-[#949B50] text-white shadow-sm whitespace-nowrap z-10"
+                :class="selectedDay === {{ $idx }} ? 'hidden' : ''">Today</span>
+            @endif
             <p class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide"
-               :class="selectedDay === {{ $idx }} ? 'text-white/60' : 'text-gray-400'">{{ $day['day'] }}</p>
+               :class="selectedDay === {{ $idx }} ? 'text-white/60' : '{{ $isToday ? "text-[#6E7A25]" : "text-gray-400" }}'">{{ $day['day'] }}</p>
             <div class="my-1.5 sm:my-2 mx-auto w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center font-bold text-xs sm:text-sm"
                 :class="selectedDay === {{ $idx }} ? 'bg-white/15 text-white' : '{{ $day['mealCount'] > 0 ? "bg-[#6E7A25]/10 text-[#173327]" : "bg-gray-100 text-gray-300" }}'">{{ $day['mealCount'] }}</div>
             <p class="text-[8px] sm:text-[9px] font-medium"
@@ -367,20 +373,31 @@
     @foreach($weekMeals as $idx => $day)
     <div x-show="selectedDay === {{ $idx }}" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform translate-y-2" x-transition:enter-end="opacity-100 transform translate-y-0" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden" @if($idx !== $defaultDay) style="display:none" @endif>
         {{-- Day header bar --}}
-        <div class="px-5 py-4 bg-gradient-to-r from-[#173327]/5 to-[#6E7A25]/5 border-b border-gray-100 flex items-center justify-between">
+        @php $isTodayPanel = ($idx === $todayIndex); @endphp
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between
+            {{ $isTodayPanel ? 'bg-gradient-to-r from-[#173327] to-[#6E7A25]' : 'bg-gradient-to-r from-[#173327]/5 to-[#6E7A25]/5' }}">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center text-white font-bold text-sm shadow-sm">{{ substr($day['day'], 0, 1) }}</div>
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-sm
+                    {{ $isTodayPanel ? 'bg-white/20' : 'bg-gradient-to-br from-[#173327] to-[#6E7A25]' }}">{{ substr($day['day'], 0, 1) }}</div>
                 <div>
-                    <p class="text-sm font-bold text-gray-900">{{ $day['day'] }} {{ __('Schedule') }}</p>
-                    <p class="text-[10px] text-gray-500">{{ $day['mealCount'] }} {{ __('meals') }} · {{ number_format($day['calories']) }} kcal</p>
+                    <div class="flex items-center gap-2">
+                        <p class="text-sm font-bold {{ $isTodayPanel ? 'text-white' : 'text-gray-900' }}">{{ $day['day'] }} {{ __('Schedule') }}</p>
+                        @if($isTodayPanel)
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wide bg-white text-[#173327] shadow-sm">
+                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            Today
+                        </span>
+                        @endif
+                    </div>
+                    <p class="text-[10px] {{ $isTodayPanel ? 'text-white/70' : 'text-gray-500' }}">{{ $day['mealCount'] }} {{ __('meals') }} · {{ number_format($day['calories']) }} kcal</p>
                 </div>
             </div>
             @if($day['mealCount'] > 0)
-            <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-green-700 bg-green-50 px-2.5 py-1 rounded-full">
+            <span class="inline-flex items-center gap-1 text-[10px] font-semibold {{ $isTodayPanel ? 'text-white bg-white/15' : 'text-green-700 bg-green-50' }} px-2.5 py-1 rounded-full">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> {{ __('Scheduled') }}
             </span>
             @else
-            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-400">{{ __('No meals') }}</span>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold {{ $isTodayPanel ? 'text-white/60 bg-white/10' : 'bg-gray-100 text-gray-400' }}">{{ __('No meals') }}</span>
             @endif
         </div>
 
