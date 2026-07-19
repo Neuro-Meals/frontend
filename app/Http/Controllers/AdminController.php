@@ -37,19 +37,110 @@ class AdminController extends Controller
 
     public function dashboard(AdminApiService $adminApi, OrderApiService $orderApi, SubscriptionApiService $subscriptionApi, MealApiService $mealApi, ReportsApiService $reportsApi, PaymentApiService $paymentApi)
     {
+        $today = date('Y-m-d');
+        $thisMonth = date('Y-m');
+        $lastMonth = date('Y-m', strtotime('-1 month'));
+        $weekAgo = date('Y-m-d', strtotime('-7 days'));
+        $fourteenDaysAgo = date('Y-m-d', strtotime('-14 days'));
+
+        // ─── Fetch real data from APIs ───
         $usersResponse = $adminApi->usersList(['limit' => 1]);
         $subscriptionsResponse = $subscriptionApi->list(['limit' => 1, 'status' => 'active']);
-        $ordersResponse = $orderApi->list(['limit' => 1]);
         $mealsResponse = $mealApi->list(['limit' => 1]);
 
         $totalUsers = $usersResponse['meta']['total'] ?? 0;
         $activeSubscriptions = $subscriptionsResponse['meta']['total'] ?? 0;
-        $totalOrders = $ordersResponse['meta']['total'] ?? 0;
         $totalMeals = $mealsResponse['meta']['total'] ?? 0;
 
-        $deliveriesResponse = app(DeliveryApiService::class)->list(['limit' => 1]);
-        $totalDeliveries = $deliveriesResponse['meta']['total'] ?? 0;
+        // Fetch real orders (up to 100) for trend building
+        $allOrders = $this->apiData($orderApi->list(['limit' => 100]), function () {
+            return [];
+        });
 
+        $totalOrders = $usersResponse['meta']['total'] ?? 0; // fallback
+        $totalOrders = count($allOrders);
+
+        // Build orders trend (last 7 days) and today's count from real orders
+        $ordersTrend = [];
+        $ordersByDay = [];
+        $ordersToday = 0;
+        $ordersByStatus = [];
+        $recentOrdersRaw = [];
+
+        for ($i = 6; $i >= 0; $i--) {
+            $day = date('Y-m-d', strtotime("-{$i} days"));
+            $ordersByDay[$day] = 0;
+        }
+
+        if (!empty($allOrders) && is_array($allOrders)) {
+            // Sort by created_at desc for recent orders
+            usort($allOrders, function ($a, $b) {
+                return strtotime($b['created_at'] ?? '') <=> strtotime($a['created_at'] ?? '');
+            });
+            $recentOrdersRaw = array_slice($allOrders, 0, 6);
+
+            foreach ($allOrders as $order) {
+                $status = $order['status'] ?? 'pending';
+                $statusKey = is_array($status) ? ($status['value'] ?? $status['name'] ?? 'pending') : $status;
+                $ordersByStatus[$statusKey] = ($ordersByStatus[$statusKey] ?? 0) + 1;
+
+                $orderDate = date('Y-m-d', strtotime($order['delivery_date'] ?? ($order['created_at'] ?? 'now')));
+                if (isset($ordersByDay[$orderDate])) {
+                    $ordersByDay[$orderDate]++;
+                }
+                if ($orderDate === $today) {
+                    $ordersToday++;
+                }
+            }
+        }
+
+        $ordersTrend = array_values($ordersByDay);
+        $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        $ordersLabels = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $ordersLabels[] = $days[(int)date('N', strtotime("-{$i} days")) - 1];
+        }
+
+        // Fetch deliveries
+        $deliveriesResponse = app(DeliveryApiService::class)->list(['limit' => 100]);
+        $allDeliveries = $deliveriesResponse['data'] ?? [];
+        $totalDeliveries = $deliveriesResponse['meta']['total'] ?? count($allDeliveries);
+        $deliveriesToday = 0;
+        $deliveryZones = [];
+        $deliveriesByStatus = [];
+
+        if (!empty($allDeliveries) && is_array($allDeliveries)) {
+            foreach ($allDeliveries as $delivery) {
+                $status = $delivery['status'] ?? 'pending';
+                $deliveriesByStatus[$status] = ($deliveriesByStatus[$status] ?? 0) + 1;
+
+                $deliveryDate = date('Y-m-d', strtotime($delivery['created_at'] ?? 'now'));
+                if ($deliveryDate === $today) {
+                    $deliveriesToday++;
+                }
+
+                // Build delivery zones from delivery addresses
+                $address = $delivery['delivery_address'] ?? ($delivery['order']['delivery_address'] ?? '');
+                if (!empty($address)) {
+                    // Extract zone/area from address (first part before comma)
+                    $parts = explode(',', $address);
+                    $zone = trim($parts[0] ?? 'Unknown');
+                    if (strlen($zone) > 25) $zone = substr($zone, 0, 25) . '...';
+                    if (!isset($deliveryZones[$zone])) {
+                        $deliveryZones[$zone] = ['zone' => $zone, 'orders' => 0, 'drivers' => 0];
+                    }
+                    $deliveryZones[$zone]['orders']++;
+                }
+            }
+        }
+
+        // Sort zones by orders desc, take top 6
+        usort($deliveryZones, function ($a, $b) {
+            return $b['orders'] <=> $a['orders'];
+        });
+        $deliveryZones = array_slice($deliveryZones, 0, 6);
+
+        // Fetch payments for revenue calculation
         $paymentsData = $this->apiData($paymentApi->list(['limit' => 100]), function () {
             return [];
         });
@@ -58,9 +149,12 @@ class AdminController extends Controller
         $totalRevenue = 0;
         $monthlyRevenue = 0;
         $lastMonthRevenue = 0;
-        $today = date('Y-m-d');
-        $thisMonth = date('Y-m');
-        $lastMonth = date('Y-m', strtotime('-1 month'));
+        $revenueByDay = [];
+
+        for ($i = 13; $i >= 0; $i--) {
+            $day = date('Y-m-d', strtotime("-{$i} days"));
+            $revenueByDay[$day] = 0;
+        }
 
         foreach ($paymentsData as $payment) {
             $paymentInfo = $payment['payment'] ?? $payment;
@@ -71,14 +165,24 @@ class AdminController extends Controller
             $amount = $paymentInfo['amount'] ?? 0;
             if ($status === 'paid' || $status === 'captured') {
                 $totalRevenue += $amount;
-                $paymentMonth = !empty($paymentInfo['paid_at']) ? substr($paymentInfo['paid_at'], 0, 7) : (!empty($paymentInfo['created_at']) ? substr($paymentInfo['created_at'], 0, 7) : null);
+                $paymentDate = !empty($paymentInfo['paid_at']) ? substr($paymentInfo['paid_at'], 0, 10) : (!empty($paymentInfo['created_at']) ? substr($paymentInfo['created_at'], 0, 10) : null);
+                $paymentMonth = substr($paymentDate ?? '', 0, 7);
                 if ($paymentMonth === $thisMonth) {
                     $monthlyRevenue += $amount;
                 }
                 if ($paymentMonth === $lastMonth) {
                     $lastMonthRevenue += $amount;
                 }
+                if ($paymentDate && isset($revenueByDay[$paymentDate])) {
+                    $revenueByDay[$paymentDate] += $amount;
+                }
             }
+        }
+
+        $revenueTrend = array_values($revenueByDay);
+        $revenueLabels = [];
+        for ($i = 13; $i >= 0; $i--) {
+            $revenueLabels[] = date('d/m', strtotime("-{$i} days"));
         }
 
         $totalPayments = array_sum($paymentCounts) - $paymentCounts['other'];
@@ -87,6 +191,27 @@ class AdminController extends Controller
         $claimCount = $paymentCounts['refunded'] + $paymentCounts['disputed'] + $paymentCounts['failed'] + $paymentCounts['cancelled'];
         $claimRate = $totalPayments > 0 ? round(($claimCount / $totalPayments) * 100, 1) : 0;
 
+        // Fetch users list to calculate new users this week
+        $allUsers = $this->apiData($adminApi->usersList(['limit' => 100]), function () {
+            return [];
+        });
+        $newUsersThisWeek = 0;
+        $newCustomersThisWeek = 0;
+        if (!empty($allUsers) && is_array($allUsers)) {
+            foreach ($allUsers as $user) {
+                $createdAt = $user['created_at'] ?? '';
+                if (!empty($createdAt) && substr($createdAt, 0, 10) >= $weekAgo) {
+                    $newUsersThisWeek++;
+                    $role = $user['role'] ?? 'customer';
+                    if (is_array($role)) $role = $role['value'] ?? $role['name'] ?? 'customer';
+                    if ($role === 'customer' || $role === 'CUSTOMER') {
+                        $newCustomersThisWeek++;
+                    }
+                }
+            }
+        }
+
+        // Subscription reports
         $subscriptionsReport = $this->apiData($reportsApi->subscriptions(), fn () => []);
         $subscriptionStatusCounts = [];
         foreach ($subscriptionsReport['subscriptions_by_status'] ?? [] as $item) {
@@ -100,35 +225,47 @@ class AdminController extends Controller
         $churnRate = $totalEngagedSubs > 0 ? round((($cancelledSubsCount + $expiredSubsCount) / $totalEngagedSubs) * 100, 1) : 0;
         $retentionRate = $totalEngagedSubs > 0 ? round(($activeSubsCount / $totalEngagedSubs) * 100, 1) : 0;
 
+        // Calculate real growth percentages
+        $subGrowth = $lastMonthRevenue > 0 ? round(($monthlyRevenue - $lastMonthRevenue) / $lastMonthRevenue * 100, 1) : 0;
+        $ordersGrowth = 0;
+        if (count($ordersTrend) >= 7) {
+            $thisWeekOrders = array_sum(array_slice($ordersTrend, -7));
+            $prevWeekOrders = array_sum(array_slice($ordersTrend, 0, 7));
+            $ordersGrowth = $prevWeekOrders > 0 ? round(($thisWeekOrders - $prevWeekOrders) / $prevWeekOrders * 100, 1) : 0;
+        }
+
         $stats = [
             'totalUsers' => $totalUsers,
-            'newUsersThisWeek' => 0,
+            'newUsersThisWeek' => $newUsersThisWeek,
             'totalRevenue' => $totalRevenue,
             'activeSubscriptions' => $activeSubscriptions,
             'totalMeals' => $totalMeals,
             'successRate' => $successRate,
             'claimRate' => $claimRate,
-            'ordersToday' => $totalOrders,
-            'deliveriesToday' => $totalDeliveries,
+            'ordersToday' => $ordersToday,
+            'totalOrders' => $totalOrders,
+            'deliveriesToday' => $deliveriesToday,
+            'totalDeliveries' => $totalDeliveries,
             'pendingPayments' => $paymentCounts['pending'] + $paymentCounts['unpaid'],
             'avgOrderValue' => $totalOrders > 0 ? round($totalRevenue / $totalOrders, 2) : 0,
             'monthlyRevenue' => $monthlyRevenue,
             'lastMonthRevenue' => $lastMonthRevenue,
             'totalCustomers' => $totalUsers,
-            'newCustomersThisWeek' => 0,
+            'newCustomersThisWeek' => $newCustomersThisWeek,
             'churnRate' => $churnRate,
             'retentionRate' => $retentionRate,
             'paymentCounts' => $paymentCounts,
             'subscriptionStatusCounts' => $subscriptionStatusCounts,
+            'subGrowth' => $subGrowth,
+            'ordersGrowth' => $ordersGrowth,
+            'ordersByStatus' => $ordersByStatus,
+            'deliveriesByStatus' => $deliveriesByStatus,
         ];
 
-        $recentOrdersData = $this->apiData($orderApi->list(['limit' => 6]), function () {
-            return [];
-        });
-
+        // Build recent orders from real API data
         $recentOrders = [];
-        if (!empty($recentOrdersData)) {
-            foreach ($recentOrdersData as $order) {
+        if (!empty($recentOrdersRaw)) {
+            foreach ($recentOrdersRaw as $order) {
                 $customer = $order['customer'] ?? ($order['user'] ?? []);
                 $plan = $order['plan'] ?? [];
                 $recentOrders[] = [
@@ -137,10 +274,12 @@ class AdminController extends Controller
                     'plan' => $plan['name_en'] ?? ($plan['name'] ?? 'Plan'),
                     'amount' => $order['total_amount'] ?? 0,
                     'status' => $order['status'] ?? 'pending',
+                    'date' => $order['delivery_date'] ?? ($order['created_at'] ?? ''),
                 ];
             }
         }
 
+        // Build recent payments
         $recentPayments = [];
         if (!empty($paymentsData)) {
             foreach (array_slice($paymentsData, 0, 6) as $payment) {
@@ -161,19 +300,14 @@ class AdminController extends Controller
             }
         }
 
-        $revenueResponse = $this->apiData($reportsApi->revenue(), fn () => []);
-        $revenueTrend = $this->extractTrendValues($revenueResponse, 'revenue');
-
-        $ordersResponse = $this->apiData($reportsApi->orders(), fn () => []);
-        $ordersTrend = $this->extractTrendValues($ordersResponse, 'orders');
-
+        // Plan distribution from real data
         $plansData = $this->apiData($adminApi->plansList(['limit' => 100]), function () {
             return [];
         });
 
         $planDistribution = [];
         if (!empty($plansData)) {
-            $colors = ['#173327', '#033133', '#f9ac00', '#3b82f6', '#8b5cf6', '#ef4444'];
+            $colors = ['#173327', '#033133', '#6E7A25', '#025C5F', '#949B50', '#f9ac00'];
             $colorIndex = 0;
             foreach ($plansData as $plan) {
                 $planDistribution[] = [
@@ -185,7 +319,8 @@ class AdminController extends Controller
             }
         }
 
-        $topMealsData = $this->apiData($mealApi->list(['limit' => 5]), fn () => []);
+        // Top meals from real data
+        $topMealsData = $this->apiData($mealApi->list(['limit' => 10]), fn () => []);
         $topMeals = [];
         foreach ($topMealsData as $meal) {
             $topMeals[] = [
@@ -195,10 +330,13 @@ class AdminController extends Controller
                 'revenue' => $meal['revenue'] ?? 0,
             ];
         }
+        // Sort by orders desc
+        usort($topMeals, function ($a, $b) {
+            return $b['orders'] <=> $a['orders'];
+        });
+        $topMeals = array_slice($topMeals, 0, 5);
 
-        $deliveryZones = [];
-
-        return view('admin.dashboard', compact('stats', 'revenueTrend', 'ordersTrend', 'planDistribution', 'recentOrders', 'recentPayments', 'topMeals', 'deliveryZones'));
+        return view('admin.dashboard', compact('stats', 'revenueTrend', 'revenueLabels', 'ordersTrend', 'ordersLabels', 'planDistribution', 'recentOrders', 'recentPayments', 'topMeals', 'deliveryZones'));
     }
 
     public function customers(Request $request, AdminApiService $adminApi)

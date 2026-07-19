@@ -36,6 +36,8 @@
         'cancelled' => __('Cancelled'),
     ];
     $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    $ordersLabels = $ordersLabels ?? $days;
+    $revenueLabels = $revenueLabels ?? [];
 @endphp
 
 {{-- Skeleton Loading --}}
@@ -95,7 +97,7 @@
                 <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 </div>
-                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">+12.4%</span>
+                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">{{ $stats['subGrowth'] >= 0 ? '+' : '' }}{{ $stats['subGrowth'] }}%</span>
             </div>
             <p class="text-xs text-white/60 font-medium mb-1">{{ __('Active Subscriptions') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ number_format($stats['activeSubscriptions']) }}</p>
@@ -112,7 +114,7 @@
                 <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                 </div>
-                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">+8.2%</span>
+                <span class="text-xs font-bold text-white/90 bg-white/15 px-2 py-1 rounded-full">{{ $stats['ordersGrowth'] >= 0 ? '+' : '' }}{{ $stats['ordersGrowth'] }}%</span>
             </div>
             <p class="text-xs text-white/60 font-medium mb-1">{{ __('Orders Today') }}</p>
             <p class="text-2xl font-bold tracking-tight">{{ $stats['ordersToday'] }}</p>
@@ -175,6 +177,9 @@
         <div>
             <p class="text-[10px] text-gray-400 font-medium">{{ __('Total Customers') }}</p>
             <p class="text-base font-bold tracking-tight text-[#173327]">{{ number_format($stats['totalCustomers']) }}</p>
+            @if($stats['newUsersThisWeek'] > 0)
+            <p class="text-[9px] text-[#6E7A25] font-bold mt-0.5">+{{ $stats['newUsersThisWeek'] }} {{ __('this week') }}</p>
+            @endif
         </div>
     </div>
     <div class="kpi-card animate__animated animate__fadeInUp bg-white rounded-xl border border-gray-100 p-3 shadow-sm flex items-center gap-3" style="animation-delay: 0.6s;">
@@ -232,10 +237,6 @@
         @php
             $revMax = !empty($revenueTrend) ? (max($revenueTrend) ?: 1) : 1;
             $revTotal = !empty($revenueTrend) ? array_sum($revenueTrend) : 0;
-            $revenueLabels = [];
-            for ($i = 0; $i < count($revenueTrend); $i++) {
-                $revenueLabels[] = \Carbon\Carbon::parse('now')->subDays(count($revenueTrend) - 1 - $i)->format('d/m');
-            }
         @endphp
         @if(!empty($revenueTrend))
         <div class="relative h-56 mb-4">
@@ -352,7 +353,7 @@
             <p class="text-xs text-gray-400 mt-0.5">{{ __("Today's distribution") }}</p>
         </div>
         <div class="space-y-3">
-            @foreach($deliveryZones as $zone)
+            @forelse($deliveryZones as $zone)
                 <div class="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-gray-50 to-white border border-gray-100 hover:shadow-sm transition-all">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center flex-shrink-0">
@@ -368,7 +369,12 @@
                         <p class="text-[10px] text-gray-400">{{ __('orders') }}</p>
                     </div>
                 </div>
-            @endforeach
+            @empty
+                <div class="flex flex-col items-center justify-center py-8 text-center">
+                    <svg class="w-10 h-10 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <p class="text-xs text-gray-400">{{ __('No delivery zones data yet') }}</p>
+                </div>
+            @endforelse
         </div>
     </div>
 </div>
@@ -395,7 +401,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($recentOrders as $order)
+                    @forelse($recentOrders as $order)
                     <tr class="border-b border-gray-50 hover:bg-gray-50/30 transition-colors">
                         <td class="px-6 py-3">
                             <span class="text-xs font-bold text-gray-900">{{ $order['id'] }}</span>
@@ -413,12 +419,16 @@
                             <span class="text-xs font-bold text-gray-900">SAR {{ $order['amount'] }}</span>
                         </td>
                         <td class="px-6 py-3">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border {{ $statusColors[$order['status']] }}">
-                                {{ $statusLabels[$order['status']] }}
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border {{ $statusColors[$order['status']] ?? $statusColors['pending'] }}">
+                                {{ $statusLabels[$order['status']] ?? ucfirst($order['status']) }}
                             </span>
                         </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center text-xs text-gray-400">{{ __('No recent orders found.') }}</td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -431,7 +441,7 @@
             <p class="text-xs text-gray-400 mt-0.5">{{ __('Best performing this month') }}</p>
         </div>
         <div class="space-y-3">
-            @foreach($topMeals as $i => $meal)
+            @forelse($topMeals as $i => $meal)
                 <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors">
                     @if($meal['image'])
                     <div class="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-gray-100 to-gray-200">
@@ -447,7 +457,12 @@
                         <p class="text-[10px] text-gray-400">{{ $meal['orders'] }} {{ __('orders') }} · SAR {{ number_format($meal['revenue']) }}</p>
                     </div>
                 </div>
-            @endforeach
+            @empty
+                <div class="flex flex-col items-center justify-center py-8 text-center">
+                    <svg class="w-10 h-10 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17"/></svg>
+                    <p class="text-xs text-gray-400">{{ __('No meals data available') }}</p>
+                </div>
+            @endforelse
         </div>
     </div>
 </div>
@@ -588,13 +603,13 @@
         </div>
         <div class="flex items-center gap-6">
             <div class="text-right">
-                <p class="text-[10px] text-white/40 uppercase tracking-wider">{{ __('Uptime') }}</p>
-                <p class="text-sm font-bold">99.98%</p>
+                <p class="text-[10px] text-white/40 uppercase tracking-wider">{{ __('Total Orders') }}</p>
+                <p class="text-sm font-bold">{{ number_format($stats['totalOrders'] ?? 0) }}</p>
             </div>
             <div class="w-px h-8 bg-white/10"></div>
             <div class="text-right">
-                <p class="text-[10px] text-white/40 uppercase tracking-wider">{{ __('Response') }}</p>
-                <p class="text-sm font-bold">124ms</p>
+                <p class="text-[10px] text-white/40 uppercase tracking-wider">{{ __('Total Revenue') }}</p>
+                <p class="text-sm font-bold">SAR {{ number_format($stats['totalRevenue'] ?? 0) }}</p>
             </div>
             <div class="w-px h-8 bg-white/10"></div>
             <div class="text-right">
@@ -680,7 +695,7 @@
     new Chart(document.getElementById('dashboardOrdersChart'), {
         type: 'bar',
         data: {
-            labels: @json($days ?? []),
+            labels: @json($ordersLabels ?? $days ?? []),
             datasets: [{
                 label: '{{ __('Orders') }}',
                 data: @json($ordersTrend ?? []),
