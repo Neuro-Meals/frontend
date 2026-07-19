@@ -180,6 +180,7 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
     Route::put('/meal-categories/{id}', [AdminController::class, 'updateCategory'])->name('categories.update');
     Route::delete('/meal-categories/{id}', [AdminController::class, 'destroyCategory'])->name('categories.destroy');
     Route::get('/orders', [AdminController::class, 'orders'])->name('orders');
+    Route::post('/orders', [AdminController::class, 'generateOrders'])->name('orders.generate');
     Route::post('/orders/{id}/approve', [AdminController::class, 'approveOrder'])->name('orders.approve');
     Route::post('/orders/{id}/assign-driver', [AdminController::class, 'assignDriverToOrder'])->name('orders.assign-driver');
     Route::get('/deliveries', [AdminController::class, 'deliveries'])->name('deliveries');

@@ -1675,6 +1675,15 @@ class AdminController extends Controller
             return 4;
         };
 
+        // ─── Auto-generate today's orders from active paid subscriptions ───
+        // This ensures orders appear even if the backend cron job hasn't run yet.
+        try {
+            $chefApi->generateTodayOrders();
+            $chefApi->confirmTodayOrders();
+        } catch (\Throwable $e) {
+            \Log::warning('Auto-generate orders failed (non-fatal)', ['error' => $e->getMessage()]);
+        }
+
         // ─── Fetch grouped orders from chef API ───
         $groupedResponse = $chefApi->ordersTodayGrouped($includeCompleted);
         $useGrouped = !isset($groupedResponse['success']) || $groupedResponse['success'] !== false;
@@ -1959,6 +1968,28 @@ class AdminController extends Controller
         }
 
         return view('admin.orders', compact('categories', 'categorizedOrders', 'mealsByCategory', 'stats', 'drivers', 'todayDate', 'shoppingList'));
+    }
+
+    public function generateOrders(Request $request, ChefApiService $chefApi)
+    {
+        try {
+            $result = $chefApi->generateTodayOrders();
+            $chefApi->confirmTodayOrders();
+            $created = $result['orders_created'] ?? 0;
+            $existing = $result['already_existing'] ?? 0;
+            $skipped = ($result['skipped_no_menu'] ?? 0) + ($result['skipped_invalid_subscription'] ?? 0) + ($result['skipped_address_missing'] ?? 0);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Orders generated: {$created} new, {$existing} already existed, {$skipped} skipped.",
+                'data' => $result,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to generate orders: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     private function formatAdminOrder(array $order): array

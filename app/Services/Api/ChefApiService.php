@@ -100,4 +100,15 @@ class ChefApiService extends BaseApiService
         return $this->get('chef.ready_for_delivery', [], $query);
     }
 
+    public function generateTodayOrders(): array
+    {
+        $url = $this->buildUrl('orders_automation.generate') . '?date=' . date('Y-m-d');
+        return $this->request('post', $url);
+    }
+
+    public function confirmTodayOrders(): array
+    {
+        return $this->post('orders_automation.confirm_today');
+    }
+
 }

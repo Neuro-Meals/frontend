@@ -53,6 +53,12 @@
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
       {{ __('Refresh') }}
     </button>
+    <button @click="generateOrders()"
+      class="px-3 py-2 text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-lg hover:opacity-90 transition-all shadow-sm whitespace-nowrap flex items-center gap-1.5">
+      <svg x-show="!generating" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+      <svg x-show="generating" class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+      {{ __('Generate Orders') }}
+    </button>
     <button @click="toggleCompleted()"
       :class="includeCompleted ? 'bg-[#173327] text-white' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'"
       class="px-3 py-2 text-xs font-bold border border-gray-100 rounded-lg transition-all whitespace-nowrap flex items-center gap-1.5">
@@ -436,6 +442,7 @@ function ordersApp() {
     selectedStatus: '',
     loading: false,
     actionLoading: false,
+    generating: false,
     includeCompleted: false,
     assignDriverId: '',
     assignTime: '',
@@ -526,6 +533,24 @@ function ordersApp() {
         }
       } catch(e) { console.error('Failed to fetch orders', e); }
       finally { this.loading = false; }
+    },
+
+    async generateOrders() {
+      this.generating = true;
+      try {
+        const r = await fetch(`{{ route('admin.orders.generate') }}`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+          },
+          body: JSON.stringify({ action: 'generate' })
+        });
+        const d = await r.json();
+        await this.fetchOrders();
+      } catch(e) { console.error('Failed to generate orders', e); }
+      finally { this.generating = false; }
     },
 
     async updateStatus() {

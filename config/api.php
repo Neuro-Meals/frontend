@@ -246,6 +246,14 @@ return [
             'ready_for_delivery'    => '/chef/orders/ready-for-delivery',
         ],
 
+        // ─── Order Automation ───
+        'orders_automation' => [
+            'generate'         => '/orders/automation/generate',
+            'generate_tomorrow'=> '/orders/automation/generate-tomorrow',
+            'confirm_today'    => '/orders/automation/confirm-today',
+            'preview'          => '/orders/automation/preview',
+        ],
+
         // ─── Meal Schedule (not in OpenAPI spec — customer dashboard requirement) ───
         'meal_schedule' => [
             'my'       => '/meal-schedule/my',
