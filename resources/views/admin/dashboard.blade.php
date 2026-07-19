@@ -329,14 +329,44 @@
                 <h3 class="text-base font-bold text-gray-900">{{ __('Orders') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('This Week') }}</span></h3>
                 <p class="text-xs text-gray-400 mt-0.5">{{ __('Daily order volume') }}</p>
             </div>
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-[#173327]"></span>
-                <span class="text-xs text-gray-500">{{ __('Orders') }}</span>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#173327]"></span>
+                    <span class="text-xs text-gray-500">{{ __('Orders') }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#6E7A25]"></span>
+                    <span class="text-xs text-gray-500">{{ __('Trend') }}</span>
+                </div>
             </div>
         </div>
+        @php
+            $ordersTotal = !empty($ordersTrend) ? array_sum($ordersTrend) : 0;
+            $ordersAvg = !empty($ordersTrend) ? round(array_sum($ordersTrend) / count($ordersTrend), 1) : 0;
+            $ordersMax = !empty($ordersTrend) ? max($ordersTrend) : 0;
+            $ordersMaxDay = '';
+            if (!empty($ordersTrend) && !empty($ordersLabels)) {
+                $maxIdx = array_search($ordersMax, $ordersTrend);
+                $ordersMaxDay = $ordersLabels[$maxIdx] ?? '';
+            }
+        @endphp
         @if(!empty($ordersTrend))
         <div class="relative h-56">
             <canvas id="dashboardOrdersChart"></canvas>
+        </div>
+        <div class="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between">
+            <div>
+                <p class="text-xs text-gray-400">{{ __('Total This Week') }}</p>
+                <p class="text-lg font-bold text-gray-900">{{ $ordersTotal }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-400">{{ __('Avg / Day') }}</p>
+                <p class="text-lg font-bold text-gray-900">{{ $ordersAvg }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-400">{{ __('Best Day') }}</p>
+                <p class="text-lg font-bold text-[#6E7A25]">{{ $ordersMaxDay }} · {{ $ordersMax }}</p>
+            </div>
         </div>
         @else
         <div class="h-56 flex flex-col items-center justify-center text-center rounded-xl bg-gray-50/50 border border-dashed border-gray-200">
@@ -397,6 +427,7 @@
                         <th class="px-6 py-3 font-medium">{{ __('Customer') }}</th>
                         <th class="px-6 py-3 font-medium">{{ __('Plan') }}</th>
                         <th class="px-6 py-3 font-medium">{{ __('Amount') }}</th>
+                        <th class="px-6 py-3 font-medium">{{ __('Date') }}</th>
                         <th class="px-6 py-3 font-medium">{{ __('Status') }}</th>
                     </tr>
                 </thead>
@@ -408,15 +439,26 @@
                         </td>
                         <td class="px-6 py-3">
                             <div class="flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0">
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0 shadow-sm">
                                     {{ strtoupper(substr($order['customer'], 0, 1)) }}
                                 </div>
-                                <span class="text-xs font-medium text-gray-700">{{ $order['customer'] }}</span>
+                                <div>
+                                    <p class="text-xs font-medium text-gray-700">{{ $order['customer'] }}</p>
+                                </div>
                             </div>
                         </td>
-                        <td class="px-6 py-3 text-xs text-gray-500">{{ $order['plan'] }}</td>
                         <td class="px-6 py-3">
-                            <span class="text-xs font-bold text-gray-900">SAR {{ $order['amount'] }}</span>
+                            <span class="text-xs text-gray-500">{{ $order['plan'] }}</span>
+                        </td>
+                        <td class="px-6 py-3">
+                            <span class="text-xs font-bold text-gray-900">SAR {{ number_format((float)$order['amount'], 2) }}</span>
+                        </td>
+                        <td class="px-6 py-3">
+                            @if(!empty($order['date']))
+                            <span class="text-xs text-gray-500">{{ date('M d', strtotime($order['date'])) }}</span>
+                            @else
+                            <span class="text-xs text-gray-300">—</span>
+                            @endif
                         </td>
                         <td class="px-6 py-3">
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border {{ $statusColors[$order['status']] ?? $statusColors['pending'] }}">
@@ -426,7 +468,15 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-8 text-center text-xs text-gray-400">{{ __('No recent orders found.') }}</td>
+                        <td colspan="6" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center">
+                                <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mb-3">
+                                    <svg class="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                </div>
+                                <p class="text-xs font-medium text-gray-400">{{ __('No recent orders found') }}</p>
+                                <p class="text-[10px] text-gray-300 mt-0.5">{{ __('Orders will appear here once placed') }}</p>
+                            </div>
+                        </td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -690,7 +740,7 @@
     });
     @endif
 
-    // Orders This Week - rounded bar chart
+    // Orders This Week - gradient bar chart with trend line
     @if(!empty($ordersTrend))
     new Chart(document.getElementById('dashboardOrdersChart'), {
         type: 'bar',
@@ -699,12 +749,43 @@
             datasets: [{
                 label: '{{ __('Orders') }}',
                 data: @json($ordersTrend ?? []),
-                backgroundColor: '#173327',
+                backgroundColor: (ctx) => {
+                    const canvas = ctx.chart.ctx;
+                    const gradient = canvas.createLinearGradient(0, 0, 0, 220);
+                    gradient.addColorStop(0, '#173327');
+                    gradient.addColorStop(1, '#6E7A25');
+                    return gradient;
+                },
                 hoverBackgroundColor: '#6E7A25',
-                borderRadius: 6,
+                borderRadius: 8,
+                borderSkipped: false,
+            }, {
+                label: '{{ __('Trend') }}',
+                data: @json($ordersTrend ?? []),
+                type: 'line',
+                borderColor: '#6E7A25',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4,
+                pointBackgroundColor: '#6E7A25',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 3,
+                pointHoverRadius: 5,
             }]
         },
-        options: commonChartOptions
+        options: {
+            ...commonChartOptions,
+            plugins: {
+                ...commonChartOptions.plugins,
+                tooltip: {
+                    ...commonChartOptions.plugins.tooltip,
+                    callbacks: {
+                        label: (ctx) => ctx.dataset.label + ': ' + ctx.raw + ' {{ __("orders") }}'
+                    }
+                }
+            }
+        }
     });
     @endif
 
