@@ -447,16 +447,23 @@ class AdminController extends Controller
         $ordersData = $this->apiData($orderApi->list(['user_id' => $id, 'limit' => 50]), fn () => []);
 
         $subscriptions = [];
+        $totalSpent = 0;
+        $activeSubsCount = 0;
         foreach ($subscriptionsData as $sub) {
             $planName = $sub['plan']['name_en'] ?? ($sub['plan_name'] ?? 'Plan');
+            $amount = $sub['amount'] ?? 0;
+            $status = $sub['status'] ?? 'active';
+            if ($status === 'active') $activeSubsCount++;
             $subscriptions[] = [
                 'id' => $sub['id'] ?? 0,
                 'plan_name' => $planName,
                 'plan' => $planName,
-                'amount' => $sub['amount'] ?? 0,
-                'status' => $sub['status'] ?? 'active',
+                'amount' => $amount,
+                'status' => $status,
                 'start_date' => $sub['start_date'] ?? '',
                 'end_date' => $sub['end_date'] ?? '',
+                'start_formatted' => !empty($sub['start_date']) ? date('M d, Y', strtotime($sub['start_date'])) : '—',
+                'end_formatted' => !empty($sub['end_date']) ? date('M d, Y', strtotime($sub['end_date'])) : 'Ongoing',
                 'payment_status' => $sub['payment_status'] ?? '',
             ];
         }
@@ -470,37 +477,68 @@ class AdminController extends Controller
         }
 
         $payments = [];
+        $totalPayments = 0;
+        $successfulPayments = 0;
         foreach ($paymentsData as $payment) {
+            $paymentInfo = $payment['payment'] ?? $payment;
+            $amount = $paymentInfo['amount'] ?? 0;
+            $status = $paymentInfo['status'] ?? 'pending';
+            $totalPayments++;
+            if ($status === 'paid' || $status === 'captured') {
+                $successfulPayments++;
+                $totalSpent += $amount;
+            }
             $payments[] = [
-                'id' => 'PAY-' . ($payment['id'] ?? 0),
-                'amount' => $payment['amount'] ?? 0,
-                'status' => $payment['status'] ?? 'pending',
-                'date' => !empty($payment['paid_at']) ? date('Y-m-d H:i', strtotime($payment['paid_at'])) : (!empty($payment['created_at']) ? date('Y-m-d H:i', strtotime($payment['created_at'])) : ''),
+                'id' => 'PAY-' . ($paymentInfo['id'] ?? 0),
+                'amount' => $amount,
+                'currency' => strtoupper($paymentInfo['currency'] ?? 'SAR'),
+                'status' => $status,
+                'provider' => $paymentInfo['provider'] ?? 'N/A',
+                'plan_name' => $payment['subscription']['plan_name'] ?? '',
+                'date' => !empty($paymentInfo['paid_at']) ? date('M d, Y H:i', strtotime($paymentInfo['paid_at'])) : (!empty($paymentInfo['created_at']) ? date('M d, Y H:i', strtotime($paymentInfo['created_at'])) : '—'),
             ];
         }
 
         $orders = [];
+        $totalOrders = 0;
         foreach ($ordersData as $order) {
+            $totalOrders++;
             $orders[] = [
                 'id' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
                 'amount' => $order['total_amount'] ?? 0,
                 'status' => $order['status'] ?? 'pending',
-                'date' => $order['created_at'] ?? date('Y-m-d'),
+                'date' => !empty($order['created_at']) ? date('M d, Y', strtotime($order['created_at'])) : '—',
+                'delivery_date' => !empty($order['delivery_date']) ? date('M d, Y', strtotime($order['delivery_date'])) : '—',
             ];
         }
+
+        $customerStats = [
+            'total_spent' => $totalSpent,
+            'total_orders' => $totalOrders,
+            'total_payments' => $totalPayments,
+            'successful_payments' => $successfulPayments,
+            'active_subscriptions' => $activeSubsCount,
+            'total_subscriptions' => count($subscriptions),
+        ];
 
         $customer = [
             'id' => $user['id'] ?? $id,
             'name' => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: 'Unknown',
             'email' => $user['email'] ?? '',
             'phone' => $user['phone'] ?? '',
+            'location' => $user['location'] ?? '',
+            'address' => $user['address'] ?? '',
             'plan' => $currentSub['plan_name'] ?? ($user['subscription']['plan_name'] ?? 'No Plan'),
             'status' => $currentSub['status'] ?? ($user['subscription']['status'] ?? ($user['is_active'] ?? true ? 'active' : 'inactive')),
             'joined' => $user['created_at'] ?? date('Y-m-d'),
+            'joined_formatted' => !empty($user['created_at']) ? date('M d, Y', strtotime($user['created_at'])) : '—',
+            'is_active' => $user['is_active'] ?? true,
+            'is_verified' => $user['is_verified'] ?? false,
             'subscription' => $currentSub,
             'subscriptions' => $subscriptions,
             'payments' => $payments,
             'orders' => $orders,
+            'customerStats' => $customerStats,
         ];
 
         return response()->json(['customer' => $customer]);

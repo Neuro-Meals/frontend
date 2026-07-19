@@ -147,71 +147,109 @@
 
   {{-- Customer Detail Slide-Out Panel --}}
   <div x-show="selected" class="fixed inset-0 z-50 flex justify-end" style="display: none">
-    <div class="absolute inset-0 bg-black/30" @click="selected = null"></div>
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" @click="selected = null"></div>
     <div class="relative w-full max-w-lg bg-white shadow-2xl h-full overflow-y-auto" @click.outside="selected = null">
 
       {{-- Header --}}
-      <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] p-5 text-white sticky top-0 z-10">
-        <div class="flex items-center justify-between mb-3">
+      <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] p-6 text-white sticky top-0 z-10">
+        <div class="flex items-center justify-between mb-4">
           <h3 class="text-sm font-bold">{{ __('Customer Details') }}</h3>
           <button @click="selected = null" class="text-white/60 hover:text-white transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-lg flex-shrink-0" x-text="selected?.name?.charAt(0)?.toUpperCase()"></div>
-          <div>
-            <p class="text-base font-bold" x-text="selected?.name"></p>
-            <p class="text-xs text-white/60" x-text="selected?.email"></p>
+        <div class="flex items-center gap-4">
+          <div class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-white font-bold text-2xl flex-shrink-0 shadow-lg" x-text="selected?.name?.charAt(0)?.toUpperCase()"></div>
+          <div class="flex-1 min-w-0">
+            <p class="text-lg font-bold truncate" x-text="selected?.name"></p>
+            <p class="text-xs text-white/60 truncate" x-text="selected?.email"></p>
+            <div class="flex items-center gap-2 mt-1.5">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border border-white/20 bg-white/10" :class="statusClass(selected?.status)">
+                <span x-text="selected?.status?.charAt(0)?.toUpperCase() + selected?.status?.slice(1)"></span>
+              </span>
+              <span class="text-[10px] text-white/50" x-text="'#' + (selected?.id || '')"></span>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="p-5 space-y-5">
 
-        {{-- Quick Actions --}}
-        <div class="flex gap-2">
-          <button @click="assignPlan(selected)" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-[#6E7A25] text-white hover:bg-[#5a6820] transition-all">
-            <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            {{ __('Assign Plan') }}
-          </button>
-          <button @click="viewPayments(selected)" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">
-            <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            {{ __('Payments') }}
-          </button>
+        {{-- Loading --}}
+        <div x-show="detailLoading" class="flex items-center justify-center py-8">
+          <svg class="w-8 h-8 text-gray-200 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
         </div>
 
-        <div class="border-t border-gray-50"></div>
-
-        {{-- Profile Info --}}
-        <div>
-          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Profile') }}</h4>
-          <div class="space-y-2.5">
-            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Name') }}</span><span class="text-xs font-semibold text-gray-900" x-text="selected?.name"></span></div>
-            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Email') }}</span><span class="text-xs text-gray-600" x-text="selected?.email"></span></div>
-            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Phone') }}</span><span class="text-xs font-semibold text-gray-900" x-text="selected?.phone || '—'"></span></div>
-            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Joined') }}</span><span class="text-xs text-gray-600" x-text="selected?.joined"></span></div>
-            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Status') }}</span>
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border" :class="statusClass(selected?.status)">
-                <span x-text="selected?.status?.charAt(0)?.toUpperCase() + selected?.status?.slice(1)"></span>
-              </span>
+        {{-- Stats Mini Cards --}}
+        <div x-show="!detailLoading" class="grid grid-cols-2 gap-3">
+          <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-3 text-white relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8"></div>
+            <div class="relative z-10">
+              <p class="text-[10px] text-white/60 font-medium">{{ __('Total Spent') }}</p>
+              <p class="text-lg font-bold mt-0.5" x-text="'SAR ' + Number(selected?.customerStats?.total_spent || 0).toLocaleString(undefined, {minimumFractionDigits: 2})"></p>
+            </div>
+          </div>
+          <div class="bg-gradient-to-br from-[#033133] to-[#025C5F] rounded-xl p-3 text-white relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8"></div>
+            <div class="relative z-10">
+              <p class="text-[10px] text-white/60 font-medium">{{ __('Total Orders') }}</p>
+              <p class="text-lg font-bold mt-0.5" x-text="selected?.customerStats?.total_orders || 0"></p>
+            </div>
+          </div>
+          <div class="bg-gradient-to-br from-[#6E7A25] to-[#949B50] rounded-xl p-3 text-white relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8"></div>
+            <div class="relative z-10">
+              <p class="text-[10px] text-white/60 font-medium">{{ __('Payments') }}</p>
+              <p class="text-lg font-bold mt-0.5" x-text="(selected?.customerStats?.successful_payments || 0) + '/' + (selected?.customerStats?.total_payments || 0)"></p>
+            </div>
+          </div>
+          <div class="bg-gradient-to-br from-[#173327] to-[#033133] rounded-xl p-3 text-white relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8"></div>
+            <div class="relative z-10">
+              <p class="text-[10px] text-white/60 font-medium">{{ __('Subscriptions') }}</p>
+              <p class="text-lg font-bold mt-0.5" x-text="(selected?.customerStats?.active_subscriptions || 0) + ' ' + '{{ __('active') }}'"></p>
             </div>
           </div>
         </div>
 
-        <div class="border-t border-gray-50"></div>
+        {{-- Quick Actions --}}
+        <div x-show="!detailLoading" class="flex gap-2">
+          <button @click="assignPlan(selected)" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-[#6E7A25] text-white hover:bg-[#5a6820] transition-all">
+            <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            {{ __('Assign Plan') }}
+          </button>
+          <button @click="openEdit(selected)" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">
+            <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            {{ __('Edit') }}
+          </button>
+        </div>
+
+        <div x-show="!detailLoading" class="border-t border-gray-50"></div>
+
+        {{-- Profile Info --}}
+        <div x-show="!detailLoading">
+          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Profile') }}</h4>
+          <div class="bg-gray-50/50 rounded-xl p-4 space-y-3">
+            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Phone') }}</span><span class="text-xs font-semibold text-gray-900" x-text="selected?.phone || '—'"></span></div>
+            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Location') }}</span><span class="text-xs font-semibold text-gray-900" x-text="selected?.location || '—'"></span></div>
+            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Address') }}</span><span class="text-xs font-semibold text-gray-900 text-right max-w-[200px] truncate" x-text="selected?.address || '—'"></span></div>
+            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Joined') }}</span><span class="text-xs font-semibold text-gray-900" x-text="selected?.joined_formatted || selected?.joined || '—'"></span></div>
+          </div>
+        </div>
+
+        <div x-show="!detailLoading" class="border-t border-gray-50"></div>
 
         {{-- Current Subscription --}}
-        <div x-show="selected?.subscription">
-          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Current Subscription') }}</h4>
-          <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25]/10 rounded-xl p-4 border border-[#6E7A25]/20">
-            <div class="space-y-2">
-              <div class="flex justify-between items-center"><span class="text-xs text-gray-500">{{ __('Plan') }}</span><span class="text-xs font-bold text-gray-900" x-text="selected?.subscription?.plan_name || selected?.plan"></span></div>
-              <div class="flex justify-between items-center"><span class="text-xs text-gray-500">{{ __('Amount') }}</span><span class="text-sm font-bold text-[#6E7A25]" x-text="'SAR ' + (selected?.subscription?.amount || 0)"></span></div>
-              <div class="flex justify-between items-center"><span class="text-xs text-gray-500">{{ __('Start') }}</span><span class="text-xs text-gray-600" x-text="selected?.subscription?.start_date || '—'"></span></div>
-              <div class="flex justify-between items-center"><span class="text-xs text-gray-500">{{ __('End') }}</span><span class="text-xs text-gray-600" x-text="selected?.subscription?.end_date || '—'"></span></div>
-              <div class="flex justify-between items-center"><span class="text-xs text-gray-500">{{ __('Payment') }}</span>
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border" :class="paymentStatusClass(selected?.subscription?.payment_status)">
+        <div x-show="!detailLoading && selected?.subscription">
+          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Current Subscription') }}</h4>
+          <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-4 text-white relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+            <div class="relative z-10 space-y-2.5">
+              <div class="flex justify-between items-center"><span class="text-xs text-white/60">{{ __('Plan') }}</span><span class="text-sm font-bold" x-text="selected?.subscription?.plan_name || selected?.plan"></span></div>
+              <div class="flex justify-between items-center"><span class="text-xs text-white/60">{{ __('Amount') }}</span><span class="text-sm font-bold" x-text="'SAR ' + Number(selected?.subscription?.amount || 0).toLocaleString()"></span></div>
+              <div class="flex justify-between items-center"><span class="text-xs text-white/60">{{ __('Period') }}</span><span class="text-xs font-semibold" x-text="(selected?.subscription?.start_formatted || '—') + ' → ' + (selected?.subscription?.end_formatted || 'Ongoing')"></span></div>
+              <div class="flex justify-between items-center"><span class="text-xs text-white/60">{{ __('Payment') }}</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border border-white/20 bg-white/10" :class="paymentStatusClass(selected?.subscription?.payment_status)">
                   <span x-text="selected?.subscription?.payment_status ? selected.subscription.payment_status.charAt(0).toUpperCase() + selected.subscription.payment_status.slice(1) : 'N/A'"></span>
                 </span>
               </div>
@@ -219,20 +257,23 @@
           </div>
         </div>
 
-        <div class="border-t border-gray-50"></div>
-
-        {{-- Subscription History --}}
-        <div x-show="selected?.subscriptions && selected.subscriptions.length > 0">
-          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{{ __('Subscription History') }}</h4>
-          <div class="space-y-1.5">
+        {{-- All Subscriptions --}}
+        <div x-show="!detailLoading && selected?.subscriptions && selected.subscriptions.length > 0">
+          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('All Subscriptions') }} <span class="text-gray-300" x-text="'(' + (selected?.subscriptions?.length || 0) + ')'"></span></h4>
+          <div class="space-y-2">
             <template x-for="sub in selected.subscriptions" :key="sub.id">
-              <div class="flex items-center justify-between py-1.5 px-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p class="text-xs font-semibold text-gray-900" x-text="sub.plan_name || sub.plan || 'Plan'"></p>
-                  <p class="text-[10px] text-gray-400" x-text="sub.start_date ? sub.start_date + ' — ' + (sub.end_date || 'ongoing') : ''"></p>
+              <div class="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-gray-50 to-white border border-gray-100 hover:shadow-sm transition-all">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  </div>
+                  <div>
+                    <p class="text-xs font-semibold text-gray-900" x-text="sub.plan_name || sub.plan || 'Plan'"></p>
+                    <p class="text-[10px] text-gray-400" x-text="(sub.start_formatted || '—') + ' → ' + (sub.end_formatted || 'Ongoing')"></p>
+                  </div>
                 </div>
                 <div class="text-right">
-                  <p class="text-xs font-bold text-gray-900" x-text="'SAR ' + (sub.amount || 0)"></p>
+                  <p class="text-xs font-bold text-gray-900" x-text="'SAR ' + Number(sub.amount || 0).toLocaleString()"></p>
                   <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold border" :class="statusClass(sub.status)">
                     <span x-text="sub.status?.charAt(0)?.toUpperCase() + sub.status?.slice(1)"></span>
                   </span>
