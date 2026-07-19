@@ -1463,6 +1463,29 @@ class UserController extends Controller
             return [];
         });
 
+        // Fetch active subscription info
+        $mySubscriptions = $this->apiData($subscriptionApi->my(), function () {
+            return [];
+        });
+
+        $activeSubscription = null;
+        foreach ($mySubscriptions as $sub) {
+            $status = $sub['status'] ?? '';
+            $paymentStatus = $sub['payment_status'] ?? '';
+            if ($status === 'active' || ($status === 'pending_payment' && $paymentStatus === 'paid') || $status === 'paused') {
+                $activeSubscription = $sub;
+                break;
+            }
+        }
+
+        // Get plan details for the active subscription
+        $planDetails = [];
+        if ($activeSubscription && !empty($activeSubscription['plan_id'])) {
+            $planDetails = $this->apiData($planApi->show($activeSubscription['plan_id']), function () {
+                return [];
+            });
+        }
+
         $orders = [];
         $total = 0;
         $delivered = 0;
@@ -1505,7 +1528,27 @@ class UserController extends Controller
             'avgOrder' => $total > 0 ? round($totalSpent / $total) : 0,
         ];
 
-        return view('user.orders', compact('orders', 'stats'));
+        // Build subscription info for the view
+        $subscriptionInfo = null;
+        if ($activeSubscription) {
+            $mealsConsumed = $activeSubscription['meals_consumed'] ?? 0;
+            $totalPlanMeals = $planDetails['total_meals'] ?? 84;
+            $remaining = max(0, $totalPlanMeals - $mealsConsumed);
+            $subscriptionInfo = [
+                'plan_name' => $planDetails['name_en'] ?? $activeSubscription['plan_name'] ?? 'Active Plan',
+                'status' => $activeSubscription['status'] ?? 'active',
+                'meals_consumed' => $mealsConsumed,
+                'total_meals' => $totalPlanMeals,
+                'remaining' => $remaining,
+                'progress' => $totalPlanMeals > 0 ? round(($mealsConsumed / $totalPlanMeals) * 100) : 0,
+                'meals_per_day' => $planDetails['meals_per_day'] ?? 3,
+                'start_date' => !empty($activeSubscription['start_date']) ? date('M d, Y', strtotime($activeSubscription['start_date'])) : 'N/A',
+                'end_date' => !empty($activeSubscription['end_date']) ? date('M d, Y', strtotime($activeSubscription['end_date'])) : 'N/A',
+                'payment_status' => $activeSubscription['payment_status'] ?? 'unpaid',
+            ];
+        }
+
+        return view('user.orders', compact('orders', 'stats', 'subscriptionInfo'));
     }
 
     public function createOrderFromSubscription(Request $request, OrderApiService $orderApi, SubscriptionApiService $subscriptionApi)
