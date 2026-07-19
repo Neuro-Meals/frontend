@@ -318,8 +318,8 @@
     $lastDate = collect($weekMeals)->pluck('date')->filter()->last();
     $weekRangeLabel = '';
     if ($firstDate && $lastDate) {
-        $f = \Carbon\Carbon::parse($firstDate);
-        $l = \Carbon\Carbon::parse($lastDate);
+        $f = new \DateTime($firstDate);
+        $l = new \DateTime($lastDate);
         $weekRangeLabel = $f->format('M d') . ' - ' . $l->format('M d, Y');
     }
 @endphp
@@ -372,7 +372,7 @@
             <p class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide"
                :class="selectedDay === {{ $idx }} ? 'text-white/60' : '{{ $isToday ? "text-[#6E7A25]" : "text-gray-400" }}'">{{ $day['day'] }}</p>
             @if(!empty($day['date']))
-            @php $dayNum = \Carbon\Carbon::parse($day['date'])->format('d'); @endphp
+            @php $dayNum = (new \DateTime($day['date']))->format('d'); @endphp
             <p class="text-[8px] sm:text-[9px] font-bold"
                :class="selectedDay === {{ $idx }} ? 'text-white/80' : '{{ $isToday ? "text-[#6E7A25]/70" : "text-gray-300" }}'">{{ $dayNum }}</p>
             @endif
@@ -401,7 +401,7 @@
                     <div class="flex items-center gap-2">
                         <p class="text-sm font-bold {{ $isTodayPanel ? 'text-white' : 'text-gray-900' }}">{{ $day['day'] }} {{ __('Schedule') }}</p>
                         @if(!empty($day['date']))
-                        @php $formattedDate = \Carbon\Carbon::parse($day['date'])->format('F j, Y'); @endphp
+                        @php $formattedDate = (new \DateTime($day['date']))->format('F j, Y'); @endphp
                         <span class="text-[10px] font-medium {{ $isTodayPanel ? 'text-white/60' : 'text-gray-400' }}">{{ $formattedDate }}</span>
                         @endif
                         @if($isTodayPanel)
