@@ -94,8 +94,9 @@
                     formContainer.style.display = 'none';
                     errorEl.classList.add('hidden');
 
+                    const loadingText = loadingEl.querySelector('p');
+
                     if (status === 'paid' || status === 'captured') {
-                        const loadingText = loadingEl.querySelector('p');
                         if (loadingText) loadingText.textContent = '{{ __('Confirming payment...') }}';
 
                         if (moyasarPaymentUuid && localPaymentId) {
@@ -123,11 +124,17 @@
 
                         const successUrl = '{{ route("payment.success") }}' + '?payment_id=' + localPaymentId + '&id=' + moyasarPaymentUuid;
                         window.location.href = successUrl;
+                    } else {
+                        if (loadingText) loadingText.textContent = '{{ __('Processing payment...') }}';
+                        const successUrl = '{{ route("payment.success") }}' + '?payment_id=' + localPaymentId + (moyasarPaymentUuid ? '&id=' + moyasarPaymentUuid : '');
+                        window.location.href = successUrl;
                     }
                 },
                 on_redirect: function(url) {
                     loadingEl.classList.remove('hidden');
                     formContainer.style.display = 'none';
+                    const loadingText = loadingEl.querySelector('p');
+                    if (loadingText) loadingText.textContent = '{{ __('Redirecting to your bank for verification...') }}';
                 },
                 on_failure: function(error) {
                     loadingEl.classList.add('hidden');

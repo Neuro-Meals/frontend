@@ -232,6 +232,78 @@
     </div>
 </div>
 
+{{-- Payment History --}}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mt-6">
+    <div class="px-5 py-4 border-b border-gray-50">
+        <h3 class="text-sm font-bold text-gray-900">Payment <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">History</span></h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="text-left text-xs text-gray-500 border-b border-gray-50">
+                    <th class="px-5 py-3 font-medium">{{ __('Plan') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Amount') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Status') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Provider') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Type') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Date') }}</th>
+                    <th class="px-5 py-3 font-medium">{{ __('Paid At') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($paymentHistory as $pm)
+                <tr class="border-b border-gray-50 hover:bg-gray-50/30 transition-colors">
+                    <td class="px-5 py-3 text-xs font-semibold text-gray-900">
+                        {{ $pm['plan_name'] }}
+                        @if($pm['is_plan_change'])
+                        <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-600">Upgrade</span>
+                        @endif
+                    </td>
+                    <td class="px-5 py-3 text-xs font-bold text-gray-900">{{ $pm['currency'] }} {{ number_format($pm['amount'], 2) }}</td>
+                    <td class="px-5 py-3">
+                        @php
+                        $pmStatus = $pm['status'];
+                        $statusColors = [
+                            'paid' => 'bg-green-50 text-green-700',
+                            'pending' => 'bg-amber-50 text-amber-700',
+                            'failed' => 'bg-red-50 text-red-600',
+                            'cancelled' => 'bg-gray-100 text-gray-500',
+                            'refunded' => 'bg-purple-50 text-purple-700',
+                        ];
+                        $statusColor = $statusColors[$pmStatus] ?? 'bg-gray-100 text-gray-500';
+                        @endphp
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $statusColor }}">
+                            @if($pmStatus === 'paid')
+                            <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            @elseif($pmStatus === 'pending')
+                            <svg class="w-3 h-3 mr-0.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                            @elseif($pmStatus === 'failed')
+                            <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            @endif
+                            {{ ucfirst($pmStatus) }}
+                        </span>
+                    </td>
+                    <td class="px-5 py-3 text-xs text-gray-500">{{ ucfirst($pm['provider']) }}</td>
+                    <td class="px-5 py-3 text-xs text-gray-500">
+                        @if($pm['is_plan_change'])
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-600">Plan Change</span>
+                        @else
+                        <span class="text-gray-400">{{ __('Subscription') }}</span>
+                        @endif
+                    </td>
+                    <td class="px-5 py-3 text-xs text-gray-500">{{ $pm['created_at'] }}</td>
+                    <td class="px-5 py-3 text-xs text-gray-500">{{ $pm['paid_at'] ?? '-' }}</td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="7" class="px-5 py-8 text-center text-xs text-gray-400">{{ __('No payment records found.') }}</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
 {{-- Moyasar Payment Modal --}}
 <div id="moyasar-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="moyasar-title" role="dialog" aria-modal="true">
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onclick="closeMoyasarModal()"></div>
@@ -422,6 +494,11 @@
         formContainer.style.display = '';
         loadingEl.classList.remove('hidden');
 
+        if (moyasarFormInstance && typeof moyasarFormInstance.destroy === 'function') {
+            try { moyasarFormInstance.destroy(); } catch (e) {}
+        }
+        moyasarFormInstance = null;
+
         const moyasarCallbackUrl = callbackUrl + (callbackUrl.includes('?') ? '&' : '?') + 'payment_id=' + localPaymentId;
 
         modal.classList.remove('hidden');
@@ -463,8 +540,9 @@
                     formContainer.style.display = 'none';
                     errorEl.classList.add('hidden');
 
+                    const loadingText = loadingEl.querySelector('p');
+
                     if (status === 'paid' || status === 'captured') {
-                        const loadingText = loadingEl.querySelector('p');
                         if (loadingText) loadingText.textContent = '{{ __("Confirming payment...") }}';
 
                         if (moyasarPaymentUuid && localPaymentId) {
@@ -492,11 +570,17 @@
 
                         const successUrl = '{{ route("payment.success") }}' + '?payment_id=' + localPaymentId + '&id=' + moyasarPaymentUuid;
                         window.location.href = successUrl;
+                    } else {
+                        if (loadingText) loadingText.textContent = '{{ __("Processing payment...") }}';
+                        const successUrl = '{{ route("payment.success") }}' + '?payment_id=' + localPaymentId + (moyasarPaymentUuid ? '&id=' + moyasarPaymentUuid : '');
+                        window.location.href = successUrl;
                     }
                 },
                 on_redirect: function(url) {
                     loadingEl.classList.remove('hidden');
                     formContainer.style.display = 'none';
+                    const loadingText = loadingEl.querySelector('p');
+                    if (loadingText) loadingText.textContent = '{{ __("Redirecting to your bank for verification...") }}';
                 },
                 on_failure: function(error) {
                     loadingEl.classList.add('hidden');

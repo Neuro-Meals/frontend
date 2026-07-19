@@ -434,7 +434,34 @@ class UserController extends Controller
             ];
         }
 
-        return view('user.subscriptions', compact('activePlan', 'availablePlans', 'history'));
+        // Build payment history from all user payments
+        $paymentHistory = [];
+        foreach ($myPayments as $pm) {
+            $sub = null;
+            foreach ($mySubscriptions as $s) {
+                if (($s['id'] ?? null) === ($pm['subscription_id'] ?? null)) {
+                    $sub = $s;
+                    break;
+                }
+            }
+            $plan = $plansById[$sub['plan_id'] ?? 0] ?? [];
+            $pmStatus = $pm['status'] ?? 'pending';
+            $paymentHistory[] = [
+                'id' => $pm['id'] ?? null,
+                'subscription_id' => $pm['subscription_id'] ?? null,
+                'plan_name' => $plan['name_en'] ?? 'Unknown Plan',
+                'amount' => $pm['amount'] ?? 0,
+                'currency' => $pm['currency'] ?? 'SAR',
+                'status' => $pmStatus,
+                'provider' => $pm['provider'] ?? 'moyasar',
+                'provider_payment_id' => $pm['provider_payment_id'] ?? null,
+                'paid_at' => !empty($pm['paid_at']) ? date('M d, Y H:i', strtotime($pm['paid_at'])) : null,
+                'created_at' => !empty($pm['created_at']) ? date('M d, Y H:i', strtotime($pm['created_at'])) : 'N/A',
+                'is_plan_change' => !empty($pm['plan_change_id']),
+            ];
+        }
+
+        return view('user.subscriptions', compact('activePlan', 'availablePlans', 'history', 'paymentHistory'));
     }
 
     public function subscribe(Request $request, SubscriptionApiService $subscriptionApi, PaymentApiService $paymentApi)
@@ -724,16 +751,16 @@ class UserController extends Controller
             $verifyResponse = $paymentApi->verifyPayment((int) $localPaymentId);
             $result = $verifyResponse['data'] ?? $verifyResponse;
 
-            // Fallback: if verify fails because payment wasn't attached (AJAX may have failed before 3DS),
-            // try attaching first, then verify again.
-            if (empty($result['id']) && !empty($verifyResponse['message']) && str_contains(strtolower($verifyResponse['message']), 'not been attached')) {
+            // Fallback: if verify fails for any reason, try attaching the
+            // Moyasar payment ID first, then verify again. This covers cases
+            // where the AJAX attach before 3DS redirect failed or was skipped.
+            if (empty($result['id'])) {
                 $attachResponse = $paymentApi->attachMoyasarPayment((int) $localPaymentId, $moyasarPaymentId);
-                if (empty($attachResponse['success']) || $attachResponse['success'] === false) {
-                    $error = $this->apiErrorMessage($attachResponse);
-                    \Illuminate\Support\Facades\Log::warning('Moyasar fallback attach failed', ['response' => $attachResponse]);
-                } else {
+                if (!empty($attachResponse['success']) && $attachResponse['success'] !== false) {
                     $verifyResponse = $paymentApi->verifyPayment((int) $localPaymentId);
                     $result = $verifyResponse['data'] ?? $verifyResponse;
+                } else {
+                    \Illuminate\Support\Facades\Log::warning('Moyasar fallback attach failed', ['response' => $attachResponse]);
                 }
             }
 
