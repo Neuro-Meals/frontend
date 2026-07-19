@@ -1299,16 +1299,15 @@ class UserController extends Controller
                 'stepsTarget' => (int) ($apiNutrition['steps_target'] ?? 10000) ?: 10000,
             ];
         } else {
-            $todayMeals = array_slice($meals, 0, 3);
             $todayCalories = 0;
             $todayProtein = 0;
             $todayCarbs = 0;
             $todayFat = 0;
             foreach ($todayMeals as $meal) {
                 $todayCalories += (int) ($meal['calories'] ?? 0);
-                $todayProtein += (int) ($meal['protein_g'] ?? 0);
-                $todayCarbs += (int) ($meal['carbs_g'] ?? 0);
-                $todayFat += (int) ($meal['fat_g'] ?? 0);
+                $todayProtein += (int) ($meal['protein'] ?? 0);
+                $todayCarbs += (int) ($meal['carbs'] ?? 0);
+                $todayFat += (int) ($meal['fat'] ?? 0);
             }
 
             $todayStats = [
