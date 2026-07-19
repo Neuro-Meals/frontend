@@ -6,18 +6,28 @@
 @section('content')
 <div x-data="customersApp()" x-init="init()" class="space-y-4">
 
-  {{-- Stats Row --}}
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3" x-show="!loading">
-    <template x-for="s in stats" :key="s.label">
-      <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-        <p class="text-[10px] text-gray-400 mb-0.5" x-text="s.label"></p>
-        <p class="text-lg font-bold" :class="s.color" x-text="s.value"></p>
+  {{-- Overview KPI Cards --}}
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" x-show="!loading">
+    <template x-for="(s, i) in stats" :key="s.label">
+      <div class="animate__animated animate__fadeInUp bg-gradient-to-br rounded-2xl p-5 text-white relative overflow-hidden shadow-lg" :class="s.bg" :style="`animation-delay: ${0.1 + i * 0.1}s`">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="relative z-10">
+          <div class="w-10 h-10 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center mb-3">
+            <template x-if="s.icon === 'users'"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></template>
+            <template x-if="s.icon === 'check'"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></template>
+            <template x-if="s.icon === 'shopping'"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17"/></svg></template>
+            <template x-if="s.icon === 'money'"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></template>
+          </div>
+          <p class="text-xs text-white/60 font-medium mb-1" x-text="s.label"></p>
+          <p class="text-2xl font-bold tracking-tight" x-text="s.value"></p>
+        </div>
       </div>
     </template>
   </div>
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3" x-show="loading">
-    <template x-for="i in 4">
-      <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm animate-pulse"><div class="h-3 bg-gray-100 rounded w-1/2 mb-2"></div><div class="h-6 bg-gray-100 rounded w-3/4"></div></div>
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" x-show="loading">
+    <template x-for="i in 4" :key="i">
+      <div class="h-32 bg-gray-100 rounded-2xl animate-pulse"></div>
     </template>
   </div>
 
@@ -47,51 +57,78 @@
   </div>
 
   {{-- Customers Table --}}
-  <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate__animated animate__fadeInUp" style="animation-delay: 0.5s">
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead>
           <tr class="text-left text-[10px] text-gray-400 bg-gray-50/50 border-b border-gray-100">
-            <th class="px-4 py-2.5 font-medium">{{ __('Customer') }}</th>
-            <th class="px-4 py-2.5 font-medium">{{ __('Contact') }}</th>
-            <th class="px-4 py-2.5 font-medium">{{ __('Plan') }}</th>
-            <th class="px-4 py-2.5 font-medium">{{ __('Orders') }}</th>
-            <th class="px-4 py-2.5 font-medium">{{ __('Spent') }}</th>
-            <th class="px-4 py-2.5 font-medium">{{ __('Status') }}</th>
-            <th class="px-4 py-2.5 font-medium">{{ __('Joined') }}</th>
-            <th class="px-4 py-2.5 font-medium"></th>
+            <th class="px-4 py-3 font-medium">{{ __('Customer') }}</th>
+            <th class="px-4 py-3 font-medium">{{ __('Contact') }}</th>
+            <th class="px-4 py-3 font-medium">{{ __('Plan') }}</th>
+            <th class="px-4 py-3 font-medium">{{ __('Orders') }}</th>
+            <th class="px-4 py-3 font-medium">{{ __('Spent') }}</th>
+            <th class="px-4 py-3 font-medium">{{ __('Status') }}</th>
+            <th class="px-4 py-3 font-medium">{{ __('Joined') }}</th>
+            <th class="px-4 py-3 font-medium text-right">{{ __('Actions') }}</th>
           </tr>
         </thead>
         <tbody>
           <template x-if="loading && customers.length === 0">
-            <tr><td colspan="8" class="px-4 py-8"><div class="space-y-2 animate-pulse"><template x-for="i in 4"><div class="h-8 bg-gray-50 rounded"></div></template></div></td></tr>
+            <tr><td colspan="8" class="px-4 py-8"><div class="space-y-2 animate-pulse"><template x-for="i in 4" :key="i"><div class="h-10 bg-gray-50 rounded"></div></template></div></td></tr>
           </template>
           <template x-if="!loading && customers.length === 0">
-            <tr><td colspan="8" class="px-4 py-8 text-center text-xs text-gray-400">{{ __('No customers found.') }}</td></tr>
+            <tr><td colspan="8" class="px-4 py-12 text-center">
+              <div class="flex flex-col items-center">
+                <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mb-3">
+                  <svg class="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+                <p class="text-xs font-medium text-gray-400">{{ __('No customers found') }}</p>
+                <p class="text-[10px] text-gray-300 mt-0.5">{{ __('Customers will appear here once registered') }}</p>
+              </div>
+            </td></tr>
           </template>
           <template x-for="c in customers" :key="c.id">
-            <tr class="border-b border-gray-50 hover:bg-gray-50/30 transition-colors cursor-pointer" @click="showDetail(c)">
-              <td class="px-4 py-2.5">
-                <div class="flex items-center gap-2">
-                  <div class="w-7 h-7 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0" x-text="c.name?.charAt(0)?.toUpperCase()"></div>
-                  <span class="text-xs font-semibold text-gray-900" x-text="c.name"></span>
+            <tr class="border-b border-gray-50 hover:bg-gray-50/30 transition-colors">
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-sm" x-text="c.name?.charAt(0)?.toUpperCase()"></div>
+                  <div>
+                    <p class="text-xs font-semibold text-gray-900" x-text="c.name"></p>
+                    <p class="text-[10px] text-gray-400" x-text="c.id ? '#' + c.id : ''"></p>
+                  </div>
                 </div>
               </td>
-              <td class="px-4 py-2.5">
-                <p class="text-xs text-gray-500" x-text="c.email"></p>
-                <p class="text-[10px] text-gray-400" x-text="c.phone"></p>
+              <td class="px-4 py-3">
+                <p class="text-xs text-gray-600" x-text="c.email"></p>
+                <p class="text-[10px] text-gray-400" x-text="c.phone || '—'"></p>
               </td>
-              <td class="px-4 py-2.5 text-xs text-gray-600" x-text="c.plan"></td>
-              <td class="px-4 py-2.5"><span class="text-xs font-bold text-gray-900" x-text="c.orders"></span></td>
-              <td class="px-4 py-2.5"><span class="text-xs font-bold text-gray-900" x-text="'SAR ' + c.spent.toLocaleString()"></span></td>
-              <td class="px-4 py-2.5">
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap"
+                  :style="`background: ${c.plan_color}15; color: ${c.plan_color}; border-color: ${c.plan_color}30`">
+                  <span class="w-1.5 h-1.5 rounded-full" :style="`background: ${c.plan_color}`"></span>
+                  <span x-text="c.plan"></span>
+                </span>
+              </td>
+              <td class="px-4 py-3"><span class="text-xs font-bold text-gray-900" x-text="c.orders"></span></td>
+              <td class="px-4 py-3"><span class="text-xs font-bold text-[#173327]" x-text="'SAR ' + Number(c.spent || 0).toLocaleString(undefined, {minimumFractionDigits: 2})"></span></td>
+              <td class="px-4 py-3">
                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border whitespace-nowrap" :class="statusClass(c.status)">
                   <span x-text="c.status?.charAt(0)?.toUpperCase() + c.status?.slice(1)"></span>
                 </span>
               </td>
-              <td class="px-4 py-2.5 text-xs text-gray-400" x-text="c.joined"></td>
-              <td class="px-4 py-2.5 text-right">
-                <button @click.stop="showDetail(c)" class="text-[10px] font-bold text-[#6E7A25] hover:underline">{{ __('View') }}</button>
+              <td class="px-4 py-3 text-xs text-gray-400" x-text="c.joined_formatted || c.joined"></td>
+              <td class="px-4 py-3">
+                <div class="flex items-center justify-end gap-1">
+                  <button @click.stop="showDetail(c)" class="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-[#6E7A25] hover:bg-[#6E7A25]/10 transition-all" title="{{ __('View') }}">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  </button>
+                  <button @click.stop="openEdit(c)" class="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="{{ __('Edit') }}">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </button>
+                  <button @click.stop="confirmDelete(c)" class="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all" title="{{ __('Delete') }}">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div>
               </td>
             </tr>
           </template>
@@ -277,6 +314,72 @@
     </div>
   </div>
 
+  {{-- Edit Customer Modal --}}
+  <div x-show="showEdit" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none">
+    <div class="absolute inset-0 bg-black/40" @click="showEdit = false"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" @click.outside="showEdit = false">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-sm font-bold text-gray-900">{{ __('Edit Customer') }}</h3>
+          <p class="text-xs text-gray-400 mt-0.5" x-text="editTarget?.name"></p>
+        </div>
+        <button @click="showEdit = false" class="text-gray-400 hover:text-gray-600 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form @submit.prevent="submitEdit" class="space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('First Name') }}</label>
+            <input type="text" x-model="editForm.first_name" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20" required>
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Last Name') }}</label>
+            <input type="text" x-model="editForm.last_name" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20" required>
+          </div>
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Email') }}</label>
+          <input type="email" x-model="editForm.email" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20" required>
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Phone') }}</label>
+          <input type="text" x-model="editForm.phone" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Location') }}</label>
+          <input type="text" x-model="editForm.location" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Address') }}</label>
+          <input type="text" x-model="editForm.address" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" @click="showEdit = false" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">{{ __('Cancel') }}</button>
+          <button type="submit" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-md transition-all" x-text="saving ? '{{ __('Saving...') }}' : '{{ __('Save Changes') }}'"></button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {{-- Delete Confirmation Modal --}}
+  <div x-show="showDelete" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none">
+    <div class="absolute inset-0 bg-black/40" @click="showDelete = false"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" @click.outside="showDelete = false">
+      <div class="flex flex-col items-center text-center mb-4">
+        <div class="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-3">
+          <svg class="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <h3 class="text-sm font-bold text-gray-900">{{ __('Delete Customer') }}</h3>
+        <p class="text-xs text-gray-400 mt-1" x-text="`${__('Are you sure you want to deactivate')} ${deleteTarget?.name}?`"></p>
+      </div>
+      <div class="flex gap-2">
+        <button @click="showDelete = false" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">{{ __('Cancel') }}</button>
+        <button @click="submitDelete" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white hover:shadow-md transition-all" x-text="deleting ? '{{ __('Deleting...') }}' : '{{ __('Delete') }}'"></button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 @push('scripts')
@@ -285,12 +388,19 @@ function customersApp() {
   return {
     customers: [],
     stats: [],
-    plans: [],
+    plans: @json($plansList ?? []),
     selected: null,
     showAssignPlan: false,
     assignTarget: null,
     assignPlanId: '',
     assigning: false,
+    showEdit: false,
+    editTarget: null,
+    editForm: { first_name: '', last_name: '', email: '', phone: '', location: '', address: '' },
+    saving: false,
+    showDelete: false,
+    deleteTarget: null,
+    deleting: false,
     search: '',
     statusFilter: '',
     planFilter: '',
@@ -323,6 +433,7 @@ function customersApp() {
         const d = await r.json();
         this.customers = d.customers || [];
         this.stats = d.stats || [];
+        if (d.plans) this.plans = d.plans;
         this.hasMore = d.has_more || false;
       } catch(e) { console.error('Failed to fetch customers', e); }
       finally { this.loading = false; }
@@ -373,6 +484,61 @@ function customersApp() {
     },
 
     viewPayments(c) { window.location.href = `{{ url('admin/payments') }}?user_id=${c.id}`; },
+
+    openEdit(c) {
+      this.editTarget = c;
+      this.editForm = {
+        first_name: c.first_name || c.name?.split(' ')[0] || '',
+        last_name: c.last_name || c.name?.split(' ').slice(1).join(' ') || '',
+        email: c.email || '',
+        phone: c.phone || '',
+        location: c.location || '',
+        address: c.address || '',
+      };
+      this.showEdit = true;
+    },
+
+    async submitEdit() {
+      this.saving = true;
+      try {
+        const r = await fetch(`{{ url('admin/customers') }}/${this.editTarget.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+          body: JSON.stringify(this.editForm)
+        });
+        const d = await r.json();
+        if (d.success) {
+          this.showEdit = false;
+          this.fetchCustomers();
+        } else {
+          alert(d.error || '{{ __('Failed to update customer.') }}');
+        }
+      } catch(e) { console.error('Failed to update customer', e); alert('{{ __('Failed to update customer.') }}'); }
+      finally { this.saving = false; }
+    },
+
+    confirmDelete(c) {
+      this.deleteTarget = c;
+      this.showDelete = true;
+    },
+
+    async submitDelete() {
+      this.deleting = true;
+      try {
+        const r = await fetch(`{{ url('admin/customers') }}/${this.deleteTarget.id}`, {
+          method: 'DELETE',
+          headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+        });
+        const d = await r.json();
+        if (d.success) {
+          this.showDelete = false;
+          this.fetchCustomers();
+        } else {
+          alert(d.error || '{{ __('Failed to delete customer.') }}');
+        }
+      } catch(e) { console.error('Failed to delete customer', e); alert('{{ __('Failed to delete customer.') }}'); }
+      finally { this.deleting = false; }
+    },
 
     prevPage() { if (this.page > 1) { this.page--; this.fetchCustomers(); } },
     nextPage() { if (this.hasMore) { this.page++; this.fetchCustomers(); } }

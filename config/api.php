@@ -65,7 +65,9 @@ return [
             'me'          => '/users/me',
             'list'        => '/users/',
             'show'        => '/users/{user_id}',
+            'update'      => '/users/{user_id}',
             'update_role' => '/users/{user_id}/role',
+            'delete'      => '/users/{user_id}',
         ],
 
         // ─── RBAC ───

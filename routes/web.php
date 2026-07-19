@@ -149,6 +149,8 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
     Route::get('/customers', [AdminController::class, 'customers'])->name('customers');
     Route::get('/customers/{id}/details', [AdminController::class, 'customerDetails'])->name('customers.details');
     Route::post('/customers/{id}/assign-plan', [AdminController::class, 'assignPlanToCustomer'])->name('customers.assign-plan');
+    Route::put('/customers/{id}', [AdminController::class, 'updateCustomer'])->name('customers.update');
+    Route::delete('/customers/{id}', [AdminController::class, 'deleteCustomer'])->name('customers.delete');
     Route::get('/subscriptions', [AdminController::class, 'subscriptions'])->name('subscriptions');
     Route::get('/subscriptions/{id}', [AdminController::class, 'showSubscription'])->name('subscriptions.show');
     Route::post('/subscriptions', [AdminController::class, 'storeSubscription'])->name('subscriptions.store');

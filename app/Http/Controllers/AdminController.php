@@ -356,42 +356,87 @@ class AdminController extends Controller
             return [];
         });
 
+        // Fetch plans for colored chips
+        $plansData = $this->apiData($adminApi->plansList(['limit' => 100]), function () {
+            return [];
+        });
+        $planColors = [];
+        $planNames = [];
+        $planColorsList = ['#173327', '#033133', '#6E7A25', '#025C5F', '#949B50', '#f9ac00', '#3b82f6', '#8b5cf6'];
+        $colorIdx = 0;
+        foreach ($plansData as $plan) {
+            $id = $plan['id'] ?? 0;
+            $name = $plan['name_en'] ?? 'Plan';
+            $planColors[$id] = $planColorsList[$colorIdx % count($planColorsList)];
+            $planNames[$id] = $name;
+            $colorIdx++;
+        }
+
         $customers = [];
         if (!empty($usersData)) {
             foreach ($usersData as $user) {
+                $planName = $user['subscription']['plan_name'] ?? 'No Plan';
+                $planIdVal = $user['subscription']['plan_id'] ?? 0;
                 $customers[] = [
                     'id' => $user['id'] ?? 0,
                     'name' => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: 'Unknown',
+                    'first_name' => $user['first_name'] ?? '',
+                    'last_name' => $user['last_name'] ?? '',
                     'email' => $user['email'] ?? '',
                     'phone' => $user['phone'] ?? '',
-                    'plan' => $user['subscription']['plan_name'] ?? 'No Plan',
+                    'location' => $user['location'] ?? '',
+                    'address' => $user['address'] ?? '',
+                    'plan' => $planName,
+                    'plan_id' => $planIdVal,
+                    'plan_color' => $planColors[$planIdVal] ?? '#6E7A25',
                     'status' => $user['subscription']['status'] ?? ($user['is_active'] ?? true ? 'active' : 'inactive'),
+                    'is_active' => $user['is_active'] ?? true,
                     'orders' => $user['orders_count'] ?? 0,
                     'spent' => $user['total_spent'] ?? 0,
                     'joined' => $user['created_at'] ?? date('Y-m-d'),
+                    'joined_formatted' => !empty($user['created_at']) ? date('M d, Y', strtotime($user['created_at'])) : '—',
                 ];
             }
         }
 
         $total = count($customers);
+        $totalOrders = array_sum(array_column($customers, 'orders'));
+        $totalSpent = array_sum(array_column($customers, 'spent'));
+        $activeCount = count(array_filter($customers, fn ($c) => $c['status'] === 'active'));
+        $pausedCount = count(array_filter($customers, fn ($c) => $c['status'] === 'paused'));
+        $cancelledCount = count(array_filter($customers, fn ($c) => $c['status'] === 'cancelled'));
+        $noPlanCount = count(array_filter($customers, fn ($c) => $c['plan'] === 'No Plan'));
+
         $stats = [
-            ['label' => __('Total Customers'), 'value' => number_format($total), 'color' => 'text-gray-900'],
-            ['label' => __('Active'), 'value' => number_format(count(array_filter($customers, fn ($c) => $c['status'] === 'active'))), 'color' => 'text-green-600'],
-            ['label' => __('Paused'), 'value' => number_format(count(array_filter($customers, fn ($c) => $c['status'] === 'paused'))), 'color' => 'text-amber-600'],
-            ['label' => __('Cancelled'), 'value' => number_format(count(array_filter($customers, fn ($c) => $c['status'] === 'cancelled'))), 'color' => 'text-red-600'],
+            ['label' => __('Total Customers'), 'value' => number_format($total), 'color' => 'text-gray-900', 'icon' => 'users', 'bg' => 'from-[#173327] to-[#6E7A25]'],
+            ['label' => __('Active'), 'value' => number_format($activeCount), 'color' => 'text-green-600', 'icon' => 'check', 'bg' => 'from-green-500 to-emerald-600'],
+            ['label' => __('Total Orders'), 'value' => number_format($totalOrders), 'color' => 'text-[#6E7A25]', 'icon' => 'shopping', 'bg' => 'from-[#6E7A25] to-[#949B50]'],
+            ['label' => __('Total Revenue'), 'value' => 'SAR ' . number_format($totalSpent, 2), 'color' => 'text-[#173327]', 'icon' => 'money', 'bg' => 'from-[#033133] to-[#025C5F]'],
         ];
+
+        // Build plans list for filter dropdown
+        $plansList = [];
+        foreach ($plansData as $plan) {
+            $plansList[] = [
+                'id' => $plan['id'] ?? 0,
+                'name' => $plan['name_en'] ?? 'Plan',
+                'price' => $plan['price'] ?? 0,
+                'color' => $planColors[$plan['id'] ?? 0] ?? '#6E7A25',
+            ];
+        }
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'customers' => $customers,
                 'stats' => $stats,
+                'plans' => $plansList,
                 'has_more' => false,
                 'total' => $total,
                 'page' => $page,
             ]);
         }
 
-        return view('admin.customers', compact('customers', 'stats'));
+        return view('admin.customers', compact('customers', 'stats', 'plansList'));
     }
 
     public function customerDetails(int $id, AdminApiService $adminApi, SubscriptionApiService $subscriptionApi, PaymentApiService $paymentApi, OrderApiService $orderApi)
@@ -482,6 +527,35 @@ class AdminController extends Controller
 
         $error = $result['message'] ?? __('Failed to assign plan.');
         return response()->json(['success' => false, 'error' => $error], 422);
+    }
+
+    public function updateCustomer(Request $request, AdminApiService $adminApi, int $id)
+    {
+        $data = $request->only(['first_name', 'last_name', 'email', 'phone', 'location', 'address', 'is_active']);
+        $data = array_filter($data, function ($v) {
+            return $v !== null && $v !== '';
+        });
+
+        if (empty($data)) {
+            return response()->json(['success' => false, 'error' => __('No data provided.')], 422);
+        }
+
+        try {
+            $result = $adminApi->userUpdate($id, $data);
+            return response()->json(['success' => true, 'message' => __('Customer updated successfully.'), 'customer' => $result]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function deleteCustomer(AdminApiService $adminApi, int $id)
+    {
+        try {
+            $adminApi->userDelete($id);
+            return response()->json(['success' => true, 'message' => __('Customer deactivated successfully.')]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function subscriptions(Request $request, SubscriptionApiService $subscriptionApi)

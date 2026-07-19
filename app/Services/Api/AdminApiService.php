@@ -23,6 +23,16 @@ class AdminApiService extends BaseApiService
         ]);
     }
 
+    public function userUpdate(int $userId, array $data): array
+    {
+        return $this->put('users.update', ['user_id' => $userId], $data);
+    }
+
+    public function userDelete(int $userId): array
+    {
+        return $this->delete('users.delete', ['user_id' => $userId]);
+    }
+
     // ─── Meals ───
 
     public function mealsList(array $query = []): array
