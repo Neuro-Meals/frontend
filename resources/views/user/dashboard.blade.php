@@ -11,16 +11,6 @@
         <h1 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 tracking-tight">{{ __('Hello') }} {{ (session('api_user')['first_name'] ?? session('api_user')['name'] ?? 'User') }} 👋</h1>
         <p class="text-xs sm:text-sm text-gray-500 mt-0.5">{{ __('Here\'s your nutrition journey today.') }}</p>
     </div>
-    <div class="flex items-center gap-2 shrink-0">
-        <a href="{{ route('user.orders') }}" class="px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors inline-flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            <span class="hidden sm:inline">{{ __('Export') }}</span>
-        </a>
-        <a href="{{ route('user.subscriptions') }}" class="px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-brand-600 to-brand-500 rounded-lg hover:shadow-md transition-all inline-flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            <span class="hidden sm:inline">{{ __('New Order') }}</span><span class="sm:hidden">{{ __('Order') }}</span>
-        </a>
-    </div>
 </div>
 
 {{-- Subscription Status Banner --}}
