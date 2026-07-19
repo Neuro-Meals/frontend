@@ -42,44 +42,117 @@
 </div>
 @endif
 
-{{-- Stats Row --}}
+{{-- KPI Cards --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white shadow-lg shadow-[#6E7A25]/20 relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
-        <div class="w-10 h-10 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center mb-3">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 001 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
+    {{-- Total Deliveries --}}
+    <div class="animate__animated animate__fadeInUp bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white shadow-lg relative overflow-hidden" style="animation-delay: 0.1s;">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="absolute inset-0 opacity-[0.05]" style="background-image: repeating-linear-gradient(45deg, white 0px, white 1px, transparent 1px, transparent 12px);"></div>
+        <div class="relative z-10">
+            <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 001 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
+            </div>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Total Deliveries') }}</p>
+            <p class="text-2xl font-bold tracking-tight">{{ $stats['total'] }}</p>
         </div>
-        <p class="text-xs text-white/70 mb-1">{{ __('Total Today') }}</p>
-        <p class="text-2xl font-bold">{{ $stats['total'] }}</p>
     </div>
-    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-        <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center mb-3">
-            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+    {{-- Delivered --}}
+    <div class="animate__animated animate__fadeInUp bg-gradient-to-br from-[#6E7A25] to-[#8b5cf6] rounded-2xl p-5 text-white shadow-lg relative overflow-hidden" style="animation-delay: 0.15s;">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="relative z-10">
+            <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Delivered') }}</p>
+            <p class="text-2xl font-bold tracking-tight">{{ $stats['delivered'] }}</p>
         </div>
-        <p class="text-xs text-gray-400 mb-1">{{ __('Delivered') }}</p>
-        <p class="text-2xl font-bold text-green-600">{{ $stats['delivered'] }}</p>
     </div>
-    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-        <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mb-3">
-            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+    {{-- In Transit --}}
+    <div class="animate__animated animate__fadeInUp bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden" style="animation-delay: 0.2s;">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="relative z-10">
+            <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('In Transit') }}</p>
+            <p class="text-2xl font-bold tracking-tight">{{ $stats['enRoute'] }}</p>
         </div>
-        <p class="text-xs text-gray-400 mb-1">{{ __('In Transit') }}</p>
-        <p class="text-2xl font-bold text-blue-600">{{ $stats['enRoute'] }}</p>
     </div>
-    <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-        <div class="w-10 h-10 rounded-xl bg-[#6E7A25]/10 flex items-center justify-center mb-3">
-            <svg class="w-5 h-5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    {{-- On-Time Rate --}}
+    <div class="animate__animated animate__fadeInUp bg-gradient-to-br from-[#033133] to-[#6E7A25] rounded-2xl p-5 text-white shadow-lg relative overflow-hidden" style="animation-delay: 0.25s;">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="relative z-10">
+            <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('On-Time Rate') }}</p>
+            <p class="text-2xl font-bold tracking-tight">{{ $stats['onTimeRate'] }}%</p>
         </div>
-        <p class="text-xs text-gray-400 mb-1">{{ __('On-Time Rate') }}</p>
-        <p class="text-2xl font-bold text-[#6E7A25]">{{ $stats['onTimeRate'] }}%</p>
+    </div>
+    {{-- Total Meals --}}
+    <div class="animate__animated animate__fadeInUp bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden" style="animation-delay: 0.3s;">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="relative z-10">
+            <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            </div>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Total Meals') }}</p>
+            <p class="text-2xl font-bold tracking-tight">{{ $stats['totalMeals'] }}</p>
+        </div>
+    </div>
+    {{-- Unassigned --}}
+    <div class="animate__animated animate__fadeInUp bg-gradient-to-br from-rose-500 to-red-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden" style="animation-delay: 0.35s;">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="relative z-10">
+            <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Unassigned') }}</p>
+            <p class="text-2xl font-bold tracking-tight">{{ $stats['unassigned'] }}</p>
+        </div>
+    </div>
+    {{-- Active Drivers --}}
+    <div class="animate__animated animate__fadeInUp bg-gradient-to-br from-[#173327] to-[#033133] rounded-2xl p-5 text-white shadow-lg relative overflow-hidden" style="animation-delay: 0.4s;">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="relative z-10">
+            <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Active Drivers') }}</p>
+            <p class="text-2xl font-bold tracking-tight">{{ $stats['activeDrivers'] }}</p>
+        </div>
+    </div>
+    {{-- Failed --}}
+    <div class="animate__animated animate__fadeInUp bg-gradient-to-br from-gray-700 to-gray-900 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden" style="animation-delay: 0.45s;">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+        <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+        <div class="relative z-10">
+            <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </div>
+            <p class="text-xs text-white/60 font-medium mb-1">{{ __('Failed/Cancelled') }}</p>
+            <p class="text-2xl font-bold tracking-tight">{{ $stats['failed'] }}</p>
+        </div>
     </div>
 </div>
 
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
-        <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
-            <div>
-                <h3 class="text-sm font-bold text-gray-900">{{ __('Live Deliveries') }}</h3>
-                <p class="text-xs text-gray-400 mt-0.5">{{ __('Real-time delivery tracking') }}</p>
+        <div class="px-6 py-4 border-b border-gray-50 bg-gradient-to-r from-[#173327]/5 to-transparent flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center shadow-sm">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 001 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-gray-900">{{ __('Live Deliveries') }}</h3>
+                    <p class="text-[10px] text-gray-400">{{ __('Real-time delivery tracking with meals') }}</p>
+                </div>
             </div>
             <div class="flex items-center gap-2">
                 @if(count($availableDrivers) > 0)
@@ -115,13 +188,13 @@
                         <th class="px-4 py-3 w-10">
                             <input type="checkbox" @change="toggleAllDeliveries($event)" :checked="allDeliveriesSelected" class="w-4 h-4 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]">
                         </th>
-                        <th class="px-6 py-3 font-medium">{{ __('Delivery ID') }}</th>
-                        <th class="px-6 py-3 font-medium">{{ __('Customer') }}</th>
-                        <th class="px-6 py-3 font-medium">{{ __('Zone') }}</th>
-                        <th class="px-6 py-3 font-medium">{{ __('Driver') }}</th>
-                        <th class="px-6 py-3 font-medium">{{ __('ETA') }}</th>
-                        <th class="px-6 py-3 font-medium">{{ __('Status') }}</th>
-                        <th class="px-6 py-3 font-medium">{{ __('Actions') }}</th>
+                        <th class="px-4 py-3 font-medium">{{ __('Delivery') }}</th>
+                        <th class="px-4 py-3 font-medium">{{ __('Customer') }}</th>
+                        <th class="px-4 py-3 font-medium">{{ __('Meals') }}</th>
+                        <th class="px-4 py-3 font-medium">{{ __('Driver') }}</th>
+                        <th class="px-4 py-3 font-medium">{{ __('Time') }}</th>
+                        <th class="px-4 py-3 font-medium">{{ __('Status') }}</th>
+                        <th class="px-4 py-3 font-medium text-right">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -132,54 +205,90 @@
                             <input type="checkbox" value="{{ $delivery['order_id'] }}" x-model="selectedOrderIds" class="w-4 h-4 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]">
                             @endif
                         </td>
-                        <td class="px-6 py-3.5">
-                            <span class="text-xs font-bold text-gray-900">{{ $delivery['delivery_id'] }}</span>
-                            <p class="text-[10px] text-gray-400">{{ $delivery['order'] }}</p>
+                        <td class="px-4 py-3.5">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#173327] to-[#6E7A25] flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 001 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
+                                </div>
+                                <div>
+                                    <span class="text-xs font-bold text-gray-900">{{ $delivery['delivery_id'] }}</span>
+                                    <p class="text-[10px] text-gray-400">{{ $delivery['order'] }}</p>
+                                </div>
+                            </div>
                         </td>
-                        <td class="px-6 py-3.5 text-xs font-medium text-gray-700">{{ $delivery['customer'] }}</td>
-                        <td class="px-6 py-3.5 text-xs text-gray-500">{{ $delivery['zone'] }}</td>
-                        <td class="px-6 py-3.5">
-                            <span class="text-xs {{ $delivery['driver'] === 'Unassigned' ? 'text-red-500' : 'text-gray-700' }}">{{ $delivery['driver'] === 'Unassigned' ? __('Unassigned') : $delivery['driver'] }}</span>
+                        <td class="px-4 py-3.5">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">{{ strtoupper(substr($delivery['customer'], 0, 1)) }}</div>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-medium text-gray-900 truncate">{{ $delivery['customer'] }}</p>
+                                    <p class="text-[10px] text-gray-400 truncate">{{ $delivery['zone'] }}</p>
+                                </div>
+                            </div>
                         </td>
-                        <td class="px-6 py-3.5">
+                        <td class="px-4 py-3.5">
+                            <div class="max-w-[200px]">
+                                <p class="text-xs text-gray-700 truncate" title="{{ $delivery['meal_summary'] }}">{{ $delivery['meal_summary'] }}</p>
+                                @if($delivery['meal_count'] > 0)
+                                <span class="inline-flex items-center gap-1 mt-0.5">
+                                    <span class="text-[9px] font-bold text-[#6E7A25] bg-[#6E7A25]/10 px-1.5 py-0.5 rounded-full">{{ $delivery['meal_count'] }} {{ __('meals') }}</span>
+                                    @if($delivery['total_calories'] > 0)
+                                    <span class="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">{{ $delivery['total_calories'] }} kcal</span>
+                                    @endif
+                                </span>
+                                @endif
+                            </div>
+                        </td>
+                        <td class="px-4 py-3.5">
+                            @if($delivery['driver'] === 'Unassigned')
+                            <span class="inline-flex items-center gap-1 text-xs text-red-500">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                {{ __('Unassigned') }}
+                            </span>
+                            @else
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0">{{ strtoupper(substr($delivery['driver'], 0, 1)) }}</div>
+                                <span class="text-xs text-gray-700">{{ $delivery['driver'] }}</span>
+                            </div>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3.5">
                             <p class="text-xs text-gray-500">{{ $delivery['time'] }}</p>
                             <p class="text-[10px] {{ $delivery['eta'] === 'On time' ? 'text-green-600' : ($delivery['eta'] === 'Pending' ? 'text-gray-400' : 'text-amber-600') }}">{{ $delivery['eta'] === 'On time' ? __('On time') : ($delivery['eta'] === 'Pending' ? __('Pending') : $delivery['eta']) }}</p>
                         </td>
-                        <td class="px-6 py-3.5">
+                        <td class="px-4 py-3.5">
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border {{ $statusColors[$delivery['status']] ?? 'bg-gray-50 text-gray-600 border-gray-200' }}">
                                 {{ $statusLabels[$delivery['status']] ?? __(ucfirst($delivery['status'])) }}
                             </span>
                         </td>
-                        <td class="px-6 py-3.5">
-                            <div class="flex items-center gap-2">
+                        <td class="px-4 py-3.5">
+                            <div class="flex items-center justify-end gap-1">
                                 @if(in_array($delivery['status'], ['pending', 'scheduled', 'assigned']))
-                                {{-- Assign Driver --}}
-                                <form action="{{ route('admin.deliveries.assign-driver', $delivery['id']) }}" method="POST" class="inline-flex items-center gap-1">
+                                {{-- Assign Driver icon button --}}
+                                <form action="{{ route('admin.deliveries.assign-driver', $delivery['id']) }}" method="POST" class="inline-flex items-center">
                                     @csrf
                                     @if(count($availableDrivers) > 0)
-                                    <select name="driver_id" class="text-[10px] border border-gray-200 rounded-lg px-1.5 py-1 bg-gray-50 outline-none">
+                                    <select name="driver_id" class="text-[10px] border border-gray-200 rounded-lg px-1.5 py-1 bg-gray-50 outline-none max-w-[100px]" onchange="if(this.value)this.form.submit()">
                                         <option value="">{{ __('Assign...') }}</option>
                                         @foreach($availableDrivers as $driver)
                                         <option value="{{ $driver['id'] }}">{{ $driver['name'] }}</option>
                                         @endforeach
                                     </select>
-                                    <button type="submit" class="text-[10px] font-bold text-[#6E7A25] hover:underline whitespace-nowrap">{{ __('Go') }}</button>
                                     @else
-                                    <span class="text-[10px] text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-2 py-1">{{ __('No free drivers') }}</span>
+                                    <span class="text-[10px] text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-2 py-1">{{ __('No drivers') }}</span>
                                     @endif
                                 </form>
                                 @endif
-                                @if(in_array($delivery['status'], ['assigned', 'preparing', 'en_route']))
-                                {{-- Update Status --}}
-                                <form action="{{ route('admin.deliveries.update-status', $delivery['id']) }}" method="POST" class="inline-flex items-center gap-1">
+                                @if(in_array($delivery['status'], ['assigned', 'preparing', 'en_route', 'out_for_delivery']))
+                                {{-- Update Status icon button --}}
+                                <form action="{{ route('admin.deliveries.update-status', $delivery['id']) }}" method="POST" class="inline-flex items-center">
                                     @csrf
-                                    <select name="status" class="text-[10px] border border-gray-200 rounded-lg px-1.5 py-1 bg-gray-50 outline-none">
+                                    <select name="status" class="text-[10px] border border-gray-200 rounded-lg px-1.5 py-1 bg-gray-50 outline-none max-w-[100px]" onchange="if(this.value)this.form.submit()">
+                                        <option value="">{{ __('Status...') }}</option>
                                         <option value="preparing">{{ __('Preparing') }}</option>
                                         <option value="out_for_delivery">{{ __('Out for Delivery') }}</option>
                                         <option value="delivered">{{ __('Delivered') }}</option>
                                         <option value="failed">{{ __('Failed') }}</option>
                                     </select>
-                                    <button type="submit" class="text-[10px] font-bold text-[#6E7A25] hover:underline whitespace-nowrap">{{ __('Update') }}</button>
                                 </form>
                                 @endif
                             </div>
@@ -239,11 +348,19 @@
          class="absolute inset-y-0 right-0 rtl:right-auto rtl:left-0 w-full sm:w-[32rem] lg:w-[36rem] bg-white shadow-2xl"
          style="max-width: 100vw;">
         <div class="h-full flex flex-col">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
-                <h3 id="driver-modal-title" class="text-lg font-bold text-gray-900">{{ __('Manage Drivers') }}</h3>
-                <button @click="closeDriverModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
+            {{-- Gradient Header --}}
+            <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] px-6 py-5 flex-shrink-0 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+                <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <h3 id="driver-modal-title" class="text-lg font-bold text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        {{ __('Manage Drivers') }}
+                    </h3>
+                    <button @click="closeDriverModal()" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
             </div>
 
             <div class="flex-1 overflow-y-auto p-6">

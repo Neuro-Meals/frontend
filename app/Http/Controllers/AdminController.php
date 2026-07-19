@@ -2146,8 +2146,25 @@ class AdminController extends Controller
 
         $deliveries = [];
         if (!empty($deliveriesData)) {
-            foreach ($deliveriesData as $delivery) {
+            $rawList = $deliveriesData['data'] ?? $deliveriesData;
+            foreach ($rawList as $delivery) {
                 $customer = $delivery['customer'] ?? ($delivery['user'] ?? []);
+                $driver = $delivery['driver'] ?? null;
+                $order = $delivery['order'] ?? null;
+                $items = $order['items'] ?? [];
+
+                // Build meal names from order items
+                $mealNames = [];
+                $totalCalories = 0;
+                foreach ($items as $item) {
+                    $qty = $item['quantity'] ?? 1;
+                    $name = $item['meal_name'] ?? ($item['name'] ?? '');
+                    if ($name) {
+                        $mealNames[] = $qty > 1 ? "{$name} x{$qty}" : $name;
+                    }
+                    $totalCalories += (float) ($item['calories'] ?? 0) * $qty;
+                }
+
                 $deliveries[] = [
                     'id' => $delivery['id'] ?? 0,
                     'delivery_id' => 'DLV-' . ($delivery['id'] ?? 0),
@@ -2156,12 +2173,25 @@ class AdminController extends Controller
                     'customer' => trim($customer['full_name'] ?? (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) ?: 'Customer',
                     'customer_email' => $customer['email'] ?? '',
                     'customer_phone' => $customer['phone'] ?? '',
-                    'zone' => $delivery['zone'] ?? 'N/A',
+                    'customer_address' => $customer['address'] ?? '',
+                    'delivery_address' => $delivery['delivery_address'] ?? '',
+                    'delivery_notes' => $delivery['delivery_notes'] ?? '',
+                    'zone' => $customer['location'] ?? 'N/A',
                     'driver_id' => $delivery['driver_id'] ?? null,
-                    'driver' => $delivery['driver_name'] ?? 'Unassigned',
+                    'driver' => $driver ? trim($driver['full_name'] ?? (($driver['first_name'] ?? '') . ' ' . ($driver['last_name'] ?? ''))) : 'Unassigned',
+                    'driver_phone' => $driver['phone'] ?? '',
                     'status' => $delivery['status'] ?? 'pending',
                     'time' => !empty($delivery['scheduled_at']) ? date('H:i', strtotime($delivery['scheduled_at'])) : '--:--',
+                    'scheduled_at' => $delivery['scheduled_at'] ?? null,
                     'eta' => $delivery['eta'] ?? 'On time',
+                    'meal_count' => $delivery['meal_count'] ?? 0,
+                    'meal_summary' => $delivery['meal_summary'] ?? (implode(', ', array_slice($mealNames, 0, 3)) ?: 'No items'),
+                    'meal_names' => $mealNames,
+                    'total_calories' => round($totalCalories),
+                    'order_total' => $order['total_amount'] ?? 0,
+                    'order_number' => $order['order_number'] ?? '',
+                    'items' => $items,
+                    'created_at' => $delivery['created_at'] ?? '',
                 ];
             }
         }
@@ -2173,21 +2203,6 @@ class AdminController extends Controller
                 $busyDriverIds[$delivery['driver_id']] = true;
             }
         }
-
-        $total = count($deliveries);
-        $delivered = count(array_filter($deliveries, fn ($d) => $d['status'] === 'delivered'));
-        $enRoute = count(array_filter($deliveries, fn ($d) => in_array($d['status'], ['en_route', 'out_for_delivery'])));
-        $preparing = count(array_filter($deliveries, fn ($d) => in_array($d['status'], ['preparing', 'pending', 'assigned', 'picked_up'])));
-        $scheduled = count(array_filter($deliveries, fn ($d) => $d['status'] === 'scheduled'));
-
-        $stats = [
-            'total' => $total,
-            'delivered' => $delivered,
-            'enRoute' => $enRoute,
-            'preparing' => $preparing,
-            'scheduled' => $scheduled,
-            'onTimeRate' => $total > 0 ? round(($delivered / $total) * 100, 1) : 0,
-        ];
 
         $driversData = $this->apiData($driverApi->list(), fn () => []);
         $allDrivers = [];
@@ -2203,6 +2218,30 @@ class AdminController extends Controller
                 $availableDrivers[] = $driver;
             }
         }
+
+        $total = count($deliveries);
+        $delivered = count(array_filter($deliveries, fn ($d) => $d['status'] === 'delivered'));
+        $enRoute = count(array_filter($deliveries, fn ($d) => in_array($d['status'], ['en_route', 'out_for_delivery'])));
+        $preparing = count(array_filter($deliveries, fn ($d) => in_array($d['status'], ['preparing', 'pending', 'assigned', 'picked_up'])));
+        $scheduled = count(array_filter($deliveries, fn ($d) => $d['status'] === 'scheduled'));
+        $failed = count(array_filter($deliveries, fn ($d) => in_array($d['status'], ['failed', 'cancelled'])));
+        $totalMeals = array_sum(array_map(fn ($d) => $d['meal_count'] ?? 0, $deliveries));
+        $totalCalories = array_sum(array_map(fn ($d) => $d['total_calories'] ?? 0, $deliveries));
+        $unassigned = count(array_filter($deliveries, fn ($d) => empty($d['driver_id']) && !in_array($d['status'], ['delivered', 'failed', 'cancelled'])));
+
+        $stats = [
+            'total' => $total,
+            'delivered' => $delivered,
+            'enRoute' => $enRoute,
+            'preparing' => $preparing,
+            'scheduled' => $scheduled,
+            'failed' => $failed,
+            'totalMeals' => $totalMeals,
+            'totalCalories' => $totalCalories,
+            'unassigned' => $unassigned,
+            'activeDrivers' => count($availableDrivers),
+            'onTimeRate' => $total > 0 ? round(($delivered / $total) * 100, 1) : 0,
+        ];
 
         return view('admin.deliveries', compact('deliveries', 'stats', 'allDrivers', 'availableDrivers'));
     }
