@@ -168,8 +168,19 @@
                             <span>{{ $order['meals'] }} {{ __('meals') }}</span>
                             <span class="text-gray-300">·</span>
                             <span class="font-bold text-[#6E7A25]">{{ number_format($order['total_calories']) }} kcal</span>
+                            @if($order['status'] === 'delivered')
                             <span class="text-gray-300">·</span>
-                            <span class="font-bold text-gray-900">SAR {{ number_format($order['amount']) }}</span>
+                            <span class="inline-flex items-center gap-1 text-green-600 font-bold">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                {{ $order['meals'] }}/{{ $order['meals'] }} {{ __('delivered') }}
+                            </span>
+                            @elseif($order['status'] !== 'cancelled')
+                            <span class="text-gray-300">·</span>
+                            <span class="inline-flex items-center gap-1 text-orange-500 font-bold">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                0/{{ $order['meals'] }} {{ __('delivered') }}
+                            </span>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -207,7 +218,7 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                     @foreach($catGroup['meals'] as $meal)
                                     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group">
-                                        <div class="h-28 sm:h-32 bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 relative overflow-hidden">
+                                        <div class="h-32 sm:h-36 bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 relative overflow-hidden">
                                             <img src="{{ meal_image_url($meal['image'] ?? null) }}"
                                                  srcset="{{ meal_image_srcset($meal['image'] ?? null) }}"
                                                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -215,9 +226,36 @@
                                                  class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                  loading="lazy"
                                                  onerror="this.onerror=null;this.src='{{ asset('images/meal-placeholder.svg') }}';">
-                                            <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"></div>
+                                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
                                             @if($meal['quantity'] > 1)
                                             <span class="absolute top-2 left-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[#173327] text-white shadow-md">x{{ $meal['quantity'] }}</span>
+                                            @endif
+                                            {{-- Per-meal delivery status badge --}}
+                                            @if($order['status'] === 'delivered')
+                                            <span class="absolute top-2 right-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-green-500/90 text-white backdrop-blur-sm shadow-md">
+                                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                {{ __('Delivered') }}
+                                            </span>
+                                            @elseif($order['status'] === 'out_for_delivery')
+                                            <span class="absolute top-2 right-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-orange-500/90 text-white backdrop-blur-sm shadow-md">
+                                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                {{ __('On the way') }}
+                                            </span>
+                                            @elseif($order['status'] === 'preparing')
+                                            <span class="absolute top-2 right-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-500/90 text-white backdrop-blur-sm shadow-md">
+                                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                {{ __('Preparing') }}
+                                            </span>
+                                            @elseif($order['status'] === 'cancelled')
+                                            <span class="absolute top-2 right-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-red-500/90 text-white backdrop-blur-sm shadow-md">
+                                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                {{ __('Cancelled') }}
+                                            </span>
+                                            @else
+                                            <span class="absolute top-2 right-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-yellow-500/90 text-white backdrop-blur-sm shadow-md">
+                                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                {{ __('Pending') }}
+                                            </span>
                                             @endif
                                             <span class="absolute bottom-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-white/95 text-[#173327] backdrop-blur-sm shadow-sm">
                                                 <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -241,25 +279,47 @@
                     </div>
 
                     {{-- Order Summary --}}
-                    <div class="mt-4 flex items-center justify-between flex-wrap gap-3 pt-4 border-t border-gray-50">
-                        <div class="flex items-center gap-4 text-[10px] text-gray-500">
-                            <span class="flex items-center gap-1">
-                                <svg class="w-3.5 h-3.5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                <span class="font-bold text-gray-900">{{ number_format($order['total_calories']) }}</span> kcal
-                            </span>
-                            <span class="flex items-center gap-1">
-                                <span class="font-bold text-gray-900">P {{ $order['total_protein'] }}g</span>
-                            </span>
-                            <span class="flex items-center gap-1">
-                                <span class="font-bold text-gray-900">C {{ $order['total_carbs'] }}g</span>
-                            </span>
-                            <span class="flex items-center gap-1">
-                                <span class="font-bold text-gray-900">F {{ $order['total_fat'] }}g</span>
-                            </span>
+                    <div class="mt-4 pt-4 border-t border-gray-50">
+                        {{-- Delivery progress bar --}}
+                        @if($order['status'] !== 'cancelled')
+                        <div class="mb-3">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-[10px] font-medium text-gray-500">{{ __('Delivery Progress') }}</span>
+                                <span class="text-[10px] font-bold {{ $order['status'] === 'delivered' ? 'text-green-600' : 'text-orange-500' }}">
+                                    @if($order['status'] === 'delivered')
+                                        {{ $order['meals'] }}/{{ $order['meals'] }}
+                                    @else
+                                        0/{{ $order['meals'] }}
+                                    @endif
+                                    {{ __('meals delivered') }}
+                                </span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full transition-all duration-1000 {{ $order['status'] === 'delivered' ? 'bg-green-500' : 'bg-orange-400' }}" style="width: {{ $order['status'] === 'delivered' ? '100' : '0' }}%"></div>
+                            </div>
                         </div>
-                        <div class="text-right">
-                            <span class="text-[10px] text-gray-400">{{ __('Total') }}</span>
-                            <span class="text-sm font-bold text-gray-900 ml-1">SAR {{ number_format($order['amount']) }}</span>
+                        @endif
+
+                        <div class="flex items-center justify-between flex-wrap gap-3">
+                            <div class="flex items-center gap-4 text-[10px] text-gray-500">
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                    <span class="font-bold text-gray-900">{{ number_format($order['total_calories']) }}</span> kcal
+                                </span>
+                                <span class="flex items-center gap-1">
+                                    <span class="font-bold text-gray-900">P {{ $order['total_protein'] }}g</span>
+                                </span>
+                                <span class="flex items-center gap-1">
+                                    <span class="font-bold text-gray-900">C {{ $order['total_carbs'] }}g</span>
+                                </span>
+                                <span class="flex items-center gap-1">
+                                    <span class="font-bold text-gray-900">F {{ $order['total_fat'] }}g</span>
+                                </span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[10px] text-gray-400">{{ __('Total') }}</span>
+                                <span class="text-sm font-bold text-gray-900 ml-1">SAR {{ number_format($order['amount']) }}</span>
+                            </div>
                         </div>
                     </div>
                     @else
