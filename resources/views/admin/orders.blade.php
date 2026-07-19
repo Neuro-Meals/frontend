@@ -33,7 +33,7 @@
     </template>
   </div>
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" x-show="loading">
-    <template x-for="i in 4">
+    <template x-for="i in 8">
       <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm animate-pulse"><div class="h-3 bg-gray-100 rounded w-1/2 mb-2"></div><div class="h-6 bg-gray-100 rounded w-3/4"></div></div>
     </template>
   </div>
@@ -115,91 +115,6 @@
     </div>
   </div>
 
-  {{-- Meals in Active Category --}}
-  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden" x-show="activeMeals.length > 0">
-    <div class="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-[#6E7A25]/5 to-transparent flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-[#6E7A25]/10 flex items-center justify-center">
-          <svg class="w-4 h-4 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-        </div>
-        <div>
-          <h3 class="text-sm font-bold text-gray-900">{{ __('Meals & Ingredients') }}</h3>
-          <p class="text-[10px] text-gray-400">{{ __('What the chef needs to prepare') }}</p>
-        </div>
-      </div>
-      <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#6E7A25]/10 text-[#6E7A25]" x-text="activeMeals.length + ' {{ __('meals') }}'"></span>
-    </div>
-    <div class="divide-y divide-gray-50 max-h-[32rem] overflow-y-auto">
-      {{-- Ingredient totals summary bar --}}
-      <div class="px-4 py-3 bg-[#173327]/5 border-b border-[#173327]/10" x-show="activeIngredientTotals.length > 0">
-        <div class="flex items-center gap-2 mb-2">
-          <div class="w-6 h-6 rounded-lg bg-[#173327]/10 flex items-center justify-center">
-            <svg class="w-3.5 h-3.5 text-[#173327]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-          </div>
-          <p class="text-[10px] font-bold text-[#173327] uppercase tracking-wider">{{ __('Total Ingredients Needed') }}</p>
-          <span class="ml-auto text-[10px] font-bold text-gray-500" x-text="activeIngredientTotals.length + ' {{ __('ingredients') }}'"></span>
-        </div>
-        <div class="flex flex-wrap items-center gap-1.5">
-          <template x-for="(ing, idx) in activeIngredientTotals" :key="idx">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-[#173327]/15 text-[11px] font-medium text-gray-700 shadow-sm">
-              <span x-text="ing.name"></span>
-              <span class="font-bold text-[#173327] bg-[#173327]/10 px-1.5 py-0.5 rounded-full text-[10px]" x-text="'×' + ing.total"></span>
-            </span>
-          </template>
-        </div>
-      </div>
-      <template x-for="meal in activeMeals" :key="meal.id">
-        <div class="px-4 py-4 hover:bg-gray-50/30 transition-colors">
-          <div class="flex items-start gap-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6E7A25] to-[#173327] flex-shrink-0 flex items-center justify-center shadow-sm">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center justify-between gap-2 mb-1">
-                <p class="text-sm font-extrabold text-gray-900" x-text="meal.name"></p>
-                <div class="flex items-center gap-1.5 flex-shrink-0">
-                  <span x-show="meal.calories" class="text-[10px] font-bold text-[#6E7A25] bg-[#6E7A25]/10 px-2 py-0.5 rounded-full" x-text="meal.calories + ' kcal'"></span>
-                  <span x-show="!meal.is_available" class="text-[9px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-full">{{ __('Unavailable') }}</span>
-                </div>
-              </div>
-              {{-- Nutrition badges --}}
-              <div class="flex flex-wrap items-center gap-1.5 mb-2" x-show="meal.protein_g || meal.carbs_g || meal.fat_g">
-                <span x-show="meal.protein_g" class="text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full" x-text="'P ' + meal.protein_g + 'g'"></span>
-                <span x-show="meal.carbs_g" class="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full" x-text="'C ' + meal.carbs_g + 'g'"></span>
-                <span x-show="meal.fat_g" class="text-[9px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded-full" x-text="'F ' + meal.fat_g + 'g'"></span>
-                <span x-show="meal.price" class="text-[9px] font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded-full" x-text="'SAR ' + meal.price"></span>
-              </div>
-              {{-- Ingredients --}}
-              <div x-show="meal.ingredients?.length" class="mb-2">
-                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                  {{ __('Ingredients') }}
-                </p>
-                <div class="flex flex-wrap items-center gap-1">
-                  <template x-for="(ing, idx) in meal.ingredients" :key="idx">
-                    <span class="px-2 py-0.5 rounded-lg bg-[#6E7A25]/5 border border-[#6E7A25]/10 text-[10px] font-medium text-gray-700" x-text="ing"></span>
-                  </template>
-                </div>
-              </div>
-              {{-- Allergens --}}
-              <div x-show="meal.allergens?.length">
-                <p class="text-[9px] font-bold text-red-400 uppercase tracking-wide mb-1 flex items-center gap-1">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  {{ __('Allergens') }}
-                </p>
-                <div class="flex flex-wrap items-center gap-1">
-                  <template x-for="(a, idx) in meal.allergens" :key="idx">
-                    <span class="px-2 py-0.5 rounded-lg bg-red-50 border border-red-100 text-[10px] font-medium text-red-600" x-text="a"></span>
-                  </template>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </template>
-    </div>
-  </div>
-
   {{-- Orders for Active Category --}}
   <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-[#173327]/5 to-transparent flex items-center justify-between">
@@ -217,9 +132,12 @@
     </template>
 
     <template x-if="!loading && activeOrders.length === 0">
-      <div class="px-4 py-12 text-center">
-        <svg class="w-12 h-12 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-        <p class="text-sm text-gray-400">{{ __('No orders in this category.') }}</p>
+      <div class="px-4 py-16 text-center">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-[#6E7A25]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+        </div>
+        <p class="text-sm font-bold text-gray-700 mb-1">{{ __('No orders in this category yet') }}</p>
+        <p class="text-xs text-gray-400">{{ __('Orders will appear here once customers place them') }}</p>
       </div>
     </template>
 
