@@ -1490,27 +1490,122 @@ class UserController extends Controller
         $total = 0;
         $delivered = 0;
         $cancelled = 0;
+        $inProgress = 0;
         $totalSpent = 0;
+        $totalCalories = 0;
+        $upcomingCount = 0;
 
         if (!empty($apiOrders) && is_array($apiOrders)) {
             foreach ($apiOrders as $order) {
                 $status = $order['status'] ?? 'pending';
-                $amount = $order['total_amount'] ?? 0;
+                $amount = (float) ($order['total_amount'] ?? 0);
+                $deliveryDate = $order['delivery_date'] ?? ($order['created_at'] ?? date('Y-m-d'));
+
+                // Parse order items and group by category
+                $rawItems = $order['items'] ?? [];
+                if (!is_array($rawItems)) {
+                    $rawItems = [];
+                }
+
+                $mealsByCategory = [];
+                $orderCalories = 0;
+                $orderProtein = 0;
+                $orderCarbs = 0;
+                $orderFat = 0;
+                $mealCount = 0;
+
+                foreach ($rawItems as $item) {
+                    if (!is_array($item)) continue;
+
+                    $catName = $item['category_name'] ?? 'Other';
+                    $catLower = strtolower($catName);
+                    if (str_contains($catLower, 'breakfast')) {
+                        $catKey = 'breakfast';
+                        $catIcon = 'sunrise';
+                    } elseif (str_contains($catLower, 'lunch')) {
+                        $catKey = 'lunch';
+                        $catIcon = 'sun';
+                    } elseif (str_contains($catLower, 'dinner') || str_contains($catLower, 'supper')) {
+                        $catKey = 'dinner';
+                        $catIcon = 'moon';
+                    } elseif (str_contains($catLower, 'snack')) {
+                        $catKey = 'snacks';
+                        $catIcon = 'cookie';
+                    } else {
+                        $catKey = 'other';
+                        $catIcon = 'other';
+                    }
+
+                    if (!isset($mealsByCategory[$catKey])) {
+                        $mealsByCategory[$catKey] = [
+                            'name' => ucfirst($catKey),
+                            'icon' => $catIcon,
+                            'meals' => [],
+                        ];
+                    }
+
+                    $quantity = (int) ($item['quantity'] ?? 1);
+                    $calories = (int) ($item['calories'] ?? 0);
+
+                    $mealsByCategory[$catKey]['meals'][] = [
+                        'name' => $item['meal_name'] ?? 'Meal',
+                        'quantity' => $quantity,
+                        'calories' => $calories,
+                        'protein' => (int) ($item['protein_g'] ?? 0),
+                        'carbs' => (int) ($item['carbs_g'] ?? 0),
+                        'fat' => (int) ($item['fat_g'] ?? 0),
+                        'image' => $item['image_url'] ?? null,
+                        'unit_price' => (float) ($item['unit_price'] ?? 0),
+                        'line_total' => (float) ($item['line_total'] ?? 0),
+                    ];
+
+                    $orderCalories += $calories * $quantity;
+                    $orderProtein += (int) ($item['protein_g'] ?? 0) * $quantity;
+                    $orderCarbs += (int) ($item['carbs_g'] ?? 0) * $quantity;
+                    $orderFat += (int) ($item['fat_g'] ?? 0) * $quantity;
+                    $mealCount += $quantity;
+                }
+
+                // Sort categories by meal time order
+                $catOrder = ['breakfast', 'lunch', 'dinner', 'snacks', 'other'];
+                $sortedCategories = [];
+                foreach ($catOrder as $key) {
+                    if (isset($mealsByCategory[$key])) {
+                        $sortedCategories[] = $mealsByCategory[$key];
+                    }
+                }
+
                 $orders[] = [
                     'id' => $order['order_number'] ?? ('ORD-' . $order['id']),
-                    'plan' => $order['plan_name'] ?? 'Plan',
-                    'meals' => $order['meals'] ?? count($order['items'] ?? []),
+                    'raw_id' => $order['id'] ?? 0,
+                    'plan' => $planDetails['name_en'] ?? ($order['plan_name'] ?? 'Plan'),
+                    'meals' => $mealCount,
                     'amount' => $amount,
-                    'date' => $order['created_at'] ?? date('Y-m-d'),
+                    'date' => $deliveryDate,
+                    'created_at' => $order['created_at'] ?? date('Y-m-d'),
                     'status' => $status,
+                    'delivery_address' => $order['delivery_address'] ?? '',
+                    'delivery_date' => $deliveryDate,
+                    'categories' => $sortedCategories,
+                    'total_calories' => $orderCalories,
+                    'total_protein' => $orderProtein,
+                    'total_carbs' => $orderCarbs,
+                    'total_fat' => $orderFat,
                 ];
 
                 $total++;
                 $totalSpent += $amount;
+                $totalCalories += $orderCalories;
+
                 if ($status === 'delivered') {
                     $delivered++;
                 } elseif ($status === 'cancelled') {
                     $cancelled++;
+                } else {
+                    $inProgress++;
+                    if (strtotime($deliveryDate) >= strtotime(date('Y-m-d'))) {
+                        $upcomingCount++;
+                    }
                 }
             }
         }
@@ -1524,8 +1619,12 @@ class UserController extends Controller
             'total' => $total,
             'delivered' => $delivered,
             'cancelled' => $cancelled,
+            'inProgress' => $inProgress,
+            'upcoming' => $upcomingCount,
             'totalSpent' => $totalSpent,
             'avgOrder' => $total > 0 ? round($totalSpent / $total) : 0,
+            'totalCalories' => $totalCalories,
+            'avgCalories' => $total > 0 ? round($totalCalories / max($total, 1)) : 0,
         ];
 
         // Build subscription info for the view
