@@ -968,6 +968,63 @@ class UserController extends Controller
         return redirect()->route('user.subscriptions')->with('success', $message);
     }
 
+    public function paymentCallback(Request $request, PaymentApiService $paymentApi, AuthApiService $authApi)
+    {
+        $status = strtolower($request->input('status', ''));
+        $message = $request->input('message', '');
+        $moyasarPaymentId = $request->input('id');
+        $localPaymentId = $request->input('payment_id');
+        $paymentId = $localPaymentId;
+
+        // Failed / declined / cancelled
+        if (in_array($status, ['failed', 'declined', 'cancelled', 'canceled', 'expired'])) {
+            $declineReason = urldecode($message);
+            return view('payment.cancel', compact('paymentId', 'declineReason', 'status'));
+        }
+
+        // Approved / paid / succeeded - verify the payment
+        if (in_array($status, ['approved', 'paid', 'succeeded', 'success', 'authorized', 'captured'])) {
+            $isLoggedIn = $authApi->check();
+            $payment = [];
+            $verified = false;
+            $error = null;
+            $chargeId = null;
+            $sessionId = null;
+
+            if ($isLoggedIn && $moyasarPaymentId && $localPaymentId) {
+                $verifyResponse = $paymentApi->verifyPayment((int) $localPaymentId);
+                $result = $verifyResponse['data'] ?? $verifyResponse;
+
+                if (empty($result['id'])) {
+                    $attachResponse = $paymentApi->attachMoyasarPayment((int) $localPaymentId, $moyasarPaymentId);
+                    if (!empty($attachResponse['success']) && $attachResponse['success'] !== false) {
+                        $verifyResponse = $paymentApi->verifyPayment((int) $localPaymentId);
+                        $result = $verifyResponse['data'] ?? $verifyResponse;
+                    }
+                }
+
+                if (!empty($result['id'])) {
+                    $payment = $result;
+                    $verified = strtolower($result['status'] ?? '') === 'paid';
+                } else {
+                    $error = $this->apiErrorMessage($verifyResponse);
+                }
+            } elseif ($moyasarPaymentId && !$isLoggedIn) {
+                $payment = ['id' => $localPaymentId ?? 'pending', 'status' => 'pending'];
+                $error = 'Please log in or create an account so we can confirm your payment and activate your subscription.';
+            } else {
+                $payment = ['id' => $localPaymentId ?? 'pending', 'status' => 'pending'];
+                $error = 'Unable to verify payment at this time. Please check your subscription page.';
+            }
+
+            return view('payment.success', compact('payment', 'verified', 'error', 'chargeId', 'paymentId', 'sessionId', 'isLoggedIn', 'moyasarPaymentId'));
+        }
+
+        // Unknown status - treat as pending/cancel
+        $declineReason = $message ? urldecode($message) : null;
+        return view('payment.cancel', compact('paymentId', 'declineReason', 'status'));
+    }
+
     public function paymentSuccess(Request $request, PaymentApiService $paymentApi, AuthApiService $authApi)
     {
         // Moyasar redirect: ?id=MOYASAR_PAYMENT_ID&payment_id=LOCAL_PAYMENT_ID

@@ -11,38 +11,57 @@ $status = $verified ? 'paid' : ($error ? 'error' : 'pending');
 @section('content')
 <div class="w-full max-w-lg animate-simple-fade-in" x-data="paymentStatus()">
     <div class="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden text-center relative">
-        {{-- Top accent bar --}}
-        <div class="h-2 w-full bg-gradient-to-r from-[#173327] via-[#6E7A25] to-[#173327]"></div>
+        {{-- Top gradient accent bar --}}
+        <div class="h-3 w-full bg-gradient-to-r from-[#173327] via-[#6E7A25] to-[#173327]"></div>
 
-        <div class="px-6 sm:px-8 py-10">
-            @if($verified)
-            <div class="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center mb-6 shadow-inner animate-bounce">
-                <svg class="w-12 h-12 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        @if($verified)
+        {{-- Success gradient header --}}
+        <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] px-6 py-8 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+            <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12"></div>
+            <div class="relative z-10">
+                <div class="mx-auto w-24 h-24 rounded-full bg-white/15 backdrop-blur flex items-center justify-center mb-4 shadow-lg">
+                    <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <h2 class="text-3xl font-extrabold text-white">{{ __('Payment Successful!') }}</h2>
+                @if($isLoggedIn)
+                <p class="text-white/70 text-sm mt-2 max-w-xs mx-auto">{{ __('Your subscription is now active and your meals are being prepared.') }}</p>
+                @else
+                <p class="text-white/70 text-sm mt-2 max-w-xs mx-auto">{{ __('Thank you for your payment. Create an account to manage your subscription and meals.') }}</p>
+                @endif
             </div>
-            <h2 class="text-3xl font-extrabold text-gray-900">{{ __('Payment Successful!') }}</h2>
-            @if($isLoggedIn)
-            <p class="text-gray-500 text-sm mt-2 max-w-xs mx-auto">{{ __('Your subscription is now active and your meals are being prepared.') }}</p>
-            @else
-            <p class="text-gray-500 text-sm mt-2 max-w-xs mx-auto">{{ __('Thank you for your payment. Create an account to manage your subscription and meals.') }}</p>
-            @endif
+        </div>
 
-            @elseif($error)
-            <div class="mx-auto w-24 h-24 rounded-full bg-red-100 flex items-center justify-center mb-6 shadow-inner">
-                <svg class="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        @elseif($error)
+        {{-- Error gradient header --}}
+        <div class="bg-gradient-to-br from-red-500 to-red-700 px-6 py-8 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+            <div class="relative z-10">
+                <div class="mx-auto w-24 h-24 rounded-full bg-white/15 backdrop-blur flex items-center justify-center mb-4 shadow-lg">
+                    <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <h2 class="text-3xl font-extrabold text-white">{{ __('Payment Not Confirmed') }}</h2>
+                <p class="text-white/70 text-sm mt-2 max-w-xs mx-auto">{{ $error }}</p>
             </div>
-            <h2 class="text-3xl font-extrabold text-gray-900">{{ __('Payment Not Confirmed') }}</h2>
-            <p class="text-gray-500 text-sm mt-2 max-w-xs mx-auto">{{ $error }}</p>
+        </div>
 
-            @else
-            <div class="mx-auto w-24 h-24 rounded-full bg-amber-100 flex items-center justify-center mb-6 shadow-inner">
-                <svg class="w-12 h-12 text-amber-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        @else
+        {{-- Pending gradient header --}}
+        <div class="bg-gradient-to-br from-amber-500 to-amber-700 px-6 py-8 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+            <div class="relative z-10">
+                <div class="mx-auto w-24 h-24 rounded-full bg-white/15 backdrop-blur flex items-center justify-center mb-4 shadow-lg">
+                    <svg class="w-12 h-12 text-white animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <h2 class="text-3xl font-extrabold text-white">{{ __('Payment Pending') }}</h2>
+                <p class="text-white/70 text-sm mt-2 max-w-xs mx-auto">{{ __('We are confirming your payment with the gateway. It may take a few moments to reflect.') }}</p>
             </div>
-            <h2 class="text-3xl font-extrabold text-gray-900">{{ __('Payment Pending') }}</h2>
-            <p class="text-gray-500 text-sm mt-2 max-w-xs mx-auto">{{ __('We are confirming your payment with the gateway. It may take a few moments to reflect.') }}</p>
-            @endif
+        </div>
+        @endif
 
+        <div class="px-6 sm:px-8 py-8">
             @if(!empty($payment['id']))
-            <div class="mt-8 bg-gray-50 rounded-xl p-5 text-left border border-gray-100">
+            <div class="bg-gray-50 rounded-xl p-5 text-left border border-gray-100">
                 <div class="flex justify-between py-2.5 border-b border-gray-100">
                     <span class="text-xs text-gray-500">{{ __('Payment ID') }}</span>
                     <span class="text-xs font-bold text-gray-900">#{{ $payment['id'] }}</span>
@@ -99,12 +118,33 @@ $status = $verified ? 'paid' : ($error ? 'error' : 'pending');
             </div>
             @endif
 
+            @if($verified && $isLoggedIn)
+            {{-- Next steps banner --}}
+            <div class="mt-6 bg-gradient-to-br from-[#173327]/5 to-[#6E7A25]/5 rounded-xl p-4 text-left border border-[#6E7A25]/10">
+                <p class="text-xs font-bold text-[#173327] mb-2">{{ __('What happens next?') }}</p>
+                <ul class="space-y-1.5">
+                    <li class="flex items-start gap-2 text-xs text-gray-600">
+                        <svg class="w-3.5 h-3.5 text-[#6E7A25] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        {{ __('Your subscription is now active.') }}
+                    </li>
+                    <li class="flex items-start gap-2 text-xs text-gray-600">
+                        <svg class="w-3.5 h-3.5 text-[#6E7A25] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        {{ __('Browse your weekly meal schedule and customize your preferences.') }}
+                    </li>
+                    <li class="flex items-start gap-2 text-xs text-gray-600">
+                        <svg class="w-3.5 h-3.5 text-[#6E7A25] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        {{ __('Your meals will be freshly prepared and delivered to your doorstep.') }}
+                    </li>
+                </ul>
+            </div>
+            @endif
+
             <div class="mt-8 space-y-3">
                 @if($status === 'pending' && ($chargeId || !empty($moyasarPaymentId)))
                 <p class="text-xs text-gray-400">
                     {{ __('Rechecking in') }} <span x-text="countdown" class="font-bold text-gray-600"></span> {{ __('seconds') }}
                 </p>
-                <button type="button" @click="window.location.reload()" class="inline-flex items-center justify-center gap-2 w-full py-3 text-sm font-bold text-white rounded-lg shadow-md bg-gradient-to-r from-[#173327] to-[#6E7A25] hover:from-[#6E7A25] hover:to-[#173327] transition-all">
+                <button type="button" @click="window.location.reload()" class="inline-flex items-center justify-center gap-2 w-full py-3.5 text-sm font-bold text-white rounded-xl shadow-md bg-gradient-to-r from-[#173327] to-[#6E7A25] hover:from-[#6E7A25] hover:to-[#173327] transition-all">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     {{ __('Check Payment Status') }}
                 </button>
@@ -112,7 +152,7 @@ $status = $verified ? 'paid' : ($error ? 'error' : 'pending');
                 <p class="text-xs text-gray-400">
                     {{ __('Redirecting in') }} <span x-text="countdown" class="font-bold text-gray-600"></span> {{ __('seconds') }}
                 </p>
-                <a href="{{ $nextUrl }}" class="inline-flex items-center justify-center gap-2 w-full py-3 text-sm font-bold text-white rounded-lg shadow-md bg-gradient-to-r from-[#173327] to-[#6E7A25] hover:from-[#6E7A25] hover:to-[#173327] transition-all">
+                <a href="{{ $nextUrl }}" class="inline-flex items-center justify-center gap-2 w-full py-3.5 text-sm font-bold text-white rounded-xl shadow-md bg-gradient-to-r from-[#173327] to-[#6E7A25] hover:from-[#6E7A25] hover:to-[#173327] transition-all">
                     @if($isLoggedIn)
                     {{ __('Go to My Subscriptions') }}
                     @else
@@ -123,13 +163,13 @@ $status = $verified ? 'paid' : ($error ? 'error' : 'pending');
                 @endif
 
                 @if(!$isLoggedIn)
-                <a href="{{ route('login') }}" class="inline-flex items-center justify-center gap-2 w-full py-3 text-sm font-bold text-[#6E7A25] border border-[#6E7A25]/30 rounded-lg hover:bg-[#6E7A25]/5 transition-all">
+                <a href="{{ route('login') }}" class="inline-flex items-center justify-center gap-2 w-full py-3.5 text-sm font-bold text-[#6E7A25] border border-[#6E7A25]/30 rounded-xl hover:bg-[#6E7A25]/5 transition-all">
                     {{ __('Already have an account? Login') }}
                 </a>
                 @endif
 
                 @if($error)
-                <a href="{{ route('user.subscriptions') }}" class="inline-flex items-center justify-center gap-2 w-full py-3 text-sm font-bold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
+                <a href="{{ route('user.subscriptions') }}" class="inline-flex items-center justify-center gap-2 w-full py-3.5 text-sm font-bold text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all">
                     {{ __('Back to Subscriptions') }}
                 </a>
                 @endif

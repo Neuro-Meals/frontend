@@ -221,6 +221,7 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
 });
 
 // Payment / Checkout callbacks (no auth middleware - Stripe redirects without session)
+Route::get('/payment/callback', [UserController::class, 'paymentCallback'])->name('payment.callback');
 Route::get('/payment-success', [UserController::class, 'paymentSuccess'])->name('payment.success');
 Route::get('/payment-cancel', [UserController::class, 'paymentCancel'])->name('payment.cancel');
 
