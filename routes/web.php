@@ -32,6 +32,7 @@ Route::middleware('api.auth')->group(function () {
 Route::get('/locale/{locale}', function ($locale) {
     if (in_array($locale, ['en', 'ar'])) {
         Session::put('locale', $locale);
+        return redirect()->back()->withCookie(cookie('locale', $locale, 60 * 24 * 365));
     }
     return redirect()->back();
 })->name('locale.switch');
