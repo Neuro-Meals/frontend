@@ -975,6 +975,7 @@ class UserController extends Controller
         $moyasarPaymentId = $request->input('id');
         $localPaymentId = $request->input('payment_id');
         $paymentId = $localPaymentId;
+        $gatewaySaidApproved = in_array($status, ['approved', 'paid', 'succeeded', 'success', 'authorized', 'captured']);
 
         // Failed / declined / cancelled
         if (in_array($status, ['failed', 'declined', 'cancelled', 'canceled', 'expired'])) {
@@ -983,38 +984,67 @@ class UserController extends Controller
         }
 
         // Approved / paid / succeeded - verify the payment
-        if (in_array($status, ['approved', 'paid', 'succeeded', 'success', 'authorized', 'captured'])) {
+        if ($gatewaySaidApproved) {
             $isLoggedIn = $authApi->check();
             $payment = [];
             $verified = false;
             $error = null;
             $chargeId = null;
             $sessionId = null;
+            $verifiedStatuses = ['paid', 'approved', 'authorized', 'captured', 'succeeded', 'success'];
 
             if ($isLoggedIn && $moyasarPaymentId && $localPaymentId) {
                 $verifyResponse = $paymentApi->verifyPayment((int) $localPaymentId);
                 $result = $verifyResponse['data'] ?? $verifyResponse;
 
+                // Fallback: try attaching Moyasar payment ID first, then verify again
                 if (empty($result['id'])) {
+                    \Illuminate\Support\Facades\Log::info('Payment callback: initial verify empty, trying attach', [
+                        'local_payment_id' => $localPaymentId,
+                        'moyasar_id' => $moyasarPaymentId,
+                    ]);
                     $attachResponse = $paymentApi->attachMoyasarPayment((int) $localPaymentId, $moyasarPaymentId);
                     if (!empty($attachResponse['success']) && $attachResponse['success'] !== false) {
                         $verifyResponse = $paymentApi->verifyPayment((int) $localPaymentId);
                         $result = $verifyResponse['data'] ?? $verifyResponse;
+                    } else {
+                        \Illuminate\Support\Facades\Log::warning('Payment callback: attach failed', [
+                            'response' => $attachResponse,
+                        ]);
                     }
                 }
 
                 if (!empty($result['id'])) {
                     $payment = $result;
-                    $verified = strtolower($result['status'] ?? '') === 'paid';
+                    $paymentStatus = strtolower($result['status'] ?? '');
+                    $verified = in_array($paymentStatus, $verifiedStatuses);
+
+                    // If gateway said approved but backend status isn't verified yet,
+                    // treat as pending rather than error
+                    if (!$verified && $gatewaySaidApproved) {
+                        \Illuminate\Support\Facades\Log::info('Payment callback: gateway approved but backend status differs', [
+                            'backend_status' => $paymentStatus,
+                            'gateway_status' => $status,
+                        ]);
+                        $error = null; // Don't show error - show pending
+                    }
                 } else {
-                    $error = $this->apiErrorMessage($verifyResponse);
+                    // Backend verification failed entirely, but gateway said approved
+                    \Illuminate\Support\Facades\Log::warning('Payment callback: verify returned no payment', [
+                        'response' => $verifyResponse,
+                        'gateway_status' => $status,
+                    ]);
+                    // Show pending rather than error since gateway confirmed approval
+                    $payment = ['id' => $localPaymentId ?? 'pending', 'status' => 'pending'];
+                    $error = null;
                 }
             } elseif ($moyasarPaymentId && !$isLoggedIn) {
+                // Not logged in but gateway approved - show positive pending state
                 $payment = ['id' => $localPaymentId ?? 'pending', 'status' => 'pending'];
-                $error = 'Please log in or create an account so we can confirm your payment and activate your subscription.';
+                $error = null;
             } else {
                 $payment = ['id' => $localPaymentId ?? 'pending', 'status' => 'pending'];
-                $error = 'Unable to verify payment at this time. Please check your subscription page.';
+                $error = null;
             }
 
             return view('payment.success', compact('payment', 'verified', 'error', 'chargeId', 'paymentId', 'sessionId', 'isLoggedIn', 'moyasarPaymentId'));
@@ -1040,6 +1070,7 @@ class UserController extends Controller
         $payment = [];
         $verified = false;
         $error = null;
+        $verifiedStatuses = ['paid', 'approved', 'authorized', 'captured', 'succeeded', 'success'];
 
         // Moyasar flow: verify payment after 3DS redirect (attach was done before redirect via AJAX)
         if ($isLoggedIn && $moyasarPaymentId && $localPaymentId) {
@@ -1061,10 +1092,12 @@ class UserController extends Controller
 
             if (!empty($result['id'])) {
                 $payment = $result;
-                $verified = strtolower($result['status'] ?? '') === 'paid';
+                $verified = in_array(strtolower($result['status'] ?? ''), $verifiedStatuses);
             } else {
-                $error = $this->apiErrorMessage($verifyResponse);
-                \Illuminate\Support\Facades\Log::warning('Moyasar payment verify failed', ['response' => $verifyResponse]);
+                // Verification failed but we have Moyasar params - show pending, not error
+                \Illuminate\Support\Facades\Log::warning('Moyasar payment verify failed, showing pending', ['response' => $verifyResponse]);
+                $payment = ['id' => $localPaymentId ?? 'pending', 'status' => 'pending'];
+                $error = null;
             }
         }
         // Tap gateway: verify by charge_id (tap_id) if available.
@@ -1074,10 +1107,11 @@ class UserController extends Controller
 
             if (!empty($result['id'])) {
                 $payment = $result;
-                $verified = ($result['status'] ?? '') === 'paid';
+                $verified = in_array(strtolower($result['status'] ?? ''), $verifiedStatuses);
             } else {
-                $error = $this->apiErrorMessage($response);
-                \Illuminate\Support\Facades\Log::warning('Payment charge verification failed', ['response' => $response]);
+                \Illuminate\Support\Facades\Log::warning('Payment charge verification failed, showing pending', ['response' => $response]);
+                $payment = ['id' => $localPaymentId ?? 'pending', 'status' => 'pending'];
+                $error = null;
             }
         }
         // Legacy Stripe fallback
@@ -1087,22 +1121,24 @@ class UserController extends Controller
 
             if (!empty($result['id'])) {
                 $payment = $result;
-                $verified = ($result['status'] ?? '') === 'paid';
+                $verified = in_array(strtolower($result['status'] ?? ''), $verifiedStatuses);
             } else {
-                $error = $this->apiErrorMessage($response);
-                \Illuminate\Support\Facades\Log::warning('Payment session verification failed', ['response' => $response]);
+                \Illuminate\Support\Facades\Log::warning('Payment session verification failed, showing pending', ['response' => $response]);
+                $payment = ['id' => $localPaymentId ?? 'pending', 'status' => 'pending'];
+                $error = null;
             }
         } elseif ($moyasarPaymentId && !$isLoggedIn) {
             $payment = ['id' => $localPaymentId ?? 'pending', 'status' => 'pending'];
-            $error = 'Please log in or create an account so we can confirm your payment and activate your subscription.';
+            $error = null;
         } elseif ($moyasarPaymentId && !$localPaymentId) {
             $payment = ['id' => 'pending', 'status' => 'pending'];
-            $error = 'Missing local payment reference. Please contact support if your subscription is not activated.';
+            $error = null;
         } elseif ($chargeId && !$isLoggedIn) {
             $payment = ['id' => $localPaymentId ?? 'pending', 'status' => 'pending'];
-            $error = 'Please log in or create an account so we can confirm your payment and activate your subscription.';
+            $error = null;
         } else {
-            $error = 'No payment information was received.';
+            $payment = ['id' => 'pending', 'status' => 'pending'];
+            $error = null;
         }
 
         return view('payment.success', compact('payment', 'verified', 'error', 'chargeId', 'paymentId', 'sessionId', 'isLoggedIn', 'moyasarPaymentId'));
