@@ -24,8 +24,14 @@ class UploadApiService extends BaseApiService
 
         $result = $this->postMultipart('uploads.images', [], $prepared);
 
-        // Keep image URLs relative so they are served through Laravel's proxy route.
-        // The backend returns /static/uploads/... which maps to /static/{path} on Laravel.
+        // Convert relative backend URLs to absolute URLs using the API base URL.
+        if (!empty($result['images']) && is_array($result['images'])) {
+            foreach ($result['images'] as $index => $image) {
+                if (!empty($image['image_url']) && str_starts_with($image['image_url'], '/')) {
+                    $result['images'][$index]['image_url'] = rtrim($this->baseUrl, '/') . $image['image_url'];
+                }
+            }
+        }
 
         return $result;
     }

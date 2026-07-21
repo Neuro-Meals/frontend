@@ -3,7 +3,7 @@
     'mode' => 'single',          // single | multiple | avatar
     'accept' => 'image/jpeg,image/png,image/webp,image/jpg',
     'maxSizeMb' => 5,
-    'endpoint' => route('upload.image'), // default single image endpoint
+    'endpoint' => route('upload.images'), // default upload endpoint (plural)
     'previewUrl' => null,
     'label' => 'Upload Image',
     'helpText' => 'JPG, PNG, WEBP up to ' . ($maxSizeMb ?? 5) . 'MB',
@@ -146,7 +146,7 @@ $wrapperId = 'uploader-' . preg_replace('/[^a-z0-9]/i', '-', $name) . '-' . uniq
                     }
                 } else {
                     const file = await compressToTarget(filesToUpload[0], targetBytes);
-                    formData.append('file', file);
+                    formData.append('files', file);
                 }
 
                 try {

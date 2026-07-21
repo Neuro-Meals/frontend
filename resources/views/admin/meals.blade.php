@@ -962,7 +962,7 @@
                     }
 
                     const formData = new FormData();
-                    formData.append('file', fileToUpload);
+                    formData.append('files', fileToUpload);
 
                     const xhr = new XMLHttpRequest();
 
@@ -977,10 +977,12 @@
                         if (xhr.status >= 200 && xhr.status < 300) {
                             try {
                                 const data = JSON.parse(xhr.responseText);
-                                if (data.success) {
+                                if (data.success && data.images && data.images.length > 0) {
+                                    this.form.image_url = data.images[0].image_url;
+                                } else if (data.success && data.image_url) {
                                     this.form.image_url = data.image_url;
                                 } else {
-                                    this.uploadError = data.message || data.errors?.file?.[0] || 'Upload failed.';
+                                    this.uploadError = data.message || data.errors?.files?.[0] || 'Upload failed.';
                                 }
                             } catch (err) {
                                 this.uploadError = 'Unexpected server response.';
@@ -992,7 +994,7 @@
                         } else {
                             try {
                                 const data = JSON.parse(xhr.responseText);
-                                this.uploadError = data.message || data.errors?.file?.[0] || ('Upload failed (HTTP ' + xhr.status + ').');
+                                this.uploadError = data.message || data.errors?.files?.[0] || ('Upload failed (HTTP ' + xhr.status + ').');
                             } catch (err) {
                                 this.uploadError = 'Upload failed (HTTP ' + xhr.status + '). Please try again.';
                             }
@@ -1009,7 +1011,7 @@
                         this.uploadError = 'Upload was cancelled.';
                     });
 
-                    xhr.open('POST', '{{ route('upload.image') }}', true);
+                    xhr.open('POST', '{{ route('upload.images') }}', true);
                     xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
                     xhr.send(formData);
                 } catch (err) {
