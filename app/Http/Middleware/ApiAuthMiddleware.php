@@ -16,6 +16,9 @@ class ApiAuthMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         if (!$this->authApi->check()) {
+            if ($request->expectsJson() || $request->is('upload/*')) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized. Please log in again.'], 401);
+            }
             return redirect()->route('login');
         }
 
