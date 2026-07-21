@@ -73,8 +73,8 @@ class UploadController extends Controller
 
     public function proxyStatic(Request $request, string $path)
     {
-        // Use direct backend URL to bypass nginx which doesn't proxy /static/
-        $baseUrl = rtrim(env('API_BASE_URL_DIRECT', 'http://185.237.97.69:8080'), '/');
+        // Use backend API URL for proxying static files
+        $baseUrl = rtrim(env('API_BASE_URL', 'https://app.nutriomeals.com'), '/');
         $url = $baseUrl . '/static/' . $path;
 
         try {
