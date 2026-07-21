@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\Api\UploadApiService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class UploadController extends Controller
 {
@@ -66,5 +67,33 @@ class UploadController extends Controller
             'image_url' => $result['images'][0]['image_url'],
             'original_name' => $result['images'][0]['original_name'] ?? $request->file('file')->getClientOriginalName(),
         ]);
+    }
+
+    public function proxyStatic(Request $request, string $path)
+    {
+        $baseUrl = rtrim(config('api.base_url'), '/');
+        $url = $baseUrl . '/static/' . $path;
+
+        try {
+            $response = Http::withOptions([
+                'curl' => [
+                    CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                    CURLOPT_CONNECTTIMEOUT => 10,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_SSL_VERIFYHOST => false,
+                ],
+            ])->timeout(15)->get($url);
+
+            if ($response->successful()) {
+                return response($response->body(), 200, [
+                    'Content-Type' => $response->header('Content-Type') ?: 'image/jpeg',
+                    'Cache-Control' => 'public, max-age=86400',
+                ]);
+            }
+
+            return response()->json(['error' => 'File not found'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch file'], 500);
+        }
     }
 }

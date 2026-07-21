@@ -28,6 +28,9 @@ Route::middleware('api.auth')->group(function () {
     Route::post('/upload/avatar', [UploadController::class, 'uploadAvatar'])->name('upload.avatar');
 });
 
+// Proxy static files from backend API (images, etc.)
+Route::get('/static/{path}', [UploadController::class, 'proxyStatic'])->where('path', '.*');
+
 // Locale switching
 Route::get('/locale/{locale}', function ($locale) {
     if (in_array($locale, ['en', 'ar'])) {
