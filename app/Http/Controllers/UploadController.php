@@ -31,11 +31,13 @@ class UploadController extends Controller
     public function uploadImages(Request $request, UploadApiService $uploadApi)
     {
         $request->validate([
-            'files' => 'required|array',
+            'files' => 'required',
             'files.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
 
-        $result = $uploadApi->images($request->file('files'));
+        $files = is_array($request->file('files')) ? $request->file('files') : [$request->file('files')];
+
+        $result = $uploadApi->images($files);
 
         if (empty($result['images'])) {
             $message = $result['message'] ?? 'Image upload failed.';
