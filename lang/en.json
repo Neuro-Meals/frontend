@@ -844,7 +844,5 @@
     "Today": "Today",
     "Chicken": "Chicken",
     "Seafood": "Seafood",
-    "Meat": "Meat",
-    "The uploaded file is too large. Maximum allowed size is :max MB.": "The uploaded file is too large. Maximum allowed size is :max MB.",
-    "File upload failed. Please try again.": "File upload failed. Please try again."
+    "Meat": "Meat"
 }

@@ -895,73 +895,120 @@
                 this.deleteId = id;
                 this.deleteOpen = true;
             },
-            uploadImage(e) {
+            async compressImage(file, maxDim = 1200, quality = 0.85) {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            let { width, height } = img;
+                            if (width > maxDim || height > maxDim) {
+                                if (width > height) {
+                                    height = Math.round((height / width) * maxDim);
+                                    width = maxDim;
+                                } else {
+                                    width = Math.round((width / height) * maxDim);
+                                    height = maxDim;
+                                }
+                            }
+                            const canvas = document.createElement('canvas');
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            canvas.toBlob((blob) => {
+                                const out = new File([blob], file.name.replace(/\.(png|webp)$/i, '.jpg'), { type: 'image/jpeg' });
+                                resolve(out);
+                            }, 'image/jpeg', quality);
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            },
+            async uploadImage(e) {
                 const file = e.target.files[0];
                 if (!file) return;
-
-                // Validate file size early (5 MB)
-                const maxSize = 5 * 1024 * 1024;
-                if (file.size > maxSize) {
-                    this.uploadError = 'Image is too large. Maximum size is 5 MB.';
-                    this.uploadProgress = 0;
-                    return;
-                }
 
                 this.uploading = true;
                 this.uploadProgress = 0;
                 this.uploadError = '';
 
-                const formData = new FormData();
-                formData.append('file', file);
+                try {
+                    let fileToUpload = file;
 
-                const xhr = new XMLHttpRequest();
-
-                xhr.upload.addEventListener('progress', (event) => {
-                    if (event.lengthComputable) {
-                        this.uploadProgress = Math.round((event.loaded / event.total) * 100);
+                    // Compress if larger than 5MB or not already JPEG
+                    if (file.size > 5 * 1024 * 1024 || !file.type.includes('jpeg')) {
+                        this.uploadProgress = 5;
+                        fileToUpload = await this.compressImage(file);
                     }
-                });
 
-                xhr.addEventListener('load', () => {
-                    this.uploading = false;
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        try {
-                            const data = JSON.parse(xhr.responseText);
-                            if (data.success) {
-                                this.form.image_url = data.image_url;
-                            } else {
-                                this.uploadError = data.message || data.errors?.file?.[0] || 'Upload failed.';
+                    // Final size check after compression
+                    if (fileToUpload.size > 5 * 1024 * 1024) {
+                        fileToUpload = await this.compressImage(file, 1000, 0.7);
+                    }
+
+                    if (fileToUpload.size > 5 * 1024 * 1024) {
+                        this.uploading = false;
+                        this.uploadError = 'Image is too large even after compression. Please use a smaller image.';
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('file', fileToUpload);
+
+                    const xhr = new XMLHttpRequest();
+
+                    xhr.upload.addEventListener('progress', (event) => {
+                        if (event.lengthComputable) {
+                            this.uploadProgress = Math.round((event.loaded / event.total) * 100);
+                        }
+                    });
+
+                    xhr.addEventListener('load', () => {
+                        this.uploading = false;
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            try {
+                                const data = JSON.parse(xhr.responseText);
+                                if (data.success) {
+                                    this.form.image_url = data.image_url;
+                                } else {
+                                    this.uploadError = data.message || data.errors?.file?.[0] || 'Upload failed.';
+                                }
+                            } catch (err) {
+                                this.uploadError = 'Unexpected server response.';
                             }
-                        } catch (err) {
-                            this.uploadError = 'Unexpected server response.';
+                        } else if (xhr.status === 401 || xhr.status === 419) {
+                            this.uploadError = 'Session expired. Please refresh the page and log in again.';
+                        } else if (xhr.status === 413) {
+                            this.uploadError = 'Image is too large. Maximum size is 5 MB.';
+                        } else {
+                            try {
+                                const data = JSON.parse(xhr.responseText);
+                                this.uploadError = data.message || data.errors?.file?.[0] || ('Upload failed (HTTP ' + xhr.status + ').');
+                            } catch (err) {
+                                this.uploadError = 'Upload failed (HTTP ' + xhr.status + '). Please try again.';
+                            }
                         }
-                    } else if (xhr.status === 401 || xhr.status === 419) {
-                        this.uploadError = 'Session expired. Please refresh the page and log in again.';
-                    } else if (xhr.status === 413) {
-                        this.uploadError = 'Image is too large. Maximum size is 5 MB.';
-                    } else {
-                        try {
-                            const data = JSON.parse(xhr.responseText);
-                            this.uploadError = data.message || data.errors?.file?.[0] || ('Upload failed (HTTP ' + xhr.status + ').');
-                        } catch (err) {
-                            this.uploadError = 'Upload failed (HTTP ' + xhr.status + '). Please try again.';
-                        }
-                    }
-                });
+                    });
 
-                xhr.addEventListener('error', () => {
+                    xhr.addEventListener('error', () => {
+                        this.uploading = false;
+                        this.uploadError = 'Network error during upload. Please check your connection and try again.';
+                    });
+
+                    xhr.addEventListener('abort', () => {
+                        this.uploading = false;
+                        this.uploadError = 'Upload was cancelled.';
+                    });
+
+                    xhr.open('POST', '{{ route('upload.image') }}', true);
+                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+                    xhr.send(formData);
+                } catch (err) {
                     this.uploading = false;
-                    this.uploadError = 'Network error during upload. Please check your connection and try again.';
-                });
-
-                xhr.addEventListener('abort', () => {
-                    this.uploading = false;
-                    this.uploadError = 'Upload was cancelled.';
-                });
-
-                xhr.open('POST', '{{ route('upload.image') }}', true);
-                xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
-                xhr.send(formData);
+                    this.uploadError = 'Failed to process image. Please try a different file.';
+                }
             },
             async submitForm(e) {
                 this.saving = true;

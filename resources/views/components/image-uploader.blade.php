@@ -87,12 +87,54 @@ $wrapperId = 'uploader-' . preg_replace('/[^a-z0-9]/i', '-', $name) . '-' . uniq
                 reader.readAsDataURL(file);
             }
 
+            async compressImage(file, maxDim = 1200, quality = 0.85) {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            let { width, height } = img;
+                            if (width > maxDim || height > maxDim) {
+                                if (width > height) {
+                                    height = Math.round((height / width) * maxDim);
+                                    width = maxDim;
+                                } else {
+                                    width = Math.round((width / height) * maxDim);
+                                    height = maxDim;
+                                }
+                            }
+                            const canvas = document.createElement('canvas');
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            canvas.toBlob((blob) => {
+                                const out = new File([blob], file.name.replace(/\.(png|webp)$/i, '.jpg'), { type: 'image/jpeg' });
+                                resolve(out);
+                            }, 'image/jpeg', quality);
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
             async function uploadFiles(filesToUpload) {
                 const formData = new FormData();
                 if (mode === 'multiple') {
-                    filesToUpload.forEach(f => formData.append('files', f));
+                    for (const f of filesToUpload) {
+                        let compressed = f;
+                        if (f.size > maxSize || !f.type.includes('jpeg')) {
+                            compressed = await compressImage(f);
+                        }
+                        formData.append('files', compressed);
+                    }
                 } else {
-                    formData.append('file', filesToUpload[0]);
+                    let file = filesToUpload[0];
+                    if (file.size > maxSize || !file.type.includes('jpeg')) {
+                        file = await compressImage(file);
+                    }
+                    formData.append('file', file);
                 }
 
                 try {
@@ -129,9 +171,9 @@ $wrapperId = 'uploader-' . preg_replace('/[^a-z0-9]/i', '-', $name) . '-' . uniq
 
                 clearFeedback();
 
-                const oversized = files.find(f => f.size > maxSize);
+                const oversized = files.find(f => f.size > maxSize * 3);
                 if (oversized) {
-                    showError(`File too large. Max size is ${(maxSize / 1024 / 1024).toFixed(1)}MB.`);
+                    showError(`File too large. Max size is ${(maxSize / 1024 / 1024).toFixed(1)}MB. Large images will be compressed automatically.`);
                     return;
                 }
 
