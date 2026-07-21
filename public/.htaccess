@@ -23,3 +23,17 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# Increase upload size limits for LiteSpeed
+<IfModule Litespeed>
+    SetEnv uploadMaxSize 10485760
+    SetEnv postMaxSize 12582912
+</IfModule>
+
+<IfModule mod_php.c>
+    php_value upload_max_filesize 10M
+    php_value post_max_size 12M
+    php_value memory_limit 256M
+    php_value max_execution_time 120
+    php_value max_input_time 120
+</IfModule>
