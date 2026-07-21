@@ -1013,6 +1013,7 @@
 
                     xhr.open('POST', '{{ route('upload.images') }}', true);
                     xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+                    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
                     xhr.send(formData);
                 } catch (err) {
                     this.uploading = false;

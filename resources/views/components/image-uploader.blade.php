@@ -154,6 +154,7 @@ $wrapperId = 'uploader-' . preg_replace('/[^a-z0-9]/i', '-', $name) . '-' . uniq
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                            'X-Requested-With': 'XMLHttpRequest',
                         },
                         body: formData,
                     });
