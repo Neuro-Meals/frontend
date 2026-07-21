@@ -73,7 +73,8 @@ class UploadController extends Controller
 
     public function proxyStatic(Request $request, string $path)
     {
-        $baseUrl = rtrim(config('api.base_url'), '/');
+        // Use direct backend URL to bypass nginx which doesn't proxy /static/
+        $baseUrl = rtrim(env('API_BASE_URL_DIRECT', 'http://185.237.97.69:8080'), '/');
         $url = $baseUrl . '/static/' . $path;
 
         try {

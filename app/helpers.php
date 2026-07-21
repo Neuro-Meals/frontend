@@ -18,10 +18,8 @@ if (!function_exists('meal_image_url')) {
             return $url;
         }
 
-        $baseUrl = rtrim(config('api.base_url'), '/');
-        $path = ltrim($url, '/');
-
-        return $baseUrl . '/' . $path;
+        // Keep relative paths as-is — served through Laravel's /static/{path} proxy.
+        return $url;
     }
 }
 
