@@ -851,5 +851,7 @@
     "Today": "اليوم",
     "Chicken": "دجاج",
     "Seafood": "بحريات",
-    "Meat": "لحم"
+    "Meat": "لحم",
+    "The uploaded file is too large. Maximum allowed size is :max MB.": "الملف المرفوع كبير جدًا. الحد الأقصى المسموح به هو :max ميجابايت.",
+    "File upload failed. Please try again.": "فشل رفع الملف. يرجى المحاولة مرة أخرى."
 }
