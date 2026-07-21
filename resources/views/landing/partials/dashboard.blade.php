@@ -32,18 +32,18 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-4">
                         <div class="rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300">
-                            <img src="{{ asset('images/meals/healthy-protein-bowl-with-quinoa-avocado-kale-sweet-potato-poached-egg_9975-132760.jpg') }}" alt="Healthy protein bowl" class="w-full h-48 object-cover hover:scale-105 transition-transform duration-500">
+                            <img src="{{ asset('images/meals/protein/chicken/IMG_3966.JPG') }}" alt="{{ __('Chicken') }}" loading="lazy" class="w-full h-48 object-cover hover:scale-105 transition-transform duration-500">
                         </div>
                         <div class="rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300">
-                            <img src="{{ asset('images/meals/top-view-healthy-diet-salad-with-grilled-chicken-broccoli-cauliflower-tomato-lettuce-avocado-lettuce_141793-2438.jpg') }}" alt="Healthy diet salad" class="w-full h-32 object-cover hover:scale-105 transition-transform duration-500">
+                            <img src="{{ asset('images/meals/protein/seafood/IMG_4065.JPG') }}" alt="{{ __('Seafood') }}" loading="lazy" class="w-full h-32 object-cover hover:scale-105 transition-transform duration-500">
                         </div>
                     </div>
                     <div class="space-y-4 pt-8">
                         <div class="rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300">
-                            <img src="{{ asset('images/meals/healthy-buddha-bowl-with-sliced-meat-fresh-vegetables_9975-132258.jpg') }}" alt="Buddha bowl" class="w-full h-32 object-cover hover:scale-105 transition-transform duration-500">
+                            <img src="{{ asset('images/meals/protein/meat/IMG_4044.JPG') }}" alt="{{ __('Meat') }}" loading="lazy" class="w-full h-32 object-cover hover:scale-105 transition-transform duration-500">
                         </div>
                         <div class="rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300">
-                            <img src="{{ asset('images/meals/grilled-chicken-breast-rice-berry-vegetables-white-background_1428-2141.jpg') }}" alt="Grilled chicken with rice" class="w-full h-48 object-cover hover:scale-105 transition-transform duration-500">
+                            <img src="{{ asset('images/meals/protein/chicken/IMG_4005.JPG') }}" alt="{{ __('Chicken') }}" loading="lazy" class="w-full h-48 object-cover hover:scale-105 transition-transform duration-500">
                         </div>
                     </div>
                 </div>

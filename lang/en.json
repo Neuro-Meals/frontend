@@ -841,5 +841,8 @@
     "meals": "meals",
     "No meals": "No meals",
     "Schedule": "Schedule",
-    "Today": "Today"
+    "Today": "Today",
+    "Chicken": "Chicken",
+    "Seafood": "Seafood",
+    "Meat": "Meat"
 }
