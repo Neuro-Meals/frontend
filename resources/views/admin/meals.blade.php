@@ -896,10 +896,12 @@
                 this.deleteOpen = true;
             },
             async compressImage(file, maxDim = 1200, quality = 0.85) {
-                return new Promise((resolve) => {
+                return new Promise((resolve, reject) => {
                     const reader = new FileReader();
+                    reader.onerror = () => reject(new Error('Failed to read file.'));
                     reader.onload = (e) => {
                         const img = new Image();
+                        img.onerror = () => reject(new Error('Failed to load image.'));
                         img.onload = () => {
                             let { width, height } = img;
                             if (width > maxDim || height > maxDim) {
@@ -917,6 +919,10 @@
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, width, height);
                             canvas.toBlob((blob) => {
+                                if (!blob) {
+                                    reject(new Error('Compression failed.'));
+                                    return;
+                                }
                                 const out = new File([blob], file.name.replace(/\.(png|webp)$/i, '.jpg'), { type: 'image/jpeg' });
                                 resolve(out);
                             }, 'image/jpeg', quality);
@@ -937,15 +943,16 @@
                 try {
                     let fileToUpload = file;
 
-                    // Compress if larger than 5MB or not already JPEG
-                    if (file.size > 5 * 1024 * 1024 || !file.type.includes('jpeg')) {
-                        this.uploadProgress = 5;
-                        fileToUpload = await this.compressImage(file);
-                    }
+                    // Always compress to keep under server limits
+                    this.uploadProgress = 5;
+                    fileToUpload = await this.compressImage(file, 1200, 0.85);
 
-                    // Final size check after compression
-                    if (fileToUpload.size > 5 * 1024 * 1024) {
+                    // If still over 2MB, compress more aggressively
+                    if (fileToUpload.size > 2 * 1024 * 1024) {
                         fileToUpload = await this.compressImage(file, 1000, 0.7);
+                    }
+                    if (fileToUpload.size > 2 * 1024 * 1024) {
+                        fileToUpload = await this.compressImage(file, 800, 0.6);
                     }
 
                     if (fileToUpload.size > 5 * 1024 * 1024) {
@@ -981,7 +988,7 @@
                         } else if (xhr.status === 401 || xhr.status === 419) {
                             this.uploadError = 'Session expired. Please refresh the page and log in again.';
                         } else if (xhr.status === 413) {
-                            this.uploadError = 'Image is too large. Maximum size is 5 MB.';
+                            this.uploadError = 'Server rejected the image (too large). Please try a smaller image.';
                         } else {
                             try {
                                 const data = JSON.parse(xhr.responseText);

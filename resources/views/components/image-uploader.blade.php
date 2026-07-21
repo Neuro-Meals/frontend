@@ -88,10 +88,12 @@ $wrapperId = 'uploader-' . preg_replace('/[^a-z0-9]/i', '-', $name) . '-' . uniq
             }
 
             async compressImage(file, maxDim = 1200, quality = 0.85) {
-                return new Promise((resolve) => {
+                return new Promise((resolve, reject) => {
                     const reader = new FileReader();
+                    reader.onerror = () => reject(new Error('Failed to read file.'));
                     reader.onload = (e) => {
                         const img = new Image();
+                        img.onerror = () => reject(new Error('Failed to load image.'));
                         img.onload = () => {
                             let { width, height } = img;
                             if (width > maxDim || height > maxDim) {
@@ -109,6 +111,10 @@ $wrapperId = 'uploader-' . preg_replace('/[^a-z0-9]/i', '-', $name) . '-' . uniq
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, width, height);
                             canvas.toBlob((blob) => {
+                                if (!blob) {
+                                    reject(new Error('Compression failed.'));
+                                    return;
+                                }
                                 const out = new File([blob], file.name.replace(/\.(png|webp)$/i, '.jpg'), { type: 'image/jpeg' });
                                 resolve(out);
                             }, 'image/jpeg', quality);
@@ -119,21 +125,27 @@ $wrapperId = 'uploader-' . preg_replace('/[^a-z0-9]/i', '-', $name) . '-' . uniq
                 });
             }
 
+            async function compressToTarget(file, targetBytes) {
+                let result = await compressImage(file, 1200, 0.85);
+                if (result.size > targetBytes) {
+                    result = await compressImage(file, 1000, 0.7);
+                }
+                if (result.size > targetBytes) {
+                    result = await compressImage(file, 800, 0.6);
+                }
+                return result;
+            }
+
             async function uploadFiles(filesToUpload) {
+                const targetBytes = 2 * 1024 * 1024;
                 const formData = new FormData();
                 if (mode === 'multiple') {
                     for (const f of filesToUpload) {
-                        let compressed = f;
-                        if (f.size > maxSize || !f.type.includes('jpeg')) {
-                            compressed = await compressImage(f);
-                        }
+                        const compressed = await compressToTarget(f, targetBytes);
                         formData.append('files', compressed);
                     }
                 } else {
-                    let file = filesToUpload[0];
-                    if (file.size > maxSize || !file.type.includes('jpeg')) {
-                        file = await compressImage(file);
-                    }
+                    const file = await compressToTarget(filesToUpload[0], targetBytes);
                     formData.append('file', file);
                 }
 
@@ -170,12 +182,6 @@ $wrapperId = 'uploader-' . preg_replace('/[^a-z0-9]/i', '-', $name) . '-' . uniq
                 if (files.length === 0) return;
 
                 clearFeedback();
-
-                const oversized = files.find(f => f.size > maxSize * 3);
-                if (oversized) {
-                    showError(`File too large. Max size is ${(maxSize / 1024 / 1024).toFixed(1)}MB. Large images will be compressed automatically.`);
-                    return;
-                }
 
                 const invalidType = files.find(f => !f.type.startsWith('image/'));
                 if (invalidType) {
