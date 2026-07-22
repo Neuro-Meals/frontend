@@ -755,8 +755,34 @@ class UserController extends Controller
                 // Upgrade — create plan change checkout
                 $checkoutResponse = $paymentApi->createPlanChangeCheckout((int) $planChangeId);
             } else {
-                // Existing subscription is unpaid/pending — create regular checkout
-                $checkoutResponse = $paymentApi->createCheckout($subscriptionId);
+                // Existing subscription is unpaid/pending
+                // Check if user is switching to a different plan
+                $existingPlanId = (int) ($subscriptionResponse['plan_id'] ?? 0);
+                if ($existingPlanId > 0 && $existingPlanId !== $planId) {
+                    // User wants a different plan — use changePlan to switch, then checkout with new plan price
+                    $changeResponse = $subscriptionApi->changePlan($subscriptionId, $planId);
+
+                    if (($changeResponse['success'] ?? true) === false) {
+                        $message = $this->apiErrorMessage($changeResponse);
+                        if ($wantsJson) {
+                            return response()->json(['success' => false, 'message' => $message], 400);
+                        }
+                        return redirect()->route('user.subscriptions')->with('error', $message);
+                    }
+
+                    $changeResult = $changeResponse['data'] ?? $changeResponse;
+                    $planChangeId = $changeResult['plan_change']['id'] ?? null;
+
+                    if ($planChangeId) {
+                        $checkoutResponse = $paymentApi->createPlanChangeCheckout((int) $planChangeId);
+                    } else {
+                        // changePlan didn't require a plan change record — checkout directly
+                        $checkoutResponse = $paymentApi->createCheckout($subscriptionId);
+                    }
+                } else {
+                    // Same plan — just checkout the existing pending subscription
+                    $checkoutResponse = $paymentApi->createCheckout($subscriptionId);
+                }
             }
         } else {
             $subscription = $subscriptionResponse['data'] ?? $subscriptionResponse;
