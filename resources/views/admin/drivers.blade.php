@@ -386,7 +386,15 @@ function driverManager() {
             fields.forEach(key => { const v = this.form[key]; if (v !== null && v !== undefined) formData.append(key, v); });
             if (isEdit) formData.append('_method', 'PUT');
             try {
-                const res = await fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }, body: formData });
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: formData,
+                });
                 const data = await res.json();
                 if (data.success) {
                     await this.loadDrivers();
