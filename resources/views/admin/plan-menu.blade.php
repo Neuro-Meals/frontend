@@ -76,9 +76,10 @@
                                 class="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
                                 <option value="">{{ __('Select meal...') }}</option>
                                 <template x-for="meal in filteredMeals" :key="meal.id">
-                                    <option :value="meal.id" x-text="meal.name + ' (' + meal.calories + ' cal)'"></option>
+                                    <option :value="meal.id" x-text="meal.name + ' (' + meal.calories + ' cal)' + (meal.is_available ? '' : ' — Unavailable')"></option>
                                 </template>
                             </select>
+                            <p x-show="filteredMeals.length === 0" class="text-[10px] text-amber-600 mt-1">{{ __('No meals in this category. Add meals first.') }}</p>
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-gray-500 mb-1">{{ __('Quantity') }}</label>
@@ -221,8 +222,9 @@ function menuBuilder() {
         },
 
         get filteredMeals() {
-            if (!this.addForm.category_id) return this.meals.filter(m => m.is_available);
-            return this.meals.filter(m => m.category_id == this.addForm.category_id && m.is_available);
+            const catId = parseInt(this.addForm.category_id);
+            if (!catId) return this.meals;
+            return this.meals.filter(m => parseInt(m.category_id) === catId);
         },
 
         get totalItems() {
@@ -282,17 +284,47 @@ function menuBuilder() {
                         quantity: this.addForm.quantity || 1,
                     }),
                 });
-                const data = await res.json();
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    this.addError = '{{ __('Server returned an unexpected response.') }}';
+                    return;
+                }
                 if (data.success) {
-                    this.addSuccess = data.message || 'Meal added successfully.';
+                    this.addSuccess = data.message || '{{ __('Meal added successfully.') }}';
+                    const newItem = data.menu_item || data.item || data.data || {};
+                    const meal = this.meals.find(m => m.id === parseInt(this.addForm.meal_id));
+                    const cat = this.categories.find(c => c.id === parseInt(this.addForm.category_id));
+                    const item = {
+                        id: newItem.id || Date.now(),
+                        is_active: newItem.is_active ?? true,
+                        quantity: this.addForm.quantity || 1,
+                        meal: meal ? {
+                            name_en: meal.name,
+                            calories: meal.calories,
+                            image_url: meal.image_url,
+                        } : { name_en: 'Meal', calories: 0, image_url: null },
+                    };
+                    const dayIdx = this.days.findIndex(d => d.day_of_week === dayOfWeek);
+                    if (dayIdx !== -1) {
+                        const catName = cat ? cat.name : 'Category';
+                        let catGroup = this.days[dayIdx].categories.find(c => c.category_name === catName);
+                        if (!catGroup) {
+                            catGroup = { category_name: catName, items: [] };
+                            this.days[dayIdx].categories.push(catGroup);
+                        }
+                        catGroup.items.push(item);
+                    }
                     this.addForm.meal_id = '';
                     this.addForm.quantity = 1;
-                    setTimeout(() => window.location.reload(), 800);
+                    setTimeout(() => { this.addSuccess = ''; }, 3000);
                 } else {
-                    this.addError = data.message || 'Failed to add meal.';
+                    this.addError = data.message || '{{ __('Failed to add meal.') }}';
                 }
             } catch (err) {
-                this.addError = 'Network error. Please try again.';
+                this.addError = '{{ __('Network error. Please try again.') }}';
             } finally {
                 this.saving = false;
             }
@@ -313,9 +345,12 @@ function menuBuilder() {
                 const data = await res.json();
                 if (data.success) {
                     item.is_active = !item.is_active;
+                } else {
+                    alert(data.message || '{{ __('Failed to toggle item.') }}');
                 }
             } catch (err) {
                 console.error('Failed to toggle:', err);
+                alert('{{ __('Network error. Please try again.') }}');
             }
         },
 
@@ -332,10 +367,18 @@ function menuBuilder() {
                 });
                 const data = await res.json();
                 if (data.success) {
-                    setTimeout(() => window.location.reload(), 300);
+                    this.days.forEach(day => {
+                        day.categories.forEach(cat => {
+                            cat.items = cat.items.filter(i => i.id !== item.id);
+                        });
+                        day.categories = day.categories.filter(cat => cat.items.length > 0);
+                    });
+                } else {
+                    alert(data.message || '{{ __('Failed to remove item.') }}');
                 }
             } catch (err) {
                 console.error('Failed to remove:', err);
+                alert('{{ __('Network error. Please try again.') }}');
             }
         },
     };

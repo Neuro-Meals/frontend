@@ -992,7 +992,7 @@ class AdminController extends Controller
             'days' => [],
         ]);
 
-        $mealsData = $this->apiData($mealApi->list(['limit' => 200]), fn () => []);
+        $mealsData = $this->apiData($mealApi->list(['limit' => 100]), fn () => []);
         $meals = [];
         foreach ($mealsData as $meal) {
             $meals[] = [
