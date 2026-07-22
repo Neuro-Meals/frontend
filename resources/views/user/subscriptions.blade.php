@@ -329,9 +329,12 @@
 {{-- Moyasar Payment Modal --}}
 <div id="moyasar-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="moyasar-title" role="dialog" aria-modal="true">
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onclick="closeMoyasarModal()"></div>
-    <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
-        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full pointer-events-auto transform transition-all overflow-hidden" id="moyasar-panel">
+    <div class="fixed inset-0 flex items-end sm:items-center justify-center sm:p-4 pointer-events-none">
+        <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl max-w-md w-full pointer-events-auto transform transition-all max-h-[100vh] sm:max-h-[90vh] overflow-y-auto" id="moyasar-panel">
             <div class="h-2 w-full bg-gradient-to-r from-[#173327] via-[#6E7A25] to-[#173327]"></div>
+            <div class="sm:hidden flex justify-center pt-3 pb-1 sticky top-0 bg-white">
+                <div class="w-10 h-1.5 rounded-full bg-gray-300"></div>
+            </div>
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 id="moyasar-title" class="text-base font-bold text-gray-900">{{ __('Complete Payment') }}</h3>
@@ -385,8 +388,11 @@
 {{-- Switch Plan Confirmation Modal --}}
 <div id="switch-plan-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="switch-plan-title" role="dialog" aria-modal="true">
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onclick="closeSwitchPlanModal()"></div>
-    <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
-        <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full pointer-events-auto transform transition-all p-6">
+    <div class="fixed inset-0 flex items-end sm:items-center justify-center sm:p-4 pointer-events-none">
+        <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl max-w-sm w-full pointer-events-auto transform transition-all p-6">
+            <div class="sm:hidden flex justify-center pb-3 mb-2">
+                <div class="w-10 h-1.5 rounded-full bg-gray-300"></div>
+            </div>
             <div class="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center mb-4">
                 <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
