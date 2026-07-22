@@ -510,15 +510,26 @@ function driverManager() {
             if (!this.deleteTarget) return;
             this.deleting = true;
             try {
+                const formData = new FormData();
+                formData.append('_method', 'DELETE');
                 const res = await fetch('{{ url('admin/drivers') }}/' + this.deleteTarget.id, {
-                    method: 'DELETE',
+                    method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json',
                     },
+                    body: formData,
                 });
-                const data = await res.json();
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (parseErr) {
+                    console.error('Delete non-JSON response:', text.substring(0, 500));
+                    this.error = '{{ __('Server returned an unexpected response.') }}';
+                    return;
+                }
                 if (data.success) {
                     await this.loadDrivers();
                     this.deleteOpen = false;
@@ -530,7 +541,7 @@ function driverManager() {
                 }
             } catch (e) {
                 console.error('deleteDriver error:', e);
-                this.error = '{{ __('Network error. Please try again.') }}';
+                this.error = '{{ __('Network error. Please try again.') }}' + (e.message ? ' (' + e.message + ')' : '');
             } finally {
                 this.deleting = false;
             }
