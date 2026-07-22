@@ -34,7 +34,7 @@
         }
     </script>
     <style>
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .animate-fade { animation: fadeIn 0.3s ease-out both; }
         .sidebar-link { transition: all 0.2s ease; }
         .sidebar-link:hover { background: rgba(255,255,255,0.06); }
