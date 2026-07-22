@@ -674,6 +674,9 @@ class UserController extends Controller
             }
             $plan = $plansById[$sub['plan_id'] ?? 0] ?? [];
             $pmStatus = $pm['status'] ?? 'pending';
+            if ($pmStatus === 'pending' && ($sub['status'] ?? '') === 'cancelled') {
+                $pmStatus = 'cancelled';
+            }
             $paymentHistory[] = [
                 'id' => $pm['id'] ?? null,
                 'subscription_id' => $pm['subscription_id'] ?? null,
