@@ -476,7 +476,9 @@ function driverManager() {
                 formData.append('first_name', driver.first_name || driver.name.split(' ')[0] || '');
                 formData.append('last_name', driver.last_name || (driver.name.split(' ').slice(1).join(' ') || ''));
                 formData.append('phone', driver.phone || '');
-                formData.append('is_active', driver.status !== 'active');
+                if (driver.location) formData.append('location', driver.location);
+                if (driver.address) formData.append('address', driver.address);
+                formData.append('is_active', driver.status !== 'active' ? '1' : '0');
                 formData.append('_method', 'PUT');
                 const res = await fetch('{{ url('admin/drivers') }}/' + driver.id, {
                     method: 'POST',
@@ -487,7 +489,15 @@ function driverManager() {
                     },
                     body: formData,
                 });
-                const data = await res.json();
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (parseErr) {
+                    console.error('toggleStatus non-JSON response:', text.substring(0, 500));
+                    this.error = '{{ __('Server returned an unexpected response.') }}';
+                    return;
+                }
                 if (data.success) {
                     await this.loadDrivers();
                     this.success = data.message || '{{ __('Driver status updated.') }}';
@@ -497,7 +507,7 @@ function driverManager() {
                 }
             } catch (e) {
                 console.error('toggleStatus error:', e);
-                this.error = '{{ __('Network error. Please try again.') }}';
+                this.error = '{{ __('Network error. Please try again.') }}' + (e.message ? ' (' + e.message + ')' : '');
             }
         },
 

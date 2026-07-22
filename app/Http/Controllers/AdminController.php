@@ -2590,8 +2590,8 @@ class AdminController extends Controller
             return [];
         });
 
-        $success = is_array($response) && (!empty($response['id']) || str_contains($response['message'] ?? '', 'deactivated') || str_contains($response['message'] ?? '', 'success'));
-        $message = $response['message'] ?? ($success ? __('Driver deactivated successfully.') : __('Failed to deactivate driver. API not connected.'));
+        $success = is_array($response) && (!empty($response['id']) || str_contains($response['message'] ?? '', 'deleted') || str_contains($response['message'] ?? '', 'success'));
+        $message = $response['message'] ?? ($success ? __('Driver deleted successfully.') : __('Failed to delete driver. API not connected.'));
 
         if (request()->ajax() || request()->wantsJson()) {
             return response()->json([
