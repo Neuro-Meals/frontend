@@ -429,7 +429,16 @@ function driverManager() {
             const fields = isEdit
                 ? ['id', 'first_name', 'last_name', 'phone', 'location', 'address', 'is_active']
                 : ['first_name', 'last_name', 'email', 'phone', 'password', 'location', 'address'];
-            fields.forEach(key => { const v = this.form[key]; if (v !== null && v !== undefined) formData.append(key, v); });
+            fields.forEach(key => {
+                const v = this.form[key];
+                if (v !== null && v !== undefined) {
+                    if (key === 'is_active') {
+                        formData.append(key, v ? '1' : '0');
+                    } else {
+                        formData.append(key, v);
+                    }
+                }
+            });
             if (isEdit) formData.append('_method', 'PUT');
             try {
                 const res = await fetch(url, {
