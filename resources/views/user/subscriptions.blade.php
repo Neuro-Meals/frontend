@@ -361,18 +361,22 @@
     </div>
 </div>
 
-{{-- Receipt Modal --}}
+{{-- Receipt Modal (Sidebar Drawer) --}}
 <div id="receipt-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="receipt-title" role="dialog" aria-modal="true">
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onclick="closeReceipt()"></div>
-    <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
-        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full pointer-events-auto transform transition-all max-h-[90vh] overflow-y-auto" id="receipt-panel">
-            <div class="sm:hidden flex justify-center pt-3 pb-1 sticky top-0 bg-white">
-                <div class="w-10 h-1.5 rounded-full bg-gray-300"></div>
+    <div class="fixed inset-0 flex justify-end pointer-events-none">
+        <div class="bg-white shadow-2xl w-full max-w-md h-full pointer-events-auto transform transition-all overflow-y-auto" id="receipt-panel">
+            <div class="h-2 w-full bg-gradient-to-r from-[#173327] via-[#6E7A25] to-[#173327] sticky top-0 z-10"></div>
+            <div class="flex items-center justify-between p-6 pb-4 sticky top-2 bg-white z-10 border-b border-gray-100">
+                <h3 id="receipt-title" class="text-base font-bold text-gray-900">{{ __('Payment Receipt') }}</h3>
+                <button type="button" onclick="closeReceipt()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
             </div>
             <div id="receipt-content" class="p-6">
                 {{-- Content injected by JS --}}
             </div>
-            <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between gap-3 sticky bottom-0 bg-white rounded-b-2xl">
+            <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between gap-3 sticky bottom-0 bg-white">
                 <button type="button" onclick="downloadReceipt()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#173327] text-white text-xs font-bold hover:bg-[#1a4a3a] transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     {{ __('Download') }}
