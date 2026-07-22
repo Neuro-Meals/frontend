@@ -2497,13 +2497,19 @@ class AdminController extends Controller
         ]);
 
         $generatedPassword = $validated['password'] ?? substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 10);
-        $validated['password'] = $generatedPassword;
+        if (empty($validated['password']) || strlen($validated['password']) < 6) {
+            $validated['password'] = $generatedPassword;
+        }
 
-        $response = $this->apiData($driverApi->create($validated), function () {
+        $apiResponse = $driverApi->create($validated);
+        $response = $this->apiData($apiResponse, function () {
             return [];
         });
 
-        $success = is_array($response) && !empty($response['id']);
+        $success = is_array($response) && (!empty($response['id']) || !empty($response['data']['id']));
+        if (!$success && ($apiResponse['success'] ?? true) !== false) {
+            \Illuminate\Support\Facades\Log::warning('Driver create: API returned unexpected response', ['response' => $apiResponse]);
+        }
         $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Driver created successfully.') : __('Failed to create driver. API not connected.')));
 
         if ($success) {
@@ -2552,11 +2558,15 @@ class AdminController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        $response = $this->apiData($driverApi->update($id, $validated), function () {
+        $apiResponse = $driverApi->update($id, $validated);
+        $response = $this->apiData($apiResponse, function () {
             return [];
         });
 
-        $success = is_array($response) && !empty($response['id']);
+        $success = is_array($response) && (!empty($response['id']) || !empty($response['data']['id']));
+        if (!$success) {
+            \Illuminate\Support\Facades\Log::warning('Driver update: API returned unexpected response', ['response' => $apiResponse]);
+        }
         $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Driver updated successfully.') : __('Failed to update driver. API not connected.')));
 
         if ($request->ajax() || $request->wantsJson()) {
@@ -2575,11 +2585,12 @@ class AdminController extends Controller
 
     public function destroyDriver(int $id, DriverApiService $driverApi)
     {
-        $response = $this->apiData($driverApi->destroy($id), function () {
+        $apiResponse = $driverApi->destroy($id);
+        $response = $this->apiData($apiResponse, function () {
             return [];
         });
 
-        $success = is_array($response) && (str_contains($response['message'] ?? '', 'deactivated') || str_contains($response['message'] ?? '', 'success'));
+        $success = is_array($response) && (!empty($response['id']) || str_contains($response['message'] ?? '', 'deactivated') || str_contains($response['message'] ?? '', 'success'));
         $message = $response['message'] ?? ($success ? __('Driver deactivated successfully.') : __('Failed to deactivate driver. API not connected.'));
 
         if (request()->ajax() || request()->wantsJson()) {
