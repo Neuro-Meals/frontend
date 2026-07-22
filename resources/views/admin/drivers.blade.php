@@ -395,7 +395,15 @@ function driverManager() {
                     },
                     body: formData,
                 });
-                const data = await res.json();
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (parseErr) {
+                    console.error('Non-JSON response:', text.substring(0, 500));
+                    this.error = '{{ __('Server returned an unexpected response. Check console for details.') }}';
+                    return;
+                }
                 if (data.success) {
                     await this.loadDrivers();
                     this.resetForm();
@@ -405,7 +413,8 @@ function driverManager() {
                     this.error = data.message || '{{ __('Failed to save driver.') }}';
                 }
             } catch (e) {
-                this.error = '{{ __('Network error. Please try again.') }}';
+                console.error('saveDriver error:', e);
+                this.error = '{{ __('Network error. Please try again.') }}' + (e.message ? ' (' + e.message + ')' : '');
             } finally {
                 this.saving = false;
             }

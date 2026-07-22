@@ -671,16 +671,23 @@
         const errorEl = document.getElementById('moyasar-error');
 
         if (modal) modal.classList.add('hidden');
+        if (moyasarFormInstance && typeof moyasarFormInstance.destroy === 'function') {
+            try { moyasarFormInstance.destroy(); } catch (e) {}
+        }
+        moyasarFormInstance = null;
         if (formContainer) {
             formContainer.innerHTML = '';
             formContainer.style.display = '';
         }
-        if (loadingEl) loadingEl.classList.add('hidden');
+        if (loadingEl) {
+            loadingEl.classList.add('hidden');
+            const loadingText = loadingEl.querySelector('p');
+            if (loadingText) loadingText.textContent = '{{ __("Loading payment form...") }}';
+        }
         if (errorEl) {
             errorEl.classList.add('hidden');
             errorEl.textContent = '';
         }
-        moyasarFormInstance = null;
     }
 
     async function openMoyasarCheckout(button) {
