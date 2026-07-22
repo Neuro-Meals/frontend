@@ -120,20 +120,13 @@
                         <span class="text-2xl font-bold text-gray-900" x-text="'SAR ' + Number(plan.price).toLocaleString()"></span>
                         <span class="text-xs text-gray-400 mb-1" x-text="'/ ' + plan.duration"></span>
                     </div>
-                    <div class="grid grid-cols-3 gap-2 mb-4">
+                    <div class="grid grid-cols-2 gap-2 mb-4">
                         <div class="bg-gray-50 rounded-lg p-2.5 text-center">
                             <div class="w-7 h-7 mx-auto rounded-lg bg-[#6E7A25]/10 flex items-center justify-center mb-1.5">
                                 <svg class="w-3.5 h-3.5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                             </div>
                             <p class="text-[9px] text-gray-400 uppercase tracking-wider">{{ __('Meals') }}</p>
                             <p class="text-sm font-bold text-gray-900" x-text="plan.meals"></p>
-                        </div>
-                        <div class="bg-gray-50 rounded-lg p-2.5 text-center">
-                            <div class="w-7 h-7 mx-auto rounded-lg bg-blue-50 flex items-center justify-center mb-1.5">
-                                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            </div>
-                            <p class="text-[9px] text-gray-400 uppercase tracking-wider">{{ __('Subs') }}</p>
-                            <p class="text-sm font-bold text-gray-900" x-text="plan.subscribers"></p>
                         </div>
                         <div class="bg-gray-50 rounded-lg p-2.5 text-center">
                             <div class="w-7 h-7 mx-auto rounded-lg bg-emerald-50 flex items-center justify-center mb-1.5">
@@ -309,10 +302,6 @@
                         <div class="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-gray-700">
                             <span class="text-xs text-gray-500">{{ __('Duration') }}</span>
                             <span class="text-xs font-semibold text-gray-900 dark:text-white" x-text="selected?.duration || '—'"></span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs text-gray-500">{{ __('Subscribers') }}</span>
-                            <span class="text-xs font-semibold text-gray-900 dark:text-white" x-text="selected?.subscribers || 0"></span>
                         </div>
                         <div class="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
                             <span class="text-xs text-gray-500">{{ __('Total Meals Served') }}</span>
