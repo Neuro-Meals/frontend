@@ -759,26 +759,36 @@ class UserController extends Controller
                 // Check if user is switching to a different plan
                 $existingPlanId = (int) ($subscriptionResponse['plan_id'] ?? 0);
                 if ($existingPlanId > 0 && $existingPlanId !== $planId) {
-                    // User wants a different plan — use changePlan to switch, then checkout with new plan price
-                    $changeResponse = $subscriptionApi->changePlan($subscriptionId, $planId);
+                    // Cancel old pending subscription, then create a new one with the new plan
+                    $subscriptionApi->cancel($subscriptionId);
 
-                    if (($changeResponse['success'] ?? true) === false) {
-                        $message = $this->apiErrorMessage($changeResponse);
-                        if ($wantsJson) {
-                            return response()->json(['success' => false, 'message' => $message], 400);
+                    $newSubscriptionResponse = $subscriptionApi->create(['plan_id' => $planId]);
+
+                    if (($newSubscriptionResponse['success'] ?? true) === false) {
+                        // If create fails because cancel didn't work, try again with the old subscription
+                        $newExistingId = $newSubscriptionResponse['subscription_id']
+                            ?? ($newSubscriptionResponse['errors']['subscription_id'] ?? null);
+                        if (!$newExistingId) {
+                            $message = $this->apiErrorMessage($newSubscriptionResponse);
+                            if ($wantsJson) {
+                                return response()->json(['success' => false, 'message' => $message], 400);
+                            }
+                            return redirect()->route('user.subscriptions')->with('error', $message);
                         }
-                        return redirect()->route('user.subscriptions')->with('error', $message);
-                    }
-
-                    $changeResult = $changeResponse['data'] ?? $changeResponse;
-                    $planChangeId = $changeResult['plan_change']['id'] ?? null;
-
-                    if ($planChangeId) {
-                        $checkoutResponse = $paymentApi->createPlanChangeCheckout((int) $planChangeId);
+                        $subscriptionId = (int) $newExistingId;
                     } else {
-                        // changePlan didn't require a plan change record — checkout directly
-                        $checkoutResponse = $paymentApi->createCheckout($subscriptionId);
+                        $newSubscription = $newSubscriptionResponse['data'] ?? $newSubscriptionResponse;
+                        if (empty($newSubscription) || !isset($newSubscription['id'])) {
+                            $message = __('Failed to create new subscription. Please try again.');
+                            if ($wantsJson) {
+                                return response()->json(['success' => false, 'message' => $message], 400);
+                            }
+                            return redirect()->route('user.subscriptions')->with('error', $message);
+                        }
+                        $subscriptionId = (int) $newSubscription['id'];
                     }
+
+                    $checkoutResponse = $paymentApi->createCheckout($subscriptionId);
                 } else {
                     // Same plan — just checkout the existing pending subscription
                     $checkoutResponse = $paymentApi->createCheckout($subscriptionId);
