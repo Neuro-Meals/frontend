@@ -329,8 +329,8 @@
 {{-- Moyasar Payment Modal --}}
 <div id="moyasar-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="moyasar-title" role="dialog" aria-modal="true">
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onclick="closeMoyasarModal()"></div>
-    <div class="fixed inset-0 flex items-end sm:items-center justify-center sm:p-4 pointer-events-none">
-        <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl max-w-md w-full pointer-events-auto transform transition-all max-h-[100vh] sm:max-h-[90vh] overflow-y-auto" id="moyasar-panel">
+    <div class="fixed inset-0 flex items-start sm:items-center justify-center sm:p-4 pointer-events-none">
+        <div class="bg-white rounded-b-2xl sm:rounded-2xl shadow-xl max-w-md w-full pointer-events-auto transform transition-all max-h-[100vh] sm:max-h-[90vh] overflow-y-auto" id="moyasar-panel">
             <div class="h-2 w-full bg-gradient-to-r from-[#173327] via-[#6E7A25] to-[#173327]"></div>
             <div class="sm:hidden flex justify-center pt-3 pb-1 sticky top-0 bg-white">
                 <div class="w-10 h-1.5 rounded-full bg-gray-300"></div>
@@ -364,8 +364,8 @@
 {{-- Receipt Modal --}}
 <div id="receipt-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="receipt-title" role="dialog" aria-modal="true">
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onclick="closeReceipt()"></div>
-    <div class="fixed inset-0 flex items-end sm:items-center justify-center sm:p-4 pointer-events-none">
-        <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl max-w-md w-full pointer-events-auto transform transition-all max-h-[90vh] overflow-y-auto" id="receipt-panel">
+    <div class="fixed inset-0 flex items-start sm:items-center justify-center sm:p-4 pointer-events-none">
+        <div class="bg-white rounded-b-2xl sm:rounded-2xl shadow-xl max-w-md w-full pointer-events-auto transform transition-all max-h-[100vh] sm:max-h-[90vh] overflow-y-auto" id="receipt-panel">
             <div class="sm:hidden flex justify-center pt-3 pb-1 sticky top-0 bg-white">
                 <div class="w-10 h-1.5 rounded-full bg-gray-300"></div>
             </div>
@@ -388,8 +388,8 @@
 {{-- Switch Plan Confirmation Modal --}}
 <div id="switch-plan-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="switch-plan-title" role="dialog" aria-modal="true">
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onclick="closeSwitchPlanModal()"></div>
-    <div class="fixed inset-0 flex items-end sm:items-center justify-center sm:p-4 pointer-events-none">
-        <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl max-w-sm w-full pointer-events-auto transform transition-all p-6">
+    <div class="fixed inset-0 flex items-start sm:items-center justify-center sm:p-4 pointer-events-none pt-0 sm:pt-0">
+        <div class="bg-white rounded-b-2xl sm:rounded-2xl shadow-xl max-w-sm w-full pointer-events-auto transform transition-all p-6 max-h-[100vh] overflow-y-auto">
             <div class="sm:hidden flex justify-center pb-3 mb-2">
                 <div class="w-10 h-1.5 rounded-full bg-gray-300"></div>
             </div>
