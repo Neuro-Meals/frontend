@@ -337,6 +337,9 @@ function driverManager() {
         detailOpen: false,
         detailLoading: false,
         saving: false,
+        deleting: false,
+        deleteOpen: false,
+        deleteTarget: null,
         error: '',
         success: '',
         credentials: null,
@@ -470,12 +473,67 @@ function driverManager() {
             if (!confirm(`{{ __('Are you sure you want to change status for') }} ${driver.name}?`)) return;
             try {
                 const formData = new FormData();
+                formData.append('first_name', driver.first_name || driver.name.split(' ')[0] || '');
+                formData.append('last_name', driver.last_name || (driver.name.split(' ').slice(1).join(' ') || ''));
+                formData.append('phone', driver.phone || '');
                 formData.append('is_active', driver.status !== 'active');
                 formData.append('_method', 'PUT');
-                const res = await fetch('{{ url('admin/drivers') }}/' + driver.id, { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }, body: formData });
+                const res = await fetch('{{ url('admin/drivers') }}/' + driver.id, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: formData,
+                });
                 const data = await res.json();
-                if (data.success) await this.loadDrivers();
-            } catch (e) {}
+                if (data.success) {
+                    await this.loadDrivers();
+                    this.success = data.message || '{{ __('Driver status updated.') }}';
+                    setTimeout(() => { this.success = ''; }, 3000);
+                } else {
+                    this.error = data.message || '{{ __('Failed to update driver status.') }}';
+                }
+            } catch (e) {
+                console.error('toggleStatus error:', e);
+                this.error = '{{ __('Network error. Please try again.') }}';
+            }
+        },
+
+        confirmDelete(driver) {
+            this.deleteTarget = driver;
+            this.deleteOpen = true;
+        },
+
+        async deleteDriver() {
+            if (!this.deleteTarget) return;
+            this.deleting = true;
+            try {
+                const res = await fetch('{{ url('admin/drivers') }}/' + this.deleteTarget.id, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                });
+                const data = await res.json();
+                if (data.success) {
+                    await this.loadDrivers();
+                    this.deleteOpen = false;
+                    this.deleteTarget = null;
+                    this.success = data.message || '{{ __('Driver deleted successfully.') }}';
+                    setTimeout(() => { this.success = ''; }, 3000);
+                } else {
+                    this.error = data.message || '{{ __('Failed to delete driver.') }}';
+                }
+            } catch (e) {
+                console.error('deleteDriver error:', e);
+                this.error = '{{ __('Network error. Please try again.') }}';
+            } finally {
+                this.deleting = false;
+            }
         }
     };
 }
