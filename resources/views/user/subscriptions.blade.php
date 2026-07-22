@@ -224,11 +224,15 @@
                         </span>
                     </td>
                     <td class="px-5 py-3">
+                        @if($item['status'] === 'cancelled')
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-500">-</span>
+                        @else
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $item['payment_status'] === 'paid' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700' }}">{{ ucfirst($item['payment_status']) }}</span>
+                        @endif
                     </td>
                     <td class="px-5 py-3">
                         <div class="flex items-center gap-2">
-                            @if($item['payment_status'] !== 'paid' && !empty($item['id']))
+                            @if($item['status'] !== 'cancelled' && $item['payment_status'] !== 'paid' && !empty($item['id']))
                             <button type="button" onclick="openMoyasarCheckout(this)"
                                 data-checkout-url="{{ route('user.subscriptions.checkout', $item['id']) }}"
                                 class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-[10px] font-bold hover:shadow-md transition-all">
