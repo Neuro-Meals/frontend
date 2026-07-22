@@ -372,10 +372,25 @@ function driverManager() {
         async loadDrivers() {
             this.loading = true;
             try {
-                const res = await fetch('{{ route('admin.drivers') }}', { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' } });
-                const data = await res.json();
+                const res = await fetch('{{ route('admin.drivers') }}?_t=' + Date.now(), {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    },
+                });
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    console.error('loadDrivers non-JSON:', text.substring(0, 300));
+                    return;
+                }
                 if (data.success) this.drivers = data.drivers || [];
-            } catch (e) {}
+            } catch (e) {
+                console.error('loadDrivers error:', e);
+            }
             this.loading = false;
         },
 
