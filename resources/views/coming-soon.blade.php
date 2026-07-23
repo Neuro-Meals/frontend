@@ -182,5 +182,45 @@
     </p>
   </div>
 </div>
+
+<script>
+function changeLocation() {
+    return {
+        open: false,
+        saving: false,
+        message: '',
+        success: false,
+        form: {
+            location: '{{ $location ?? '' }}',
+            address: '',
+        },
+
+        async submit() {
+            if (!this.form.location) return;
+            this.saving = true;
+            this.message = '';
+            try {
+                const r = await fetch('{{ route('coming-soon.update-location') }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                    body: JSON.stringify(this.form)
+                });
+                const d = await r.json();
+                this.success = d.success;
+                this.message = d.message || (d.error || '{{ __('Something went wrong.') }}');
+                if (d.success && d.redirect) {
+                    setTimeout(() => { window.location.href = d.redirect; }, 1200);
+                }
+            } catch(e) {
+                console.error('Location update failed', e);
+                this.success = false;
+                this.message = '{{ __('Failed to update location. Please try again.') }}';
+            } finally {
+                this.saving = false;
+            }
+        }
+    }
+}
+</script>
 </body>
 </html>
