@@ -468,7 +468,6 @@ class UserController extends Controller
         }
 
         // Check if delivery onboarding is needed (has active subscription but no delivery preferences)
-        $needsDeliveryOnboarding = false;
         $mealCategories = [];
         $existingDeliveryPrefs = [];
         if ($hasSubscription) {
@@ -482,12 +481,12 @@ class UserController extends Controller
             });
             $existingDeliveryPrefs = $completeProfile['delivery_preferences'] ?? [];
 
-            if (empty($existingDeliveryPrefs)) {
-                $needsDeliveryOnboarding = true;
+            if (empty($existingDeliveryPrefs) && !empty($mealCategories)) {
+                return redirect()->route('user.onboarding.delivery-preferences.page');
             }
         }
 
-        return view('user.dashboard', compact('user', 'stats', 'weeklyProgress', 'upcomingMeals', 'recentOrders', 'activeSubscription', 'chartData', 'weightHistory', 'profileIncomplete', 'needsDeliveryOnboarding', 'mealCategories', 'existingDeliveryPrefs'));
+        return view('user.dashboard', compact('user', 'stats', 'weeklyProgress', 'upcomingMeals', 'recentOrders', 'activeSubscription', 'chartData', 'weightHistory', 'profileIncomplete', 'mealCategories', 'existingDeliveryPrefs'));
     }
 
     /**
@@ -2528,6 +2527,41 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
+    }
+
+    public function deliveryPreferencesPage(UserApiService $userApi, MealApiService $mealApi)
+    {
+        $user = session('api_user') ?? [];
+
+        $mealCategories = $this->apiData($mealApi->categoriesList(['is_active' => true, 'limit' => 100]), function () {
+            return [];
+        });
+        $mealCategories = $mealCategories['data'] ?? $mealCategories ?? [];
+
+        $completeProfile = $this->apiData($userApi->getCompleteProfile(), function () {
+            return [];
+        });
+        $existingDeliveryPrefs = $completeProfile['delivery_preferences'] ?? [];
+
+        $deliveryPrefsJson = collect($mealCategories)->map(function ($cat) use ($existingDeliveryPrefs) {
+            $existing = collect($existingDeliveryPrefs)->firstWhere('meal_category_id', $cat['id'] ?? null);
+            return [
+                'meal_category_id' => $cat['id'] ?? null,
+                'category_name' => $cat['name_en'] ?? $cat['name'] ?? 'Meal',
+                'category_icon' => $cat['icon'] ?? null,
+                'place_type' => $existing['place_type'] ?? '',
+                'place_name' => $existing['place_name'] ?? '',
+                'city' => $existing['city'] ?? 'Riyadh',
+                'delivery_area' => $existing['delivery_area'] ?? '',
+                'delivery_address' => $existing['delivery_address'] ?? '',
+                'latitude' => $existing['latitude'] ?? null,
+                'longitude' => $existing['longitude'] ?? null,
+                'preferred_delivery_time' => $existing['preferred_delivery_time'] ?? '08:00',
+                'delivery_note' => $existing['delivery_note'] ?? '',
+            ];
+        })->values()->toArray();
+
+        return view('user.delivery-preferences', compact('user', 'deliveryPrefsJson', 'mealCategories'));
     }
 
     public function saveDeliveryPreferences(Request $request, UserApiService $userApi, AuthApiService $authApi)

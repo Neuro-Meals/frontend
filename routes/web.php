@@ -305,5 +305,6 @@ Route::prefix('user')->name('user.')->middleware(['api.auth', 'api.customer'])->
     Route::post('/notifications/read-all', [UserController::class, 'markAllNotificationsRead'])->name('notifications.read-all');
     Route::get('/settings', [UserController::class, 'settings'])->name('settings');
     Route::post('/settings', [UserController::class, 'updateProfile'])->name('settings.update');
+    Route::get('/onboarding/delivery-preferences', [UserController::class, 'deliveryPreferencesPage'])->name('onboarding.delivery-preferences.page');
     Route::post('/onboarding/delivery-preferences', [UserController::class, 'saveDeliveryPreferences'])->name('onboarding.delivery-preferences');
 });
