@@ -2529,14 +2529,16 @@ class UserController extends Controller
         }
     }
 
-    public function deliveryPreferencesPage(UserApiService $userApi, MealApiService $mealApi)
+    public function deliveryPreferencesPage(UserApiService $userApi)
     {
         $user = session('api_user') ?? [];
 
-        $mealCategories = $this->apiData($mealApi->categoriesList(['is_active' => true, 'limit' => 100]), function () {
-            return [];
-        });
-        $mealCategories = $mealCategories['data'] ?? $mealCategories ?? [];
+        $mealCategories = [
+            ['id' => 1, 'name_en' => 'Breakfast', 'icon' => 'sunrise'],
+            ['id' => 2, 'name_en' => 'Lunch', 'icon' => 'sun'],
+            ['id' => 3, 'name_en' => 'Dinner', 'icon' => 'moon'],
+            ['id' => 4, 'name_en' => 'Snack', 'icon' => 'cookie'],
+        ];
 
         $completeProfile = $this->apiData($userApi->getCompleteProfile(), function () {
             return [];
@@ -2544,11 +2546,11 @@ class UserController extends Controller
         $existingDeliveryPrefs = $completeProfile['delivery_preferences'] ?? [];
 
         $deliveryPrefsJson = collect($mealCategories)->map(function ($cat) use ($existingDeliveryPrefs) {
-            $existing = collect($existingDeliveryPrefs)->firstWhere('meal_category_id', $cat['id'] ?? null);
+            $existing = collect($existingDeliveryPrefs)->firstWhere('meal_category_id', $cat['id']);
             return [
-                'meal_category_id' => $cat['id'] ?? null,
-                'category_name' => $cat['name_en'] ?? $cat['name'] ?? 'Meal',
-                'category_icon' => $cat['icon'] ?? null,
+                'meal_category_id' => $cat['id'],
+                'category_name' => $cat['name_en'],
+                'category_icon' => $cat['icon'],
                 'place_type' => $existing['place_type'] ?? '',
                 'place_name' => $existing['place_name'] ?? '',
                 'city' => $existing['city'] ?? 'Riyadh',
