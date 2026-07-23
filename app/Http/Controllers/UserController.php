@@ -16,6 +16,7 @@ use App\Services\Api\PaymentApiService;
 use App\Services\Api\PlanApiService;
 use App\Services\Api\ProfileApiService;
 use App\Services\Api\SubscriptionApiService;
+use App\Services\Api\UserApiService;
 
 class UserController extends Controller
 {
@@ -2502,6 +2503,45 @@ class UserController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => __('Location updated. We\'ll notify you when we serve your area.'),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function saveDeliveryPreferences(Request $request, UserApiService $userApi, AuthApiService $authApi)
+    {
+        $validated = $request->validate([
+            'delivery_preferences' => ['required', 'array', 'min:1'],
+            'delivery_preferences.*.meal_category_id' => ['required', 'integer'],
+            'delivery_preferences.*.place_type' => ['required', 'string'],
+            'delivery_preferences.*.place_name' => ['nullable', 'string'],
+            'delivery_preferences.*.city' => ['required', 'string'],
+            'delivery_preferences.*.delivery_area' => ['required', 'string'],
+            'delivery_preferences.*.delivery_address' => ['required', 'string'],
+            'delivery_preferences.*.latitude' => ['nullable', 'numeric'],
+            'delivery_preferences.*.longitude' => ['nullable', 'numeric'],
+            'delivery_preferences.*.preferred_delivery_time' => ['required', 'string'],
+            'delivery_preferences.*.delivery_note' => ['nullable', 'string'],
+        ]);
+
+        try {
+            $result = $userApi->updateCompleteProfile([
+                'delivery_preferences' => $validated['delivery_preferences'],
+            ]);
+
+            // Refresh session user data
+            $freshUser = $this->apiData($authApi->me(), function () use ($authApi) {
+                return $authApi->user() ?? [];
+            });
+            if (!empty($freshUser['id'])) {
+                session(['api_user' => $freshUser]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Delivery preferences saved successfully!'),
+                'data' => $result,
             ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
