@@ -40,7 +40,8 @@ class UserController extends Controller
         SubscriptionApiService $subscriptionApi,
         PlanApiService $planApi,
         MealSelectionApiService $selectionApi,
-        OrderApiService $orderApi
+        OrderApiService $orderApi,
+        UserApiService $userApi
     ) {
         $user = $this->apiData($authApi->me(), function () use ($authApi) {
             return $authApi->user() ?? [];
@@ -466,7 +467,27 @@ class UserController extends Controller
             }
         }
 
-        return view('user.dashboard', compact('user', 'stats', 'weeklyProgress', 'upcomingMeals', 'recentOrders', 'activeSubscription', 'chartData', 'weightHistory', 'profileIncomplete'));
+        // Check if delivery onboarding is needed (has active subscription but no delivery preferences)
+        $needsDeliveryOnboarding = false;
+        $mealCategories = [];
+        $existingDeliveryPrefs = [];
+        if ($hasSubscription) {
+            $mealCategories = $this->apiData($mealApi->categoriesList(['is_active' => true, 'limit' => 100]), function () {
+                return [];
+            });
+            $mealCategories = $mealCategories['data'] ?? $mealCategories ?? [];
+
+            $completeProfile = $this->apiData($userApi->getCompleteProfile(), function () {
+                return [];
+            });
+            $existingDeliveryPrefs = $completeProfile['delivery_preferences'] ?? [];
+
+            if (empty($existingDeliveryPrefs)) {
+                $needsDeliveryOnboarding = true;
+            }
+        }
+
+        return view('user.dashboard', compact('user', 'stats', 'weeklyProgress', 'upcomingMeals', 'recentOrders', 'activeSubscription', 'chartData', 'weightHistory', 'profileIncomplete', 'needsDeliveryOnboarding', 'mealCategories', 'existingDeliveryPrefs'));
     }
 
     /**
