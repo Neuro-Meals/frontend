@@ -49,4 +49,24 @@ trait HasApiData
 
         return $apiResponse['data'] ?? $apiResponse;
     }
+
+    /**
+     * Extract pagination metadata from an API response.
+     * Supports both the old {meta: {total, page, limit, pages}} format
+     * and the new {pagination: {total_items, page, limit, total_pages}} format.
+     *
+     * @param array $apiResponse  Raw response from API service
+     * @return array  Normalized: ['total' => int, 'page' => int, 'limit' => int, 'pages' => int]
+     */
+    protected function apiMeta(array $apiResponse): array
+    {
+        $meta = $apiResponse['meta'] ?? $apiResponse['pagination'] ?? [];
+
+        return [
+            'total' => $meta['total'] ?? $meta['total_items'] ?? 0,
+            'page'  => $meta['page'] ?? 1,
+            'limit' => $meta['limit'] ?? 10,
+            'pages' => $meta['pages'] ?? $meta['total_pages'] ?? 1,
+        ];
+    }
 }

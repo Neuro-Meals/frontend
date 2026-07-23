@@ -63,10 +63,10 @@ class AdminController extends Controller
         $allSubsResponse = $subscriptionApi->list(['limit' => 100]);
         $allSubscriptions = $this->apiData($allSubsResponse, fn () => []);
 
-        $totalUsers = $dashboardReport['total_users'] ?? ($summaryReport['total_users'] ?? ($usersResponse['meta']['total'] ?? 0));
-        $totalCustomers = $dashboardReport['total_customers'] ?? ($customersResponse['meta']['total'] ?? 0);
-        $activeSubscriptions = $dashboardReport['active_subscriptions'] ?? ($subscriptionsResponse['meta']['total'] ?? 0);
-        $totalMeals = $dashboardReport['total_meals'] ?? ($mealsResponse['meta']['total'] ?? 0);
+        $totalUsers = $dashboardReport['total_users'] ?? ($summaryReport['total_users'] ?? ($this->apiMeta($usersResponse)['total'] ?? 0));
+        $totalCustomers = $dashboardReport['total_customers'] ?? ($this->apiMeta($customersResponse)['total'] ?? 0);
+        $activeSubscriptions = $dashboardReport['active_subscriptions'] ?? ($this->apiMeta($subscriptionsResponse)['total'] ?? 0);
+        $totalMeals = $dashboardReport['total_meals'] ?? ($this->apiMeta($mealsResponse)['total'] ?? 0);
 
         // Fetch real orders (up to 100) for trend building
         $ordersApiResponse = $orderApi->list(['limit' => 100]);
@@ -74,7 +74,7 @@ class AdminController extends Controller
             return [];
         });
 
-        $totalOrders = $dashboardReport['total_orders'] ?? ($summaryReport['total_orders'] ?? ($ordersApiResponse['meta']['total'] ?? count($allOrders)));
+        $totalOrders = $dashboardReport['total_orders'] ?? ($summaryReport['total_orders'] ?? ($this->apiMeta($ordersApiResponse)['total'] ?? count($allOrders)));
 
         // Build orders trend (last 14 days for growth comparison) and today's count
         $ordersTrend = [];
@@ -134,7 +134,7 @@ class AdminController extends Controller
         // Fetch deliveries
         $deliveriesResponse = app(DeliveryApiService::class)->list(['limit' => 100]);
         $allDeliveries = $deliveriesResponse['data'] ?? [];
-        $totalDeliveries = $dashboardReport['total_deliveries'] ?? ($summaryReport['total_deliveries'] ?? ($deliveriesResponse['meta']['total'] ?? count($allDeliveries)));
+        $totalDeliveries = $dashboardReport['total_deliveries'] ?? ($summaryReport['total_deliveries'] ?? ($this->apiMeta($deliveriesResponse)['total'] ?? count($allDeliveries)));
         $deliveriesToday = 0;
         $deliveryZones = [];
         $deliveriesByStatus = [];
@@ -476,7 +476,7 @@ class AdminController extends Controller
 
         $usersResponse = $adminApi->usersList($query);
         $usersData = $this->apiData($usersResponse, fn () => []);
-        $totalCustomers = $usersResponse['meta']['total'] ?? count($usersData);
+        $totalCustomers = $this->apiMeta($usersResponse)['total'] ?? count($usersData);
 
         // Fetch all customers (up to 100) for accurate KPI aggregation
         $allCustomersResponse = $adminApi->usersList(['limit' => 100, 'role' => 'customer']);
@@ -852,7 +852,7 @@ class AdminController extends Controller
         $meta = ['total' => 0, 'pages' => 1, 'page' => $page, 'limit' => $limit];
 
         if (!empty($subscriptionsData) && is_array($subscriptionsData)) {
-            $meta = $subscriptionsData['meta'] ?? $meta;
+            $meta = $this->apiMeta($subscriptionsData);
             foreach ($subscriptionsData['data'] ?? $subscriptionsData as $sub) {
                 $customer = $sub['customer'] ?? ($sub['user'] ?? []);
                 $plan = $sub['plan'] ?? [];
@@ -2959,9 +2959,9 @@ class AdminController extends Controller
             ['label' => __('Failed / Refunded'), 'value' => $kpiFailed . ' / SAR ' . number_format($kpiRefundedAmount, 2), 'trend' => $kpiRefunded . ' refunded', 'trendClass' => 'text-red-500', 'icon' => 'M6 18L18 6M6 6l12 12', 'color' => '#ef4444', 'bg' => 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'],
         ];
 
-        $meta = $paymentsResponse['meta'] ?? $paymentsData['meta'] ?? [];
-        $total = $meta['total'] ?? count($payments);
-        $pages = $meta['pages'] ?? 1;
+        $payMeta = $this->apiMeta($paymentsResponse);
+        $total = $payMeta['total'] ?? count($payments);
+        $pages = $payMeta['pages'] ?? 1;
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
