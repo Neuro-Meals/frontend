@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\Api\AuthApiService;
+use App\Services\Api\CustomerDriverApiService;
 use App\Services\Api\DriverApiService;
 use App\Services\Api\HasApiData;
 use App\Services\Api\NotificationApiService;
@@ -172,6 +173,31 @@ class DriverController extends Controller
         }
 
         return redirect()->route('driver.available-loads')->with($success ? 'status' : 'error', $message);
+    }
+
+    public function myCustomers(CustomerDriverApiService $customerDriverApi)
+    {
+        $assignments = $this->apiData($customerDriverApi->myCustomers(), fn () => []);
+
+        $customers = [];
+        foreach ($assignments as $assignment) {
+            $customer = $assignment['customer'] ?? [];
+            $customers[] = [
+                'id' => $customer['id'] ?? 0,
+                'name' => trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')) ?: 'Customer',
+                'email' => $customer['email'] ?? '',
+                'phone' => $customer['phone'] ?? '',
+                'assigned_at' => $assignment['assigned_at'] ?? '',
+                'assignment_reason' => $assignment['assignment_reason'] ?? '',
+                'notes' => $assignment['notes'] ?? '',
+                'is_active' => $assignment['is_active'] ?? true,
+            ];
+        }
+
+        $user = app(AuthApiService::class)->user() ?? [];
+        $driverCode = 'D-' . ($user['id'] ?? '0');
+
+        return view('driver.my-customers', compact('customers', 'driverCode'));
     }
 
     public function deliveries(DriverApiService $driverApi, OrderApiService $orderApi)

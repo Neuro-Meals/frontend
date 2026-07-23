@@ -216,6 +216,13 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
     Route::put('/drivers/{id}', [AdminController::class, 'updateDriver'])->name('drivers.update');
     Route::delete('/drivers/{id}', [AdminController::class, 'destroyDriver'])->name('drivers.destroy');
 
+    // Customer-Driver Assignments
+    Route::get('/customer-drivers', [AdminController::class, 'customerDrivers'])->name('customer-drivers');
+    Route::post('/customer-drivers/assign', [AdminController::class, 'assignCustomerDriver'])->name('customer-drivers.assign');
+    Route::post('/customer-drivers/{customerId}/change', [AdminController::class, 'changeCustomerDriver'])->name('customer-drivers.change');
+    Route::post('/customer-drivers/{customerId}/remove', [AdminController::class, 'removeCustomerDriver'])->name('customer-drivers.remove');
+    Route::get('/customer-drivers/{customerId}/history', [AdminController::class, 'customerDriverHistory'])->name('customer-drivers.history');
+
     // Chef Management
     Route::get('/chefs', [AdminController::class, 'chefs'])->name('chefs');
     Route::get('/chefs/{id}', [AdminController::class, 'showChef'])->name('chefs.show');
@@ -262,6 +269,7 @@ Route::prefix('driver')->name('driver.')->middleware(['api.auth', 'api.driver'])
     Route::get('/profile', [\App\Http\Controllers\DriverController::class, 'profile'])->name('profile');
     Route::get('/available-loads', [\App\Http\Controllers\DriverController::class, 'availableLoads'])->name('available-loads');
     Route::post('/available-loads/{orderId}/claim', [\App\Http\Controllers\DriverController::class, 'claimLoad'])->name('available-loads.claim');
+    Route::get('/my-customers', [\App\Http\Controllers\DriverController::class, 'myCustomers'])->name('my-customers');
 });
 
 // Chef routes

@@ -66,7 +66,7 @@
 
         <!-- Bottom Navigation -->
         <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 safe-area-pb z-40">
-            <div class="max-w-md mx-auto grid grid-cols-4 h-16">
+            <div class="max-w-md mx-auto grid grid-cols-5 h-16">
                 <a href="{{ route('driver.dashboard') }}" class="bottom-nav-item {{ request()->routeIs('driver.dashboard') ? 'active' : 'text-gray-400' }} flex flex-col items-center justify-center gap-0.5">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
                     <span class="text-[10px] font-bold">{{ __('Home') }}</span>
@@ -74,6 +74,10 @@
                 <a href="{{ route('driver.deliveries') }}" class="bottom-nav-item {{ request()->routeIs('driver.deliveries') ? 'active' : 'text-gray-400' }} flex flex-col items-center justify-center gap-0.5">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 001 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
                     <span class="text-[10px] font-bold">{{ __('Deliveries') }}</span>
+                </a>
+                <a href="{{ route('driver.my-customers') }}" class="bottom-nav-item {{ request()->routeIs('driver.my-customers') ? 'active' : 'text-gray-400' }} flex flex-col items-center justify-center gap-0.5">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span class="text-[10px] font-bold">{{ __('Customers') }}</span>
                 </a>
                 <a href="{{ route('driver.notifications') }}" class="relative bottom-nav-item {{ request()->routeIs('driver.notifications') ? 'active' : 'text-gray-400' }} flex flex-col items-center justify-center gap-0.5">
                     <span class="relative">

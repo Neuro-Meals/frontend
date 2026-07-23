@@ -249,10 +249,24 @@ return [
 
         // ─── Order Automation ───
         'orders_automation' => [
-            'generate'         => '/orders/automation/generate',
-            'generate_tomorrow'=> '/orders/automation/generate-tomorrow',
-            'confirm_today'    => '/orders/automation/confirm-today',
-            'preview'          => '/orders/automation/preview',
+            'generate'          => '/orders/automation/generate',
+            'generate_tomorrow' => '/orders/automation/generate-tomorrow',
+            'confirm_today'     => '/orders/automation/confirm-today',
+            'confirm'           => '/orders/automation/confirm',
+            'preview'           => '/orders/automation/preview',
+            'preview_tomorrow'  => '/orders/automation/preview-tomorrow',
+        ],
+
+        // ─── Customer-Drivers (dedicated driver assignments) ───
+        'customer_drivers' => [
+            'assign'           => '/customer-drivers/assign',
+            'change'           => '/customer-drivers/customer/{customer_id}',
+            'remove'           => '/customer-drivers/customer/{customer_id}',
+            'get'              => '/customer-drivers/customer/{customer_id}',
+            'history'          => '/customer-drivers/customer/{customer_id}/history',
+            'driver_customers' => '/customer-drivers/driver/{driver_id}',
+            'my_customers'     => '/customer-drivers/me/customers',
+            'list'             => '/customer-drivers',
         ],
 
         // ─── Meal Schedule (not in OpenAPI spec — customer dashboard requirement) ───

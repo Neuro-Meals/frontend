@@ -8,6 +8,7 @@ use App\Mail\DriverCredentialsMail;
 use App\Services\Api\AuthApiService;
 use App\Services\Api\AdminApiService;
 use App\Services\Api\ChefApiService;
+use App\Services\Api\CustomerDriverApiService;
 use App\Services\Api\DeliveryApiService;
 use App\Services\Api\DriverApiService;
 use App\Services\Api\MealApiService;
@@ -3625,5 +3626,139 @@ class AdminController extends Controller
         }
 
         return redirect()->route('admin.chefs')->with($success ? 'success' : 'error', $message);
+    }
+
+    // ─── Customer-Driver Assignments ───
+
+    public function customerDrivers(Request $request, CustomerDriverApiService $customerDriverApi, DriverApiService $driverApi)
+    {
+        $query = [];
+        if ($request->has('search') && !empty($request->input('search'))) {
+            $query['search'] = $request->input('search');
+        }
+        if ($request->has('active_only')) {
+            $query['active_only'] = $request->boolean('active_only');
+        }
+
+        $assignmentsData = $this->apiData($customerDriverApi->list($query), fn () => ['items' => [], 'total' => 0]);
+        $assignments = $assignmentsData['items'] ?? ($assignmentsData['data']['items'] ?? []);
+        $total = $assignmentsData['total'] ?? ($assignmentsData['data']['total'] ?? 0);
+
+        $formattedAssignments = [];
+        foreach ($assignments as $assignment) {
+            $customer = $assignment['customer'] ?? [];
+            $driver = $assignment['driver'] ?? [];
+            $formattedAssignments[] = [
+                'id' => $assignment['id'] ?? 0,
+                'customer_id' => $customer['id'] ?? 0,
+                'customer_name' => trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')) ?: 'Customer',
+                'customer_email' => $customer['email'] ?? '',
+                'customer_phone' => $customer['phone'] ?? '',
+                'driver_id' => $driver['id'] ?? 0,
+                'driver_name' => trim(($driver['first_name'] ?? '') . ' ' . ($driver['last_name'] ?? '')) ?: 'Driver',
+                'driver_email' => $driver['email'] ?? '',
+                'driver_phone' => $driver['phone'] ?? '',
+                'assignment_reason' => $assignment['assignment_reason'] ?? '',
+                'notes' => $assignment['notes'] ?? '',
+                'is_active' => $assignment['is_active'] ?? true,
+                'assigned_at' => $assignment['assigned_at'] ?? '',
+                'ended_at' => $assignment['ended_at'] ?? null,
+            ];
+        }
+
+        $driversData = $this->apiData($driverApi->list(['is_active' => true]), fn () => []);
+        $drivers = [];
+        foreach ($driversData as $d) {
+            $drivers[] = [
+                'id' => $d['id'] ?? 0,
+                'name' => trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? '')) ?: 'Driver',
+                'phone' => $d['phone'] ?? '',
+            ];
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'assignments' => $formattedAssignments,
+                'total' => $total,
+                'drivers' => $drivers,
+            ]);
+        }
+
+        return view('admin.customer-drivers', compact('formattedAssignments', 'total', 'drivers'));
+    }
+
+    public function assignCustomerDriver(Request $request, CustomerDriverApiService $customerDriverApi)
+    {
+        $validated = $request->validate([
+            'customer_id' => ['required', 'integer', 'min:1'],
+            'driver_id' => ['required', 'integer', 'min:1'],
+            'assignment_reason' => ['nullable', 'string', 'max:255'],
+            'notes' => ['nullable', 'string'],
+        ]);
+
+        $result = $this->apiData($customerDriverApi->assign($validated), fn () => []);
+        $success = !empty($result) && !isset($result['success']) || ($result['success'] ?? true);
+        $message = $result['message'] ?? ($result['detail'] ?? ($success ? __('Driver assigned to customer successfully.') : __('Failed to assign driver.')));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
+        }
+
+        return redirect()->route('admin.customer-drivers')->with($success ? 'success' : 'error', $message);
+    }
+
+    public function changeCustomerDriver(Request $request, int $customerId, CustomerDriverApiService $customerDriverApi)
+    {
+        $validated = $request->validate([
+            'driver_id' => ['required', 'integer', 'min:1'],
+            'assignment_reason' => ['nullable', 'string', 'max:255'],
+            'notes' => ['nullable', 'string'],
+        ]);
+
+        $result = $this->apiData($customerDriverApi->change($customerId, $validated), fn () => []);
+        $success = !empty($result) && !isset($result['success']) || ($result['success'] ?? true);
+        $message = $result['message'] ?? ($result['detail'] ?? ($success ? __('Driver changed successfully.') : __('Failed to change driver.')));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
+        }
+
+        return redirect()->route('admin.customer-drivers')->with($success ? 'success' : 'error', $message);
+    }
+
+    public function removeCustomerDriver(Request $request, int $customerId, CustomerDriverApiService $customerDriverApi)
+    {
+        $result = $this->apiData($customerDriverApi->remove($customerId), fn () => []);
+        $success = ($result['success'] ?? false) === true;
+        $message = $result['message'] ?? ($result['detail'] ?? ($success ? __('Driver assignment removed.') : __('Failed to remove driver assignment.')));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
+        }
+
+        return redirect()->route('admin.customer-drivers')->with($success ? 'success' : 'error', $message);
+    }
+
+    public function customerDriverHistory(int $customerId, CustomerDriverApiService $customerDriverApi)
+    {
+        $history = $this->apiData($customerDriverApi->history($customerId), fn () => []);
+
+        $formatted = [];
+        foreach ($history as $assignment) {
+            $driver = $assignment['driver'] ?? [];
+            $formatted[] = [
+                'id' => $assignment['id'] ?? 0,
+                'driver_name' => trim(($driver['first_name'] ?? '') . ' ' . ($driver['last_name'] ?? '')) ?: 'Driver',
+                'driver_phone' => $driver['phone'] ?? '',
+                'assignment_reason' => $assignment['assignment_reason'] ?? '',
+                'notes' => $assignment['notes'] ?? '',
+                'is_active' => $assignment['is_active'] ?? false,
+                'assigned_at' => $assignment['assigned_at'] ?? '',
+                'ended_at' => $assignment['ended_at'] ?? null,
+            ];
+        }
+
+        return response()->json(['success' => true, 'history' => $formatted]);
     }
 }

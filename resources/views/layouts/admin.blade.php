@@ -141,6 +141,11 @@
                 <span>{{ __('Drivers') }}</span>
             </a>
 
+            <a href="{{ route('admin.customer-drivers') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.customer-drivers*') ? 'active' : '' }}">
+                <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17a2 2 0 11-4 0 2 2 0 014 0zM21 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15V5a1 1 0 011-1h6l4 4v7a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293L21 10"/></svg>
+                <span>{{ __('Customer-Drivers') }}</span>
+            </a>
+
             <a href="{{ route('admin.chefs') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.chefs*') ? 'active' : '' }}">
                 <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h18M3 12h18M3 19h18M7 5v14M17 5v14"/></svg>
                 <span>{{ __('Chefs') }}</span>
