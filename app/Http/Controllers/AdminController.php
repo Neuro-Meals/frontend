@@ -55,6 +55,12 @@ class AdminController extends Controller
         $subscriptionsResponse = $subscriptionApi->list(['limit' => 1, 'status' => 'active']);
         $mealsResponse = $mealApi->list(['limit' => 1]);
 
+        // Fetch all subscriptions for revenue computation (payment_status=paid)
+        $paidSubsResponse = $subscriptionApi->list(['limit' => 100, 'payment_status' => 'paid']);
+        $paidSubscriptions = $this->apiData($paidSubsResponse, fn () => []);
+        $allSubsResponse = $subscriptionApi->list(['limit' => 100]);
+        $allSubscriptions = $this->apiData($allSubsResponse, fn () => []);
+
         $totalUsers = $dashboardReport['total_users'] ?? ($summaryReport['total_users'] ?? ($usersResponse['meta']['total'] ?? 0));
         $totalCustomers = $dashboardReport['total_customers'] ?? ($customersResponse['meta']['total'] ?? 0);
         $activeSubscriptions = $dashboardReport['active_subscriptions'] ?? ($subscriptionsResponse['meta']['total'] ?? 0);
@@ -162,7 +168,7 @@ class AdminController extends Controller
         });
         $deliveryZones = array_slice($deliveryZones, 0, 6);
 
-        // Fetch payments for revenue calculation
+        // Fetch payments for payment status counts and recent payments display
         $paymentsData = $this->apiData($paymentApi->list(['limit' => 100]), function () {
             return [];
         });
@@ -178,27 +184,41 @@ class AdminController extends Controller
             $revenueByDay[$day] = 0;
         }
 
+        // Compute revenue from paid subscriptions (primary source)
+        $subPaymentCounts = ['paid' => 0, 'pending' => 0, 'unpaid' => 0, 'failed' => 0, 'refunded' => 0, 'other' => 0];
+        if (!empty($paidSubscriptions) && is_array($paidSubscriptions)) {
+            foreach ($paidSubscriptions as $sub) {
+                $amount = (float) ($sub['amount'] ?? 0);
+                $totalRevenue += $amount;
+                $subDate = !empty($sub['start_date']) ? substr($sub['start_date'], 0, 10) : (!empty($sub['created_at']) ? substr($sub['created_at'], 0, 10) : null);
+                $subMonth = substr($subDate ?? '', 0, 7);
+                if ($subMonth === $thisMonth) {
+                    $monthlyRevenue += $amount;
+                }
+                if ($subMonth === $lastMonth) {
+                    $lastMonthRevenue += $amount;
+                }
+                if ($subDate && isset($revenueByDay[$subDate])) {
+                    $revenueByDay[$subDate] += $amount;
+                }
+            }
+        }
+
+        // Count subscription payment statuses for success rate
+        if (!empty($allSubscriptions) && is_array($allSubscriptions)) {
+            foreach ($allSubscriptions as $sub) {
+                $ps = $sub['payment_status'] ?? 'other';
+                if (is_array($ps)) $ps = $ps['value'] ?? $ps['name'] ?? 'other';
+                $subPaymentCounts[$ps] = ($subPaymentCounts[$ps] ?? 0) + 1;
+            }
+        }
+
+        // Also count payment record statuses
         foreach ($paymentsData as $payment) {
             $paymentInfo = $payment['payment'] ?? $payment;
             $status = $paymentInfo['status'] ?? 'other';
             $status = array_key_exists($status, $paymentCounts) ? $status : 'other';
             $paymentCounts[$status]++;
-
-            $amount = $paymentInfo['amount'] ?? 0;
-            if ($status === 'paid' || $status === 'captured') {
-                $totalRevenue += $amount;
-                $paymentDate = !empty($paymentInfo['paid_at']) ? substr($paymentInfo['paid_at'], 0, 10) : (!empty($paymentInfo['created_at']) ? substr($paymentInfo['created_at'], 0, 10) : null);
-                $paymentMonth = substr($paymentDate ?? '', 0, 7);
-                if ($paymentMonth === $thisMonth) {
-                    $monthlyRevenue += $amount;
-                }
-                if ($paymentMonth === $lastMonth) {
-                    $lastMonthRevenue += $amount;
-                }
-                if ($paymentDate && isset($revenueByDay[$paymentDate])) {
-                    $revenueByDay[$paymentDate] += $amount;
-                }
-            }
         }
 
         $revenueTrend = array_values($revenueByDay);
@@ -207,11 +227,21 @@ class AdminController extends Controller
             $revenueLabels[] = date('d/m', strtotime("-{$i} days"));
         }
 
-        $totalPayments = array_sum($paymentCounts) - $paymentCounts['other'];
-        $completedPayments = $paymentCounts['paid'] + $paymentCounts['captured'];
-        $successRate = $totalPayments > 0 ? round(($completedPayments / $totalPayments) * 100, 1) : 0;
-        $claimCount = $paymentCounts['refunded'] + $paymentCounts['disputed'] + $paymentCounts['failed'] + $paymentCounts['cancelled'];
-        $claimRate = $totalPayments > 0 ? round(($claimCount / $totalPayments) * 100, 1) : 0;
+        // Success/claim rate: prefer subscription payment statuses, fallback to payment records
+        $totalSubsPayments = array_sum($subPaymentCounts) - $subPaymentCounts['other'];
+        $totalPayRecords = array_sum($paymentCounts) - $paymentCounts['other'];
+
+        if ($totalSubsPayments > 0) {
+            $completedPayments = $subPaymentCounts['paid'];
+            $successRate = round(($completedPayments / $totalSubsPayments) * 100, 1);
+            $claimCount = $subPaymentCounts['refunded'] + $subPaymentCounts['failed'];
+            $claimRate = round(($claimCount / $totalSubsPayments) * 100, 1);
+        } else {
+            $completedPayments = $paymentCounts['paid'] + $paymentCounts['captured'];
+            $successRate = $totalPayRecords > 0 ? round(($completedPayments / $totalPayRecords) * 100, 1) : 0;
+            $claimCount = $paymentCounts['refunded'] + $paymentCounts['disputed'] + $paymentCounts['failed'] + $paymentCounts['cancelled'];
+            $claimRate = $totalPayRecords > 0 ? round(($claimCount / $totalPayRecords) * 100, 1) : 0;
+        }
 
         // Fetch users list to calculate new users this week
         $allUsers = $this->apiData($adminApi->usersList(['limit' => 100]), function () {
@@ -281,7 +311,7 @@ class AdminController extends Controller
             'totalOrders' => $totalOrders,
             'deliveriesToday' => $dashboardReport['deliveries_today'] ?? $deliveriesToday,
             'totalDeliveries' => $totalDeliveries,
-            'pendingPayments' => $dashboardReport['pending_payments'] ?? ($paymentCounts['pending'] + $paymentCounts['unpaid']),
+            'pendingPayments' => $dashboardReport['pending_payments'] ?? ($subPaymentCounts['pending'] + $subPaymentCounts['unpaid'] > 0 ? $subPaymentCounts['pending'] + $subPaymentCounts['unpaid'] : $paymentCounts['pending'] + $paymentCounts['unpaid']),
             'avgOrderValue' => $dashboardReport['avg_order_value'] ?? ($totalOrders > 0 ? round($totalRevenue / $totalOrders, 2) : 0),
             'revGrowth' => $dashboardReport['rev_growth'] ?? $revGrowth,
             'monthlyRevenue' => $dashboardReport['monthly_revenue'] ?? $monthlyRevenue,
