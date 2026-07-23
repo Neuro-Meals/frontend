@@ -472,9 +472,13 @@ class AdminController extends Controller
         if ($planId) $query['plan_id'] = $planId;
         if ($search) $query['search'] = $search;
 
-        $usersData = $this->apiData($adminApi->usersList($query), function () {
-            return [];
-        });
+        $usersResponse = $adminApi->usersList($query);
+        $usersData = $this->apiData($usersResponse, fn () => []);
+        $totalCustomers = $usersResponse['meta']['total'] ?? count($usersData);
+
+        // Fetch all customers (up to 100) for accurate KPI aggregation
+        $allCustomersResponse = $adminApi->usersList(['limit' => 100, 'role' => 'customer']);
+        $allCustomersData = $this->apiData($allCustomersResponse, fn () => []);
 
         // Fetch plans for colored chips
         $plansData = $this->apiData($adminApi->plansList(['limit' => 100]), function () {
@@ -512,20 +516,43 @@ class AdminController extends Controller
                     'status' => $user['subscription']['status'] ?? ($user['is_active'] ?? true ? 'active' : 'inactive'),
                     'is_active' => $user['is_active'] ?? true,
                     'orders' => $user['orders_count'] ?? 0,
-                    'spent' => $user['total_spent'] ?? 0,
+                    'spent' => ($user['total_spent'] ?? 0) > 0 ? $user['total_spent'] : (($user['subscription']['payment_status'] ?? '') === 'paid' ? ($user['subscription']['amount'] ?? 0) : 0),
                     'joined' => $user['created_at'] ?? date('Y-m-d'),
                     'joined_formatted' => !empty($user['created_at']) ? date('M d, Y', strtotime($user['created_at'])) : '—',
                 ];
             }
         }
 
-        $total = count($customers);
-        $totalOrders = array_sum(array_column($customers, 'orders'));
-        $totalSpent = array_sum(array_column($customers, 'spent'));
-        $activeCount = count(array_filter($customers, fn ($c) => $c['status'] === 'active'));
-        $pausedCount = count(array_filter($customers, fn ($c) => $c['status'] === 'paused'));
-        $cancelledCount = count(array_filter($customers, fn ($c) => $c['status'] === 'cancelled'));
-        $noPlanCount = count(array_filter($customers, fn ($c) => $c['plan'] === 'No Plan'));
+        // Compute KPIs from all customers data (not just current page)
+        $kpiOrders = 0;
+        $kpiSpent = 0;
+        $kpiActive = 0;
+        $kpiPaused = 0;
+        $kpiCancelled = 0;
+        $kpiNoPlan = 0;
+        foreach ($allCustomersData as $user) {
+            $kpiOrders += $user['orders_count'] ?? 0;
+            $spent = (float) ($user['total_spent'] ?? 0);
+            // Fallback: if total_spent is 0 but has paid subscription, use subscription amount
+            if ($spent == 0 && isset($user['subscription']['amount']) && ($user['subscription']['payment_status'] ?? '') === 'paid') {
+                $spent = (float) $user['subscription']['amount'];
+            }
+            $kpiSpent += $spent;
+            $subStatus = $user['subscription']['status'] ?? ($user['is_active'] ?? true ? 'active' : 'inactive');
+            if ($subStatus === 'active') $kpiActive++;
+            if ($subStatus === 'paused') $kpiPaused++;
+            if ($subStatus === 'cancelled') $kpiCancelled++;
+            $planName = $user['subscription']['plan_name'] ?? 'No Plan';
+            if ($planName === 'No Plan') $kpiNoPlan++;
+        }
+
+        $total = $totalCustomers;
+        $totalOrders = $kpiOrders;
+        $totalSpent = $kpiSpent;
+        $activeCount = $kpiActive;
+        $pausedCount = $kpiPaused;
+        $cancelledCount = $kpiCancelled;
+        $noPlanCount = $kpiNoPlan;
 
         $stats = [
             ['label' => __('Total Customers'), 'value' => number_format($total), 'color' => 'text-gray-900', 'icon' => 'users', 'bg' => 'from-[#173327] to-[#6E7A25]'],
