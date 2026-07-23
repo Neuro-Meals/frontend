@@ -1,8 +1,41 @@
-@extends('layouts.app')
-
-@section('title', __('Coming Soon') . ' - ' . __('Nutrio Meals'))
-
-@section('content')
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', __('Coming Soon') . ' - ' . __('Nutrio Meals'))</title>
+    <link rel="icon" type="image/png" href="{{ asset('whitelogo.png') }}">
+    <link rel="dns-prefetch" href="//fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=Nunito:400,500,600,700,800,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#173327',
+                        accent: '#6E7A25',
+                        accent2: '#949B50',
+                        teal: '#025C5F',
+                    },
+                    fontFamily: {
+                        sans: ['Nunito', 'Cairo', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Nunito', 'Cairo', sans-serif; }
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-[#0a1f1a]">
 <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a1f1a] via-[#0d2820] to-[#173327] px-4 py-12">
   {{-- Decorative background elements --}}
   <div class="absolute inset-0 overflow-hidden pointer-events-none">

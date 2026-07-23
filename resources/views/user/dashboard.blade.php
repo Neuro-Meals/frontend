@@ -490,4 +490,155 @@
 </script>
 @endpush
 
+{{-- Profile Completion Popup --}}
+@if($profileIncomplete ?? false)
+<div x-data="profileCompleteModal()" x-init="init()" x-show="show" x-transition
+     class="fixed inset-0 z-[60] flex items-center justify-center p-4" style="display: none">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="dismiss()"></div>
+    <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden" @click.outside="dismiss()">
+        {{-- Header --}}
+        <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] p-6 text-white relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+            <div class="relative z-10 flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold">{{ __('Complete Your Profile') }}</h3>
+                    <p class="text-xs text-white/70 mt-0.5">{{ __('Help us personalize your meal plan') }}</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- Body --}}
+        <form @submit.prevent="save()" class="p-6 space-y-4 max-h-[calc(90vh-100px)] overflow-y-auto">
+            <p class="text-xs text-gray-500 bg-amber-50 border border-amber-100 rounded-lg p-3">
+                <svg class="w-4 h-4 text-amber-500 inline mr-1.5 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {{ __('We need a few more details to customize your nutrition journey. This will only take a minute!') }}
+            </p>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">{{ __('Gender') }} <span class="text-red-500">*</span></label>
+                    <select x-model="form.gender" required class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50/50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all">
+                        <option value="">{{ __('Select...') }}</option>
+                        <option value="male">{{ __('Male') }}</option>
+                        <option value="female">{{ __('Female') }}</option>
+                        <option value="other">{{ __('Other') }}</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">{{ __('Age') }} <span class="text-red-500">*</span></label>
+                    <input type="number" x-model.number="form.age" min="1" max="120" required class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50/50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" placeholder="25">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">{{ __('Height (cm)') }} <span class="text-red-500">*</span></label>
+                    <input type="number" step="0.1" x-model.number="form.height_cm" min="50" max="250" required class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50/50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" placeholder="175">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">{{ __('Weight (kg)') }} <span class="text-red-500">*</span></label>
+                    <input type="number" step="0.1" x-model.number="form.weight_kg" min="20" max="300" required class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50/50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" placeholder="70">
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">{{ __('Fitness Goal') }} <span class="text-red-500">*</span></label>
+                <select x-model="form.fitness_goal" required class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50/50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all">
+                    <option value="">{{ __('Select...') }}</option>
+                    <option value="weight_loss">{{ __('Weight Loss') }}</option>
+                    <option value="muscle_gain">{{ __('Muscle Gain') }}</option>
+                    <option value="maintenance">{{ __('Maintenance') }}</option>
+                    <option value="healthy_lifestyle">{{ __('Healthy Lifestyle') }}</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">{{ __('Dietary Preference') }}</label>
+                <input type="text" x-model="form.dietary_preference" class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50/50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" placeholder="e.g. Vegetarian, Halal, Keto...">
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">{{ __('Allergies') }}</label>
+                <input type="text" x-model="allergiesText" class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50/50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" placeholder="e.g. Peanuts, Lactose, Gluten...">
+                <p class="text-[10px] text-gray-400 mt-1">{{ __('Separate multiple allergies with commas') }}</p>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button type="button" @click="dismiss()" class="px-4 py-2.5 text-sm font-bold rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all">
+                    {{ __('Remind Me Later') }}
+                </button>
+                <button type="submit" :disabled="saving" class="flex-1 px-4 py-2.5 text-sm font-bold rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-lg hover:shadow-[#6E7A25]/20 transition-all disabled:opacity-50" x-text="saving ? '{{ __('Saving...') }}' : '{{ __('Save & Continue') }}'"></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function profileCompleteModal() {
+    return {
+        show: false,
+        saving: false,
+        dismissed: false,
+        allergiesText: '',
+        form: {
+            gender: '{{ $user['gender'] ?? '' }}',
+            age: '{{ $user['age'] ?? '' }}',
+            height_cm: '{{ $user['height_cm'] ?? '' }}',
+            weight_kg: '{{ $user['weight_kg'] ?? '' }}',
+            fitness_goal: '{{ $user['fitness_goal'] ?? '' }}',
+            dietary_preference: '{{ $user['dietary_preference'] ?? '' }}',
+            allergies: @json($user['allergies'] ?? []),
+        },
+
+        init() {
+            this.allergiesText = Array.isArray(this.form.allergies) ? this.form.allergies.join(', ') : '';
+            setTimeout(() => { this.show = true; }, 800);
+        },
+
+        dismiss() {
+            this.show = false;
+            this.dismissed = true;
+        },
+
+        async save() {
+            this.saving = true;
+            try {
+                const payload = { ...this.form };
+                if (this.allergiesText) {
+                    payload.allergies = this.allergiesText.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                } else {
+                    payload.allergies = [];
+                }
+                if (payload.age === '') payload.age = null;
+                if (payload.height_cm === '') payload.height_cm = null;
+                if (payload.weight_kg === '') payload.weight_kg = null;
+                if (payload.gender === '') payload.gender = null;
+                if (payload.fitness_goal === '') payload.fitness_goal = null;
+
+                const r = await fetch('{{ route('user.settings.update') }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const d = await r.json();
+                if (d.success) {
+                    this.show = false;
+                } else {
+                    alert(d.error || '{{ __('Failed to save profile. Please try again.') }}');
+                }
+            } catch(e) {
+                console.error('Failed to save profile', e);
+                alert('{{ __('Failed to save profile. Please try again.') }}');
+            } finally {
+                this.saving = false;
+            }
+        }
+    }
+}
+</script>
+@endif
+
 @endsection

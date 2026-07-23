@@ -455,7 +455,17 @@ class UserController extends Controller
             'availableMealsCount' => count($meals),
         ];
 
-        return view('user.dashboard', compact('user', 'stats', 'weeklyProgress', 'upcomingMeals', 'recentOrders', 'activeSubscription', 'chartData', 'weightHistory'));
+        // Check if profile is incomplete (missing key health/profile fields)
+        $profileIncomplete = false;
+        $profileFields = ['gender', 'age', 'height_cm', 'weight_kg', 'fitness_goal'];
+        foreach ($profileFields as $field) {
+            if (empty($user[$field]) && $user[$field] !== 0 && $user[$field] !== '0') {
+                $profileIncomplete = true;
+                break;
+            }
+        }
+
+        return view('user.dashboard', compact('user', 'stats', 'weeklyProgress', 'upcomingMeals', 'recentOrders', 'activeSubscription', 'chartData', 'weightHistory', 'profileIncomplete'));
     }
 
     /**
