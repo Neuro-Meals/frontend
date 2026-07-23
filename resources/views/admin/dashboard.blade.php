@@ -12,9 +12,7 @@
 
 @php
     $fmt = fn($n) => $n >= 1000000 ? number_format($n/1000000, 2).'M' : ($n >= 1000 ? number_format($n/1000, 1).'K' : number_format($n));
-    $revGrowth = $stats['lastMonthRevenue'] > 0
-        ? round(($stats['monthlyRevenue'] - $stats['lastMonthRevenue']) / $stats['lastMonthRevenue'] * 100, 1)
-        : 0;
+    $revGrowth = $stats['revGrowth'] ?? 0;
     $statusColors = [
         'delivered' => 'bg-green-50 text-green-700 border-green-200',
         'confirmed' => 'bg-emerald-50 text-emerald-700 border-emerald-200',

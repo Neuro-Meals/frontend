@@ -45,32 +45,46 @@ class AdminController extends Controller
         $fourteenDaysAgo = date('Y-m-d', strtotime('-14 days'));
 
         // ─── Fetch real data from APIs ───
+
+        // Use reports/dashboard for accurate KPI totals (single API call)
+        $dashboardReport = $this->apiData($reportsApi->dashboard(), fn () => []);
+        $summaryReport = $this->apiData($reportsApi->summary(), fn () => []);
+
         $usersResponse = $adminApi->usersList(['limit' => 1]);
+        $customersResponse = $adminApi->usersList(['limit' => 1, 'role' => 'customer']);
         $subscriptionsResponse = $subscriptionApi->list(['limit' => 1, 'status' => 'active']);
         $mealsResponse = $mealApi->list(['limit' => 1]);
 
-        $totalUsers = $usersResponse['meta']['total'] ?? 0;
-        $activeSubscriptions = $subscriptionsResponse['meta']['total'] ?? 0;
-        $totalMeals = $mealsResponse['meta']['total'] ?? 0;
+        $totalUsers = $dashboardReport['total_users'] ?? ($summaryReport['total_users'] ?? ($usersResponse['meta']['total'] ?? 0));
+        $totalCustomers = $dashboardReport['total_customers'] ?? ($customersResponse['meta']['total'] ?? 0);
+        $activeSubscriptions = $dashboardReport['active_subscriptions'] ?? ($subscriptionsResponse['meta']['total'] ?? 0);
+        $totalMeals = $dashboardReport['total_meals'] ?? ($mealsResponse['meta']['total'] ?? 0);
 
         // Fetch real orders (up to 100) for trend building
-        $allOrders = $this->apiData($orderApi->list(['limit' => 100]), function () {
+        $ordersApiResponse = $orderApi->list(['limit' => 100]);
+        $allOrders = $this->apiData($ordersApiResponse, function () {
             return [];
         });
 
-        $totalOrders = $usersResponse['meta']['total'] ?? 0; // fallback
-        $totalOrders = count($allOrders);
+        $totalOrders = $dashboardReport['total_orders'] ?? ($summaryReport['total_orders'] ?? ($ordersApiResponse['meta']['total'] ?? count($allOrders)));
 
-        // Build orders trend (last 7 days) and today's count from real orders
+        // Build orders trend (last 14 days for growth comparison) and today's count
         $ordersTrend = [];
         $ordersByDay = [];
+        $ordersByDayThisWeek = [];
+        $ordersByDayPrevWeek = [];
         $ordersToday = 0;
         $ordersByStatus = [];
         $recentOrdersRaw = [];
 
-        for ($i = 6; $i >= 0; $i--) {
+        for ($i = 13; $i >= 0; $i--) {
             $day = date('Y-m-d', strtotime("-{$i} days"));
             $ordersByDay[$day] = 0;
+            if ($i >= 7) {
+                $ordersByDayPrevWeek[$day] = 0;
+            } else {
+                $ordersByDayThisWeek[$day] = 0;
+            }
         }
 
         if (!empty($allOrders) && is_array($allOrders)) {
@@ -89,13 +103,20 @@ class AdminController extends Controller
                 if (isset($ordersByDay[$orderDate])) {
                     $ordersByDay[$orderDate]++;
                 }
+                if (isset($ordersByDayThisWeek[$orderDate])) {
+                    $ordersByDayThisWeek[$orderDate]++;
+                }
+                if (isset($ordersByDayPrevWeek[$orderDate])) {
+                    $ordersByDayPrevWeek[$orderDate]++;
+                }
                 if ($orderDate === $today) {
                     $ordersToday++;
                 }
             }
         }
 
-        $ordersTrend = array_values($ordersByDay);
+        // Last 7 days for chart display
+        $ordersTrend = array_values(array_slice($ordersByDay, -7));
         $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         $ordersLabels = [];
         for ($i = 6; $i >= 0; $i--) {
@@ -105,7 +126,7 @@ class AdminController extends Controller
         // Fetch deliveries
         $deliveriesResponse = app(DeliveryApiService::class)->list(['limit' => 100]);
         $allDeliveries = $deliveriesResponse['data'] ?? [];
-        $totalDeliveries = $deliveriesResponse['meta']['total'] ?? count($allDeliveries);
+        $totalDeliveries = $dashboardReport['total_deliveries'] ?? ($summaryReport['total_deliveries'] ?? ($deliveriesResponse['meta']['total'] ?? count($allDeliveries)));
         $deliveriesToday = 0;
         $deliveryZones = [];
         $deliveriesByStatus = [];
@@ -227,40 +248,54 @@ class AdminController extends Controller
         $retentionRate = $totalEngagedSubs > 0 ? round(($activeSubsCount / $totalEngagedSubs) * 100, 1) : 0;
 
         // Calculate real growth percentages
-        $subGrowth = $lastMonthRevenue > 0 ? round(($monthlyRevenue - $lastMonthRevenue) / $lastMonthRevenue * 100, 1) : 0;
+        $revGrowth = $lastMonthRevenue > 0 ? round(($monthlyRevenue - $lastMonthRevenue) / $lastMonthRevenue * 100, 1) : 0;
+
+        // Subscription growth: compare active subs from reports vs activeSubscriptions API count
+        $subGrowth = 0;
+        if ($activeSubsCount > 0) {
+            $totalSubsAll = $summaryReport['total_subscriptions'] ?? 0;
+            if ($totalSubsAll > 0 && $activeSubsCount < $totalSubsAll) {
+                $subGrowth = round((($activeSubsCount - ($totalSubsAll - $activeSubsCount)) / max($totalSubsAll - $activeSubsCount, 1)) * 100, 1);
+            }
+        }
+
+        // Orders growth: compare this week vs previous week from 14-day data
         $ordersGrowth = 0;
-        if (count($ordersTrend) >= 7) {
-            $thisWeekOrders = array_sum(array_slice($ordersTrend, -7));
-            $prevWeekOrders = array_sum(array_slice($ordersTrend, 0, 7));
-            $ordersGrowth = $prevWeekOrders > 0 ? round(($thisWeekOrders - $prevWeekOrders) / $prevWeekOrders * 100, 1) : 0;
+        $thisWeekOrders = array_sum($ordersByDayThisWeek);
+        $prevWeekOrders = array_sum($ordersByDayPrevWeek);
+        if ($prevWeekOrders > 0) {
+            $ordersGrowth = round(($thisWeekOrders - $prevWeekOrders) / $prevWeekOrders * 100, 1);
+        } elseif ($thisWeekOrders > 0) {
+            $ordersGrowth = 100;
         }
 
         $stats = [
             'totalUsers' => $totalUsers,
-            'newUsersThisWeek' => $newUsersThisWeek,
-            'totalRevenue' => $totalRevenue,
-            'activeSubscriptions' => $activeSubscriptions,
+            'newUsersThisWeek' => $dashboardReport['new_users_this_week'] ?? $newUsersThisWeek,
+            'totalRevenue' => $dashboardReport['paid_revenue'] ?? ($summaryReport['paid_revenue'] ?? $totalRevenue),
+            'activeSubscriptions' => $activeSubsCount > 0 ? $activeSubsCount : $activeSubscriptions,
             'totalMeals' => $totalMeals,
-            'successRate' => $successRate,
-            'claimRate' => $claimRate,
-            'ordersToday' => $ordersToday,
+            'successRate' => $dashboardReport['success_rate'] ?? $successRate,
+            'claimRate' => $dashboardReport['claim_rate'] ?? $claimRate,
+            'ordersToday' => $dashboardReport['orders_today'] ?? $ordersToday,
             'totalOrders' => $totalOrders,
-            'deliveriesToday' => $deliveriesToday,
+            'deliveriesToday' => $dashboardReport['deliveries_today'] ?? $deliveriesToday,
             'totalDeliveries' => $totalDeliveries,
-            'pendingPayments' => $paymentCounts['pending'] + $paymentCounts['unpaid'],
-            'avgOrderValue' => $totalOrders > 0 ? round($totalRevenue / $totalOrders, 2) : 0,
-            'monthlyRevenue' => $monthlyRevenue,
-            'lastMonthRevenue' => $lastMonthRevenue,
-            'totalCustomers' => $totalUsers,
+            'pendingPayments' => $dashboardReport['pending_payments'] ?? ($paymentCounts['pending'] + $paymentCounts['unpaid']),
+            'avgOrderValue' => $dashboardReport['avg_order_value'] ?? ($totalOrders > 0 ? round($totalRevenue / $totalOrders, 2) : 0),
+            'revGrowth' => $dashboardReport['rev_growth'] ?? $revGrowth,
+            'monthlyRevenue' => $dashboardReport['monthly_revenue'] ?? $monthlyRevenue,
+            'lastMonthRevenue' => $dashboardReport['last_month_revenue'] ?? $lastMonthRevenue,
+            'totalCustomers' => $totalCustomers > 0 ? $totalCustomers : $totalUsers,
             'newCustomersThisWeek' => $newCustomersThisWeek,
-            'churnRate' => $churnRate,
-            'retentionRate' => $retentionRate,
-            'paymentCounts' => $paymentCounts,
+            'churnRate' => $dashboardReport['churn_rate'] ?? $churnRate,
+            'retentionRate' => $dashboardReport['retention_rate'] ?? $retentionRate,
+            'paymentCounts' => array_merge($paymentCounts, $dashboardReport['payment_counts'] ?? []),
             'subscriptionStatusCounts' => $subscriptionStatusCounts,
-            'subGrowth' => $subGrowth,
+            'subGrowth' => $dashboardReport['sub_growth'] ?? $subGrowth,
             'ordersGrowth' => $ordersGrowth,
-            'ordersByStatus' => $ordersByStatus,
-            'deliveriesByStatus' => $deliveriesByStatus,
+            'ordersByStatus' => array_merge($ordersByStatus, $dashboardReport['orders_by_status'] ?? []),
+            'deliveriesByStatus' => array_merge($deliveriesByStatus, $dashboardReport['deliveries_by_status'] ?? []),
         ];
 
         // Build recent orders from real API data

@@ -28,4 +28,9 @@ class ReportsApiService extends BaseApiService
     {
         return $this->get('reports.revenue');
     }
+
+    public function dashboard(): array
+    {
+        return $this->get('reports.dashboard');
+    }
 }

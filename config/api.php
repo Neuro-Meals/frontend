@@ -283,6 +283,7 @@ return [
             'subscriptions' => '/reports/subscriptions',
             'deliveries'    => '/reports/deliveries',
             'revenue'       => '/reports/revenue',
+            'dashboard'     => '/reports/dashboard',
         ],
 
         // ─── File Uploads ───
