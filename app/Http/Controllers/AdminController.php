@@ -279,20 +279,22 @@ class AdminController extends Controller
             $revenueLabels[] = date('d/m', strtotime("-{$i} days"));
         }
 
-        // Success/claim rate: prefer subscription payment statuses, fallback to payment records
+        // Success/claim rate: only count completed payment attempts (exclude pending/unpaid)
+        // success = paid / (paid + failed + cancelled + refunded)
         $totalSubsPayments = array_sum($subPaymentCounts) - $subPaymentCounts['other'];
         $totalPayRecords = array_sum($paymentCounts) - $paymentCounts['other'];
 
         if ($totalSubsPayments > 0) {
-            $completedPayments = $subPaymentCounts['paid'];
-            $successRate = round(($completedPayments / $totalSubsPayments) * 100, 1);
+            $completedAttempts = $subPaymentCounts['paid'] + $subPaymentCounts['failed'] + $subPaymentCounts['refunded'];
+            $successRate = $completedAttempts > 0 ? round(($subPaymentCounts['paid'] / $completedAttempts) * 100, 1) : 0;
             $claimCount = $subPaymentCounts['refunded'] + $subPaymentCounts['failed'];
-            $claimRate = round(($claimCount / $totalSubsPayments) * 100, 1);
+            $claimRate = $completedAttempts > 0 ? round(($claimCount / $completedAttempts) * 100, 1) : 0;
         } else {
+            $completedAttempts = $paymentCounts['paid'] + $paymentCounts['captured'] + $paymentCounts['failed'] + $paymentCounts['cancelled'] + $paymentCounts['refunded'] + $paymentCounts['disputed'];
             $completedPayments = $paymentCounts['paid'] + $paymentCounts['captured'];
-            $successRate = $totalPayRecords > 0 ? round(($completedPayments / $totalPayRecords) * 100, 1) : 0;
+            $successRate = $completedAttempts > 0 ? round(($completedPayments / $completedAttempts) * 100, 1) : 0;
             $claimCount = $paymentCounts['refunded'] + $paymentCounts['disputed'] + $paymentCounts['failed'] + $paymentCounts['cancelled'];
-            $claimRate = $totalPayRecords > 0 ? round(($claimCount / $totalPayRecords) * 100, 1) : 0;
+            $claimRate = $completedAttempts > 0 ? round(($claimCount / $completedAttempts) * 100, 1) : 0;
         }
 
         // Fetch users list to calculate new users this week
