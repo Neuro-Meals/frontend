@@ -26,7 +26,7 @@
                 </div>
                 <div>
                     <h2 class="text-lg font-bold">{{ __('Set Your Delivery Destinations') }}</h2>
-                    <p class="text-xs text-white/70 mt-0.5">{{ __('Tell us where to deliver each meal category') }}</p>
+                    <p class="text-xs text-white/70 mt-0.5">{{ __('Tell us where to deliver each meal category — Breakfast, Lunch, Dinner & Snack') }}</p>
                 </div>
             </div>
             <div class="bg-white/10 rounded-xl p-3 flex items-start gap-2 backdrop-blur-sm">
@@ -55,7 +55,18 @@
                 <div class="flex items-center justify-between p-4 border-b border-gray-50" :class="isCategoryComplete(pref) ? 'bg-green-50/30' : 'bg-gray-50/30'">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center flex-shrink-0">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17"/></svg>
+                            <template x-if="pref.category_icon === 'sunrise'">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                            </template>
+                            <template x-if="pref.category_icon === 'sun'">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                            </template>
+                            <template x-if="pref.category_icon === 'moon'">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                            </template>
+                            <template x-if="pref.category_icon === 'cookie'">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h1a4 4 0 100-8m-4 8a4 4 0 11-8 0 4 4 0 018 0zM7 16h.01M7 20h.01M11 16h.01M11 20h.01M15 16h.01M15 20h.01"/></svg>
+                            </template>
                         </div>
                         <div>
                             <h3 class="text-sm font-bold text-gray-800" x-text="pref.category_name"></h3>

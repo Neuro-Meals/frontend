@@ -2534,10 +2534,10 @@ class UserController extends Controller
         $user = session('api_user') ?? [];
 
         $mealCategories = [
-            ['id' => 1, 'name_en' => 'Breakfast', 'icon' => 'sunrise'],
-            ['id' => 2, 'name_en' => 'Lunch', 'icon' => 'sun'],
-            ['id' => 3, 'name_en' => 'Dinner', 'icon' => 'moon'],
-            ['id' => 4, 'name_en' => 'Snack', 'icon' => 'cookie'],
+            ['id' => 1, 'name_en' => 'Breakfast', 'icon' => 'sunrise', 'default_time' => '07:00'],
+            ['id' => 2, 'name_en' => 'Lunch', 'icon' => 'sun', 'default_time' => '12:00'],
+            ['id' => 3, 'name_en' => 'Dinner', 'icon' => 'moon', 'default_time' => '19:00'],
+            ['id' => 4, 'name_en' => 'Snack', 'icon' => 'cookie', 'default_time' => '15:00'],
         ];
 
         $completeProfile = $this->apiData($userApi->getCompleteProfile(), function () {
@@ -2558,7 +2558,7 @@ class UserController extends Controller
                 'delivery_address' => $existing['delivery_address'] ?? '',
                 'latitude' => $existing['latitude'] ?? null,
                 'longitude' => $existing['longitude'] ?? null,
-                'preferred_delivery_time' => $existing['preferred_delivery_time'] ?? '08:00',
+                'preferred_delivery_time' => $existing['preferred_delivery_time'] ?? $cat['default_time'],
                 'delivery_note' => $existing['delivery_note'] ?? '',
             ];
         })->values()->toArray();
