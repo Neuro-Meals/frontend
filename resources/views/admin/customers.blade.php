@@ -213,14 +213,30 @@
         </div>
 
         {{-- Quick Actions --}}
-        <div x-show="!detailLoading" class="flex gap-2">
-          <button @click="assignPlan(selected)" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-[#6E7A25] text-white hover:bg-[#5a6820] transition-all">
-            <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            {{ __('Assign Plan') }}
-          </button>
-          <button @click="openEdit(selected)" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">
-            <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-            {{ __('Edit') }}
+        <div x-show="!detailLoading" class="space-y-2">
+          <div class="flex gap-2">
+            <button @click="assignPlan(selected)" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-[#6E7A25] text-white hover:bg-[#5a6820] transition-all">
+              <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              {{ __('Assign Plan') }}
+            </button>
+            <button @click="openEdit(selected)" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">
+              <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              {{ __('Edit') }}
+            </button>
+          </div>
+          <div class="flex gap-2">
+            <button @click="openAssignMeal(selected)" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-[#033133] to-[#025C5F] text-white hover:shadow-md transition-all">
+              <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17"/></svg>
+              {{ __('Assign Meal') }}
+            </button>
+            <button @click="openAssignDriver(selected)" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-md transition-all">
+              <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              {{ __('Assign Driver') }}
+            </button>
+          </div>
+          <button @click="generateOrderForCustomer(selected)" class="w-full px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:shadow-md transition-all">
+            <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+            {{ __('Generate Order') }}
           </button>
         </div>
 
@@ -358,6 +374,118 @@
         </div>
 
       </div>{{-- end p-5 --}}
+    </div>
+  </div>
+
+  {{-- Assign Meal Modal --}}
+  <div x-show="showAssignMeal" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none">
+    <div class="absolute inset-0 bg-black/40" @click="showAssignMeal = false"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" @click.outside="showAssignMeal = false">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-sm font-bold text-gray-900">{{ __('Assign Meal') }}</h3>
+          <p class="text-xs text-gray-400 mt-0.5" x-text="`${__('Assign a meal to')} ${assignMealTarget?.name}`"></p>
+        </div>
+        <button @click="showAssignMeal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div x-show="mealLoading" class="flex items-center justify-center py-6">
+        <svg class="w-6 h-6 text-gray-200 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+      </div>
+      <form x-show="!mealLoading" @submit.prevent="submitAssignMeal()" class="space-y-3">
+        <div x-show="!assignMealForm.subscription_id" class="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg p-3">{{ __('Customer has no active subscription. Assign a plan first.') }}</div>
+        <div x-show="assignMealForm.subscription_id">
+          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Day') }} <span class="text-red-500">*</span></label>
+          <select x-model="assignMealForm.day_number" required @change="updateAvailableMeals()" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+            <option value="">{{ __('Select day...') }}</option>
+            <option value="1">{{ __('Day 1') }}</option>
+            <option value="2">{{ __('Day 2') }}</option>
+            <option value="3">{{ __('Day 3') }}</option>
+            <option value="4">{{ __('Day 4') }}</option>
+            <option value="5">{{ __('Day 5') }}</option>
+            <option value="6">{{ __('Day 6') }}</option>
+            <option value="7">{{ __('Day 7') }}</option>
+          </select>
+        </div>
+        <div x-show="assignMealForm.subscription_id">
+          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Meal Time') }} <span class="text-red-500">*</span></label>
+          <select x-model="assignMealForm.meal_time" required @change="updateAvailableMeals()" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+            <option value="">{{ __('Select time...') }}</option>
+            <option value="breakfast">{{ __('Breakfast') }}</option>
+            <option value="lunch">{{ __('Lunch') }}</option>
+            <option value="dinner">{{ __('Dinner') }}</option>
+            <option value="snack">{{ __('Snack') }}</option>
+          </select>
+        </div>
+        <div x-show="assignMealForm.subscription_id && assignMealForm.day_number && assignMealForm.meal_time && availableMeals.length > 0">
+          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Select Meal') }} <span class="text-red-500">*</span></label>
+          <select x-model="assignMealForm.meal_id" required class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+            <option value="">{{ __('Select meal...') }}</option>
+            <template x-for="m in availableMeals" :key="m.id">
+              <option :value="m.id" x-text="m.name"></option>
+            </template>
+          </select>
+          <p class="text-[9px] text-gray-400 mt-1">{{ __('Only meals in the plan slot will be accepted by the system.') }}</p>
+        </div>
+        <div x-show="assignMealForm.subscription_id && assignMealForm.day_number && assignMealForm.meal_time && availableMeals.length === 0" class="text-xs text-gray-400 bg-gray-50 rounded-lg p-3">{{ __('No meals available.') }}</div>
+        <div x-show="assignMealError" class="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2" x-text="assignMealError"></div>
+        <div x-show="assignMealSuccess" class="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2" x-text="assignMealSuccess"></div>
+        <div class="flex gap-2 pt-1">
+          <button type="button" @click="showAssignMeal = false" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">{{ __('Cancel') }}</button>
+          <button type="submit" :disabled="assigningMeal || !assignMealForm.subscription_id" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-[#033133] to-[#025C5F] text-white hover:shadow-md transition-all disabled:opacity-50" x-text="assigningMeal ? '{{ __('Assigning...') }}' : '{{ __('Assign Meal') }}'"></button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {{-- Assign Driver Modal --}}
+  <div x-show="showAssignDriver" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none">
+    <div class="absolute inset-0 bg-black/40" @click="showAssignDriver = false"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" @click.outside="showAssignDriver = false">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-sm font-bold text-gray-900">{{ __('Assign Dedicated Driver') }}</h3>
+          <p class="text-xs text-gray-400 mt-0.5" x-text="`${__('Assign a driver to')} ${assignDriverTarget?.name}`"></p>
+        </div>
+        <button @click="showAssignDriver = false" class="text-gray-400 hover:text-gray-600 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 mb-4">
+        <div class="flex items-start gap-2">
+          <svg class="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <div class="text-xs text-blue-700">
+            <p>{{ __('Customer Location') }}: <span class="font-bold" x-text="assignDriverTarget?.location || '—'"></span></p>
+            <p>{{ __('Customer Address') }}: <span class="font-bold" x-text="assignDriverTarget?.address || '—'"></span></p>
+          </div>
+        </div>
+      </div>
+      <form @submit.prevent="submitAssignDriver()" class="space-y-3">
+        <div>
+          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Select Driver') }} <span class="text-red-500">*</span></label>
+          <select x-model="assignDriverForm.driver_id" required class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+            <option value="">{{ __('Choose a driver...') }}</option>
+            <template x-for="d in driversList" :key="d.id">
+              <option :value="d.id" x-text="d.name + (d.phone ? ' · ' + d.phone : '')"></option>
+            </template>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Assignment Reason') }}</label>
+          <input type="text" x-model="assignDriverForm.assignment_reason" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20" :placeholder="assignDriverTarget?.location ? `{{ __('Same delivery zone: ') }}` + (assignDriverTarget?.location || '') : '{{ __('e.g. Same delivery zone') }}'">
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Notes') }}</label>
+          <textarea x-model="assignDriverForm.notes" rows="2" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20" placeholder="{{ __('Optional notes') }}"></textarea>
+        </div>
+        <div x-show="assignDriverError" class="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2" x-text="assignDriverError"></div>
+        <div x-show="assignDriverSuccess" class="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2" x-text="assignDriverSuccess"></div>
+        <div class="flex gap-2 pt-1">
+          <button type="button" @click="showAssignDriver = false" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">{{ __('Cancel') }}</button>
+          <button type="submit" :disabled="assigningDriver" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-md transition-all disabled:opacity-50" x-text="assigningDriver ? '{{ __('Assigning...') }}' : '{{ __('Assign Driver') }}'"></button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -522,6 +650,22 @@ function customersApp() {
     page: 1,
     hasMore: false,
     loading: true,
+    showAssignMeal: false,
+    assignMealTarget: null,
+    mealLoading: false,
+    assigningMeal: false,
+    assignMealError: '',
+    assignMealSuccess: '',
+    assignMealForm: { subscription_id: 0, meal_id: '', day_number: '', meal_time: '' },
+    availableMeals: [],
+    allMeals: [],
+    showAssignDriver: false,
+    assignDriverTarget: null,
+    assigningDriver: false,
+    assignDriverError: '',
+    assignDriverSuccess: '',
+    assignDriverForm: { driver_id: '', assignment_reason: '', notes: '' },
+    driversList: [],
 
     statusClass(s) {
       const m = { active:'bg-green-50 text-green-700 border-green-200', paused:'bg-amber-50 text-amber-700 border-amber-200', cancelled:'bg-red-50 text-red-600 border-red-200', inactive:'bg-gray-50 text-gray-600 border-gray-200' };
@@ -539,6 +683,103 @@ function customersApp() {
     init() {
       this.fetchCustomers();
       this.fetchPlans();
+      this.fetchDrivers();
+    },
+
+    async fetchDrivers() {
+      try {
+        const r = await fetch(`{{ route('admin.drivers') }}`, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
+        const d = await r.json();
+        this.driversList = (d.drivers || []).map(driver => ({
+          id: driver.id,
+          name: driver.name || (driver.first_name + ' ' + driver.last_name),
+          phone: driver.phone || '',
+          location: driver.location || '',
+        }));
+      } catch(e) { console.error('Failed to fetch drivers', e); }
+    },
+
+    async openAssignMeal(c) {
+      this.assignMealTarget = c;
+      this.showAssignMeal = true;
+      this.mealLoading = true;
+      this.assignMealError = '';
+      this.assignMealSuccess = '';
+      this.assignMealForm = { subscription_id: 0, meal_id: '', day_number: '', meal_time: '' };
+      this.availableMeals = [];
+      this.allMeals = [];
+      try {
+        const sub = c.subscription;
+        const subId = sub?.id || 0;
+        if (subId > 0) {
+          const r = await fetch(`{{ url('admin/customers') }}/${c.id}/meal-selections?subscription_id=${subId}`, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
+          const d = await r.json();
+          this.assignMealForm.subscription_id = d.subscription_id || subId;
+          this.allMeals = d.meals || [];
+        }
+      } catch(e) { console.error('Failed to fetch meal selections', e); }
+      finally { this.mealLoading = false; }
+    },
+
+    updateAvailableMeals() {
+      this.assignMealForm.meal_id = '';
+      this.availableMeals = this.allMeals;
+    },
+
+    async submitAssignMeal() {
+      if (!this.assignMealForm.subscription_id || !this.assignMealForm.meal_id || !this.assignMealForm.day_number || !this.assignMealForm.meal_time) return;
+      this.assigningMeal = true;
+      this.assignMealError = '';
+      this.assignMealSuccess = '';
+      try {
+        const r = await fetch(`{{ url('admin/customers') }}/${this.assignMealTarget.id}/assign-meal`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+          body: JSON.stringify(this.assignMealForm)
+        });
+        const d = await r.json();
+        if (d.success) {
+          this.assignMealSuccess = d.message || '{{ __('Meal assigned successfully!') }}';
+          setTimeout(() => { this.showAssignMeal = false; }, 1500);
+        } else {
+          this.assignMealError = d.message || d.error || '{{ __('Failed to assign meal.') }}';
+        }
+      } catch(e) { console.error('Failed to assign meal', e); this.assignMealError = '{{ __('Failed to assign meal.') }}'; }
+      finally { this.assigningMeal = false; }
+    },
+
+    openAssignDriver(c) {
+      this.assignDriverTarget = c;
+      this.assignDriverForm = { driver_id: '', assignment_reason: c.location ? '{{ __('Same delivery zone: ') }}' + c.location : '', notes: '' };
+      this.assignDriverError = '';
+      this.assignDriverSuccess = '';
+      this.showAssignDriver = true;
+    },
+
+    async submitAssignDriver() {
+      if (!this.assignDriverForm.driver_id) return;
+      this.assigningDriver = true;
+      this.assignDriverError = '';
+      this.assignDriverSuccess = '';
+      try {
+        const r = await fetch(`{{ url('admin/customers') }}/${this.assignDriverTarget.id}/assign-driver`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+          body: JSON.stringify(this.assignDriverForm)
+        });
+        const d = await r.json();
+        if (d.success) {
+          this.assignDriverSuccess = d.message || '{{ __('Driver assigned successfully!') }}';
+          setTimeout(() => { this.showAssignDriver = false; }, 1500);
+        } else {
+          this.assignDriverError = d.message || d.error || '{{ __('Failed to assign driver.') }}';
+        }
+      } catch(e) { console.error('Failed to assign driver', e); this.assignDriverError = '{{ __('Failed to assign driver.') }}'; }
+      finally { this.assigningDriver = false; }
+    },
+
+    generateOrderForCustomer(c) {
+      window.location.href = `{{ route('admin.orders') }}`;
     },
 
     async fetchCustomers() {

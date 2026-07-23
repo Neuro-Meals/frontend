@@ -13,6 +13,7 @@ use App\Services\Api\DeliveryApiService;
 use App\Services\Api\DriverApiService;
 use App\Services\Api\MealApiService;
 use App\Services\Api\NotificationApiService;
+use App\Services\Api\NutritionApiService;
 use App\Services\Api\OrderApiService;
 use App\Services\Api\PaymentApiService;
 use App\Services\Api\PlanApiService;
@@ -722,6 +723,71 @@ class AdminController extends Controller
 
         $error = $result['message'] ?? __('Failed to assign plan.');
         return response()->json(['success' => false, 'error' => $error], 422);
+    }
+
+    public function assignMealToCustomer(Request $request, int $id, NutritionApiService $nutritionApi)
+    {
+        $validated = $request->validate([
+            'subscription_id' => ['required', 'integer', 'min:1'],
+            'meal_id' => ['required', 'integer', 'min:1'],
+            'day_number' => ['required', 'integer', 'min:1', 'max:7'],
+            'meal_time' => ['required', 'string'],
+        ]);
+
+        $result = $this->apiData($nutritionApi->assignMeal($validated['subscription_id'], $validated), fn () => ['success' => false]);
+
+        $success = isset($result['id']) || ($result['success'] ?? false);
+        $message = $result['detail'] ?? ($result['message'] ?? ($success ? __('Meal assigned successfully.') : __('Failed to assign meal.')));
+
+        return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
+    }
+
+    public function customerMealSelections(int $id, Request $request, SubscriptionApiService $subscriptionApi, NutritionApiService $nutritionApi, MealApiService $mealApi)
+    {
+        $subscriptionId = (int) $request->input('subscription_id');
+        if ($subscriptionId <= 0) {
+            $subsData = $this->apiData($subscriptionApi->list(['user_id' => $id, 'limit' => 50, 'status' => 'active']), fn () => []);
+            $sub = $subsData[0] ?? null;
+            $subscriptionId = $sub['id'] ?? 0;
+        }
+
+        if ($subscriptionId <= 0) {
+            return response()->json(['success' => true, 'selections' => [], 'meals' => [], 'subscription_id' => 0]);
+        }
+
+        $selections = $this->apiData($nutritionApi->subscriptionMealSelections($subscriptionId), fn () => []);
+
+        $mealsData = $this->apiData($mealApi->list(['is_available' => true, 'limit' => 200]), fn () => []);
+        $meals = collect($mealsData)->map(function ($m) {
+            return [
+                'id' => $m['id'] ?? 0,
+                'name' => $m['name_en'] ?? $m['name'] ?? 'Meal',
+            ];
+        })->values()->toArray();
+
+        return response()->json([
+            'success' => true,
+            'selections' => $selections,
+            'meals' => $meals,
+            'subscription_id' => $subscriptionId,
+        ]);
+    }
+
+    public function assignDriverToCustomer(Request $request, int $id, CustomerDriverApiService $customerDriverApi)
+    {
+        $validated = $request->validate([
+            'driver_id' => ['required', 'integer', 'min:1'],
+            'assignment_reason' => ['nullable', 'string', 'max:255'],
+            'notes' => ['nullable', 'string'],
+        ]);
+
+        $validated['customer_id'] = $id;
+
+        $result = $this->apiData($customerDriverApi->assign($validated), fn () => ['success' => false]);
+        $success = !empty($result) && !isset($result['success']) || ($result['success'] ?? true);
+        $message = $result['message'] ?? ($result['detail'] ?? ($success ? __('Driver assigned to customer successfully.') : __('Failed to assign driver.')));
+
+        return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
     }
 
     public function updateCustomer(Request $request, AdminApiService $adminApi, int $id)

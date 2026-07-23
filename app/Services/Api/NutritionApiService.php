@@ -23,4 +23,14 @@ class NutritionApiService extends BaseApiService
     {
         return $this->get('nutrition.activity_today');
     }
+
+    public function assignMeal(int $subscriptionId, array $data): array
+    {
+        return $this->post('nutrition.assign_meal', ['subscription_id' => $subscriptionId], $data);
+    }
+
+    public function subscriptionMealSelections(int $subscriptionId): array
+    {
+        return $this->get('nutrition.sub_meal_selections', ['subscription_id' => $subscriptionId]);
+    }
 }

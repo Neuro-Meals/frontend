@@ -285,10 +285,12 @@ return [
 
         // ─── Nutrition / Tracking (not in OpenAPI spec — customer dashboard requirement) ───
         'nutrition' => [
-            'today'         => '/nutrition/today',
-            'weekly'        => '/nutrition/weekly',
-            'weight_history' => '/weight-history',
-            'activity_today' => '/activity/today',
+            'today'              => '/nutrition/today',
+            'weekly'             => '/nutrition/weekly',
+            'weight_history'     => '/weight-history',
+            'activity_today'     => '/activity/today',
+            'assign_meal'        => '/nutrition/subscriptions/{subscription_id}/assign-meal',
+            'sub_meal_selections'=> '/nutrition/subscriptions/{subscription_id}/meal-selections',
         ],
 
         // ─── Reports (backend provides 5 basic endpoints; view data derived from these) ───
