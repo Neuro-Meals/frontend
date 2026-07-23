@@ -223,7 +223,7 @@ class AdminController extends Controller
             }
         }
 
-        // If still no revenue, fallback to paid subscriptions
+        // If orders gave no revenue, use paid subscriptions as fallback
         if ($totalRevenue == 0 && !empty($paidSubscriptions) && is_array($paidSubscriptions)) {
             foreach ($paidSubscriptions as $sub) {
                 $amount = (float) ($sub['amount'] ?? 0);
@@ -238,6 +238,29 @@ class AdminController extends Controller
                 }
                 if ($subDate && isset($revenueByDay[$subDate])) {
                     $revenueByDay[$subDate] += $amount;
+                }
+            }
+        }
+
+        // Final fallback: if still no revenue, scan allSubscriptions for paid ones
+        if ($totalRevenue == 0 && !empty($allSubscriptions) && is_array($allSubscriptions)) {
+            foreach ($allSubscriptions as $sub) {
+                $ps = $sub['payment_status'] ?? 'other';
+                if (is_array($ps)) $ps = $ps['value'] ?? $ps['name'] ?? 'other';
+                if ($ps === 'paid') {
+                    $amount = (float) ($sub['amount'] ?? 0);
+                    $totalRevenue += $amount;
+                    $subDate = !empty($sub['start_date']) ? substr($sub['start_date'], 0, 10) : (!empty($sub['created_at']) ? substr($sub['created_at'], 0, 10) : null);
+                    $subMonth = substr($subDate ?? '', 0, 7);
+                    if ($subMonth === $thisMonth) {
+                        $monthlyRevenue += $amount;
+                    }
+                    if ($subMonth === $lastMonth) {
+                        $lastMonthRevenue += $amount;
+                    }
+                    if ($subDate && isset($revenueByDay[$subDate])) {
+                        $revenueByDay[$subDate] += $amount;
+                    }
                 }
             }
         }
@@ -334,17 +357,17 @@ class AdminController extends Controller
             'totalRevenue' => $totalRevenue > 0 ? $totalRevenue : ($dashboardReport['paid_revenue'] ?? ($summaryReport['paid_revenue'] ?? 0)),
             'activeSubscriptions' => $activeSubsCount > 0 ? $activeSubsCount : $activeSubscriptions,
             'totalMeals' => $totalMeals,
-            'successRate' => $dashboardReport['success_rate'] ?? $successRate,
-            'claimRate' => $dashboardReport['claim_rate'] ?? $claimRate,
+            'successRate' => ($dashboardReport['success_rate'] ?? 0) > 0 ? $dashboardReport['success_rate'] : $successRate,
+            'claimRate' => ($dashboardReport['claim_rate'] ?? 0) > 0 ? $dashboardReport['claim_rate'] : $claimRate,
             'ordersToday' => $dashboardReport['orders_today'] ?? $ordersToday,
             'totalOrders' => $totalOrders,
             'deliveriesToday' => $dashboardReport['deliveries_today'] ?? $deliveriesToday,
             'totalDeliveries' => $totalDeliveries,
             'pendingPayments' => $dashboardReport['pending_payments'] ?? ($subPaymentCounts['pending'] + $subPaymentCounts['unpaid'] > 0 ? $subPaymentCounts['pending'] + $subPaymentCounts['unpaid'] : $paymentCounts['pending'] + $paymentCounts['unpaid']),
-            'avgOrderValue' => $dashboardReport['avg_order_value'] ?? ($totalOrders > 0 ? round($totalRevenue / $totalOrders, 2) : 0),
-            'revGrowth' => $dashboardReport['rev_growth'] ?? $revGrowth,
-            'monthlyRevenue' => $dashboardReport['monthly_revenue'] ?? $monthlyRevenue,
-            'lastMonthRevenue' => $dashboardReport['last_month_revenue'] ?? $lastMonthRevenue,
+            'avgOrderValue' => ($dashboardReport['avg_order_value'] ?? 0) > 0 ? $dashboardReport['avg_order_value'] : ($totalOrders > 0 ? round($totalRevenue / $totalOrders, 2) : 0),
+            'revGrowth' => ($dashboardReport['rev_growth'] ?? 0) != 0 ? $dashboardReport['rev_growth'] : $revGrowth,
+            'monthlyRevenue' => ($dashboardReport['monthly_revenue'] ?? 0) > 0 ? $dashboardReport['monthly_revenue'] : $monthlyRevenue,
+            'lastMonthRevenue' => ($dashboardReport['last_month_revenue'] ?? 0) > 0 ? $dashboardReport['last_month_revenue'] : $lastMonthRevenue,
             'totalCustomers' => $totalCustomers > 0 ? $totalCustomers : $totalUsers,
             'newCustomersThisWeek' => $newCustomersThisWeek,
             'churnRate' => $dashboardReport['churn_rate'] ?? $churnRate,
