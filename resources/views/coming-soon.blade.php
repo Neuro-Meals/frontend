@@ -111,6 +111,60 @@
       </div>
     </div>
 
+    {{-- Change Location --}}
+    <div x-data="changeLocation()" class="mb-10">
+      <button @click="open = !open" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/5 border border-white/10 text-white/80 text-sm font-semibold hover:bg-white/10 transition-all backdrop-blur-sm">
+        <svg class="w-4 h-4 text-[#949B50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        {{ __('Change My Location') }}
+        <svg class="w-4 h-4 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </button>
+
+      <div x-show="open" x-transition class="mt-4 bg-white/5 border border-white/10 rounded-2xl p-5 text-left backdrop-blur-sm">
+        <p class="text-xs text-white/50 mb-4 text-center">{{ __('Select your city to check if we deliver there') }}</p>
+
+        <div class="space-y-4">
+          <div>
+            <label class="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-1.5 block">{{ __('City') }} <span class="text-red-400">*</span></label>
+            <select x-model="form.location" class="w-full text-sm bg-white/10 border border-white/15 rounded-xl px-3 py-2.5 text-white outline-none focus:ring-2 focus:ring-[#6E7A25]/40 focus:border-[#6E7A25] transition-all">
+              <option value="" class="bg-[#173327]">{{ __('Select your city...') }}</option>
+              <option value="Riyadh" class="bg-[#173327]">{{ __('Riyadh') }} ✓</option>
+              <option value="Jeddah" class="bg-[#173327]">{{ __('Jeddah') }}</option>
+              <option value="Dammam" class="bg-[#173327]">{{ __('Dammam') }}</option>
+              <option value="Mecca" class="bg-[#173327]">{{ __('Mecca') }}</option>
+              <option value="Medina" class="bg-[#173327]">{{ __('Medina') }}</option>
+              <option value="Khobar" class="bg-[#173327]">{{ __('Khobar') }}</option>
+              <option value="Tabuk" class="bg-[#173327]">{{ __('Tabuk') }}</option>
+              <option value="Abha" class="bg-[#173327]">{{ __('Abha') }}</option>
+              <option value="Hail" class="bg-[#173327]">{{ __('Hail') }}</option>
+              <option value="Buraidah" class="bg-[#173327]">{{ __('Buraidah') }}</option>
+              <option value="Najran" class="bg-[#173327]">{{ __('Najran') }}</option>
+              <option value="Jazan" class="bg-[#173327]">{{ __('Jazan') }}</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-1.5 block">{{ __('Delivery Address') }}</label>
+            <input type="text" x-model="form.address" class="w-full text-sm bg-white/10 border border-white/15 rounded-xl px-3 py-2.5 text-white placeholder-white/30 outline-none focus:ring-2 focus:ring-[#6E7A25]/40 focus:border-[#6E7A25] transition-all" placeholder="e.g. Al Olaya, King Fahd Rd...">
+          </div>
+
+          <div x-show="form.location === 'Riyadh'" x-transition class="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-green-500/10 border border-green-500/20">
+            <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span class="text-xs text-green-400 font-medium">{{ __('Great! We serve Riyadh. Update to access your dashboard.') }}</span>
+          </div>
+
+          <div x-show="message" x-transition class="px-3 py-2.5 rounded-xl" :class="success ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'">
+            <span class="text-xs font-medium" :class="success ? 'text-green-400' : 'text-red-400'" x-text="message"></span>
+          </div>
+
+          <button @click="submit()" :disabled="saving || !form.location" class="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-[#6E7A25] to-[#173327] text-white text-sm font-bold hover:shadow-lg hover:shadow-[#6E7A25]/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+            <svg x-show="!saving" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <svg x-show="saving" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span x-text="saving ? '{{ __('Updating...') }}' : '{{ __('Update Location') }}'"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     {{-- Actions --}}
     <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
       <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#6E7A25] to-[#173327] text-white text-sm font-bold hover:shadow-lg hover:shadow-[#6E7A25]/30 transition-all">

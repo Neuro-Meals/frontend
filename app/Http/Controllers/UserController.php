@@ -2464,4 +2464,47 @@ class UserController extends Controller
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
+
+    public function updateLocation(Request $request, ProfileApiService $profileApi, AuthApiService $authApi)
+    {
+        $validated = $request->validate([
+            'location' => ['required', 'string', 'max:255'],
+            'address' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $data = ['location' => $validated['location']];
+        if (!empty($validated['address'])) {
+            $data['address'] = $validated['address'];
+        }
+
+        try {
+            $result = $profileApi->update($data);
+
+            // Refresh session user data
+            $freshUser = $this->apiData($authApi->me(), function () use ($authApi) {
+                return $authApi->user() ?? [];
+            });
+            if (!empty($freshUser['id'])) {
+                session(['api_user' => $freshUser]);
+            }
+
+            $newLocation = strtolower(trim($validated['location']));
+            $servedAreas = ['riyadh', 'الرياض', 'riyad', 'ar riyadh'];
+
+            if (in_array($newLocation, $servedAreas)) {
+                return response()->json([
+                    'success' => true,
+                    'message' => __('Location updated! Redirecting to your dashboard...'),
+                    'redirect' => route('user.dashboard'),
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Location updated. We\'ll notify you when we serve your area.'),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
 }

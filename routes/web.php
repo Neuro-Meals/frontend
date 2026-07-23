@@ -137,6 +137,9 @@ Route::get('/coming-soon', function () {
     ]);
 })->name('coming-soon');
 
+// Update location from coming-soon page
+Route::post('/coming-soon/update-location', [UserController::class, 'updateLocation'])->name('coming-soon.update-location')->middleware('web');
+
 // Role-based redirect after login
 Route::get('/home', function () {
     $authApi = app(\App\Services\Api\AuthApiService::class);
