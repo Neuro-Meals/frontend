@@ -339,7 +339,7 @@ class AdminController extends Controller
             'newCustomersThisWeek' => $newCustomersThisWeek,
             'churnRate' => $dashboardReport['churn_rate'] ?? $churnRate,
             'retentionRate' => $dashboardReport['retention_rate'] ?? $retentionRate,
-            'paymentCounts' => array_merge($paymentCounts, $dashboardReport['payment_counts'] ?? []),
+            'paymentCounts' => array_merge($paymentCounts, $subPaymentCounts, $dashboardReport['payment_counts'] ?? []),
             'subscriptionStatusCounts' => $subscriptionStatusCounts,
             'subGrowth' => $dashboardReport['sub_growth'] ?? $subGrowth,
             'ordersGrowth' => $ordersGrowth,
