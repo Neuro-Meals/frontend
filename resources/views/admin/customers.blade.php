@@ -230,10 +230,20 @@
         <div x-show="!detailLoading">
           <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Profile') }}</h4>
           <div class="bg-gray-50/50 rounded-xl p-4 space-y-3">
+            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Email') }}</span><span class="text-xs font-semibold text-gray-900" x-text="selected?.email || '—'"></span></div>
             <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Phone') }}</span><span class="text-xs font-semibold text-gray-900" x-text="selected?.phone || '—'"></span></div>
             <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Location') }}</span><span class="text-xs font-semibold text-gray-900" x-text="selected?.location || '—'"></span></div>
             <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Address') }}</span><span class="text-xs font-semibold text-gray-900 text-right max-w-[200px] truncate" x-text="selected?.address || '—'"></span></div>
+            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Gender') }}</span><span class="text-xs font-semibold text-gray-900 capitalize" x-text="selected?.gender || '—'"></span></div>
+            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Age') }}</span><span class="text-xs font-semibold text-gray-900" x-text="selected?.age != null ? selected.age + ' yrs' : '—'"></span></div>
+            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Height') }}</span><span class="text-xs font-semibold text-gray-900" x-text="selected?.height_cm != null ? selected.height_cm + ' cm' : '—'"></span></div>
+            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Weight') }}</span><span class="text-xs font-semibold text-gray-900" x-text="selected?.weight_kg != null ? selected.weight_kg + ' kg' : '—'"></span></div>
+            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Fitness Goal') }}</span><span class="text-xs font-semibold text-gray-900 capitalize text-right max-w-[200px]" x-text="selected?.fitness_goal ? selected.fitness_goal.replaceAll('_',' ') : '—'"></span></div>
+            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Dietary Preference') }}</span><span class="text-xs font-semibold text-gray-900 capitalize text-right max-w-[200px] truncate" x-text="selected?.dietary_preference || '—'"></span></div>
+            <div x-show="selected?.allergies && selected.allergies.length > 0" class="flex justify-between items-start"><span class="text-xs text-gray-400 flex-shrink-0">{{ __('Allergies') }}</span><div class="flex flex-wrap gap-1 justify-end max-w-[200px]"><template x-for="a in selected.allergies" :key="a"><span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-100" x-text="a"></span></template></div></div>
             <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Joined') }}</span><span class="text-xs font-semibold text-gray-900" x-text="selected?.joined_formatted || selected?.joined || '—'"></span></div>
+            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Verified') }}</span><span class="text-xs font-semibold" :class="selected?.is_verified ? 'text-green-600' : 'text-gray-400'" x-text="selected?.is_verified ? 'Yes' : 'No'"></span></div>
+            <div class="flex justify-between items-center"><span class="text-xs text-gray-400">{{ __('Active') }}</span><span class="text-xs font-semibold" :class="selected?.is_active ? 'text-green-600' : 'text-red-500'" x-text="selected?.is_active ? 'Active' : 'Inactive'"></span></div>
           </div>
         </div>
 
