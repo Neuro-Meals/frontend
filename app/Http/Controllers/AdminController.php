@@ -184,11 +184,15 @@ class AdminController extends Controller
             $revenueByDay[$day] = 0;
         }
 
-        // Compute revenue from orders' total_amount (primary source — represents actual sales)
+        // Compute revenue from orders — use total_amount, fallback to subscription.amount
         $subPaymentCounts = ['paid' => 0, 'pending' => 0, 'unpaid' => 0, 'failed' => 0, 'refunded' => 0, 'other' => 0];
         if (!empty($allOrders) && is_array($allOrders)) {
             foreach ($allOrders as $order) {
+                // Prefer total_amount, fallback to subscription.amount
                 $amount = (float) ($order['total_amount'] ?? 0);
+                if ($amount == 0) {
+                    $amount = (float) ($order['subscription']['amount'] ?? 0);
+                }
                 $totalRevenue += $amount;
                 $orderDate = date('Y-m-d', strtotime($order['delivery_date'] ?? ($order['created_at'] ?? 'now')));
                 $orderMonth = substr($orderDate, 0, 7);
@@ -201,10 +205,25 @@ class AdminController extends Controller
                 if (isset($revenueByDay[$orderDate])) {
                     $revenueByDay[$orderDate] += $amount;
                 }
+
+                // Count payment status from order's subscription
+                $ps = $order['subscription']['payment_status'] ?? 'other';
+                if (is_array($ps)) $ps = $ps['value'] ?? $ps['name'] ?? 'other';
+                $subPaymentCounts[$ps] = ($subPaymentCounts[$ps] ?? 0) + 1;
             }
         }
 
-        // If orders gave no revenue, fallback to paid subscriptions
+        // Also count from allSubscriptions only if orders didn't provide payment status counts
+        $ordersPaymentCountTotal = array_sum($subPaymentCounts) - $subPaymentCounts['other'];
+        if ($ordersPaymentCountTotal == 0 && !empty($allSubscriptions) && is_array($allSubscriptions)) {
+            foreach ($allSubscriptions as $sub) {
+                $ps = $sub['payment_status'] ?? 'other';
+                if (is_array($ps)) $ps = $ps['value'] ?? $ps['name'] ?? 'other';
+                $subPaymentCounts[$ps] = ($subPaymentCounts[$ps] ?? 0) + 1;
+            }
+        }
+
+        // If still no revenue, fallback to paid subscriptions
         if ($totalRevenue == 0 && !empty($paidSubscriptions) && is_array($paidSubscriptions)) {
             foreach ($paidSubscriptions as $sub) {
                 $amount = (float) ($sub['amount'] ?? 0);
@@ -220,15 +239,6 @@ class AdminController extends Controller
                 if ($subDate && isset($revenueByDay[$subDate])) {
                     $revenueByDay[$subDate] += $amount;
                 }
-            }
-        }
-
-        // Count subscription payment statuses for success rate
-        if (!empty($allSubscriptions) && is_array($allSubscriptions)) {
-            foreach ($allSubscriptions as $sub) {
-                $ps = $sub['payment_status'] ?? 'other';
-                if (is_array($ps)) $ps = $ps['value'] ?? $ps['name'] ?? 'other';
-                $subPaymentCounts[$ps] = ($subPaymentCounts[$ps] ?? 0) + 1;
             }
         }
 
