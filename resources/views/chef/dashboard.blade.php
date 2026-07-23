@@ -582,6 +582,12 @@
                                 {{ __('Mark as Ready') }}
                             </button>
                         </template>
+                        <template x-if="['ready_for_delivery'].includes(currentOrder.status)">
+                            <button @click="openAssignDriver(currentOrder)" class="btn-action w-full py-3.5 rounded-2xl bg-blue-600 text-white text-sm font-bold shadow-md shadow-blue-600/20 flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 18a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
+                                {{ __('Assign Driver') }}
+                            </button>
+                        </template>
                         <template x-if="['ready_for_delivery','out_for_delivery','delivered'].includes(currentOrder.status)">
                             <button @click="goNext()" class="btn-action w-full py-3.5 rounded-2xl bg-gray-100 text-gray-700 text-sm font-bold flex items-center justify-center gap-2">
                                 <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -607,6 +613,41 @@
             </template>
         </div>
     </div>
+
+    {{-- Assign Driver Modal --}}
+    <div x-show="assignDriverModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none">
+        <div x-show="assignDriverModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="assignDriverModal = false"></div>
+        <div x-show="assignDriverModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-y-auto z-10">
+            <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] px-5 py-4 text-white rounded-t-2xl flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-bold">{{ __('Assign Driver') }}</h3>
+                    <p class="text-[10px] text-white/70" x-text="assignDriverOrder ? assignDriverOrder.order_number : ''"></p>
+                </div>
+                <button @click="assignDriverModal = false" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-5 space-y-3">
+                <div x-show="driversLoading" class="text-center py-8">
+                    <div class="inline-block w-6 h-6 border-2 border-[#6E7A25] border-t-transparent rounded-full animate-spin"></div>
+                    <p class="text-xs text-gray-400 mt-2">{{ __('Loading drivers...') }}</p>
+                </div>
+                <div x-show="!driversLoading && drivers.length === 0" class="text-center py-8">
+                    <p class="text-xs text-gray-400">{{ __('No available drivers found.') }}</p>
+                </div>
+                <template x-for="driver in drivers" :key="driver.id">
+                    <button @click="doAssignDriver(driver.id)" class="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-[#6E7A25] hover:bg-[#6E7A25]/5 transition-all text-left">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center text-white font-bold text-sm flex-shrink-0" x-text="driver.first_name ? driver.first_name.charAt(0).toUpperCase() : 'D'"></div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-gray-900" x-text="(driver.first_name || '') + ' ' + (driver.last_name || '')"></p>
+                            <p class="text-[10px] text-gray-400" x-text="driver.phone || driver.email || ''"></p>
+                        </div>
+                        <svg class="w-5 h-5 text-[#6E7A25] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </button>
+                </template>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -625,6 +666,10 @@ function chefShift() {
         transferring: false,
         openMeals: [],
         walkthrough: { open: false, index: 0 },
+        assignDriverModal: false,
+        assignDriverOrder: null,
+        drivers: [],
+        driversLoading: false,
 
         strings: {
             kitchenShift: @json(__('Kitchen Shift')),
@@ -909,6 +954,58 @@ function chefShift() {
                 order.status_label = this.strings.readyForDeliveryLabel;
                 this.activeSummary.ready++;
                 setTimeout(() => this.goNext(), 350);
+            }
+        },
+
+        async openAssignDriver(order) {
+            this.assignDriverOrder = order;
+            this.assignDriverModal = true;
+            this.drivers = [];
+            this.driversLoading = true;
+            try {
+                const res = await fetch('{{ route('chef.drivers') }}', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                });
+                const data = await res.json();
+                this.drivers = data.drivers || [];
+            } catch (e) {
+                this.drivers = [];
+            } finally {
+                this.driversLoading = false;
+            }
+        },
+
+        async doAssignDriver(driverId) {
+            const order = this.assignDriverOrder;
+            if (!order) return;
+            try {
+                const res = await fetch(`{{ url('chef/orders') }}/${order.id}/assign-driver`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    },
+                    body: JSON.stringify({ driver_id: driverId }),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.assignDriverModal = false;
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'success', title: '{{ __('Assigned!') }}', text: data.message || '{{ __('Driver assigned successfully.') }}', timer: 2000, showConfirmButton: false });
+                    }
+                    order.status = 'out_for_delivery';
+                    setTimeout(() => this.goNext(), 500);
+                } else {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'error', title: '{{ __('Error') }}', text: data.message || '{{ __('Failed to assign driver.') }}' });
+                    }
+                }
+            } catch (e) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'error', title: '{{ __('Error') }}', text: '{{ __('Something went wrong.') }}' });
+                }
             }
         },
     };

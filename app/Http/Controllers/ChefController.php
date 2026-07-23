@@ -540,6 +540,50 @@ class ChefController extends Controller
         return redirect()->route('chef.dashboard')->with($success ? 'status' : 'error', $message);
     }
 
+    public function drivers(ChefApiService $chefApi)
+    {
+        $drivers = $this->apiData($chefApi->drivers(true), fn () => []);
+        return response()->json(['success' => true, 'drivers' => $drivers]);
+    }
+
+    public function assignDriver(Request $request, int $orderId, ChefApiService $chefApi)
+    {
+        $validated = $request->validate([
+            'driver_id' => ['required', 'integer', 'min:1'],
+            'scheduled_at' => ['nullable', 'string'],
+        ]);
+
+        $response = $chefApi->assignDriver($orderId, $validated['driver_id'], $validated['scheduled_at'] ?? null);
+        $success = isset($response['delivery']) || isset($response['id']) || (isset($response['success']) && $response['success'] === true);
+        $message = $response['message'] ?? ($response['detail'] ?? ($success ? __('Driver assigned successfully.') : __('Failed to assign driver.')));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
+        }
+
+        return redirect()->route('chef.dashboard')->with($success ? 'status' : 'error', $message);
+    }
+
+    public function bulkAssignDriver(Request $request, ChefApiService $chefApi)
+    {
+        $validated = $request->validate([
+            'driver_id' => ['required', 'integer', 'min:1'],
+            'order_ids' => ['required', 'array', 'min:1'],
+            'order_ids.*' => ['integer', 'min:1'],
+            'scheduled_at' => ['nullable', 'string'],
+        ]);
+
+        $response = $chefApi->bulkAssignDriver($validated['driver_id'], $validated['order_ids'], $validated['scheduled_at'] ?? null);
+        $success = isset($response['assigned']) || (isset($response['success']) && $response['success'] === true);
+        $message = $response['message'] ?? ($success ? __('Drivers assigned successfully.') : __('Failed to assign drivers.'));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
+        }
+
+        return redirect()->route('chef.dashboard')->with($success ? 'status' : 'error', $message);
+    }
+
     /**
      * Transfer all pending items in a schedule (category) to the kitchen
      * by marking all pending orders in that category as "preparing".

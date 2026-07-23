@@ -268,6 +268,9 @@ Route::prefix('chef')->name('chef.')->middleware(['api.auth', 'api.chef'])->grou
     Route::post('/orders/{id}/mark-ready', [\App\Http\Controllers\ChefController::class, 'markReady'])->name('orders.mark_ready');
     Route::post('/schedule/transfer', [\App\Http\Controllers\ChefController::class, 'transferSchedule'])->name('schedule.transfer');
     Route::post('/schedule/advance', [\App\Http\Controllers\ChefController::class, 'advanceSchedule'])->name('schedule.advance');
+    Route::get('/drivers', [\App\Http\Controllers\ChefController::class, 'drivers'])->name('drivers');
+    Route::post('/orders/{id}/assign-driver', [\App\Http\Controllers\ChefController::class, 'assignDriver'])->name('orders.assign-driver');
+    Route::post('/orders/bulk-assign-driver', [\App\Http\Controllers\ChefController::class, 'bulkAssignDriver'])->name('orders.bulk-assign-driver');
 
 });
 
