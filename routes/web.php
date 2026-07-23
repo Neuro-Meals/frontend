@@ -293,4 +293,5 @@ Route::prefix('user')->name('user.')->middleware(['api.auth', 'api.customer'])->
     Route::post('/notifications/{id}/read', [UserController::class, 'markNotificationRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [UserController::class, 'markAllNotificationsRead'])->name('notifications.read-all');
     Route::get('/settings', [UserController::class, 'settings'])->name('settings');
+    Route::post('/settings', [UserController::class, 'updateProfile'])->name('settings.update');
 });

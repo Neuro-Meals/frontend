@@ -2324,12 +2324,16 @@ class UserController extends Controller
             'phone' => $apiUser['phone'] ?? '',
             'dob' => $apiUser['date_of_birth'] ?? '',
             'gender' => ucfirst($apiUser['gender'] ?? ''),
+            'age' => $apiUser['age'] ?? '',
             'height' => $apiUser['height_cm'] ?? 0,
             'weight' => $apiUser['weight_kg'] ?? 0,
             'goal' => ucfirst(str_replace('_', ' ', $apiUser['fitness_goal'] ?? '')),
+            'fitness_goal_raw' => $apiUser['fitness_goal'] ?? '',
             'activity' => $apiUser['activity_level'] ?? '',
             'address' => $apiUser['address'] ?? '',
             'zone' => $apiUser['location'] ?? '',
+            'dietary_preference' => $apiUser['dietary_preference'] ?? '',
+            'allergies' => $apiUser['allergies'] ?? [],
         ];
 
         // Fetch active subscription
@@ -2426,5 +2430,28 @@ class UserController extends Controller
         });
 
         return view('user.settings', compact('profile', 'subscriptionInfo', 'paymentHistory', 'totalSpent'));
+    }
+
+    public function updateProfile(Request $request, ProfileApiService $profileApi)
+    {
+        $data = $request->only(['first_name', 'last_name', 'phone', 'location', 'address', 'gender', 'age', 'height_cm', 'weight_kg', 'fitness_goal', 'dietary_preference', 'allergies']);
+        $data = array_filter($data, function ($v) {
+            return $v !== null && $v !== '';
+        }, ARRAY_FILTER_USE_BOTH);
+
+        if ($request->has('allergies') && is_string($request->input('allergies'))) {
+            $data['allergies'] = array_filter(array_map('trim', explode(',', $request->input('allergies'))), fn($s) => strlen($s) > 0);
+        }
+
+        if (empty($data)) {
+            return response()->json(['success' => false, 'error' => __('No data provided.')], 422);
+        }
+
+        try {
+            $result = $profileApi->update($data);
+            return response()->json(['success' => true, 'message' => __('Profile updated successfully.'), 'user' => $result]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
     }
 }

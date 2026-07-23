@@ -31,52 +31,101 @@
     </div>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+<div x-data="profileEditor()" class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
     {{-- Profile Info --}}
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 lg:col-span-2">
-        <div class="flex items-center gap-2 mb-5">
-            <div class="w-8 h-8 rounded-lg bg-[#6E7A25]/10 flex items-center justify-center">
-                <svg class="w-4 h-4 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-[#6E7A25]/10 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                </div>
+                <h3 class="text-sm font-bold text-gray-900">{{ __('Profile') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Information') }}</span></h3>
             </div>
-            <h3 class="text-sm font-bold text-gray-900">{{ __('Profile') }} <span class="bg-gradient-to-r from-[#173327] to-[#6E7A25] bg-clip-text text-transparent">{{ __('Information') }}</span></h3>
+            <button x-show="!editing" @click="startEdit()" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-[#6E7A25]/10 text-[#6E7A25] hover:bg-[#6E7A25]/20 transition-all">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                {{ __('Edit') }}
+            </button>
+            <div x-show="editing" class="flex items-center gap-2" style="display:none">
+                <button @click="cancelEdit()" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all">{{ __('Cancel') }}</button>
+                <button @click="saveEdit()" :disabled="saving" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-md transition-all" x-text="saving ? '{{ __('Saving...') }}' : '{{ __('Save') }}'"></button>
+            </div>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        {{-- View Mode --}}
+        <div x-show="!editing" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label class="text-[10px] font-medium text-gray-400">{{ __('First Name') }}</label>
-                <input type="text" value="{{ $profile['first_name'] }}" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all bg-gray-50/50" readonly>
+                <input type="text" :value="form.first_name" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50/50" readonly>
             </div>
             <div>
                 <label class="text-[10px] font-medium text-gray-400">{{ __('Last Name') }}</label>
-                <input type="text" value="{{ $profile['last_name'] }}" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all bg-gray-50/50" readonly>
+                <input type="text" :value="form.last_name" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50/50" readonly>
             </div>
             <div>
                 <label class="text-[10px] font-medium text-gray-400">{{ __('Email') }}</label>
-                <input type="email" value="{{ $profile['email'] }}" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all bg-gray-50/50" readonly>
+                <input type="email" :value="form.email" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50/50" readonly>
             </div>
             <div>
                 <label class="text-[10px] font-medium text-gray-400">{{ __('Phone') }}</label>
-                <input type="text" value="{{ $profile['phone'] ?: 'N/A' }}" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all bg-gray-50/50" readonly>
-            </div>
-            <div>
-                <label class="text-[10px] font-medium text-gray-400">{{ __('Date of Birth') }}</label>
-                <input type="text" value="{{ $profile['dob'] ?: 'N/A' }}" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all bg-gray-50/50" readonly>
+                <input type="text" :value="form.phone || 'N/A'" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50/50" readonly>
             </div>
             <div>
                 <label class="text-[10px] font-medium text-gray-400">{{ __('Gender') }}</label>
-                <input type="text" value="{{ $profile['gender'] ?: 'N/A' }}" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all bg-gray-50/50" readonly>
-            </div>
-            <div>
-                <label class="text-[10px] font-medium text-gray-400">{{ __('Activity Level') }}</label>
-                <input type="text" value="{{ $profile['activity'] ?: 'N/A' }}" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all bg-gray-50/50" readonly>
+                <input type="text" :value="form.gender ? form.gender.charAt(0).toUpperCase() + form.gender.slice(1) : 'N/A'" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50/50" readonly>
             </div>
             <div>
                 <label class="text-[10px] font-medium text-gray-400">{{ __('Delivery Zone') }}</label>
-                <input type="text" value="{{ $profile['zone'] ?: 'N/A' }}" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all bg-gray-50/50" readonly>
+                <input type="text" :value="form.location || 'N/A'" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50/50" readonly>
             </div>
         </div>
-        <div class="mt-4">
+        <div x-show="!editing" class="mt-4">
             <label class="text-[10px] font-medium text-gray-400">{{ __('Delivery Address') }}</label>
-            <textarea class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all bg-gray-50/50" rows="2" readonly>{{ $profile['address'] ?: 'N/A' }}</textarea>
+            <textarea class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50/50" rows="2" readonly x-text="form.address || 'N/A'"></textarea>
+        </div>
+
+        {{-- Edit Mode --}}
+        <div x-show="editing" style="display:none" class="space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[10px] font-medium text-gray-400">{{ __('First Name') }}</label>
+                    <input type="text" x-model="form.first_name" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all">
+                </div>
+                <div>
+                    <label class="text-[10px] font-medium text-gray-400">{{ __('Last Name') }}</label>
+                    <input type="text" x-model="form.last_name" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all">
+                </div>
+            </div>
+            <div>
+                <label class="text-[10px] font-medium text-gray-400">{{ __('Email') }}</label>
+                <input type="email" :value="form.email" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50/50" readonly>
+            </div>
+            <div>
+                <label class="text-[10px] font-medium text-gray-400">{{ __('Phone') }}</label>
+                <input type="text" x-model="form.phone" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[10px] font-medium text-gray-400">{{ __('Gender') }}</label>
+                    <select x-model="form.gender" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all">
+                        <option value="">—</option>
+                        <option value="male">{{ __('Male') }}</option>
+                        <option value="female">{{ __('Female') }}</option>
+                        <option value="other">{{ __('Other') }}</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-medium text-gray-400">{{ __('Age') }}</label>
+                    <input type="number" x-model="form.age" min="0" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all">
+                </div>
+            </div>
+            <div>
+                <label class="text-[10px] font-medium text-gray-400">{{ __('Delivery Zone') }}</label>
+                <input type="text" x-model="form.location" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all">
+            </div>
+            <div>
+                <label class="text-[10px] font-medium text-gray-400">{{ __('Delivery Address') }}</label>
+                <textarea x-model="form.address" class="mt-1 w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] outline-none transition-all" rows="2"></textarea>
+            </div>
         </div>
     </div>
 
@@ -90,26 +139,156 @@
             </div>
             <h3 class="text-sm font-bold">{{ __('Health') }} <span class="text-[#6E7A25]">{{ __('Goals') }}</span></h3>
         </div>
-        <div class="space-y-4 relative z-10">
+
+        {{-- View Mode --}}
+        <div x-show="!editing" class="space-y-4 relative z-10">
             <div class="flex items-center justify-between py-2 border-b border-white/10">
                 <span class="text-[10px] text-white/50">{{ __('Height') }}</span>
-                <p class="text-lg font-bold">{{ $profile['height'] ?: 'N/A' }} <span class="text-xs text-white/40">cm</span></p>
+                <p class="text-lg font-bold" x-text="form.height_cm || 'N/A'"></p>
+                <span class="text-xs text-white/40">cm</span>
             </div>
             <div class="flex items-center justify-between py-2 border-b border-white/10">
                 <span class="text-[10px] text-white/50">{{ __('Current Weight') }}</span>
-                <p class="text-lg font-bold">{{ $profile['weight'] ?: 'N/A' }} <span class="text-xs text-white/40">kg</span></p>
+                <p class="text-lg font-bold" x-text="form.weight_kg || 'N/A'"></p>
+                <span class="text-xs text-white/40">kg</span>
             </div>
             <div class="flex items-center justify-between py-2 border-b border-white/10">
                 <span class="text-[10px] text-white/50">{{ __('Goal') }}</span>
-                <p class="text-sm font-bold text-[#6E7A25]">{{ $profile['goal'] ?: 'N/A' }}</p>
+                <p class="text-sm font-bold text-[#6E7A25]" x-text="form.fitness_goal ? form.fitness_goal.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'N/A'"></p>
             </div>
-            <div class="flex items-center justify-between py-2">
-                <span class="text-[10px] text-white/50">{{ __('Activity') }}</span>
-                <p class="text-sm font-bold">{{ $profile['activity'] ?: 'N/A' }}</p>
+            <div class="flex items-center justify-between py-2 border-b border-white/10">
+                <span class="text-[10px] text-white/50">{{ __('Dietary Preference') }}</span>
+                <p class="text-sm font-bold" x-text="form.dietary_preference || 'N/A'"></p>
+            </div>
+            <div class="py-2">
+                <span class="text-[10px] text-white/50 block mb-2">{{ __('Allergies') }}</span>
+                <div class="flex flex-wrap gap-1">
+                    <template x-if="form.allergies && form.allergies.length">
+                        <template x-for="a in form.allergies" :key="a">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-400/20 text-red-300" x-text="a"></span>
+                        </template>
+                    </template>
+                    <template x-if="!form.allergies || !form.allergies.length">
+                        <span class="text-sm text-white/40">N/A</span>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        {{-- Edit Mode --}}
+        <div x-show="editing" style="display:none" class="space-y-3 relative z-10">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[10px] text-white/50">{{ __('Height (cm)') }}</label>
+                    <input type="number" step="0.1" x-model="form.height_cm" class="mt-1 w-full px-3 py-2 text-sm border border-white/10 rounded-lg bg-white/5 text-white outline-none focus:ring-2 focus:ring-[#6E7A25]/30">
+                </div>
+                <div>
+                    <label class="text-[10px] text-white/50">{{ __('Weight (kg)') }}</label>
+                    <input type="number" step="0.1" x-model="form.weight_kg" class="mt-1 w-full px-3 py-2 text-sm border border-white/10 rounded-lg bg-white/5 text-white outline-none focus:ring-2 focus:ring-[#6E7A25]/30">
+                </div>
+            </div>
+            <div>
+                <label class="text-[10px] text-white/50">{{ __('Fitness Goal') }}</label>
+                <select x-model="form.fitness_goal" class="mt-1 w-full px-3 py-2 text-sm border border-white/10 rounded-lg bg-white/5 text-white outline-none focus:ring-2 focus:ring-[#6E7A25]/30">
+                    <option value="">—</option>
+                    <option value="weight_loss">{{ __('Weight Loss') }}</option>
+                    <option value="muscle_gain">{{ __('Muscle Gain') }}</option>
+                    <option value="maintenance">{{ __('Maintenance') }}</option>
+                    <option value="healthy_lifestyle">{{ __('Healthy Lifestyle') }}</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-[10px] text-white/50">{{ __('Dietary Preference') }}</label>
+                <input type="text" x-model="form.dietary_preference" class="mt-1 w-full px-3 py-2 text-sm border border-white/10 rounded-lg bg-white/5 text-white outline-none focus:ring-2 focus:ring-[#6E7A25]/30">
+            </div>
+            <div>
+                <label class="text-[10px] text-white/50">{{ __('Allergies') }}</label>
+                <input type="text" x-model="allergiesText" placeholder="e.g. Peanuts, Lactose, Gluten" class="mt-1 w-full px-3 py-2 text-sm border border-white/10 rounded-lg bg-white/5 text-white outline-none focus:ring-2 focus:ring-[#6E7A25]/30">
+                <p class="text-[9px] text-white/30 mt-1">{{ __('Separate with commas') }}</p>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function profileEditor() {
+    return {
+        editing: false,
+        saving: false,
+        allergiesText: '',
+        form: {
+            first_name: '{{ $profile['first_name'] }}',
+            last_name: '{{ $profile['last_name'] }}',
+            email: '{{ $profile['email'] }}',
+            phone: '{{ $profile['phone'] }}',
+            gender: '{{ strtolower($profile['gender']) }}',
+            age: '{{ $profile['age'] ?? '' }}',
+            height_cm: '{{ $profile['height'] ?? '' }}',
+            weight_kg: '{{ $profile['weight'] ?? '' }}',
+            fitness_goal: '{{ $profile['fitness_goal_raw'] ?? '' }}',
+            dietary_preference: '{{ $profile['dietary_preference'] ?? '' }}',
+            location: '{{ $profile['zone'] }}',
+            address: '{{ $profile['address'] }}',
+            allergies: @json($profile['allergies'] ?? []),
+        },
+
+        startEdit() {
+            this.allergiesText = Array.isArray(this.form.allergies) ? this.form.allergies.join(', ') : '';
+            this.editing = true;
+        },
+
+        cancelEdit() {
+            this.editing = false;
+        },
+
+        async saveEdit() {
+            this.saving = true;
+            try {
+                const payload = { ...this.form };
+                if (this.allergiesText) {
+                    payload.allergies = this.allergiesText.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                } else {
+                    payload.allergies = [];
+                }
+                delete payload.email;
+                if (payload.age === '') payload.age = null;
+                if (payload.height_cm === '') payload.height_cm = null;
+                if (payload.weight_kg === '') payload.weight_kg = null;
+                if (payload.gender === '') payload.gender = null;
+                if (payload.fitness_goal === '') payload.fitness_goal = null;
+
+                const r = await fetch('{{ route('user.settings.update') }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const d = await r.json();
+                if (d.success) {
+                    this.editing = false;
+                    if (d.user) {
+                        this.form.first_name = d.user.first_name || this.form.first_name;
+                        this.form.last_name = d.user.last_name || this.form.last_name;
+                        this.form.phone = d.user.phone || this.form.phone;
+                        this.form.gender = d.user.gender || '';
+                        this.form.age = d.user.age ?? '';
+                        this.form.height_cm = d.user.height_cm ?? '';
+                        this.form.weight_kg = d.user.weight_kg ?? '';
+                        this.form.fitness_goal = d.user.fitness_goal || '';
+                        this.form.dietary_preference = d.user.dietary_preference || '';
+                        this.form.location = d.user.location || '';
+                        this.form.address = d.user.address || '';
+                        this.form.allergies = d.user.allergies || [];
+                    }
+                    alert('{{ __('Profile updated successfully!') }}');
+                } else {
+                    alert(d.error || '{{ __('Failed to update profile.') }}');
+                }
+            } catch(e) { console.error('Failed to update profile', e); alert('{{ __('Failed to update profile.') }}'); }
+            finally { this.saving = false; }
+        }
+    }
+}
+</script>
 
 {{-- Subscription Panel --}}
 @if($subscriptionInfo)

@@ -725,10 +725,10 @@ class AdminController extends Controller
 
     public function updateCustomer(Request $request, AdminApiService $adminApi, int $id)
     {
-        $data = $request->only(['first_name', 'last_name', 'email', 'phone', 'location', 'address', 'is_active']);
+        $data = $request->only(['first_name', 'last_name', 'email', 'phone', 'location', 'address', 'is_active', 'gender', 'age', 'height_cm', 'weight_kg', 'fitness_goal', 'dietary_preference', 'allergies']);
         $data = array_filter($data, function ($v) {
             return $v !== null && $v !== '';
-        });
+        }, ARRAY_FILTER_USE_BOTH);
 
         if (empty($data)) {
             return response()->json(['success' => false, 'error' => __('No data provided.')], 422);

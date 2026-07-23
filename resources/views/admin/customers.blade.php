@@ -395,7 +395,7 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
-      <form @submit.prevent="submitEdit" class="space-y-3">
+      <form @submit.prevent="submitEdit" class="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('First Name') }}</label>
@@ -414,13 +414,59 @@
           <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Phone') }}</label>
           <input type="text" x-model="editForm.phone" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
         </div>
-        <div>
-          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Location') }}</label>
-          <input type="text" x-model="editForm.location" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Location') }}</label>
+            <input type="text" x-model="editForm.location" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Address') }}</label>
+            <input type="text" x-model="editForm.address" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Gender') }}</label>
+            <select x-model="editForm.gender" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+              <option value="">—</option>
+              <option value="male">{{ __('Male') }}</option>
+              <option value="female">{{ __('Female') }}</option>
+              <option value="other">{{ __('Other') }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Age') }}</label>
+            <input type="number" x-model="editForm.age" min="0" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Height (cm)') }}</label>
+            <input type="number" step="0.1" x-model="editForm.height_cm" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Weight (kg)') }}</label>
+            <input type="number" step="0.1" x-model="editForm.weight_kg" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+          </div>
         </div>
         <div>
-          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Address') }}</label>
-          <input type="text" x-model="editForm.address" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Fitness Goal') }}</label>
+          <select x-model="editForm.fitness_goal" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+            <option value="">—</option>
+            <option value="weight_loss">{{ __('Weight Loss') }}</option>
+            <option value="muscle_gain">{{ __('Muscle Gain') }}</option>
+            <option value="maintenance">{{ __('Maintenance') }}</option>
+            <option value="healthy_lifestyle">{{ __('Healthy Lifestyle') }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Dietary Preference') }}</label>
+          <input type="text" x-model="editForm.dietary_preference" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Allergies') }}</label>
+          <input type="text" x-model="editForm.allergies" placeholder="e.g. Peanuts, Lactose, Gluten" class="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+          <p class="text-[9px] text-gray-400 mt-1">{{ __('Separate with commas') }}</p>
         </div>
         <div class="flex gap-2 pt-2">
           <button type="button" @click="showEdit = false" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">{{ __('Cancel') }}</button>
@@ -464,7 +510,7 @@ function customersApp() {
     assigning: false,
     showEdit: false,
     editTarget: null,
-    editForm: { first_name: '', last_name: '', email: '', phone: '', location: '', address: '' },
+    editForm: { first_name: '', last_name: '', email: '', phone: '', location: '', address: '', gender: '', age: '', height_cm: '', weight_kg: '', fitness_goal: '', dietary_preference: '', allergies: '' },
     saving: false,
     showDelete: false,
     deleteTarget: null,
@@ -569,6 +615,13 @@ function customersApp() {
         phone: c.phone || '',
         location: c.location || '',
         address: c.address || '',
+        gender: c.gender || '',
+        age: c.age ?? '',
+        height_cm: c.height_cm ?? '',
+        weight_kg: c.weight_kg ?? '',
+        fitness_goal: c.fitness_goal || '',
+        dietary_preference: c.dietary_preference || '',
+        allergies: Array.isArray(c.allergies) ? c.allergies.join(', ') : (c.allergies || ''),
       };
       this.showEdit = true;
     },
@@ -576,10 +629,19 @@ function customersApp() {
     async submitEdit() {
       this.saving = true;
       try {
+        const payload = { ...this.editForm };
+        if (payload.allergies && typeof payload.allergies === 'string') {
+          payload.allergies = payload.allergies.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        }
+        if (payload.age === '') payload.age = null;
+        if (payload.height_cm === '') payload.height_cm = null;
+        if (payload.weight_kg === '') payload.weight_kg = null;
+        if (payload.gender === '') payload.gender = null;
+        if (payload.fitness_goal === '') payload.fitness_goal = null;
         const r = await fetch(`{{ url('admin/customers') }}/${this.editTarget.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-          body: JSON.stringify(this.editForm)
+          body: JSON.stringify(payload)
         });
         const d = await r.json();
         if (d.success) {
