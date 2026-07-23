@@ -2753,7 +2753,7 @@ class AdminController extends Controller
         return redirect()->route('admin.deliveries')->with('error', $message);
     }
 
-    public function payments(Request $request, PaymentApiService $paymentApi)
+    public function payments(Request $request, PaymentApiService $paymentApi, SubscriptionApiService $subscriptionApi)
     {
         $page = (int) $request->input('page', 1);
         $limit = (int) $request->input('limit', 20);
@@ -2763,7 +2763,17 @@ class AdminController extends Controller
         $query = ['page' => $page, 'limit' => $limit];
         if ($status) $query['status'] = $status;
 
-        $paymentsData = $this->apiData($paymentApi->list($query), fn () => []);
+        $paymentsResponse = $paymentApi->list($query);
+        $paymentsData = $this->apiData($paymentsResponse, fn () => []);
+
+        // Fetch all payments (up to 100) for accurate KPI aggregation
+        $allPaymentsResponse = $paymentApi->list(['limit' => 100]);
+        $allPaymentsData = $this->apiData($allPaymentsResponse, fn () => []);
+        $allPaymentsList = $allPaymentsResponse['data'] ?? $allPaymentsData;
+
+        // Fetch paid subscriptions for revenue fallback
+        $paidSubsResponse = $subscriptionApi->list(['limit' => 100, 'payment_status' => 'paid']);
+        $paidSubscriptions = $this->apiData($paidSubsResponse, fn () => []);
 
         $payments = [];
         $rawList = $paymentsData['data'] ?? $paymentsData;
@@ -2816,17 +2826,68 @@ class AdminController extends Controller
             ];
         }
 
-        $completed = array_filter($payments, fn ($p) => in_array($p['status'], ['paid', 'completed']));
-        $totalRevenue = array_sum(array_column($completed, 'amount'));
+        // Compute KPIs from all payments data (not just current page)
+        $kpiRevenue = 0;
+        $kpiPaid = 0;
+        $kpiPending = 0;
+        $kpiFailed = 0;
+        $kpiRefunded = 0;
+        $kpiRefundedAmount = 0;
+        $kpiCompletedAttempts = 0;
+
+        if (!empty($allPaymentsList) && is_array($allPaymentsList)) {
+            foreach ($allPaymentsList as $payment) {
+                $paymentInfo = $payment['payment'] ?? $payment;
+                $pStatus = $paymentInfo['status'] ?? 'pending';
+                $pAmount = (float) ($paymentInfo['amount'] ?? 0);
+
+                // Fallback: if payment amount is 0, use subscription amount
+                if ($pAmount == 0 && isset($payment['subscription'])) {
+                    $subPs = $payment['subscription']['payment_status'] ?? '';
+                    if ($subPs === 'paid') {
+                        // Use subscription amount from plan
+                        $pAmount = 0; // We don't have subscription.amount in payment response
+                    }
+                }
+
+                if (in_array($pStatus, ['paid', 'completed', 'captured'])) {
+                    $kpiPaid++;
+                    $kpiRevenue += $pAmount;
+                    $kpiCompletedAttempts++;
+                } elseif ($pStatus === 'pending') {
+                    $kpiPending++;
+                } elseif ($pStatus === 'failed') {
+                    $kpiFailed++;
+                    $kpiCompletedAttempts++;
+                } elseif ($pStatus === 'refunded') {
+                    $kpiRefunded++;
+                    $kpiRefundedAmount += $pAmount;
+                    $kpiCompletedAttempts++;
+                } elseif ($pStatus === 'cancelled') {
+                    $kpiCompletedAttempts++;
+                }
+            }
+        }
+
+        // Fallback: if no revenue from payments, use paid subscriptions
+        if ($kpiRevenue == 0 && !empty($paidSubscriptions) && is_array($paidSubscriptions)) {
+            foreach ($paidSubscriptions as $sub) {
+                $kpiRevenue += (float) ($sub['amount'] ?? 0);
+            }
+            $kpiPaid = count($paidSubscriptions);
+        }
+
+        // Success rate: only count completed attempts (exclude pending)
+        $successRate = $kpiCompletedAttempts > 0 ? round(($kpiPaid / $kpiCompletedAttempts) * 100, 1) : 0;
 
         $stats = [
-            ['label' => __('Total Revenue'), 'value' => 'SAR ' . number_format($totalRevenue), 'trend' => '+' . (count($payments) > 0 ? round((count($completed) / count($payments)) * 100, 1) : 0) . '%', 'trendClass' => 'text-green-600', 'icon' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => '#6E7A25', 'bg' => 'linear-gradient(135deg, #6E7A25 0%, #173327 100%)'],
-            ['label' => __('Success Rate'), 'value' => (count($payments) > 0 ? round((count($completed) / count($payments)) * 100, 1) : 0) . '%', 'trend' => '', 'trendClass' => 'text-green-600', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => '#3b82f6', 'bg' => 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'],
-            ['label' => __('Pending'), 'value' => count(array_filter($payments, fn ($p) => $p['status'] === 'pending')), 'trend' => '', 'trendClass' => 'text-amber-600', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => '#f59e0b', 'bg' => 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'],
-            ['label' => __('Failed / Refunded'), 'value' => count(array_filter($payments, fn ($p) => $p['status'] === 'failed')) . ' / SAR ' . number_format(array_sum(array_column(array_filter($payments, fn ($p) => $p['status'] === 'refunded'), 'amount'))), 'trend' => '', 'trendClass' => 'text-red-500', 'icon' => 'M6 18L18 6M6 6l12 12', 'color' => '#ef4444', 'bg' => 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'],
+            ['label' => __('Total Revenue'), 'value' => 'SAR ' . number_format($kpiRevenue, 2), 'trend' => '+' . $successRate . '%', 'trendClass' => 'text-green-600', 'icon' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => '#6E7A25', 'bg' => 'linear-gradient(135deg, #6E7A25 0%, #173327 100%)'],
+            ['label' => __('Success Rate'), 'value' => $successRate . '%', 'trend' => $kpiPaid . ' paid', 'trendClass' => 'text-green-600', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => '#3b82f6', 'bg' => 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'],
+            ['label' => __('Pending'), 'value' => $kpiPending, 'trend' => '', 'trendClass' => 'text-amber-600', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => '#f59e0b', 'bg' => 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'],
+            ['label' => __('Failed / Refunded'), 'value' => $kpiFailed . ' / SAR ' . number_format($kpiRefundedAmount, 2), 'trend' => $kpiRefunded . ' refunded', 'trendClass' => 'text-red-500', 'icon' => 'M6 18L18 6M6 6l12 12', 'color' => '#ef4444', 'bg' => 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'],
         ];
 
-        $meta = $paymentsData['meta'] ?? [];
+        $meta = $paymentsResponse['meta'] ?? $paymentsData['meta'] ?? [];
         $total = $meta['total'] ?? count($payments);
         $pages = $meta['pages'] ?? 1;
 
