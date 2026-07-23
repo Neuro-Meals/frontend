@@ -744,6 +744,24 @@ function profileCompleteModal() {
     </div>
 </div>
 
+@php
+$deliveryPrefsJson = collect($mealCategories ?? [])->map(function($cat) use ($existingDeliveryPrefs) {
+    $existing = collect($existingDeliveryPrefs ?? [])->firstWhere('meal_category_id', $cat['id'] ?? null);
+    return [
+        'meal_category_id' => $cat['id'] ?? null,
+        'category_name' => $cat['name_en'] ?? $cat['name'] ?? 'Meal',
+        'place_type' => $existing['place_type'] ?? '',
+        'place_name' => $existing['place_name'] ?? '',
+        'city' => $existing['city'] ?? 'Riyadh',
+        'delivery_area' => $existing['delivery_area'] ?? '',
+        'delivery_address' => $existing['delivery_address'] ?? '',
+        'latitude' => $existing['latitude'] ?? null,
+        'longitude' => $existing['longitude'] ?? null,
+        'preferred_delivery_time' => $existing['preferred_delivery_time'] ?? '08:00',
+        'delivery_note' => $existing['delivery_note'] ?? '',
+    ];
+})->values()->toArray();
+@endphp
 <script>
 function deliveryOnboarding() {
     return {
@@ -751,24 +769,7 @@ function deliveryOnboarding() {
         saving: false,
         message: '',
         success: false,
-        preferences: @json(
-            collect($mealCategories ?? [])->map(function($cat) use ($existingDeliveryPrefs) {
-                $existing = collect($existingDeliveryPrefs ?? [])->firstWhere('meal_category_id', $cat['id'] ?? null);
-                return [
-                    'meal_category_id' => $cat['id'] ?? null,
-                    'category_name' => $cat['name_en'] ?? $cat['name'] ?? 'Meal',
-                    'place_type' => $existing['place_type'] ?? '',
-                    'place_name' => $existing['place_name'] ?? '',
-                    'city' => $existing['city'] ?? 'Riyadh',
-                    'delivery_area' => $existing['delivery_area'] ?? '',
-                    'delivery_address' => $existing['delivery_address'] ?? '',
-                    'latitude' => $existing['latitude'] ?? null,
-                    'longitude' => $existing['longitude'] ?? null,
-                    'preferred_delivery_time' => $existing['preferred_delivery_time'] ?? '08:00',
-                    'delivery_note' => $existing['delivery_note'] ?? '',
-                ];
-            })->values()->toArray()
-        ),
+        preferences: @json($deliveryPrefsJson),
 
         init() {
             setTimeout(() => { this.show = true; }, 1200);
