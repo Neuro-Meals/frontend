@@ -184,9 +184,28 @@ class AdminController extends Controller
             $revenueByDay[$day] = 0;
         }
 
-        // Compute revenue from paid subscriptions (primary source)
+        // Compute revenue from orders' total_amount (primary source — represents actual sales)
         $subPaymentCounts = ['paid' => 0, 'pending' => 0, 'unpaid' => 0, 'failed' => 0, 'refunded' => 0, 'other' => 0];
-        if (!empty($paidSubscriptions) && is_array($paidSubscriptions)) {
+        if (!empty($allOrders) && is_array($allOrders)) {
+            foreach ($allOrders as $order) {
+                $amount = (float) ($order['total_amount'] ?? 0);
+                $totalRevenue += $amount;
+                $orderDate = date('Y-m-d', strtotime($order['delivery_date'] ?? ($order['created_at'] ?? 'now')));
+                $orderMonth = substr($orderDate, 0, 7);
+                if ($orderMonth === $thisMonth) {
+                    $monthlyRevenue += $amount;
+                }
+                if ($orderMonth === $lastMonth) {
+                    $lastMonthRevenue += $amount;
+                }
+                if (isset($revenueByDay[$orderDate])) {
+                    $revenueByDay[$orderDate] += $amount;
+                }
+            }
+        }
+
+        // If orders gave no revenue, fallback to paid subscriptions
+        if ($totalRevenue == 0 && !empty($paidSubscriptions) && is_array($paidSubscriptions)) {
             foreach ($paidSubscriptions as $sub) {
                 $amount = (float) ($sub['amount'] ?? 0);
                 $totalRevenue += $amount;
@@ -302,7 +321,7 @@ class AdminController extends Controller
         $stats = [
             'totalUsers' => $totalUsers,
             'newUsersThisWeek' => $dashboardReport['new_users_this_week'] ?? $newUsersThisWeek,
-            'totalRevenue' => $dashboardReport['paid_revenue'] ?? ($summaryReport['paid_revenue'] ?? $totalRevenue),
+            'totalRevenue' => $totalRevenue > 0 ? $totalRevenue : ($dashboardReport['paid_revenue'] ?? ($summaryReport['paid_revenue'] ?? 0)),
             'activeSubscriptions' => $activeSubsCount > 0 ? $activeSubsCount : $activeSubscriptions,
             'totalMeals' => $totalMeals,
             'successRate' => $dashboardReport['success_rate'] ?? $successRate,
