@@ -127,6 +127,16 @@ Route::post('verify-email/resend', [VerificationController::class, 'resend'])->n
 // Logout
 Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
+// Coming Soon page for non-Riyadh users
+Route::get('/coming-soon', function () {
+    $authApi = app(\App\Services\Api\AuthApiService::class);
+    $user = $authApi->user();
+    return view('coming-soon', [
+        'location' => $user['location'] ?? '',
+        'email' => $user['email'] ?? '',
+    ]);
+})->name('coming-soon');
+
 // Role-based redirect after login
 Route::get('/home', function () {
     $authApi = app(\App\Services\Api\AuthApiService::class);
@@ -141,6 +151,12 @@ Route::get('/home', function () {
     }
     if ($authApi->hasRole('driver')) {
         return redirect()->route('driver.dashboard');
+    }
+    // Check if customer is in Riyadh — if not, redirect to coming soon
+    $user = $authApi->user();
+    $location = strtolower(trim($user['location'] ?? ''));
+    if ($location && !in_array($location, ['riyadh', 'الرياض', 'riyad', 'ar riyadh'])) {
+        return redirect()->route('coming-soon');
     }
     return redirect()->route('user.dashboard');
 })->name('home');

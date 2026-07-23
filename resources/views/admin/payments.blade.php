@@ -166,7 +166,7 @@
             </tr>
           </template>
           <template x-for="payment in payments" :key="payment.id">
-            <tr class="border-b border-gray-50 hover:bg-gray-50/30 transition-colors cursor-pointer" @click="showReceipt(payment)">
+            <tr class="border-b border-gray-50 hover:bg-gray-50/30 transition-colors" :class="isPaid(payment) ? 'cursor-pointer' : ''" @click="isPaid(payment) && showReceipt(payment)">
               <td class="px-4 py-2.5">
                 <span class="text-xs font-bold text-gray-900" x-text="payment.id"></span>
               </td>
@@ -191,9 +191,10 @@
                 </span>
               </td>
               <td class="px-4 py-2.5 text-right">
-                <button @click.stop="showReceipt(payment)" class="text-[10px] font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] px-2.5 py-1 rounded-lg hover:shadow-md transition-all">
+                <button x-show="isPaid(payment)" @click.stop="showReceipt(payment)" class="text-[10px] font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] px-2.5 py-1 rounded-lg hover:shadow-md transition-all">
                   {{ __('Receipt') }}
                 </button>
+                <span x-show="!isPaid(payment)" class="text-[10px] font-medium text-gray-400 italic">{{ __('Awaiting Payment') }}</span>
               </td>
             </tr>
           </template>
@@ -561,18 +562,27 @@ function paymentsApp() {
     circumference: 2 * Math.PI * 48,
 
     get paidCount() {
-      return this.payments.filter(p => ['paid', 'completed', 'captured'].includes(p.status)).length;
+      const s = this.stats.find(s => s.label === 'Success Rate');
+      return s ? parseInt(s.trend) || 0 : this.payments.filter(p => ['paid', 'completed', 'captured'].includes(p.status)).length;
     },
     get successRate() {
-      return this.payments.length ? Math.round((this.paidCount / this.payments.length) * 100) : 0;
+      const s = this.stats.find(s => s.label === 'Success Rate');
+      if (s) return parseFloat(s.value) || 0;
+      const completed = this.payments.filter(p => ['paid', 'completed', 'captured', 'failed', 'refunded', 'cancelled'].includes(p.status));
+      const paid = this.payments.filter(p => ['paid', 'completed', 'captured'].includes(p.status));
+      return completed.length ? Math.round((paid.length / completed.length) * 100) : 0;
     },
     get totalRevenue() {
-      return 'SAR ' + this.payments.filter(p => ['paid', 'completed', 'captured'].includes(p.status)).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      const s = this.stats.find(s => s.label === 'Total Revenue');
+      return s ? s.value : 'SAR 0.00';
     },
     get pendingCount() {
-      return this.payments.filter(p => p.status === 'pending').length;
+      const s = this.stats.find(s => s.label === 'Pending');
+      return s ? s.value : this.payments.filter(p => p.status === 'pending').length;
     },
     get failedCount() {
+      const s = this.stats.find(s => s.label === 'Failed / Refunded');
+      if (s) return parseInt(s.value) || 0;
       return this.payments.filter(p => p.status === 'failed').length;
     },
     get refundedCount() {
@@ -592,6 +602,10 @@ function paymentsApp() {
         const count = this.payments.filter(p => p.status === item.key).length;
         return { ...item, count, pct: Math.round((count / total) * 100) };
       }).filter(item => item.count > 0 || item.key === 'paid');
+    },
+
+    isPaid(payment) {
+      return ['paid', 'completed', 'captured'].includes(payment.status);
     },
 
     statusClass(status) {

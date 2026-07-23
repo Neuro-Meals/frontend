@@ -96,6 +96,9 @@ class RegisterController extends Controller
             'address'    => $request->address,
         ]);
 
+        // Store location in session for post-verification redirect check
+        session(['registered_location' => $request->location]);
+
         if (isset($response['success']) && $response['success'] === false) {
             $message = $response['message'] ?? 'Registration failed.';
             $errors = $response['errors'] ?? [];

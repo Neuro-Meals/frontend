@@ -2795,7 +2795,10 @@ class AdminController extends Controller
             $amount = $paymentInfo['amount'] ?? ($payment['amount'] ?? 0);
             $currency = strtoupper($paymentInfo['currency'] ?? 'SAR');
             $provider = $paymentInfo['provider'] ?? 'stripe';
-            $status = $paymentInfo['status'] ?? ($payment['status'] ?? 'pending');
+            // Use subscription payment_status as primary, fallback to payment record status
+            $subPaymentStatus = $subscription['payment_status'] ?? null;
+            $paymentRecordStatus = $paymentInfo['status'] ?? ($payment['status'] ?? 'pending');
+            $status = $subPaymentStatus ?: $paymentRecordStatus;
             $paidAt = $paymentInfo['paid_at'] ?? ($payment['paid_at'] ?? '');
             $createdAt = $paymentInfo['created_at'] ?? ($payment['created_at'] ?? '');
 
@@ -2838,23 +2841,16 @@ class AdminController extends Controller
         if (!empty($allPaymentsList) && is_array($allPaymentsList)) {
             foreach ($allPaymentsList as $payment) {
                 $paymentInfo = $payment['payment'] ?? $payment;
-                $pStatus = $paymentInfo['status'] ?? 'pending';
+                // Use subscription payment_status as primary, fallback to payment record status
+                $subPs = $payment['subscription']['payment_status'] ?? null;
+                $pStatus = $subPs ?: ($paymentInfo['status'] ?? 'pending');
                 $pAmount = (float) ($paymentInfo['amount'] ?? 0);
-
-                // Fallback: if payment amount is 0, use subscription amount
-                if ($pAmount == 0 && isset($payment['subscription'])) {
-                    $subPs = $payment['subscription']['payment_status'] ?? '';
-                    if ($subPs === 'paid') {
-                        // Use subscription amount from plan
-                        $pAmount = 0; // We don't have subscription.amount in payment response
-                    }
-                }
 
                 if (in_array($pStatus, ['paid', 'completed', 'captured'])) {
                     $kpiPaid++;
                     $kpiRevenue += $pAmount;
                     $kpiCompletedAttempts++;
-                } elseif ($pStatus === 'pending') {
+                } elseif (in_array($pStatus, ['pending', 'unpaid'])) {
                     $kpiPending++;
                 } elseif ($pStatus === 'failed') {
                     $kpiFailed++;

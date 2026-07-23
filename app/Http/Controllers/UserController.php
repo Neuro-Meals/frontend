@@ -50,6 +50,12 @@ class UserController extends Controller
             session(['api_user' => $user]);
         }
 
+        // Redirect non-Riyadh customers to coming-soon page
+        $userLocation = strtolower(trim($user['location'] ?? ''));
+        if ($userLocation && !in_array($userLocation, ['riyadh', 'الرياض', 'riyad', 'ar riyadh'])) {
+            return redirect()->route('coming-soon');
+        }
+
         $mySubscriptions = $this->apiData($subscriptionApi->my(), function () {
             return [];
         });

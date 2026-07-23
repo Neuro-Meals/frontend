@@ -84,7 +84,13 @@ class LoginController extends Controller
                 } elseif ($authApi->hasRole('driver')) {
                     $redirect = route('driver.dashboard');
                 } else {
-                    $redirect = route('user.dashboard');
+                    // Check if customer is in Riyadh — if not, redirect to coming soon
+                    $userLocation = strtolower(trim($user['location'] ?? ''));
+                    if ($userLocation && !in_array($userLocation, ['riyadh', 'الرياض', 'riyad', 'ar riyadh'])) {
+                        $redirect = route('coming-soon');
+                    } else {
+                        $redirect = route('user.dashboard');
+                    }
                 }
 
                 Log::info('Login role redirect', [
