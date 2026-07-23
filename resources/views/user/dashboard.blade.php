@@ -641,203 +641,102 @@ function profileCompleteModal() {
 </script>
 @endif
 
-{{-- Delivery Onboarding (Full-page on mobile, modal on desktop) --}}
+{{-- Delivery Onboarding Popup --}}
 @if($needsDeliveryOnboarding ?? false)
-<div x-data="deliveryOnboarding()" x-init="init()" x-show="show" x-transition.opacity
-     class="fixed inset-0 z-[100] flex items-stretch justify-center" style="display: none">
-    {{-- Overlay: full opaque on mobile, semi-transparent on desktop --}}
-    <div class="absolute inset-0 bg-white md:bg-black/50 md:backdrop-blur-sm"></div>
-
-    {{-- Container: full-page on mobile, modal on desktop --}}
-    <div class="relative w-full md:max-w-2xl md:my-auto md:max-h-[92vh] bg-white md:rounded-3xl shadow-2xl overflow-hidden flex flex-col min-h-screen md:min-h-0">
-        {{-- Header with progress --}}
-        <div class="bg-gradient-to-br from-[#173327] to-[#025C5F] px-5 py-5 md:px-6 md:py-6 text-white relative overflow-hidden flex-shrink-0">
+<div x-data="deliveryOnboarding()" x-init="init()" x-show="show" x-transition
+     class="fixed inset-0 z-[60] flex items-center justify-center p-4" style="display: none">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+    <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col">
+        {{-- Header --}}
+        <div class="bg-gradient-to-br from-[#173327] to-[#025C5F] p-6 text-white relative overflow-hidden flex-shrink-0">
             <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
-            <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12 blur-xl"></div>
-            <div class="relative z-10">
-                <div class="flex items-center gap-3 mb-3">
-                    <div class="w-11 h-11 md:w-12 md:h-12 rounded-2xl bg-white/15 flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
-                        <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
-                    </div>
-                    <div class="flex-1">
-                        <h3 class="text-base md:text-lg font-bold leading-tight">{{ __('Set Your Delivery Destinations') }}</h3>
-                        <p class="text-[11px] md:text-xs text-white/70 mt-0.5">{{ __('Required to start your meal plan') }}</p>
-                    </div>
-                    {{-- Required badge --}}
-                    <div class="flex items-center gap-1 px-2 py-1 rounded-full bg-red-500/20 border border-red-400/30 flex-shrink-0">
-                        <span class="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse"></span>
-                        <span class="text-[9px] font-bold uppercase tracking-wider">{{ __('Required') }}</span>
-                    </div>
+            <div class="relative z-10 flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
                 </div>
-                {{-- Progress bar --}}
-                <div class="flex items-center gap-1.5">
-                    <template x-for="i in preferences.length" :key="i">
-                        <div class="flex-1 h-1.5 rounded-full bg-white/15 overflow-hidden">
-                            <div class="h-full rounded-full bg-white transition-all duration-500" :style="`width: ${i - 1 < currentStep ? 100 : (i - 1 === currentStep ? 50 : 0)}%`"></div>
-                        </div>
-                    </template>
-                </div>
-                <div class="flex items-center justify-between mt-2">
-                    <span class="text-[10px] text-white/60" x-text="`Step ${currentStep + 1} of ${preferences.length}`"></span>
-                    <span class="text-[10px] text-white/60" x-text="`${Math.round((currentStep / preferences.length) * 100)}% complete`"></span>
+                <div>
+                    <h3 class="text-base font-bold">{{ __('Set Your Delivery Destinations') }}</h3>
+                    <p class="text-xs text-white/70 mt-0.5">{{ __('Tell us where to deliver each meal category') }}</p>
                 </div>
             </div>
         </div>
 
-        {{-- Info banner --}}
-        <div class="px-5 md:px-6 pt-4 flex-shrink-0">
-            <div class="text-[11px] md:text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl p-3 flex items-start gap-2">
+        {{-- Body --}}
+        <form @submit.prevent="save()" class="p-6 space-y-5 overflow-y-auto flex-1">
+            <p class="text-xs text-gray-500 bg-amber-50 border border-amber-100 rounded-lg p-3 flex items-start gap-2">
                 <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <span>{{ __('You can have different delivery locations for each meal category (e.g. breakfast at home, lunch at work). Please set a destination for each category.') }}</span>
-            </div>
-        </div>
+                <span>{{ __('You can have different delivery locations for each meal category (e.g. breakfast at home, lunch at work). Please set a destination for each category below.') }}</span>
+            </p>
 
-        {{-- Body: step-by-step on mobile, all-at-once on desktop --}}
-        <form @submit.prevent="save()" class="flex-1 overflow-y-auto px-5 md:px-6 py-4">
-            {{-- Mobile: show one category at a time --}}
-            <div class="md:hidden">
-                <template x-for="(pref, index) in preferences" :key="index">
-                    <div x-show="currentStep === index" x-transition>
-                        <div class="border border-gray-100 rounded-2xl p-4 bg-gray-50/30">
-                            {{-- Category header --}}
-                            <div class="flex items-center gap-2 mb-4">
-                                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17"/></svg>
-                                </div>
-                                <div class="flex-1">
-                                    <span class="text-sm font-bold text-gray-800" x-text="pref.category_name"></span>
-                                    <p class="text-[10px] text-gray-400 mt-0.5">{{ __('Where should we deliver this?') }}</p>
-                                </div>
-                            </div>
+            <template x-for="(pref, index) in preferences" :key="index">
+                <div class="border border-gray-100 rounded-2xl p-4 bg-gray-50/30">
+                    {{-- Category header --}}
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17"/></svg>
+                        </div>
+                        <span class="text-sm font-bold text-gray-800" x-text="pref.category_name"></span>
+                    </div>
 
-                            <div class="space-y-3">
-                                <div>
-                                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Place Type') }} <span class="text-red-500">*</span></label>
-                                    <select x-model="pref.place_type" class="w-full text-sm border border-gray-200 rounded-xl px-3 py-3 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all">
-                                        <option value="">{{ __('Select...') }}</option>
-                                        <option value="home">{{ __('Home') }}</option>
-                                        <option value="work">{{ __('Work') }}</option>
-                                        <option value="gym">{{ __('Gym') }}</option>
-                                        <option value="school">{{ __('School') }}</option>
-                                        <option value="university">{{ __('University') }}</option>
-                                        <option value="other">{{ __('Other') }}</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Place Name') }}</label>
-                                    <input type="text" x-model="pref.place_name" class="w-full text-sm border border-gray-200 rounded-xl px-3 py-3 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" :placeholder="pref.place_type === 'home' ? 'e.g. My Apartment' : 'e.g. Office Building'">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('City') }} <span class="text-red-500">*</span></label>
-                                    <input type="text" x-model="pref.city" class="w-full text-sm border border-gray-200 rounded-xl px-3 py-3 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" placeholder="Riyadh">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Delivery Area') }} <span class="text-red-500">*</span></label>
-                                    <input type="text" x-model="pref.delivery_area" class="w-full text-sm border border-gray-200 rounded-xl px-3 py-3 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" placeholder="e.g. Al Olaya">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Delivery Address') }} <span class="text-red-500">*</span></label>
-                                    <input type="text" x-model="pref.delivery_address" class="w-full text-sm border border-gray-200 rounded-xl px-3 py-3 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" placeholder="e.g. King Fahd Rd, Building 123, Apt 4">
-                                </div>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Delivery Time') }} <span class="text-red-500">*</span></label>
-                                        <input type="time" x-model="pref.preferred_delivery_time" class="w-full text-sm border border-gray-200 rounded-xl px-3 py-3 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all">
-                                    </div>
-                                    <div>
-                                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Note') }}</label>
-                                        <input type="text" x-model="pref.delivery_note" class="w-full text-sm border border-gray-200 rounded-xl px-3 py-3 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" placeholder="e.g. Ring bell twice">
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Place Type') }} <span class="text-red-500">*</span></label>
+                            <select x-model="pref.place_type" required class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all">
+                                <option value="">{{ __('Select...') }}</option>
+                                <option value="home">{{ __('Home') }}</option>
+                                <option value="work">{{ __('Work') }}</option>
+                                <option value="gym">{{ __('Gym') }}</option>
+                                <option value="school">{{ __('School') }}</option>
+                                <option value="university">{{ __('University') }}</option>
+                                <option value="other">{{ __('Other') }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Place Name') }}</label>
+                            <input type="text" x-model="pref.place_name" class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" :placeholder="pref.place_type === 'home' ? 'e.g. My Apartment' : 'e.g. Office Building'">
                         </div>
                     </div>
-                </template>
-            </div>
 
-            {{-- Desktop: show all categories at once --}}
-            <div class="hidden md:block space-y-5">
-                <template x-for="(pref, index) in preferences" :key="index">
-                    <div class="border border-gray-100 rounded-2xl p-4 bg-gray-50/30">
-                        <div class="flex items-center gap-2 mb-4">
-                            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center flex-shrink-0">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17"/></svg>
-                            </div>
-                            <span class="text-sm font-bold text-gray-800" x-text="pref.category_name"></span>
+                    <div class="grid grid-cols-2 gap-3 mt-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('City') }} <span class="text-red-500">*</span></label>
+                            <input type="text" x-model="pref.city" required class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" placeholder="Riyadh">
                         </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Place Type') }} <span class="text-red-500">*</span></label>
-                                <select x-model="pref.place_type" required class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all">
-                                    <option value="">{{ __('Select...') }}</option>
-                                    <option value="home">{{ __('Home') }}</option>
-                                    <option value="work">{{ __('Work') }}</option>
-                                    <option value="gym">{{ __('Gym') }}</option>
-                                    <option value="school">{{ __('School') }}</option>
-                                    <option value="university">{{ __('University') }}</option>
-                                    <option value="other">{{ __('Other') }}</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Place Name') }}</label>
-                                <input type="text" x-model="pref.place_name" class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" :placeholder="pref.place_type === 'home' ? 'e.g. My Apartment' : 'e.g. Office Building'">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3 mt-3">
-                            <div>
-                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('City') }} <span class="text-red-500">*</span></label>
-                                <input type="text" x-model="pref.city" required class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" placeholder="Riyadh">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Delivery Area') }} <span class="text-red-500">*</span></label>
-                                <input type="text" x-model="pref.delivery_area" required class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" placeholder="e.g. Al Olaya">
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Delivery Address') }} <span class="text-red-500">*</span></label>
-                            <input type="text" x-model="pref.delivery_address" required class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" placeholder="e.g. King Fahd Rd, Building 123, Apt 4">
-                        </div>
-                        <div class="grid grid-cols-2 gap-3 mt-3">
-                            <div>
-                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Preferred Delivery Time') }} <span class="text-red-500">*</span></label>
-                                <input type="time" x-model="pref.preferred_delivery_time" required class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Delivery Note') }}</label>
-                                <input type="text" x-model="pref.delivery_note" class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" placeholder="e.g. Ring the bell twice">
-                            </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Delivery Area') }} <span class="text-red-500">*</span></label>
+                            <input type="text" x-model="pref.delivery_area" required class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" placeholder="e.g. Al Olaya">
                         </div>
                     </div>
-                </template>
-            </div>
 
-            <div x-show="message" x-transition class="mt-4 px-4 py-3 rounded-xl" :class="success ? 'bg-green-50 border border-green-100' : 'bg-red-50 border border-red-100'">
+                    <div class="mt-3">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Delivery Address') }} <span class="text-red-500">*</span></label>
+                        <input type="text" x-model="pref.delivery_address" required class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" placeholder="e.g. King Fahd Rd, Building 123, Apt 4">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mt-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Preferred Delivery Time') }} <span class="text-red-500">*</span></label>
+                            <input type="time" x-model="pref.preferred_delivery_time" required class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Delivery Note') }}</label>
+                            <input type="text" x-model="pref.delivery_note" class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20 focus:border-[#6E7A25] transition-all" placeholder="e.g. Ring the bell twice">
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <div x-show="message" x-transition class="px-4 py-3 rounded-xl" :class="success ? 'bg-green-50 border border-green-100' : 'bg-red-50 border border-red-100'">
                 <span class="text-xs font-medium" :class="success ? 'text-green-600' : 'text-red-600'" x-text="message"></span>
             </div>
         </form>
 
-        {{-- Footer: step navigation on mobile, save on desktop --}}
-        <div class="flex items-center gap-3 px-5 md:px-6 py-4 border-t border-gray-100 flex-shrink-0 bg-white pb-safe">
-            {{-- Mobile: Back button --}}
-            <button type="button" x-show="currentStep > 0" @click="prevStep()" class="md:hidden px-5 py-3 text-sm font-bold rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all flex items-center gap-1.5 flex-shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                {{ __('Back') }}
+        {{-- Footer --}}
+        <div class="flex gap-3 p-6 border-t border-gray-100 flex-shrink-0 bg-white">
+            <button type="button" @click="dismiss()" class="px-4 py-2.5 text-sm font-bold rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all">
+                {{ __('Skip for Now') }}
             </button>
-
-            {{-- Mobile: Next button --}}
-            <button type="button" x-show="currentStep < preferences.length - 1" @click="nextStep()" class="md:hidden flex-1 px-4 py-3 text-sm font-bold rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-lg hover:shadow-[#6E7A25]/20 transition-all flex items-center justify-center gap-2">
-                {{ __('Next') }}
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </button>
-
-            {{-- Mobile: Save button (last step) --}}
-            <button type="button" x-show="currentStep === preferences.length - 1" @click="save()" :disabled="saving" class="md:hidden flex-1 px-4 py-3 text-sm font-bold rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-lg hover:shadow-[#6E7A25]/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                <svg x-show="saving" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                <span x-text="saving ? '{{ __('Saving...') }}' : '{{ __('Save & Finish') }}'"></span>
-            </button>
-
-            {{-- Desktop: Save all button --}}
-            <button type="button" @click="save()" :disabled="saving" class="hidden md:flex flex-1 px-4 py-2.5 text-sm font-bold rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-lg hover:shadow-[#6E7A25]/20 transition-all disabled:opacity-50 items-center justify-center gap-2">
+            <button type="button" @click="save()" :disabled="saving" class="flex-1 px-4 py-2.5 text-sm font-bold rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-lg hover:shadow-[#6E7A25]/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                 <svg x-show="saving" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span x-text="saving ? '{{ __('Saving...') }}' : '{{ __('Save Delivery Preferences') }}'"></span>
             </button>
@@ -870,31 +769,14 @@ function deliveryOnboarding() {
         saving: false,
         message: '',
         success: false,
-        currentStep: 0,
         preferences: @json($deliveryPrefsJson),
 
         init() {
-            setTimeout(() => { this.show = true; }, 800);
+            setTimeout(() => { this.show = true; }, 1200);
         },
 
-        nextStep() {
-            const p = this.preferences[this.currentStep];
-            if (!p.place_type || !p.city || !p.delivery_area || !p.delivery_address || !p.preferred_delivery_time) {
-                this.message = '{{ __('Please fill all required fields before continuing.') }}';
-                this.success = false;
-                return;
-            }
-            this.message = '';
-            if (this.currentStep < this.preferences.length - 1) {
-                this.currentStep++;
-            }
-        },
-
-        prevStep() {
-            this.message = '';
-            if (this.currentStep > 0) {
-                this.currentStep--;
-            }
+        dismiss() {
+            this.show = false;
         },
 
         async save() {
