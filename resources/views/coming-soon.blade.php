@@ -128,4 +128,5 @@
     </p>
   </div>
 </div>
-@endsection
+</body>
+</html>
