@@ -757,7 +757,7 @@ class AdminController extends Controller
 
         $selections = $this->apiData($nutritionApi->subscriptionMealSelections($subscriptionId), fn () => []);
 
-        $mealsData = $this->apiData($mealApi->list(['is_available' => true, 'limit' => 200]), fn () => []);
+        $mealsData = $this->apiData($mealApi->list(['is_available' => true, 'limit' => 100]), fn () => []);
         $meals = collect($mealsData)->map(function ($m) {
             return [
                 'id' => $m['id'] ?? 0,
