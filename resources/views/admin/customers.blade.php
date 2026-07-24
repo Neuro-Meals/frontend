@@ -186,32 +186,32 @@
 
         {{-- Stats Mini Cards --}}
         <div x-show="!detailLoading" class="grid grid-cols-2 gap-3">
-          <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-3 text-white relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8"></div>
+          <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-xl p-4 text-white relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
             <div class="relative z-10">
-              <p class="text-[10px] text-white/60 font-medium">{{ __('Total Spent') }}</p>
-              <p class="text-lg font-bold mt-0.5" x-text="'SAR ' + Number(selected?.customerStats?.total_spent || 0).toLocaleString(undefined, {minimumFractionDigits: 2})"></p>
+              <p class="text-xs text-white/60 font-medium">{{ __('Total Spent') }}</p>
+              <p class="text-xl font-bold mt-1" x-text="'SAR ' + Number(selected?.customerStats?.total_spent || 0).toLocaleString(undefined, {minimumFractionDigits: 2})"></p>
             </div>
           </div>
-          <div class="bg-gradient-to-br from-[#033133] to-[#025C5F] rounded-xl p-3 text-white relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8"></div>
+          <div class="bg-gradient-to-br from-[#033133] to-[#025C5F] rounded-xl p-4 text-white relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
             <div class="relative z-10">
-              <p class="text-[10px] text-white/60 font-medium">{{ __('Total Orders') }}</p>
-              <p class="text-lg font-bold mt-0.5" x-text="selected?.customerStats?.total_orders || 0"></p>
+              <p class="text-xs text-white/60 font-medium">{{ __('Total Orders') }}</p>
+              <p class="text-xl font-bold mt-1" x-text="selected?.customerStats?.total_orders || 0"></p>
             </div>
           </div>
-          <div class="bg-gradient-to-br from-[#6E7A25] to-[#949B50] rounded-xl p-3 text-white relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8"></div>
+          <div class="bg-gradient-to-br from-[#6E7A25] to-[#949B50] rounded-xl p-4 text-white relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
             <div class="relative z-10">
-              <p class="text-[10px] text-white/60 font-medium">{{ __('Payments') }}</p>
-              <p class="text-lg font-bold mt-0.5" x-text="(selected?.customerStats?.successful_payments || 0) + '/' + (selected?.customerStats?.total_payments || 0)"></p>
+              <p class="text-xs text-white/60 font-medium">{{ __('Payments') }}</p>
+              <p class="text-xl font-bold mt-1" x-text="(selected?.customerStats?.successful_payments || 0) + '/' + (selected?.customerStats?.total_payments || 0)"></p>
             </div>
           </div>
-          <div class="bg-gradient-to-br from-[#173327] to-[#033133] rounded-xl p-3 text-white relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8"></div>
+          <div class="bg-gradient-to-br from-[#173327] to-[#033133] rounded-xl p-4 text-white relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
             <div class="relative z-10">
-              <p class="text-[10px] text-white/60 font-medium">{{ __('Subscriptions') }}</p>
-              <p class="text-lg font-bold mt-0.5" x-text="(selected?.customerStats?.active_subscriptions || 0) + ' ' + '{{ __('active') }}'"></p>
+              <p class="text-xs text-white/60 font-medium">{{ __('Subscriptions') }}</p>
+              <p class="text-xl font-bold mt-1" x-text="(selected?.customerStats?.active_subscriptions || 0) + ' ' + '{{ __('active') }}'"></p>
             </div>
           </div>
         </div>
@@ -449,8 +449,12 @@
         </div>
         <div x-show="assignMealForm.subscription_id && assignMealForm.meal_time && availableMeals.length > 0">
           <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Select Meals') }} <span class="text-red-500">*</span></label>
+          <div class="relative mb-2">
+            <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" x-model="mealSearch" placeholder="{{ __('Search meals...') }}" class="w-full text-sm border border-gray-200 rounded-lg pl-9 pr-3 py-2 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+          </div>
           <div class="max-h-56 overflow-y-auto border border-gray-200 rounded-lg bg-gray-50 divide-y divide-gray-100">
-            <template x-for="m in availableMeals" :key="m.id">
+            <template x-for="m in availableMeals.filter(m => !mealSearch || m.name.toLowerCase().includes(mealSearch.toLowerCase()))" :key="m.id">
               <label class="flex items-center gap-3 px-4 py-3 hover:bg-white cursor-pointer transition-colors">
                 <input type="checkbox" :value="m.id" x-model="assignMealForm.selected_meals" class="w-5 h-5 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]/20">
                 <span class="text-sm text-gray-700" x-text="m.name"></span>
@@ -464,9 +468,13 @@
         {{-- Driver selection (optional, within meal flow) --}}
         <div x-show="assignMealForm.subscription_id && assignMealForm.meal_time && assignMealForm.selected_meals.length > 0" class="border-t border-gray-100 pt-4">
           <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Assign Driver') }} <span class="text-gray-400 normal-case font-normal">({{ __('optional') }})</span></label>
+          <div class="relative mb-2">
+            <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" x-model="driverSearch" placeholder="{{ __('Search drivers...') }}" class="w-full text-sm border border-gray-200 rounded-lg pl-9 pr-3 py-2 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+          </div>
           <select x-model="assignMealForm.driver_id" class="w-full text-sm border border-gray-200 rounded-lg px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
             <option value="">{{ __('No driver') }}</option>
-            <template x-for="d in driversList" :key="d.id">
+            <template x-for="d in driversList.filter(d => !driverSearch || d.name.toLowerCase().includes(driverSearch.toLowerCase()) || (d.phone || '').includes(driverSearch))" :key="d.id">
               <option :value="d.id" x-text="d.name + (d.phone ? ' · ' + d.phone : '')"></option>
             </template>
           </select>
@@ -713,6 +721,8 @@ function customersApp() {
     assignMealForm: { subscription_id: 0, meal_time: '', selected_meals: [], driver_id: '', assignment_reason: '', notes: '' },
     availableMeals: [],
     allMeals: [],
+    mealSearch: '',
+    driverSearch: '',
     showAssignDriver: false,
     assignDriverTarget: null,
     assigningDriver: false,
@@ -762,6 +772,8 @@ function customersApp() {
       this.assignMealForm = { subscription_id: 0, meal_time: '', selected_meals: [], driver_id: '', assignment_reason: c.location ? '{{ __('Same delivery zone: ') }}' + c.location : '', notes: '' };
       this.availableMeals = [];
       this.allMeals = [];
+      this.mealSearch = '';
+      this.driverSearch = '';
       try {
         const sub = c.subscription;
         const subId = sub?.id || 0;
