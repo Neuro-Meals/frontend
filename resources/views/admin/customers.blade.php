@@ -414,22 +414,46 @@
               </div>
             </template>
             <template x-if="assignMealForm.meal_time && assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]">
-              <div>
-                <p class="font-bold capitalize mb-1" x-text="assignMealForm.meal_time + ' ' + '{{ __('delivery to') }}'"></p>
-                <p x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].place_type">
-                  {{ __('Place') }}: <span class="font-bold capitalize" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].place_type"></span>
-                  <span x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].place_name" class="font-bold" x-text="' — ' + assignMealTarget.delivery_preferences[assignMealForm.meal_time].place_name"></span>
+              <div class="space-y-1.5">
+                <p class="font-bold capitalize text-blue-800 text-sm mb-2 flex items-center gap-1.5">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span x-text="assignMealForm.meal_time"></span> {{ __('delivery details') }}
                 </p>
-                <p x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_area">
-                  {{ __('Area') }}: <span class="font-bold" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_area"></span>
-                </p>
-                <p x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_address">
-                  {{ __('Address') }}: <span class="font-bold" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_address"></span>
-                </p>
-                <p x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].preferred_delivery_time">
-                  {{ __('Preferred Time') }}: <span class="font-bold" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].preferred_delivery_time"></span>
-                </p>
-                <p x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_note" class="text-xs text-blue-600 italic mt-1" x-text="'📝 ' + assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_note"></p>
+                <div class="bg-white/60 rounded-lg p-3 space-y-1.5 text-xs">
+                  <div class="flex items-start gap-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].place_type">
+                    <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('Place Type') }}</span>
+                    <span class="font-semibold text-blue-800 capitalize" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].place_type"></span>
+                  </div>
+                  <div class="flex items-start gap-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].place_name">
+                    <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('Place Name') }}</span>
+                    <span class="font-semibold text-blue-800" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].place_name"></span>
+                  </div>
+                  <div class="flex items-start gap-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].city">
+                    <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('City') }}</span>
+                    <span class="font-semibold text-blue-800" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].city"></span>
+                  </div>
+                  <div class="flex items-start gap-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_area">
+                    <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('Area') }}</span>
+                    <span class="font-semibold text-blue-800" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_area"></span>
+                  </div>
+                  <div class="flex items-start gap-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_address">
+                    <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('Address') }}</span>
+                    <span class="font-semibold text-blue-800" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_address"></span>
+                  </div>
+                  <div class="flex items-start gap-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].latitude || assignMealTarget.delivery_preferences[assignMealForm.meal_time].longitude">
+                    <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('GPS') }}</span>
+                    <span class="font-semibold text-blue-800" x-text="(assignMealTarget.delivery_preferences[assignMealForm.meal_time].latitude || '—') + ', ' + (assignMealTarget.delivery_preferences[assignMealForm.meal_time].longitude || '—')"></span>
+                    <a x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].latitude && assignMealTarget.delivery_preferences[assignMealForm.meal_time].longitude" :href="'https://www.google.com/maps?q=' + assignMealTarget.delivery_preferences[assignMealForm.meal_time].latitude + ',' + assignMealTarget.delivery_preferences[assignMealForm.meal_time].longitude" target="_blank" class="text-blue-500 hover:text-blue-700 underline ml-1">{{ __('View Map') }}</a>
+                  </div>
+                  <div class="flex items-start gap-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].preferred_delivery_time">
+                    <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('Time') }}</span>
+                    <span class="font-semibold text-blue-800" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].preferred_delivery_time"></span>
+                  </div>
+                  <div class="flex items-start gap-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_note">
+                    <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('Note') }}</span>
+                    <span class="font-semibold text-blue-600 italic" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_note"></span>
+                  </div>
+                </div>
               </div>
             </template>
             <template x-if="assignMealForm.meal_time && !assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]">
@@ -475,6 +499,27 @@
 
         {{-- Driver selection (optional, within meal flow) --}}
         <div x-show="assignMealForm.subscription_id && assignMealForm.meal_time && assignMealForm.selected_meals.length > 0" class="border-t border-gray-100 pt-4">
+          <div class="bg-amber-50 border border-amber-100 rounded-lg p-3 mb-3" x-show="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]">
+            <p class="text-xs font-bold text-amber-700 mb-1 flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              {{ __('Delivery Destination for Driver') }}
+            </p>
+            <div class="text-xs text-amber-800 space-y-0.5">
+              <p x-show="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.place_type">
+                <span class="font-bold capitalize" x-text="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.place_type"></span>
+                <span x-show="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.place_name" x-text="' — ' + assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.place_name"></span>
+              </p>
+              <p x-show="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.delivery_area">
+                <span x-text="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.city ? assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.city + ', ' : ''"></span>
+                <span class="font-semibold" x-text="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.delivery_area"></span>
+              </p>
+              <p x-show="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.delivery_address" x-text="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.delivery_address"></p>
+              <p x-show="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.preferred_delivery_time" class="font-bold">
+                {{ __('Deliver by') }}: <span x-text="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.preferred_delivery_time"></span>
+              </p>
+              <p x-show="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.delivery_note" class="italic text-amber-600" x-text="'📝 ' + assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.delivery_note"></p>
+            </div>
+          </div>
           <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Assign Driver') }} <span class="text-gray-400 normal-case font-normal">({{ __('optional') }})</span></label>
           <div class="relative mb-2">
             <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>

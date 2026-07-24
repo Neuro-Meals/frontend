@@ -703,6 +703,8 @@ class AdminController extends Controller
                     'city' => $pref['city'] ?? '',
                     'delivery_area' => $pref['delivery_area'] ?? '',
                     'delivery_address' => $pref['delivery_address'] ?? '',
+                    'latitude' => $pref['latitude'] ?? null,
+                    'longitude' => $pref['longitude'] ?? null,
                     'preferred_delivery_time' => $pref['preferred_delivery_time'] ?? '',
                     'delivery_note' => $pref['delivery_note'] ?? '',
                 ];
