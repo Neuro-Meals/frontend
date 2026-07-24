@@ -31,29 +31,37 @@
     </template>
   </div>
 
+  {{-- Tab Navigation --}}
+  <div class="flex items-center gap-2">
+    <button @click="switchTab('all')" :class="activeTab === 'all' ? 'bg-[#6E7A25] text-white shadow-md' : 'bg-white text-gray-500 border border-gray-100'" class="px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      {{ __('All Customers') }}
+    </button>
+    <button @click="switchTab('paid')" :class="activeTab === 'paid' ? 'bg-green-600 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-100'" class="px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.062-.18-2.087-.514-3.044z"/></svg>
+      {{ __('Paid Customers') }}
+    </button>
+  </div>
+
   {{-- Filter Bar --}}
   <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm flex flex-wrap items-center gap-2">
     <div class="flex items-center bg-gray-50 rounded-lg px-2.5 py-1.5 border border-gray-100 flex-1 min-w-[160px]">
       <svg class="w-3.5 h-3.5 text-gray-400 mr-1.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-      <input type="text" x-model="search" @input.debounce.300ms="fetchCustomers()" placeholder="{{ __('Search customers...') }}" class="bg-transparent text-xs outline-none flex-1 text-gray-600 placeholder-gray-400 w-20">
+      <input type="text" x-model="search" @input.debounce.300ms="page = 1; fetchCustomers()" placeholder="{{ __('Search customers...') }}" class="bg-transparent text-xs outline-none flex-1 text-gray-600 placeholder-gray-400 w-20">
     </div>
-    <select x-model="statusFilter" @change="fetchCustomers()" class="text-xs border border-gray-100 rounded-lg px-2 py-1.5 bg-gray-50 text-gray-600 outline-none cursor-pointer">
+    <select x-model="statusFilter" @change="page = 1; fetchCustomers()" class="text-xs border border-gray-100 rounded-lg px-2 py-1.5 bg-gray-50 text-gray-600 outline-none cursor-pointer">
       <option value="">{{ __('All Status') }}</option>
       <option value="active">{{ __('Active') }}</option>
       <option value="paused">{{ __('Paused') }}</option>
       <option value="cancelled">{{ __('Cancelled') }}</option>
       <option value="inactive">{{ __('Inactive') }}</option>
     </select>
-    <select x-model="planFilter" @change="fetchCustomers()" class="text-xs border border-gray-100 rounded-lg px-2 py-1.5 bg-gray-50 text-gray-600 outline-none cursor-pointer">
+    <select x-model="planFilter" @change="page = 1; fetchCustomers()" class="text-xs border border-gray-100 rounded-lg px-2 py-1.5 bg-gray-50 text-gray-600 outline-none cursor-pointer">
       <option value="">{{ __('All Plans') }}</option>
       <template x-for="p in plans" :key="p.id">
         <option :value="p.id" x-text="p.name"></option>
       </template>
     </select>
-    <button @click="paidOnly = !paidOnly; fetchCustomers()" :class="paidOnly ? 'bg-green-600 text-white border-green-600' : 'bg-gray-50 text-gray-600 border-gray-100'" class="text-xs font-bold rounded-lg px-3 py-1.5 border transition-all whitespace-nowrap flex items-center gap-1">
-      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.062-.18-2.087-.514-3.044z"/></svg>
-      {{ __('Paid Only') }}
-    </button>
     <button @click="fetchCustomers()" class="px-3 py-1.5 text-xs font-bold text-white bg-[#6E7A25] rounded-lg hover:bg-[#5a6820] transition-all shadow-sm whitespace-nowrap">
       <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
       {{ __('Refresh') }}
@@ -140,7 +148,7 @@
       </table>
     </div>
     <div class="px-4 py-3 border-t border-gray-50 flex items-center justify-between">
-      <p class="text-[10px] text-gray-400" x-text="`{{ __('Showing') }} ${customers.length} {{ __('customers') }}`"></p>
+      <p class="text-[10px] text-gray-400" x-text="`{{ __('Showing') }} ${(this.page - 1) * 20 + 1}-${(this.page - 1) * 20 + customers.length} {{ __('of') }} ${totalCount} {{ __('customers') }}`"></p>
       <div class="flex items-center gap-1">
         <button @click="prevPage" x-show="page > 1" class="px-2.5 py-1 text-[10px] font-medium text-gray-500 rounded-lg hover:bg-gray-50 transition-colors">{{ __('Prev') }}</button>
         <span class="px-2 py-1 text-[10px] font-bold text-white bg-[#6E7A25] rounded-lg" x-text="page"></span>
@@ -709,8 +717,10 @@ function customersApp() {
     statusFilter: '',
     planFilter: '',
     paidOnly: false,
+    activeTab: 'all',
     page: 1,
     hasMore: false,
+    totalCount: 0,
     loading: true,
     showAssignMeal: false,
     assignMealTarget: null,
@@ -886,6 +896,7 @@ function customersApp() {
         this.stats = d.stats || [];
         if (d.plans) this.plans = d.plans;
         this.hasMore = d.has_more || false;
+        this.totalCount = d.total || 0;
       } catch(e) { console.error('Failed to fetch customers', e); }
       finally { this.loading = false; }
     },
@@ -1007,6 +1018,14 @@ function customersApp() {
         }
       } catch(e) { console.error('Failed to delete customer', e); alert('{{ __('Failed to delete customer.') }}'); }
       finally { this.deleting = false; }
+    },
+
+    switchTab(tab) {
+      if (this.activeTab === tab) return;
+      this.activeTab = tab;
+      this.paidOnly = (tab === 'paid');
+      this.page = 1;
+      this.fetchCustomers();
     },
 
     prevPage() { if (this.page > 1) { this.page--; this.fetchCustomers(); } },

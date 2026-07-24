@@ -591,8 +591,8 @@ class AdminController extends Controller
                 'customers' => $customers,
                 'stats' => $stats,
                 'plans' => $plansList,
-                'has_more' => false,
-                'total' => $total,
+                'has_more' => ($page * $limit) < $totalCustomers,
+                'total' => $totalCustomers,
                 'page' => $page,
             ]);
         }
