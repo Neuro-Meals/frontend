@@ -725,7 +725,20 @@ class AdminController extends Controller
         return response()->json(['success' => false, 'error' => $error], 422);
     }
 
-    public function assignMealToCustomer(Request $request, int $id, NutritionApiService $nutritionApi)
+    private function customerHasPaid(int $userId, PaymentApiService $paymentApi): bool
+    {
+        $paymentsData = $this->apiData($paymentApi->list(['user_id' => $userId, 'limit' => 50]), fn () => []);
+        foreach ($paymentsData as $payment) {
+            $paymentInfo = $payment['payment'] ?? $payment;
+            $status = $paymentInfo['status'] ?? 'pending';
+            if (in_array($status, ['paid', 'captured'], true)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function assignMealToCustomer(Request $request, int $id, NutritionApiService $nutritionApi, PaymentApiService $paymentApi)
     {
         $validated = $request->validate([
             'subscription_id' => ['required', 'integer', 'min:1'],
@@ -733,6 +746,10 @@ class AdminController extends Controller
             'day_number' => ['required', 'integer', 'min:1', 'max:7'],
             'meal_time' => ['required', 'string'],
         ]);
+
+        if (!$this->customerHasPaid($id, $paymentApi)) {
+            return response()->json(['success' => false, 'message' => __('Cannot assign meal: customer has not paid.')], 403);
+        }
 
         $result = $this->apiData($nutritionApi->assignMeal($validated['subscription_id'], $validated), fn () => ['success' => false]);
 
@@ -773,7 +790,7 @@ class AdminController extends Controller
         ]);
     }
 
-    public function assignDriverToCustomer(Request $request, int $id, CustomerDriverApiService $customerDriverApi)
+    public function assignDriverToCustomer(Request $request, int $id, CustomerDriverApiService $customerDriverApi, PaymentApiService $paymentApi)
     {
         $validated = $request->validate([
             'driver_id' => ['required', 'integer', 'min:1'],
@@ -782,6 +799,10 @@ class AdminController extends Controller
         ]);
 
         $validated['customer_id'] = $id;
+
+        if (!$this->customerHasPaid($id, $paymentApi)) {
+            return response()->json(['success' => false, 'message' => __('Cannot assign driver: customer has not paid.')], 403);
+        }
 
         $result = $this->apiData($customerDriverApi->assign($validated), fn () => ['success' => false]);
         $success = !empty($result) && !isset($result['success']) || ($result['success'] ?? true);

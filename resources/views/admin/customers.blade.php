@@ -215,16 +215,12 @@
         {{-- Quick Actions --}}
         <div x-show="!detailLoading" class="space-y-2">
           <div class="flex gap-2">
-            <button @click="assignPlan(selected)" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-[#6E7A25] text-white hover:bg-[#5a6820] transition-all">
-              <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-              {{ __('Assign Plan') }}
-            </button>
             <button @click="openEdit(selected)" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">
               <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
               {{ __('Edit') }}
             </button>
           </div>
-          <div class="flex gap-2">
+          <div x-show="selected?.customerStats?.successful_payments > 0" class="flex gap-2">
             <button @click="openAssignMeal(selected)" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-[#033133] to-[#025C5F] text-white hover:shadow-md transition-all">
               <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17"/></svg>
               {{ __('Assign Meal') }}
@@ -233,6 +229,11 @@
               <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
               {{ __('Assign Driver') }}
             </button>
+          </div>
+          <div x-show="!(selected?.customerStats?.successful_payments > 0)" class="flex gap-2">
+            <div class="flex-1 px-3 py-2 text-xs font-medium rounded-lg bg-amber-50 border border-amber-100 text-amber-700 text-center">
+              {{ __('Assign Meal & Driver available after payment.') }}
+            </div>
           </div>
           <button @click="generateOrderForCustomer(selected)" class="w-full px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:shadow-md transition-all">
             <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
@@ -394,46 +395,35 @@
         <svg class="w-6 h-6 text-gray-200 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
       </div>
       <form x-show="!mealLoading" @submit.prevent="submitAssignMeal()" class="space-y-3">
-        <div x-show="!assignMealForm.subscription_id" class="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg p-3">{{ __('Customer has no active subscription. Assign a plan first.') }}</div>
-        <div x-show="assignMealForm.subscription_id">
-          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Day') }} <span class="text-red-500">*</span></label>
-          <select x-model="assignMealForm.day_number" required @change="updateAvailableMeals()" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
-            <option value="">{{ __('Select day...') }}</option>
-            <option value="1">{{ __('Day 1') }}</option>
-            <option value="2">{{ __('Day 2') }}</option>
-            <option value="3">{{ __('Day 3') }}</option>
-            <option value="4">{{ __('Day 4') }}</option>
-            <option value="5">{{ __('Day 5') }}</option>
-            <option value="6">{{ __('Day 6') }}</option>
-            <option value="7">{{ __('Day 7') }}</option>
-          </select>
-        </div>
+        <div x-show="!assignMealForm.subscription_id" class="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg p-3">{{ __('Customer has no active subscription.') }}</div>
         <div x-show="assignMealForm.subscription_id">
           <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Meal Time') }} <span class="text-red-500">*</span></label>
           <select x-model="assignMealForm.meal_time" required @change="updateAvailableMeals()" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
-            <option value="">{{ __('Select time...') }}</option>
+            <option value="">{{ __('Select category...') }}</option>
             <option value="breakfast">{{ __('Breakfast') }}</option>
             <option value="lunch">{{ __('Lunch') }}</option>
             <option value="dinner">{{ __('Dinner') }}</option>
             <option value="snack">{{ __('Snack') }}</option>
           </select>
         </div>
-        <div x-show="assignMealForm.subscription_id && assignMealForm.day_number && assignMealForm.meal_time && availableMeals.length > 0">
-          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Select Meal') }} <span class="text-red-500">*</span></label>
-          <select x-model="assignMealForm.meal_id" required class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
-            <option value="">{{ __('Select meal...') }}</option>
+        <div x-show="assignMealForm.subscription_id && assignMealForm.meal_time && availableMeals.length > 0">
+          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Select Meals') }} <span class="text-red-500">*</span></label>
+          <div class="max-h-48 overflow-y-auto border border-gray-200 rounded-lg bg-gray-50 divide-y divide-gray-100">
             <template x-for="m in availableMeals" :key="m.id">
-              <option :value="m.id" x-text="m.name"></option>
+              <label class="flex items-center gap-2 px-3 py-2 hover:bg-white cursor-pointer transition-colors">
+                <input type="checkbox" :value="m.id" x-model="assignMealForm.selected_meals" class="w-4 h-4 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]/20">
+                <span class="text-sm text-gray-700" x-text="m.name"></span>
+              </label>
             </template>
-          </select>
-          <p class="text-[9px] text-gray-400 mt-1">{{ __('Only meals in the plan slot will be accepted by the system.') }}</p>
+          </div>
+          <p class="text-[9px] text-gray-400 mt-1" x-text="assignMealForm.selected_meals.length + ' ' + '{{ __('meals selected') }}'"></p>
         </div>
-        <div x-show="assignMealForm.subscription_id && assignMealForm.day_number && assignMealForm.meal_time && availableMeals.length === 0" class="text-xs text-gray-400 bg-gray-50 rounded-lg p-3">{{ __('No meals available.') }}</div>
+        <div x-show="assignMealForm.subscription_id && assignMealForm.meal_time && availableMeals.length === 0" class="text-xs text-gray-400 bg-gray-50 rounded-lg p-3">{{ __('No meals available.') }}</div>
         <div x-show="assignMealError" class="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2" x-text="assignMealError"></div>
         <div x-show="assignMealSuccess" class="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2" x-text="assignMealSuccess"></div>
         <div class="flex gap-2 pt-1">
           <button type="button" @click="showAssignMeal = false" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">{{ __('Cancel') }}</button>
-          <button type="submit" :disabled="assigningMeal || !assignMealForm.subscription_id" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-[#033133] to-[#025C5F] text-white hover:shadow-md transition-all disabled:opacity-50" x-text="assigningMeal ? '{{ __('Assigning...') }}' : '{{ __('Assign Meal') }}'"></button>
+          <button type="submit" :disabled="assigningMeal || !assignMealForm.subscription_id || assignMealForm.selected_meals.length === 0" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-[#033133] to-[#025C5F] text-white hover:shadow-md transition-all disabled:opacity-50" x-text="assigningMeal ? '{{ __('Assigning...') }}' : '{{ __('Assign Meals') }}'"></button>
         </div>
       </form>
     </div>
