@@ -468,27 +468,17 @@ class AdminController extends Controller
         $status = $request->input('status');
         $planId = $request->input('plan_id');
         $search = $request->input('search');
-        $paidOnly = $request->input('paid_only') === '1';
+        $workflow = $request->input('workflow');
 
-        $query = ['limit' => $paidOnly ? 100 : $limit, 'role' => 'customer'];
+        $query = ['limit' => $limit, 'role' => 'customer'];
         if ($status) $query['status'] = $status;
         if ($planId) $query['plan_id'] = $planId;
         if ($search) $query['search'] = $search;
+        if ($workflow) $query['workflow'] = $workflow;
 
         $usersResponse = $adminApi->usersList($query);
         $usersData = $this->apiData($usersResponse, fn () => []);
         $totalCustomers = $this->apiMeta($usersResponse)['total'] ?? count($usersData);
-
-        if ($paidOnly) {
-            $usersData = array_filter($usersData, function ($user) {
-                $payStatus = $user['subscription']['payment_status'] ?? '';
-                return in_array($payStatus, ['paid', 'captured'], true);
-            });
-            $usersData = array_values($usersData);
-            $totalCustomers = count($usersData);
-            $offset = ($page - 1) * $limit;
-            $usersData = array_slice($usersData, $offset, $limit);
-        }
 
         // Fetch all customers (up to 100) for accurate KPI aggregation
         $allCustomersResponse = $adminApi->usersList(['limit' => 100, 'role' => 'customer']);

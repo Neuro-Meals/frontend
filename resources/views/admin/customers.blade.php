@@ -39,7 +39,11 @@
     </button>
     <button @click="switchTab('paid')" :class="activeTab === 'paid' ? 'bg-green-600 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-100'" class="px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.062-.18-2.087-.514-3.044z"/></svg>
-      {{ __('Paid Customers') }}
+      {{ __('Waiting for Meals') }}
+    </button>
+    <button @click="switchTab('served')" :class="activeTab === 'served' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-100'" class="px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+      {{ __('Meals Served') }}
     </button>
   </div>
 
@@ -763,6 +767,7 @@ function customersApp() {
     planFilter: '',
     paidOnly: false,
     activeTab: 'all',
+    workflow: '',
     page: 1,
     hasMore: false,
     totalCount: 0,
@@ -934,7 +939,7 @@ function customersApp() {
         if (this.statusFilter) p.set('status', this.statusFilter);
         if (this.planFilter) p.set('plan_id', this.planFilter);
         if (this.search) p.set('search', this.search);
-        if (this.paidOnly) p.set('paid_only', '1');
+        if (this.workflow) p.set('workflow', this.workflow);
         const r = await fetch(`{{ route('admin.customers') }}?${p.toString()}`, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
         const d = await r.json();
         this.customers = d.customers || [];
@@ -1068,7 +1073,13 @@ function customersApp() {
     switchTab(tab) {
       if (this.activeTab === tab) return;
       this.activeTab = tab;
-      this.paidOnly = (tab === 'paid');
+      if (tab === 'paid') {
+        this.workflow = 'paid_without_meals';
+      } else if (tab === 'served') {
+        this.workflow = 'paid_with_meals';
+      } else {
+        this.workflow = '';
+      }
       this.page = 1;
       this.fetchCustomers();
     },
