@@ -235,7 +235,7 @@
               {{ __('Assign Meal & Driver available after payment.') }}
             </div>
           </div>
-          <button @click="generateOrderForCustomer(selected)" class="w-full px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:shadow-md transition-all">
+          <button @click="selected?.customerStats?.successful_payments > 0 && generateOrderForCustomer(selected)" :disabled="!(selected?.customerStats?.successful_payments > 0)" :class="selected?.customerStats?.successful_payments > 0 ? 'from-amber-500 to-orange-500 hover:shadow-md' : 'from-gray-300 to-gray-400 cursor-not-allowed'" class="w-full px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r text-white transition-all disabled:opacity-60">
             <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
             {{ __('Generate Order') }}
           </button>
@@ -381,11 +381,11 @@
   {{-- Assign Meal Modal --}}
   <div x-show="showAssignMeal" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none">
     <div class="absolute inset-0 bg-black/40" @click="showAssignMeal = false"></div>
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" @click.outside="showAssignMeal = false">
-      <div class="flex items-center justify-between mb-4">
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8" @click.outside="showAssignMeal = false">
+      <div class="flex items-center justify-between mb-5">
         <div>
-          <h3 class="text-sm font-bold text-gray-900">{{ __('Assign Meal') }}</h3>
-          <p class="text-xs text-gray-400 mt-0.5" x-text="`${__('Assign a meal to')} ${assignMealTarget?.name}`"></p>
+          <h3 class="text-base font-bold text-gray-900">{{ __('Assign Meal') }}</h3>
+          <p class="text-sm text-gray-400 mt-1" x-text="`${__('Assign a meal to')} ${assignMealTarget?.name}`"></p>
         </div>
         <button @click="showAssignMeal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -394,11 +394,11 @@
       <div x-show="mealLoading" class="flex items-center justify-center py-6">
         <svg class="w-6 h-6 text-gray-200 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
       </div>
-      <form x-show="!mealLoading" @submit.prevent="submitAssignMeal()" class="space-y-3">
-        <div x-show="!assignMealForm.subscription_id" class="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg p-3">{{ __('Customer has no active subscription.') }}</div>
+      <form x-show="!mealLoading" @submit.prevent="submitAssignMeal()" class="space-y-4">
+        <div x-show="!assignMealForm.subscription_id" class="text-sm text-amber-600 bg-amber-50 border border-amber-100 rounded-lg p-3">{{ __('Customer has no active subscription.') }}</div>
         <div x-show="assignMealForm.subscription_id">
-          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Meal Time') }} <span class="text-red-500">*</span></label>
-          <select x-model="assignMealForm.meal_time" required @change="updateAvailableMeals()" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Meal Time') }} <span class="text-red-500">*</span></label>
+          <select x-model="assignMealForm.meal_time" required @change="updateAvailableMeals()" class="w-full text-sm border border-gray-200 rounded-lg px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
             <option value="">{{ __('Select category...') }}</option>
             <option value="breakfast">{{ __('Breakfast') }}</option>
             <option value="lunch">{{ __('Lunch') }}</option>
@@ -407,23 +407,23 @@
           </select>
         </div>
         <div x-show="assignMealForm.subscription_id && assignMealForm.meal_time && availableMeals.length > 0">
-          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">{{ __('Select Meals') }} <span class="text-red-500">*</span></label>
-          <div class="max-h-48 overflow-y-auto border border-gray-200 rounded-lg bg-gray-50 divide-y divide-gray-100">
+          <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Select Meals') }} <span class="text-red-500">*</span></label>
+          <div class="max-h-56 overflow-y-auto border border-gray-200 rounded-lg bg-gray-50 divide-y divide-gray-100">
             <template x-for="m in availableMeals" :key="m.id">
-              <label class="flex items-center gap-2 px-3 py-2 hover:bg-white cursor-pointer transition-colors">
-                <input type="checkbox" :value="m.id" x-model="assignMealForm.selected_meals" class="w-4 h-4 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]/20">
+              <label class="flex items-center gap-3 px-4 py-3 hover:bg-white cursor-pointer transition-colors">
+                <input type="checkbox" :value="m.id" x-model="assignMealForm.selected_meals" class="w-5 h-5 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]/20">
                 <span class="text-sm text-gray-700" x-text="m.name"></span>
               </label>
             </template>
           </div>
-          <p class="text-[9px] text-gray-400 mt-1" x-text="assignMealForm.selected_meals.length + ' ' + '{{ __('meals selected') }}'"></p>
+          <p class="text-xs text-gray-400 mt-1.5" x-text="assignMealForm.selected_meals.length + ' ' + '{{ __('meals selected') }}'"></p>
         </div>
-        <div x-show="assignMealForm.subscription_id && assignMealForm.meal_time && availableMeals.length === 0" class="text-xs text-gray-400 bg-gray-50 rounded-lg p-3">{{ __('No meals available.') }}</div>
-        <div x-show="assignMealError" class="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2" x-text="assignMealError"></div>
-        <div x-show="assignMealSuccess" class="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2" x-text="assignMealSuccess"></div>
-        <div class="flex gap-2 pt-1">
-          <button type="button" @click="showAssignMeal = false" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">{{ __('Cancel') }}</button>
-          <button type="submit" :disabled="assigningMeal || !assignMealForm.subscription_id || assignMealForm.selected_meals.length === 0" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-[#033133] to-[#025C5F] text-white hover:shadow-md transition-all disabled:opacity-50" x-text="assigningMeal ? '{{ __('Assigning...') }}' : '{{ __('Assign Meals') }}'"></button>
+        <div x-show="assignMealForm.subscription_id && assignMealForm.meal_time && availableMeals.length === 0" class="text-sm text-gray-400 bg-gray-50 rounded-lg p-3">{{ __('No meals available.') }}</div>
+        <div x-show="assignMealError" class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2" x-text="assignMealError"></div>
+        <div x-show="assignMealSuccess" class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2" x-text="assignMealSuccess"></div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" @click="showAssignMeal = false" class="flex-1 px-4 py-3 text-sm font-bold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">{{ __('Cancel') }}</button>
+          <button type="submit" :disabled="assigningMeal || !assignMealForm.subscription_id || assignMealForm.selected_meals.length === 0" class="flex-1 px-4 py-3 text-sm font-bold rounded-lg bg-gradient-to-r from-[#033133] to-[#025C5F] text-white hover:shadow-md transition-all disabled:opacity-50" x-text="assigningMeal ? '{{ __('Assigning...') }}' : '{{ __('Assign Meals') }}'"></button>
         </div>
       </form>
     </div>
@@ -646,7 +646,7 @@ function customersApp() {
     assigningMeal: false,
     assignMealError: '',
     assignMealSuccess: '',
-    assignMealForm: { subscription_id: 0, meal_id: '', day_number: '', meal_time: '' },
+    assignMealForm: { subscription_id: 0, meal_time: '', selected_meals: [] },
     availableMeals: [],
     allMeals: [],
     showAssignDriver: false,
@@ -695,7 +695,7 @@ function customersApp() {
       this.mealLoading = true;
       this.assignMealError = '';
       this.assignMealSuccess = '';
-      this.assignMealForm = { subscription_id: 0, meal_id: '', day_number: '', meal_time: '' };
+      this.assignMealForm = { subscription_id: 0, meal_time: '', selected_meals: [] };
       this.availableMeals = [];
       this.allMeals = [];
       try {
@@ -712,12 +712,12 @@ function customersApp() {
     },
 
     updateAvailableMeals() {
-      this.assignMealForm.meal_id = '';
+      this.assignMealForm.selected_meals = [];
       this.availableMeals = this.allMeals;
     },
 
     async submitAssignMeal() {
-      if (!this.assignMealForm.subscription_id || !this.assignMealForm.meal_id || !this.assignMealForm.day_number || !this.assignMealForm.meal_time) return;
+      if (!this.assignMealForm.subscription_id || !this.assignMealForm.meal_time || this.assignMealForm.selected_meals.length === 0) return;
       this.assigningMeal = true;
       this.assignMealError = '';
       this.assignMealSuccess = '';
@@ -725,16 +725,20 @@ function customersApp() {
         const r = await fetch(`{{ url('admin/customers') }}/${this.assignMealTarget.id}/assign-meal`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-          body: JSON.stringify(this.assignMealForm)
+          body: JSON.stringify({
+            subscription_id: this.assignMealForm.subscription_id,
+            meal_time: this.assignMealForm.meal_time,
+            meal_ids: this.assignMealForm.selected_meals,
+          })
         });
         const d = await r.json();
         if (d.success) {
-          this.assignMealSuccess = d.message || '{{ __('Meal assigned successfully!') }}';
+          this.assignMealSuccess = d.message || '{{ __('Meals assigned successfully!') }}';
           setTimeout(() => { this.showAssignMeal = false; }, 1500);
         } else {
-          this.assignMealError = d.message || d.error || '{{ __('Failed to assign meal.') }}';
+          this.assignMealError = d.message || d.error || '{{ __('Failed to assign meals.') }}';
         }
-      } catch(e) { console.error('Failed to assign meal', e); this.assignMealError = '{{ __('Failed to assign meal.') }}'; }
+      } catch(e) { console.error('Failed to assign meals', e); this.assignMealError = '{{ __('Failed to assign meals.') }}'; }
       finally { this.assigningMeal = false; }
     },
 

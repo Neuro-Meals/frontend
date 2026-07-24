@@ -591,9 +591,17 @@ class AdminController extends Controller
     public function customerDetails(int $id, AdminApiService $adminApi, SubscriptionApiService $subscriptionApi, PaymentApiService $paymentApi, OrderApiService $orderApi)
     {
         $user = $this->apiData($adminApi->userShow($id), fn () => []);
-        $subscriptionsData = $this->apiData($subscriptionApi->list(['user_id' => $id, 'limit' => 50]), fn () => []);
-        $paymentsData = $this->apiData($paymentApi->list(['user_id' => $id, 'limit' => 50]), fn () => []);
-        $ordersData = $this->apiData($orderApi->list(['user_id' => $id, 'limit' => 50]), fn () => []);
+        $subscriptionsRaw = $this->apiData($subscriptionApi->list(['user_id' => $id, 'limit' => 50]), fn () => []);
+        $paymentsRaw = $this->apiData($paymentApi->list(['user_id' => $id, 'limit' => 50]), fn () => []);
+        $ordersRaw = $this->apiData($orderApi->list(['user_id' => $id, 'limit' => 50]), fn () => []);
+
+        $subscriptionsData = $subscriptionsRaw['data'] ?? $subscriptionsRaw;
+        $paymentsData = $paymentsRaw['data'] ?? $paymentsRaw;
+        $ordersData = $ordersRaw['data'] ?? $ordersRaw;
+
+        if (isset($subscriptionsData['items'])) $subscriptionsData = $subscriptionsData['items'];
+        if (isset($paymentsData['items'])) $paymentsData = $paymentsData['items'];
+        if (isset($ordersData['items'])) $ordersData = $ordersData['items'];
 
         $subscriptions = [];
         $totalSpent = 0;
@@ -727,7 +735,9 @@ class AdminController extends Controller
 
     private function customerHasPaid(int $userId, PaymentApiService $paymentApi): bool
     {
-        $paymentsData = $this->apiData($paymentApi->list(['user_id' => $userId, 'limit' => 50]), fn () => []);
+        $paymentsRaw = $this->apiData($paymentApi->list(['user_id' => $userId, 'limit' => 50]), fn () => []);
+        $paymentsData = $paymentsRaw['data'] ?? $paymentsRaw;
+        if (isset($paymentsData['items'])) $paymentsData = $paymentsData['items'];
         foreach ($paymentsData as $payment) {
             $paymentInfo = $payment['payment'] ?? $payment;
             $status = $paymentInfo['status'] ?? 'pending';
@@ -742,21 +752,41 @@ class AdminController extends Controller
     {
         $validated = $request->validate([
             'subscription_id' => ['required', 'integer', 'min:1'],
-            'meal_id' => ['required', 'integer', 'min:1'],
-            'day_number' => ['required', 'integer', 'min:1', 'max:7'],
             'meal_time' => ['required', 'string'],
+            'meal_ids' => ['required', 'array', 'min:1'],
+            'meal_ids.*' => ['required', 'integer', 'min:1'],
         ]);
 
         if (!$this->customerHasPaid($id, $paymentApi)) {
             return response()->json(['success' => false, 'message' => __('Cannot assign meal: customer has not paid.')], 403);
         }
 
-        $result = $this->apiData($nutritionApi->assignMeal($validated['subscription_id'], $validated), fn () => ['success' => false]);
+        $assigned = 0;
+        $errors = [];
+        foreach ($validated['meal_ids'] as $mealId) {
+            $payload = [
+                'subscription_id' => $validated['subscription_id'],
+                'meal_id' => $mealId,
+                'meal_time' => $validated['meal_time'],
+                'day_number' => 1,
+            ];
+            $result = $this->apiData($nutritionApi->assignMeal($validated['subscription_id'], $payload), fn () => ['success' => false]);
+            if (isset($result['id']) || ($result['success'] ?? false)) {
+                $assigned++;
+            } else {
+                $errors[] = $result['detail'] ?? ($result['message'] ?? __('Failed to assign meal.'));
+            }
+        }
 
-        $success = isset($result['id']) || ($result['success'] ?? false);
-        $message = $result['detail'] ?? ($result['message'] ?? ($success ? __('Meal assigned successfully.') : __('Failed to assign meal.')));
+        if ($assigned > 0) {
+            $message = $assigned === count($validated['meal_ids'])
+                ? __('All meals assigned successfully.')
+                : __(':assigned/:total meals assigned.', ['assigned' => $assigned, 'total' => count($validated['meal_ids'])]);
+            return response()->json(['success' => true, 'message' => $message], 200);
+        }
 
-        return response()->json(['success' => $success, 'message' => $message], $success ? 200 : 422);
+        $message = implode(' ', array_unique($errors)) ?: __('Failed to assign meals.');
+        return response()->json(['success' => false, 'message' => $message], 422);
     }
 
     public function customerMealSelections(int $id, Request $request, SubscriptionApiService $subscriptionApi, NutritionApiService $nutritionApi, MealApiService $mealApi)
