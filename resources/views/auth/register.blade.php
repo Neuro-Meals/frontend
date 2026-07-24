@@ -462,21 +462,13 @@
             selectCity() {
                 if (!this.selectedCity) {
                     this.form.location = '';
+                    this.form.address = '';
                     return;
                 }
                 this.form.location = this.selectedCity;
-                const city = this.cities.find(c => c.name_en === this.selectedCity);
-                if (city && (!this.form.address || this.form.address.trim() === '')) {
-                    this.form.address = city.name_en + ', ';
-                }
-                this.$nextTick(() => {
-                    const addrInput = document.getElementById('address');
-                    if (addrInput) {
-                        addrInput.focus();
-                        const val = addrInput.value;
-                        addrInput.setSelectionRange(val.length, val.length);
-                    }
-                });
+                const region = this.regions.find(r => r.code === this.selectedRegion);
+                const regionName = region ? region.name_en : '';
+                this.form.address = (regionName ? regionName + ', ' : '') + this.selectedCity;
             },
             showToast(message, type = 'error') {
                 this.toast = {
