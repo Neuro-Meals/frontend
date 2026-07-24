@@ -141,14 +141,12 @@
         </div>
 
         {{-- Action Buttons --}}
-        <div class="flex flex-col sm:flex-row gap-3 pt-2">
-            <a href="{{ route('user.dashboard') }}" class="px-5 py-3 text-sm font-bold rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all text-center order-2 sm:order-1">
-                {{ __('Skip for Now') }}
-            </a>
-            <button type="submit" :disabled="saving || completedCount === 0" class="flex-1 px-5 py-3 text-sm font-bold rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-lg hover:shadow-[#6E7A25]/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 order-1 sm:order-2">
+        <div class="pt-2">
+            <button type="submit" :disabled="saving || completedCount === 0" class="w-full px-5 py-3 text-sm font-bold rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-lg hover:shadow-[#6E7A25]/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                 <svg x-show="saving" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span x-text="saving ? '{{ __('Saving...') }}' : '{{ __('Save Delivery Preferences') }}'"></span>
             </button>
+            <p class="text-center text-xs text-gray-400 mt-2" x-show="completedCount < preferences.length">{{ __('Please complete all delivery destinations to continue') }}</p>
         </div>
     </form>
 </div>

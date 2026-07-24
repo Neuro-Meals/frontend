@@ -1,6 +1,6 @@
 @php
 $isLoggedIn = $isLoggedIn ?? !empty(session('api_user')['id'] ?? null);
-$nextUrl = $isLoggedIn ? route('user.subscriptions') : route('register');
+$nextUrl = $isLoggedIn ? route('user.onboarding.delivery-preferences.page') : route('register');
 $status = $verified ? 'paid' : ($error ? 'error' : 'pending');
 @endphp
 
@@ -154,7 +154,7 @@ $status = $verified ? 'paid' : ($error ? 'error' : 'pending');
                 </p>
                 <a href="{{ $nextUrl }}" class="inline-flex items-center justify-center gap-2 w-full py-3.5 text-sm font-bold text-white rounded-xl shadow-md bg-gradient-to-r from-[#173327] to-[#6E7A25] hover:from-[#6E7A25] hover:to-[#173327] transition-all">
                     @if($isLoggedIn)
-                    {{ __('Go to My Subscriptions') }}
+                    {{ __('Set Delivery Preferences') }}
                     @else
                     {{ __('Create Account') }}
                     @endif

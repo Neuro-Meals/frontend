@@ -73,6 +73,13 @@ class UserController extends Controller
             $activeSubscription = $mySubscriptions[0];
         }
 
+        // Redirect to plans page if no active paid subscription
+        $hasPaidSubscription = $activeSubscription
+            && in_array($activeSubscription['payment_status'] ?? '', ['paid', 'captured'], true);
+        if (!$hasPaidSubscription) {
+            return redirect()->route('user.subscriptions');
+        }
+
         $planDetails = [];
         if ($activeSubscription && !empty($activeSubscription['plan_id'])) {
             $planDetails = $this->apiData($planApi->show($activeSubscription['plan_id']), function () {

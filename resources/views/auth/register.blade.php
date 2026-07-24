@@ -158,8 +158,8 @@
                 </div>
 
                 {{-- Location --}}
-                <div class="relative" @click.away="locationOpen = false">
-                    <label for="location" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Location') }}</label>
+                <div>
+                    <label for="location_region" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Region') }}</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,77 +167,44 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                             </svg>
                         </div>
-                        <input id="location" type="text" name="location" x-model="form.location" required
-                            class="w-full pl-11 pr-11 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                        <select id="location_region" x-model="selectedRegion" @change="loadCities()"
+                            class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 bg-white"
                             :class="errors.location ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
-                            placeholder="{{ __('Select your city') }}">
-                        <button type="button" @click="toggleLocationPicker()"
-                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-emerald-600 transition-colors focus:outline-none"
-                            :aria-label="locationOpen ? '{{ __('Close location picker') }}' : '{{ __('Open location picker') }}'"
-                            title="{{ __('Choose location') }}">
-                            <svg x-show="!locationLoading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <svg x-show="locationLoading" class="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                        </button>
-                    </div>
-
-                    {{-- Location Picker Dropdown --}}
-                    <div x-show="locationOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" x-cloak
-                        class="absolute z-50 mt-2 w-full max-w-md bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden"
-                        style="left: 0; right: 0;">
-                        <div class="p-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-                            <h3 class="text-sm font-bold text-gray-900">{{ __('Choose your location') }}</h3>
-                            <button type="button" @click="locationOpen = false" class="text-gray-400 hover:text-gray-600">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                            </button>
-                        </div>
-
-                        <div class="p-4 max-h-56 sm:max-h-64 md:max-h-80 overflow-y-auto overscroll-contain touch-pan-y" style="-webkit-overflow-scrolling: touch;">
-                            {{-- Region selector --}}
-                            <div class="mb-3">
-                                <label class="block text-xs font-semibold text-gray-500 mb-1.5">{{ __('Region') }}</label>
-                                <select x-model="selectedRegion" @change="loadCities()"
-                                    class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none bg-white">
-                                    <option value="">{{ __('Select a region') }}</option>
-                                    <template x-for="region in regions" :key="region.code">
-                                        <option :value="region.code" x-text="region.name_en + (region.name_ar ? ' (' + region.name_ar + ')' : '')"></option>
-                                    </template>
-                                </select>
-                            </div>
-
-                            {{-- Cities list --}}
-                            <div x-show="selectedRegion && cities.length" x-transition>
-                                <label class="block text-xs font-semibold text-gray-500 mb-1.5">{{ __('City') }}</label>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                    <template x-for="city in cities" :key="city.code">
-                                        <button type="button" @click="selectCity(city)"
-                                            class="text-left px-3 py-2 rounded-lg border border-gray-100 hover:border-emerald-400 hover:bg-emerald-50 text-xs font-medium text-gray-700 transition-colors"
-                                            :class="form.location === city.name_en ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : ''"
-                                            x-text="city.name_en + (city.name_ar ? ' / ' + city.name_ar : '')">
-                                        </button>
-                                    </template>
-                                </div>
-                            </div>
-
-                            {{-- Empty states --}}
-                            <div x-show="selectedRegion && !cities.length && !locationLoading" class="text-center py-6 text-sm text-gray-400">
-                                {{ __('No cities found for this region.') }}
-                            </div>
-                            <div x-show="!selectedRegion && regions.length && !locationLoading" class="text-center py-6 text-sm text-gray-400">
-                                {{ __('Select a region to see cities.') }}
-                            </div>
-                            <div x-show="locationError" class="mt-3 p-3 rounded-lg bg-red-50 text-red-700 text-xs" x-text="locationError"></div>
-                        </div>
-
-                        <div class="p-3 border-t border-gray-100 bg-gray-50 text-center">
-                            <span class="text-[10px] text-gray-400">{{ __('Locations provided by Nutrio Meals') }}</span>
+                            required>
+                            <option value="">{{ __('Select region...') }}</option>
+                            <template x-for="region in regions" :key="region.code">
+                                <option :value="region.code" x-text="region.name_en + (region.name_ar ? ' (' + region.name_ar + ')' : '')"></option>
+                            </template>
+                        </select>
+                        <div x-show="locationLoading" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <svg class="animate-spin w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         </div>
                     </div>
                 </div>
+
+                <div x-show="selectedRegion && cities.length" x-transition>
+                    <label for="location_city" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('City') }}</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                        </div>
+                        <select id="location_city" x-model="selectedCity" @change="selectCity()"
+                            class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 bg-white"
+                            :class="errors.location ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'">
+                            <option value="">{{ __('Select city...') }}</option>
+                            <template x-for="city in cities" :key="city.code">
+                                <option :value="city.name_en" x-text="city.name_en + (city.name_ar ? ' / ' + city.name_ar : '')"></option>
+                            </template>
+                        </select>
+                    </div>
+                </div>
+
+                <div x-show="selectedRegion && !cities.length && !locationLoading" class="text-center py-2 text-sm text-gray-400">
+                    {{ __('No cities found for this region.') }}
+                </div>
+                <div x-show="locationError" class="p-3 rounded-lg bg-red-50 text-red-700 text-xs" x-text="locationError"></div>
 
                 {{-- Address --}}
                 <div>
@@ -459,17 +426,14 @@
                 agree_terms: false
             },
             showTermsModal: false,
-            locationOpen: false,
             locationLoading: false,
             locationError: '',
             regions: [],
             cities: [],
             selectedRegion: '',
-            toggleLocationPicker() {
-                this.locationOpen = !this.locationOpen;
-                if (this.locationOpen && this.regions.length === 0) {
-                    this.loadRegions();
-                }
+            selectedCity: '',
+            init() {
+                this.loadRegions();
             },
             async loadRegions() {
                 this.locationLoading = true;
@@ -490,6 +454,8 @@
             },
             async loadCities() {
                 this.cities = [];
+                this.selectedCity = '';
+                this.form.location = '';
                 if (!this.selectedRegion) {
                     return;
                 }
@@ -509,12 +475,16 @@
                     this.locationLoading = false;
                 }
             },
-            selectCity(city) {
-                this.form.location = city.name_en;
-                if (!this.form.address || this.form.address.trim() === '') {
+            selectCity() {
+                if (!this.selectedCity) {
+                    this.form.location = '';
+                    return;
+                }
+                this.form.location = this.selectedCity;
+                const city = this.cities.find(c => c.name_en === this.selectedCity);
+                if (city && (!this.form.address || this.form.address.trim() === '')) {
                     this.form.address = city.name_en + ', ';
                 }
-                this.locationOpen = false;
                 this.$nextTick(() => {
                     const addrInput = document.getElementById('address');
                     if (addrInput) {

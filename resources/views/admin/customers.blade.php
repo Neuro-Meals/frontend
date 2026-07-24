@@ -393,7 +393,7 @@
   {{-- Assign Meal Modal --}}
   <div x-show="showAssignMeal" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none">
     <div class="absolute inset-0 bg-black/40" @click="showAssignMeal = false"></div>
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8" @click.outside="showAssignMeal = false">
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8" @click.outside="showAssignMeal = false">
       <div class="flex items-center justify-between mb-5">
         <div>
           <h3 class="text-base font-bold text-gray-900">{{ __('Assign Meal') }}</h3>
@@ -423,7 +423,7 @@
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   <span x-text="assignMealForm.meal_time"></span> {{ __('delivery details') }}
                 </p>
-                <div class="bg-white/60 rounded-lg p-3 space-y-1.5 text-xs">
+                <div class="bg-white/60 rounded-lg p-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
                   <div class="flex items-start gap-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].place_type">
                     <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('Place Type') }}</span>
                     <span class="font-semibold text-blue-800 capitalize" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].place_type"></span>
@@ -440,11 +440,11 @@
                     <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('Area') }}</span>
                     <span class="font-semibold text-blue-800" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_area"></span>
                   </div>
-                  <div class="flex items-start gap-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_address">
+                  <div class="flex items-start gap-2 col-span-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_address">
                     <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('Address') }}</span>
                     <span class="font-semibold text-blue-800" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_address"></span>
                   </div>
-                  <div class="flex items-start gap-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].latitude || assignMealTarget.delivery_preferences[assignMealForm.meal_time].longitude">
+                  <div class="flex items-start gap-2 col-span-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].latitude || assignMealTarget.delivery_preferences[assignMealForm.meal_time].longitude">
                     <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('GPS') }}</span>
                     <span class="font-semibold text-blue-800" x-text="(assignMealTarget.delivery_preferences[assignMealForm.meal_time].latitude || '—') + ', ' + (assignMealTarget.delivery_preferences[assignMealForm.meal_time].longitude || '—')"></span>
                     <a x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].latitude && assignMealTarget.delivery_preferences[assignMealForm.meal_time].longitude" :href="'https://www.google.com/maps?q=' + assignMealTarget.delivery_preferences[assignMealForm.meal_time].latitude + ',' + assignMealTarget.delivery_preferences[assignMealForm.meal_time].longitude" target="_blank" class="text-blue-500 hover:text-blue-700 underline ml-1">{{ __('View Map') }}</a>
@@ -453,7 +453,7 @@
                     <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('Time') }}</span>
                     <span class="font-semibold text-blue-800" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].preferred_delivery_time"></span>
                   </div>
-                  <div class="flex items-start gap-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_note">
+                  <div class="flex items-start gap-2 col-span-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_note">
                     <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('Note') }}</span>
                     <span class="font-semibold text-blue-600 italic" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_note"></span>
                   </div>
