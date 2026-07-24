@@ -468,8 +468,9 @@ class AdminController extends Controller
         $status = $request->input('status');
         $planId = $request->input('plan_id');
         $search = $request->input('search');
+        $paidOnly = $request->input('paid_only') === '1';
 
-        $query = ['limit' => $limit, 'role' => 'customer'];
+        $query = ['limit' => $paidOnly ? 100 : $limit, 'role' => 'customer'];
         if ($status) $query['status'] = $status;
         if ($planId) $query['plan_id'] = $planId;
         if ($search) $query['search'] = $search;
@@ -477,6 +478,17 @@ class AdminController extends Controller
         $usersResponse = $adminApi->usersList($query);
         $usersData = $this->apiData($usersResponse, fn () => []);
         $totalCustomers = $this->apiMeta($usersResponse)['total'] ?? count($usersData);
+
+        if ($paidOnly) {
+            $usersData = array_filter($usersData, function ($user) {
+                $payStatus = $user['subscription']['payment_status'] ?? '';
+                return in_array($payStatus, ['paid', 'captured'], true);
+            });
+            $usersData = array_values($usersData);
+            $totalCustomers = count($usersData);
+            $offset = ($page - 1) * $limit;
+            $usersData = array_slice($usersData, $offset, $limit);
+        }
 
         // Fetch all customers (up to 100) for accurate KPI aggregation
         $allCustomersResponse = $adminApi->usersList(['limit' => 100, 'role' => 'customer']);
@@ -678,6 +690,25 @@ class AdminController extends Controller
             'total_subscriptions' => count($subscriptions),
         ];
 
+        $deliveryPrefs = $user['delivery_preferences'] ?? ($user['profile']['delivery_preferences'] ?? []);
+        $deliveryByCategory = [];
+        $categoryMap = [1 => 'breakfast', 2 => 'lunch', 3 => 'dinner', 4 => 'snack'];
+        foreach ($deliveryPrefs as $pref) {
+            $catId = $pref['meal_category_id'] ?? 0;
+            $catName = $categoryMap[$catId] ?? null;
+            if ($catName) {
+                $deliveryByCategory[$catName] = [
+                    'place_type' => $pref['place_type'] ?? '',
+                    'place_name' => $pref['place_name'] ?? '',
+                    'city' => $pref['city'] ?? '',
+                    'delivery_area' => $pref['delivery_area'] ?? '',
+                    'delivery_address' => $pref['delivery_address'] ?? '',
+                    'preferred_delivery_time' => $pref['preferred_delivery_time'] ?? '',
+                    'delivery_note' => $pref['delivery_note'] ?? '',
+                ];
+            }
+        }
+
         $customer = [
             'id' => $user['id'] ?? $id,
             'name' => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: 'Unknown',
@@ -705,6 +736,7 @@ class AdminController extends Controller
             'payments' => $payments,
             'orders' => $orders,
             'customerStats' => $customerStats,
+            'delivery_preferences' => $deliveryByCategory,
         ];
 
         return response()->json(['customer' => $customer]);

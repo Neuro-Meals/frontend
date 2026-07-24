@@ -50,6 +50,10 @@
         <option :value="p.id" x-text="p.name"></option>
       </template>
     </select>
+    <button @click="paidOnly = !paidOnly; fetchCustomers()" :class="paidOnly ? 'bg-green-600 text-white border-green-600' : 'bg-gray-50 text-gray-600 border-gray-100'" class="text-xs font-bold rounded-lg px-3 py-1.5 border transition-all whitespace-nowrap flex items-center gap-1">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.062-.18-2.087-.514-3.044z"/></svg>
+      {{ __('Paid Only') }}
+    </button>
     <button @click="fetchCustomers()" class="px-3 py-1.5 text-xs font-bold text-white bg-[#6E7A25] rounded-lg hover:bg-[#5a6820] transition-all shadow-sm whitespace-nowrap">
       <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
       {{ __('Refresh') }}
@@ -393,9 +397,41 @@
       <div x-show="!mealLoading" class="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-4">
         <div class="flex items-start gap-2">
           <svg class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          <div class="text-sm text-blue-700">
-            <p>{{ __('Customer Location') }}: <span class="font-bold" x-text="assignMealTarget?.location || '—'"></span></p>
-            <p>{{ __('Customer Address') }}: <span class="font-bold" x-text="assignMealTarget?.address || '—'"></span></p>
+          <div class="text-sm text-blue-700 w-full">
+            <template x-if="!assignMealForm.meal_time">
+              <div>
+                <p>{{ __('Customer Location') }}: <span class="font-bold" x-text="assignMealTarget?.location || '—'"></span></p>
+                <p>{{ __('Customer Address') }}: <span class="font-bold" x-text="assignMealTarget?.address || '—'"></span></p>
+                <p class="text-xs text-blue-500 mt-1">{{ __('Select a meal category to see delivery preference.') }}</p>
+              </div>
+            </template>
+            <template x-if="assignMealForm.meal_time && assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]">
+              <div>
+                <p class="font-bold capitalize mb-1" x-text="assignMealForm.meal_time + ' ' + '{{ __('delivery to') }}'"></p>
+                <p x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].place_type">
+                  {{ __('Place') }}: <span class="font-bold capitalize" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].place_type"></span>
+                  <span x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].place_name" class="font-bold" x-text="' — ' + assignMealTarget.delivery_preferences[assignMealForm.meal_time].place_name"></span>
+                </p>
+                <p x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_area">
+                  {{ __('Area') }}: <span class="font-bold" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_area"></span>
+                </p>
+                <p x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_address">
+                  {{ __('Address') }}: <span class="font-bold" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_address"></span>
+                </p>
+                <p x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].preferred_delivery_time">
+                  {{ __('Preferred Time') }}: <span class="font-bold" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].preferred_delivery_time"></span>
+                </p>
+                <p x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_note" class="text-xs text-blue-600 italic mt-1" x-text="'📝 ' + assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_note"></p>
+              </div>
+            </template>
+            <template x-if="assignMealForm.meal_time && !assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]">
+              <div>
+                <p class="font-bold capitalize" x-text="assignMealForm.meal_time + ' ' + '{{ __('delivery') }}'"></p>
+                <p class="text-xs text-blue-500 mt-1">{{ __('No delivery preference set for this category. Using default location.') }}</p>
+                <p>{{ __('Customer Location') }}: <span class="font-bold" x-text="assignMealTarget?.location || '—'"></span></p>
+                <p>{{ __('Customer Address') }}: <span class="font-bold" x-text="assignMealTarget?.address || '—'"></span></p>
+              </div>
+            </template>
           </div>
         </div>
       </div>
@@ -664,6 +700,7 @@ function customersApp() {
     search: '',
     statusFilter: '',
     planFilter: '',
+    paidOnly: false,
     page: 1,
     hasMore: false,
     loading: true,
@@ -830,6 +867,7 @@ function customersApp() {
         if (this.statusFilter) p.set('status', this.statusFilter);
         if (this.planFilter) p.set('plan_id', this.planFilter);
         if (this.search) p.set('search', this.search);
+        if (this.paidOnly) p.set('paid_only', '1');
         const r = await fetch(`{{ route('admin.customers') }}?${p.toString()}`, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
         const d = await r.json();
         this.customers = d.customers || [];
