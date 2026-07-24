@@ -206,22 +206,6 @@
                 </div>
                 <div x-show="locationError" class="p-3 rounded-lg bg-red-50 text-red-700 text-xs" x-text="locationError"></div>
 
-                {{-- Address --}}
-                <div>
-                    <label for="address" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Address') }}</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                            </svg>
-                        </div>
-                        <input id="address" type="text" name="address" x-model="form.address" required
-                            class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
-                            :class="errors.address ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
-                            placeholder="e.g. King Fahd Road">
-                    </div>
-                </div>
-
                 {{-- Terms & Conditions and Refund Policy Agreement --}}
                 <div class="flex items-start gap-2.5 mt-4">
                     <input id="agree_terms" type="checkbox" x-model="form.agree_terms" required
