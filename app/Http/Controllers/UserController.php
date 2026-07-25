@@ -2536,79 +2536,521 @@ class UserController extends Controller
         }
     }
 
-    public function deliveryPreferencesPage(UserApiService $userApi)
-    {
-        $user = session('api_user') ?? [];
+    public function saveDeliveryPreferences(
+    Request $request,
+    UserApiService $userApi,
+    AuthApiService $authApi
+) {
+    $validated = $request->validate([
+        'delivery_preferences' => ['required', 'array', 'min:1'],
 
-        $mealCategories = [
-            ['id' => 1, 'name_en' => 'Breakfast', 'icon' => 'sunrise', 'default_time' => '07:00'],
-            ['id' => 2, 'name_en' => 'Lunch', 'icon' => 'sun', 'default_time' => '12:00'],
-            ['id' => 3, 'name_en' => 'Dinner', 'icon' => 'moon', 'default_time' => '19:00'],
-            ['id' => 4, 'name_en' => 'Snack', 'icon' => 'cookie', 'default_time' => '15:00'],
+        'delivery_preferences.*.meal_category_id' => [
+            'required',
+            'integer',
+        ],
+
+        'delivery_preferences.*.place_type' => [
+            'required',
+            'string',
+        ],
+
+        'delivery_preferences.*.place_name' => [
+            'nullable',
+            'string',
+        ],
+
+        'delivery_preferences.*.city' => [
+            'required',
+            'string',
+        ],
+
+        'delivery_preferences.*.delivery_area' => [
+            'required',
+            'string',
+        ],
+
+        'delivery_preferences.*.delivery_address' => [
+            'required',
+            'string',
+        ],
+
+        'delivery_preferences.*.latitude' => [
+            'nullable',
+            'numeric',
+        ],
+
+        'delivery_preferences.*.longitude' => [
+            'nullable',
+            'numeric',
+        ],
+
+        'delivery_preferences.*.preferred_delivery_time' => [
+            'required',
+            'string',
+        ],
+
+        'delivery_preferences.*.delivery_note' => [
+            'nullable',
+            'string',
+        ],
+    ]);
+
+    try {
+        /*
+         * First use the health data stored after Step 1.
+         */
+        $healthProfile = session(
+            'onboarding_health_profile',
+            []
+        );
+
+        /*
+         * Fallback for a user who opens Step 2 directly.
+         */
+        if (empty($healthProfile)) {
+            $profileResponse = $userApi->getCompleteProfile();
+
+            $healthProfile =
+                data_get($profileResponse, 'data.profile')
+                ?? data_get($profileResponse, 'profile')
+                ?? data_get($profileResponse, 'data')
+                ?? $profileResponse;
+
+            if (
+                isset($healthProfile['health_profile']) &&
+                is_array($healthProfile['health_profile'])
+            ) {
+                $healthProfile = array_merge(
+                    $healthProfile,
+                    $healthProfile['health_profile']
+                );
+            }
+        }
+
+        if (!is_array($healthProfile)) {
+            $healthProfile = [];
+        }
+
+        /*
+         * Support possible old/singular API field names.
+         */
+        $activityLevel =
+            $healthProfile['activity_level']
+            ?? $healthProfile['activity']
+            ?? null;
+
+        $dietaryPreferences =
+            $healthProfile['dietary_preferences']
+            ?? $healthProfile['dietary_preference']
+            ?? [];
+
+        $allergies =
+            $healthProfile['allergies']
+            ?? [];
+
+        $chronicConditions =
+            $healthProfile['chronic_conditions']
+            ?? $healthProfile['chronic_condition']
+            ?? [];
+
+        if (
+            is_string($dietaryPreferences) &&
+            $dietaryPreferences !== ''
+        ) {
+            $dietaryPreferences = [$dietaryPreferences];
+        }
+
+        if (is_string($allergies) && $allergies !== '') {
+            $allergies = [$allergies];
+        }
+
+        if (
+            is_string($chronicConditions) &&
+            $chronicConditions !== ''
+        ) {
+            $chronicConditions = [$chronicConditions];
+        }
+
+        $requiredHealthFields = [
+            'age' => $healthProfile['age'] ?? null,
+            'gender' => $healthProfile['gender'] ?? null,
+            'height_cm' =>
+                $healthProfile['height_cm']
+                ?? $healthProfile['height']
+                ?? null,
+            'weight_kg' =>
+                $healthProfile['weight_kg']
+                ?? $healthProfile['weight']
+                ?? null,
+            'fitness_goal' =>
+                $healthProfile['fitness_goal']
+                ?? null,
+            'activity_level' => $activityLevel,
         ];
 
-        $completeProfile = $this->apiData($userApi->getCompleteProfile(), function () {
-            return [];
-        });
-        $existingDeliveryPrefs = $completeProfile['delivery_preferences'] ?? [];
+        foreach ($requiredHealthFields as $field => $value) {
+            if ($value === null || $value === '') {
+                return response()->json([
+                    'success' => false,
+                    'message' => __(
+                        'Your saved health profile is missing :field. Please return to Step 1 and save it again.',
+                        [
+                            'field' => str_replace(
+                                '_',
+                                ' ',
+                                $field
+                            ),
+                        ]
+                    ),
+                ], 422);
+            }
+        }
 
-        $deliveryPrefsJson = collect($mealCategories)->map(function ($cat) use ($existingDeliveryPrefs) {
-            $existing = collect($existingDeliveryPrefs)->firstWhere('meal_category_id', $cat['id']);
-            return [
-                'meal_category_id' => $cat['id'],
-                'category_name' => $cat['name_en'],
-                'category_icon' => $cat['icon'],
-                'place_type' => $existing['place_type'] ?? '',
-                'place_name' => $existing['place_name'] ?? '',
-                'city' => $existing['city'] ?? 'Riyadh',
-                'delivery_area' => $existing['delivery_area'] ?? '',
-                'delivery_address' => $existing['delivery_address'] ?? '',
-                'latitude' => $existing['latitude'] ?? null,
-                'longitude' => $existing['longitude'] ?? null,
-                'preferred_delivery_time' => $existing['preferred_delivery_time'] ?? $cat['default_time'],
-                'delivery_note' => $existing['delivery_note'] ?? '',
-            ];
-        })->values()->toArray();
+        if (
+            !is_array($dietaryPreferences) ||
+            count($dietaryPreferences) === 0
+        ) {
+            return response()->json([
+                'success' => false,
+                'message' => __(
+                    'Your saved health profile is missing dietary preferences. Please return to Step 1 and save it again.'
+                ),
+            ], 422);
+        }
 
-        return view('user.delivery-preferences', compact('user', 'deliveryPrefsJson', 'mealCategories'));
+        if (
+            !is_array($allergies) ||
+            count($allergies) === 0
+        ) {
+            $allergies = ['none'];
+        }
+
+        if (
+            !is_array($chronicConditions) ||
+            count($chronicConditions) === 0
+        ) {
+            $chronicConditions = ['none'];
+        }
+
+        $payload = [
+            'age' => (int) $requiredHealthFields['age'],
+            'gender' => $requiredHealthFields['gender'],
+
+            'height_cm' =>
+                (float) $requiredHealthFields['height_cm'],
+
+            'weight_kg' =>
+                (float) $requiredHealthFields['weight_kg'],
+
+            'fitness_goal' =>
+                $requiredHealthFields['fitness_goal'],
+
+            'activity_level' =>
+                $requiredHealthFields['activity_level'],
+
+            'dietary_preferences' =>
+                array_values($dietaryPreferences),
+
+            'allergies' =>
+                array_values($allergies),
+
+            'chronic_conditions' =>
+                array_values($chronicConditions),
+
+            'foods_to_avoid' =>
+                $healthProfile['foods_to_avoid'] ?? null,
+
+            'health_notes' =>
+                $healthProfile['health_notes'] ?? null,
+
+            'delivery_preferences' =>
+                $validated['delivery_preferences'],
+        ];
+
+        \Illuminate\Support\Facades\Log::info(
+            'Saving delivery preferences with health profile',
+            ['payload' => $payload]
+        );
+
+        $result = $userApi->updateCompleteProfile($payload);
+
+        if (($result['success'] ?? true) === false) {
+            return response()->json([
+                'success' => false,
+                'message' => $this->apiErrorMessage($result),
+                'errors' => $result['errors'] ?? null,
+            ], 422);
+        }
+
+        /*
+         * Onboarding is complete, so remove the temporary session data.
+         */
+        session()->forget('onboarding_health_profile');
+
+        $freshUser = $this->apiData(
+            $authApi->me(),
+            fn () => $authApi->user() ?? []
+        );
+
+        if (!empty($freshUser['id'])) {
+            session(['api_user' => $freshUser]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => __(
+                'Delivery preferences saved successfully!'
+            ),
+            'redirect' => route('user.dashboard'),
+            'data' => $result['data'] ?? $result,
+        ]);
+    } catch (\Throwable $exception) {
+        \Illuminate\Support\Facades\Log::error(
+            'Failed to save delivery preferences',
+            [
+                'message' => $exception->getMessage(),
+                'trace' => $exception->getTraceAsString(),
+            ]
+        );
+
+        return response()->json([
+            'success' => false,
+            'message' => $exception->getMessage(),
+        ], 500);
     }
+}
 
-    public function saveDeliveryPreferences(Request $request, UserApiService $userApi, AuthApiService $authApi)
-    {
-        $validated = $request->validate([
-            'delivery_preferences' => ['required', 'array', 'min:1'],
-            'delivery_preferences.*.meal_category_id' => ['required', 'integer'],
-            'delivery_preferences.*.place_type' => ['required', 'string'],
-            'delivery_preferences.*.place_name' => ['nullable', 'string'],
-            'delivery_preferences.*.city' => ['required', 'string'],
-            'delivery_preferences.*.delivery_area' => ['required', 'string'],
-            'delivery_preferences.*.delivery_address' => ['required', 'string'],
-            'delivery_preferences.*.latitude' => ['nullable', 'numeric'],
-            'delivery_preferences.*.longitude' => ['nullable', 'numeric'],
-            'delivery_preferences.*.preferred_delivery_time' => ['required', 'string'],
-            'delivery_preferences.*.delivery_note' => ['nullable', 'string'],
+    public function saveHealthProfile(
+    Request $request,
+    UserApiService $userApi
+) {
+    $validated = $request->validate([
+        'age' => ['required', 'integer', 'min:18', 'max:100'],
+        'gender' => ['required', 'string', 'in:male,female'],
+        'height_cm' => ['required', 'numeric', 'min:80', 'max:250'],
+        'weight_kg' => ['required', 'numeric', 'min:25', 'max:400'],
+        'fitness_goal' => ['required', 'string'],
+        'activity_level' => ['required', 'string'],
+
+        'dietary_preferences' => ['required', 'array', 'min:1'],
+        'dietary_preferences.*' => ['required', 'string'],
+
+        'allergies' => ['required', 'array', 'min:1'],
+        'allergies.*' => ['required', 'string'],
+
+        'chronic_conditions' => ['required', 'array', 'min:1'],
+        'chronic_conditions.*' => ['required', 'string'],
+
+        'foods_to_avoid' => ['nullable', 'string'],
+        'health_notes' => ['nullable', 'string'],
+    ]);
+
+    try {
+        $response = $userApi->updateCompleteProfile($validated);
+
+        if (($response['success'] ?? true) === false) {
+            return response()->json([
+                'success' => false,
+                'message' => $this->apiErrorMessage($response),
+                'errors' => $response['errors'] ?? null,
+            ], 422);
+        }
+
+        /*
+         * Preserve the health profile for Step 2.
+         *
+         * This prevents fields from becoming empty when the FastAPI GET
+         * response does not return every saved health-profile field.
+         */
+        session([
+            'onboarding_health_profile' => $validated,
         ]);
 
-        try {
-            $result = $userApi->updateCompleteProfile([
-                'delivery_preferences' => $validated['delivery_preferences'],
-            ]);
+        \Illuminate\Support\Facades\Log::info(
+            'Health profile stored for delivery onboarding',
+            ['profile' => $validated]
+        );
 
-            // Refresh session user data
-            $freshUser = $this->apiData($authApi->me(), function () use ($authApi) {
-                return $authApi->user() ?? [];
-            });
-            if (!empty($freshUser['id'])) {
-                session(['api_user' => $freshUser]);
-            }
+        return response()->json([
+            'success' => true,
+            'message' => __('Health profile saved successfully.'),
+            'redirect' => route(
+                'user.onboarding.delivery-preferences.page',
+                ['step' => 'delivery']
+            ),
+            'data' => $response['data'] ?? $response,
+        ]);
+    } catch (\Throwable $exception) {
+        \Illuminate\Support\Facades\Log::error(
+            'Unable to save health profile',
+            [
+                'message' => $exception->getMessage(),
+                'trace' => $exception->getTraceAsString(),
+            ]
+        );
 
-            return response()->json([
-                'success' => true,
-                'message' => __('Delivery preferences saved successfully!'),
-                'data' => $result,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        return response()->json([
+            'success' => false,
+            'message' => __(
+                'Unable to save health profile. Please try again.'
+            ),
+        ], 500);
+    }
+}
+
+    public function deliveryPreferencesPage(
+    Request $request,
+    UserApiService $userApi
+) {
+    $user = session('api_user') ?? [];
+
+    $mealCategories = [
+        [
+            'id' => 1,
+            'name_en' => 'Breakfast',
+            'icon' => 'sunrise',
+            'default_time' => '07:00',
+        ],
+        [
+            'id' => 2,
+            'name_en' => 'Lunch',
+            'icon' => 'sun',
+            'default_time' => '12:00',
+        ],
+        [
+            'id' => 3,
+            'name_en' => 'Dinner',
+            'icon' => 'moon',
+            'default_time' => '19:00',
+        ],
+        [
+            'id' => 4,
+            'name_en' => 'Snack',
+            'icon' => 'cookie',
+            'default_time' => '15:00',
+        ],
+    ];
+
+    $profileResponse = $userApi->getCompleteProfile();
+
+    $completeProfile =
+        data_get($profileResponse, 'data.profile')
+        ?? data_get($profileResponse, 'profile')
+        ?? data_get($profileResponse, 'data')
+        ?? $profileResponse;
+
+    if (!is_array($completeProfile)) {
+        $completeProfile = [];
+    }
+
+    if (
+        isset($completeProfile['health_profile']) &&
+        is_array($completeProfile['health_profile'])
+    ) {
+        $completeProfile = array_merge(
+            $completeProfile,
+            $completeProfile['health_profile']
+        );
+    }
+
+    /*
+ * The health data saved during Step 1 takes priority.
+ */
+$sessionHealthProfile = session(
+    'onboarding_health_profile',
+    []
+);
+
+if (is_array($sessionHealthProfile)) {
+    $completeProfile = array_merge(
+        $completeProfile,
+        $sessionHealthProfile
+    );
+}
+
+    $requiredFields = [
+        'age',
+        'gender',
+        'height_cm',
+        'weight_kg',
+        'fitness_goal',
+        'activity_level',
+    ];
+
+    $healthProfileComplete = true;
+
+    foreach ($requiredFields as $field) {
+        $value = $completeProfile[$field] ?? null;
+
+        if ($value === null || $value === '') {
+            $healthProfileComplete = false;
+            break;
         }
     }
+
+    $existingDeliveryPrefs =
+        $completeProfile['delivery_preferences'] ?? [];
+
+    $deliveryPrefsJson = collect($mealCategories)
+        ->map(function ($category) use ($existingDeliveryPrefs) {
+            $existing = collect($existingDeliveryPrefs)
+                ->firstWhere(
+                    'meal_category_id',
+                    $category['id']
+                );
+
+            return [
+                'meal_category_id' => $category['id'],
+                'category_name' => $category['name_en'],
+                'category_icon' => $category['icon'],
+
+                'place_type' =>
+                    $existing['place_type'] ?? '',
+
+                'place_name' =>
+                    $existing['place_name'] ?? '',
+
+                'city' =>
+                    $existing['city'] ?? 'Riyadh',
+
+                'delivery_area' =>
+                    $existing['delivery_area'] ?? '',
+
+                'delivery_address' =>
+                    $existing['delivery_address'] ?? '',
+
+                'latitude' =>
+                    $existing['latitude'] ?? null,
+
+                'longitude' =>
+                    $existing['longitude'] ?? null,
+
+                'preferred_delivery_time' =>
+                    $existing['preferred_delivery_time']
+                    ?? $category['default_time'],
+
+                'delivery_note' =>
+                    $existing['delivery_note'] ?? '',
+            ];
+        })
+        ->values()
+        ->toArray();
+
+    /*
+     * Open Step 2 when:
+     * 1. Redirect came from health-profile save, or
+     * 2. Health profile is already complete.
+     */
+    $startAtDelivery =
+        $request->query('step') === 'delivery'
+        || $healthProfileComplete;
+
+    return view('user.delivery-preferences', [
+        'user' => $user,
+        'healthProfileJson' => $completeProfile,
+        'deliveryPrefsJson' => $deliveryPrefsJson,
+        'mealCategories' => $mealCategories,
+        'startAtDelivery' => $startAtDelivery,
+    ]);
+}
 }

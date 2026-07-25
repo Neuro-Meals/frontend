@@ -299,11 +299,6 @@ Route::prefix('user')->name('user.')->middleware(['api.auth', 'api.customer'])->
             '/onboarding/health-profile',
             [UserController::class,'saveHealthProfile']
         )->name('onboarding.health-profile');
-
-        Route::post(
-            '/onboarding/delivery-preferences',
-            [UserController::class,'saveDeliveryPreferences']
-        )->name('onboarding.delivery-preferences');
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('dashboard');
     Route::get('/subscriptions', [UserController::class, 'subscriptions'])->name('subscriptions');
     Route::post('/subscriptions', [UserController::class, 'subscribe'])->name('subscriptions.subscribe');
