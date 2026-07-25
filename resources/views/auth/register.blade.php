@@ -3,7 +3,7 @@
 @section('title', __('Register') . ' - ' . __('Nutrio Meals'))
 
 @section('content')
-<div class="w-full max-w-md animate-simple-fade-in" x-data="registerForm()">
+<div class="w-full max-w-md animate-simple-fade-in" x-data="registerForm()" x-init="loadRegions()">
     <div class="bg-white rounded-2xl shadow-xl border border-gray-100">
         {{-- Header --}}
         <div class="bg-white px-8 py-8 text-center border-b border-gray-100">
@@ -206,108 +206,48 @@
                     </div>
                 </div>
 
-                {{-- Location (dropdown) --}}
-                <div class="relative" @click.away="locationOpen = false">
+                {{-- Region --}}
+                <div>
+                    <label for="region"
+                        class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Region') }}</label>
+                    <select id="region" x-model="selectedRegion" @change="loadCities()" required
+                        class="w-full px-4 py-2.5 rounded-lg border outline-none transition-all text-sm bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                        :class="errors.region ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'">
+                        <option value="">{{ __('Select a region') }}</option>
+                        <template x-for="region in regions" :key="region.code">
+                            <option :value="region.code"
+                                x-text="region.name_en + (region.name_ar ? ' (' + region.name_ar + ')' : '')">
+                            </option>
+                        </template>
+                    </select>
+                </div>
+
+                {{-- City --}}
+                <div>
                     <label for="location"
-                        class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Location') }}</label>
+                        class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('City') }}</label>
+                    <select id="location" x-model="selectedCityCode" @change="onCitySelectChange()"
+                        :disabled="!selectedRegion || locationLoading" required
+                        class="w-full px-4 py-2.5 rounded-lg border outline-none transition-all text-sm bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 disabled:bg-gray-100 disabled:text-gray-400"
+                        :class="errors.location ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'">
+                        <option value=""
+                            x-text="selectedRegion ? '{{ __('Select a city') }}' : '{{ __('Select a region first') }}'">
+                        </option>
+                        <template x-for="city in cities" :key="city.code">
+                            <option :value="city.code"
+                                x-text="city.name_en + (city.name_ar ? ' / ' + city.name_ar : '')">
+                            </option>
+                        </template>
+                    </select>
 
-                    {{-- Dropdown trigger: the whole field opens the picker, no separate icon button --}}
-                    <button type="button" @click="toggleLocationPicker()"
-                        class="w-full flex items-center justify-between pl-4 pr-3.5 py-2.5 rounded-lg border outline-none transition-all text-sm text-left bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
-                        :class="[errors.location ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200', locationOpen ? 'border-emerald-500 ring-2 ring-emerald-200' : '']"
-                        :aria-expanded="locationOpen.toString()" aria-haspopup="listbox">
-                        <span class="truncate" :class="form.location ? 'text-gray-900' : 'text-gray-400'"
-                            x-text="form.location || '{{ __('Select your city') }}'"></span>
-
-                        <svg x-show="!locationLoading"
-                            class="w-4 h-4 text-gray-400 flex-shrink-0 ml-2 transition-transform duration-200"
-                            :class="locationOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                        <svg x-show="locationLoading" class="animate-spin w-4 h-4 text-gray-400 flex-shrink-0 ml-2"
-                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-                            </circle>
-                            <path class="opacity-75" fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                            </path>
-                        </svg>
-                    </button>
-
-                    {{-- Hidden input so the value posts with the plain <form> submit as well --}}
+                    <input type="hidden" name="region" :value="selectedRegion">
                     <input type="hidden" name="location" x-model="form.location">
 
-                    {{-- Location Picker Dropdown --}}
-                    <div x-show="locationOpen" x-transition:enter="transition ease-out duration-200"
-                        x-transition:enter-start="opacity-0 translate-y-1"
-                        x-transition:enter-end="opacity-100 translate-y-0"
-                        x-transition:leave="transition ease-in duration-150"
-                        x-transition:leave-start="opacity-100 translate-y-0"
-                        x-transition:leave-end="opacity-0 translate-y-1" x-cloak
-                        class="absolute z-50 mt-2 w-full max-w-md bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden"
-                        style="left: 0; right: 0;">
-                        <div class="p-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-                            <h3 class="text-sm font-bold text-gray-900">{{ __('Choose your location') }}</h3>
-                            <button type="button" @click="locationOpen = false"
-                                class="text-gray-400 hover:text-gray-600">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
+                    <p x-show="locationLoading" class="mt-1.5 text-xs text-gray-400">
+                        {{ __('Loading locations...') }}
+                    </p>
 
-                        <div class="p-4 max-h-56 sm:max-h-64 md:max-h-80 overflow-y-auto overscroll-contain touch-pan-y"
-                            style="-webkit-overflow-scrolling: touch;">
-                            {{-- Region selector (native dropdown) --}}
-                            <div class="mb-3">
-                                <label
-                                    class="block text-xs font-semibold text-gray-500 mb-1.5">{{ __('Region') }}</label>
-                                <select x-model="selectedRegion" @change="loadCities()"
-                                    class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none bg-white">
-                                    <option value="">{{ __('Select a region') }}</option>
-                                    <template x-for="region in regions" :key="region.code">
-                                        <option :value="region.code"
-                                            x-text="region.name_en + (region.name_ar ? ' (' + region.name_ar + ')' : '')">
-                                        </option>
-                                    </template>
-                                </select>
-                            </div>
-
-                            {{-- City selector (native dropdown, populated once a region is chosen) --}}
-                            <div x-show="selectedRegion" x-transition>
-                                <label class="block text-xs font-semibold text-gray-500 mb-1.5">{{ __('City') }}</label>
-                                <select x-model="selectedCityCode" @change="onCitySelectChange()"
-                                    :disabled="!cities.length"
-                                    class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none bg-white disabled:bg-gray-50 disabled:text-gray-400">
-                                    <option value="">{{ __('Select a city') }}</option>
-                                    <template x-for="city in cities" :key="city.code">
-                                        <option :value="city.code"
-                                            x-text="city.name_en + (city.name_ar ? ' / ' + city.name_ar : '')">
-                                        </option>
-                                    </template>
-                                </select>
-                            </div>
-
-                            {{-- Empty states --}}
-                            <div x-show="selectedRegion && !cities.length && !locationLoading"
-                                class="text-center py-6 text-sm text-gray-400">
-                                {{ __('No cities found for this region.') }}
-                            </div>
-                            <div x-show="!selectedRegion && regions.length && !locationLoading"
-                                class="text-center py-6 text-sm text-gray-400">
-                                {{ __('Select a region to see cities.') }}
-                            </div>
-                            <div x-show="locationError" class="mt-3 p-3 rounded-lg bg-red-50 text-red-700 text-xs"
-                                x-text="locationError"></div>
-                        </div>
-
-                        <div class="p-3 border-t border-gray-100 bg-gray-50 text-center">
-                            <span
-                                class="text-[10px] text-gray-400">{{ __('Locations provided by Nutrio Meals') }}</span>
-                        </div>
-                    </div>
+                    <p x-show="locationError" class="mt-1.5 text-xs text-red-600" x-text="locationError"></p>
                 </div>
 
                 {{-- Address --}}
@@ -566,19 +506,12 @@ function registerForm() {
             agree_terms: false
         },
         showTermsModal: false,
-        locationOpen: false,
         locationLoading: false,
         locationError: '',
         regions: [],
         cities: [],
         selectedRegion: '',
         selectedCityCode: '',
-        toggleLocationPicker() {
-            this.locationOpen = !this.locationOpen;
-            if (this.locationOpen && this.regions.length === 0) {
-                this.loadRegions();
-            }
-        },
         async loadRegions() {
             this.locationLoading = true;
             this.locationError = '';
@@ -599,6 +532,7 @@ function registerForm() {
         async loadCities() {
             this.cities = [];
             this.selectedCityCode = '';
+            this.form.location = '';
             if (!this.selectedRegion) {
                 return;
             }
@@ -626,19 +560,12 @@ function registerForm() {
             }
         },
         selectCity(city) {
+            this.selectedCityCode = city.code;
             this.form.location = city.name_en;
+
             if (!this.form.address || this.form.address.trim() === '') {
                 this.form.address = city.name_en + ', ';
             }
-            this.locationOpen = false;
-            this.$nextTick(() => {
-                const addrInput = document.getElementById('address');
-                if (addrInput) {
-                    addrInput.focus();
-                    const val = addrInput.value;
-                    addrInput.setSelectionRange(val.length, val.length);
-                }
-            });
         },
         showToast(message, type = 'error') {
             this.toast = {
@@ -655,7 +582,10 @@ function registerForm() {
             if (!this.form.agree_terms) {
                 this.showToast(@json(__(
                     'Please read and agree to the Terms & Conditions and Return & Refund Policy to register.'
-                    )));
+                )));
+                this.showToast(@json(__(
+                    'Please read and agree to the Terms & Conditions and Return & Refund Policy to register.'
+                )));
                 return;
             }
 
