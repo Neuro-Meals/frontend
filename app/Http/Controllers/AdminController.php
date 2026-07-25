@@ -772,46 +772,48 @@ class AdminController extends Controller
         return false;
     }
 
-    public function assignMealToCustomer(Request $request, int $id, NutritionApiService $nutritionApi, PaymentApiService $paymentApi)
-    {
-        $validated = $request->validate([
-            'subscription_id' => ['required', 'integer', 'min:1'],
-            'meal_time' => ['required', 'string'],
-            'meal_ids' => ['required', 'array', 'min:1'],
-            'meal_ids.*' => ['required', 'integer', 'min:1'],
-        ]);
+    public function assignMealToCustomer(
+    Request $request,
+    int $id,
+    NutritionApiService $nutritionApi,
+    PaymentApiService $paymentApi
+) {
+    $validated = $request->validate([
+        'subscription_id' => ['required', 'integer', 'min:1'],
+        'meal_time' => ['required', 'string'],
+        'meal_ids' => ['required', 'array', 'min:1'],
+        'meal_ids.*' => ['required', 'integer', 'min:1'],
+        'day_number' => ['nullable', 'integer', 'min:1'],
+    ]);
 
-        if (!$this->customerHasPaid($id, $paymentApi)) {
-            return response()->json(['success' => false, 'message' => __('Cannot assign meal: customer has not paid.')], 403);
-        }
-
-        $assigned = 0;
-        $errors = [];
-        foreach ($validated['meal_ids'] as $mealId) {
-            $payload = [
-                'subscription_id' => $validated['subscription_id'],
-                'meal_id' => $mealId,
-                'meal_time' => $validated['meal_time'],
-                'day_number' => 1,
-            ];
-            $result = $this->apiData($nutritionApi->assignMeal($validated['subscription_id'], $payload), fn () => ['success' => false]);
-            if (isset($result['id']) || ($result['success'] ?? false)) {
-                $assigned++;
-            } else {
-                $errors[] = $result['detail'] ?? ($result['message'] ?? __('Failed to assign meal.'));
-            }
-        }
-
-        if ($assigned > 0) {
-            $message = $assigned === count($validated['meal_ids'])
-                ? __('All meals assigned successfully.')
-                : __(':assigned/:total meals assigned.', ['assigned' => $assigned, 'total' => count($validated['meal_ids'])]);
-            return response()->json(['success' => true, 'message' => $message], 200);
-        }
-
-        $message = implode(' ', array_unique($errors)) ?: __('Failed to assign meals.');
-        return response()->json(['success' => false, 'message' => $message], 422);
+    if (!$this->customerHasPaid($id, $paymentApi)) {
+        return response()->json([
+            'success' => false,
+            'message' => __('Cannot assign meal: customer has not paid.')
+        ], 403);
     }
+
+    $payload = [
+        'subscription_id' => $validated['subscription_id'],
+        'meal_ids' => $validated['meal_ids'],
+        'meal_time' => strtolower($validated['meal_time']),
+        'day_number' => $validated['day_number'] ?? 1,
+    ];
+
+    \Log::info($payload);
+
+    $result = $nutritionApi->assignMeal(
+        $validated['subscription_id'],
+        $payload
+    );
+    
+    \Log::info($result);
+
+    return response()->json(
+        $result,
+        $result['success'] ?? false ? 200 : 422
+    );
+}
 
     public function customerMealSelections(int $id, Request $request, SubscriptionApiService $subscriptionApi, NutritionApiService $nutritionApi, MealApiService $mealApi)
     {
