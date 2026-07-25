@@ -480,7 +480,6 @@
             <option value="breakfast">{{ __('Breakfast') }}</option>
             <option value="lunch">{{ __('Lunch') }}</option>
             <option value="dinner">{{ __('Dinner') }}</option>
-            <option value="snack">{{ __('Snack') }}</option>
           </select>
         </div>
         <div x-show="assignMealForm.subscription_id && assignMealForm.meal_time && availableMeals.length > 0">
