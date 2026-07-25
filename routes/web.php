@@ -290,6 +290,20 @@ Route::prefix('chef')->name('chef.')->middleware(['api.auth', 'api.chef'])->grou
 
 // User routes (customer only)
 Route::prefix('user')->name('user.')->middleware(['api.auth', 'api.customer'])->group(function () {
+    Route::get(
+            '/onboarding/delivery-preferences',
+            [UserController::class,'deliveryPreferencesPage']
+        )->name('onboarding.delivery-preferences.page');
+
+        Route::post(
+            '/onboarding/health-profile',
+            [UserController::class,'saveHealthProfile']
+        )->name('onboarding.health-profile');
+
+        Route::post(
+            '/onboarding/delivery-preferences',
+            [UserController::class,'saveDeliveryPreferences']
+        )->name('onboarding.delivery-preferences');
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('dashboard');
     Route::get('/subscriptions', [UserController::class, 'subscriptions'])->name('subscriptions');
     Route::post('/subscriptions', [UserController::class, 'subscribe'])->name('subscriptions.subscribe');
