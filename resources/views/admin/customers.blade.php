@@ -897,7 +897,6 @@ function customersApp() {
       } catch(e) { console.error('Failed to assign meals', e); this.assignMealError = '{{ __('Failed to assign meals.') }}'; }
       finally { this.assigningMeal = false; }
     },
-
     openAssignDriver(c) {
       this.assignDriverTarget = c;
       this.assignDriverForm = { driver_id: '', assignment_reason: c.location ? '{{ __('Same delivery zone: ') }}' + c.location : '', notes: '' };
