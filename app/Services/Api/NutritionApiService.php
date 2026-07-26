@@ -33,15 +33,19 @@ class NutritionApiService extends BaseApiService
     int $userId,
     ?int $subscriptionId = null
 ): array {
+    $params = [
+        'user_id' => $userId,
+        'active_only' => true,
+        'page' => 1,
+        'page_size' => 100,
+    ];
 
-    $params = [];
-
-    if ($subscriptionId) {
+    if ($subscriptionId !== null && $subscriptionId > 0) {
         $params['subscription_id'] = $subscriptionId;
     }
 
     return $this->get(
-        "/meal-assignments/user/{$userId}",
+        'meal_assignments.customer',
         $params
     );
 }

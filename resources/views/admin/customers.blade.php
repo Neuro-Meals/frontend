@@ -390,22 +390,31 @@
     </div>
   </div>
 
-  {{-- Assign Full-Day Menu Modal --}}
-  <div x-show="showAssignMeal" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none">
-    <div class="absolute inset-0 bg-black/40" @click="showAssignMeal = false"></div>
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[92vh] overflow-y-auto p-6 md:p-8" @click.outside="showAssignMeal = false">
+  {{-- Assign Menu Schedule Modal --}}
+  <div x-show="showAssignMeal" class="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4" style="display: none">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="showAssignMeal = false"></div>
+
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-[95vh] overflow-y-auto p-5 md:p-7" @click.outside="showAssignMeal = false">
       <div class="flex items-start justify-between gap-4 mb-5">
         <div>
-          <h3 class="text-lg font-bold text-gray-900">{{ __('Assign Daily Menu') }}</h3>
-          <p class="text-sm text-gray-400 mt-1" x-text="`${__('Build a full day menu for')} ${assignMealTarget?.name || ''}`"></p>
+          <h3 class="text-lg font-bold text-gray-900">{{ __('Assign Customer Menu') }}</h3>
+          <p class="text-sm text-gray-400 mt-1">
+            {{ __('Choose how the menu should be generated, then assign meals to the required days.') }}
+          </p>
         </div>
+
         <button type="button" @click="showAssignMeal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
         </button>
       </div>
 
       <div x-show="mealLoading" class="flex items-center justify-center py-14">
-        <svg class="w-7 h-7 text-gray-300 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <svg class="w-7 h-7 text-gray-300 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
       </div>
 
       <form x-show="!mealLoading" @submit.prevent="submitAssignMeal()" class="space-y-5">
@@ -415,24 +424,107 @@
 
         <template x-if="assignMealForm.subscription_id">
           <div class="space-y-5">
+
+            {{-- Customer and subscription summary --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Subscription') }}</label>
-                <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm">
-                  <p class="font-bold text-gray-800" x-text="assignMealTarget?.subscription?.plan_name || assignMealTarget?.plan || '{{ __('Current Plan') }}'"></p>
-                  <p class="text-xs text-gray-500 mt-1" x-text="'#' + assignMealForm.subscription_id"></p>
-                </div>
+              <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ __('Customer') }}</p>
+                <p class="text-sm font-bold text-gray-800 mt-1" x-text="assignMealTarget?.name || '—'"></p>
+                <p class="text-xs text-gray-500 mt-1" x-text="assignMealTarget?.email || ''"></p>
               </div>
-              <div>
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Subscription Day') }} <span class="text-red-500">*</span></label>
-                <input type="number" min="1" x-model.number="assignMealForm.day_number" required class="w-full text-sm border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+
+              <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ __('Subscription') }}</p>
+                <p class="text-sm font-bold text-gray-800 mt-1" x-text="assignMealTarget?.subscription?.plan_name || assignMealTarget?.plan || '{{ __('Current Plan') }}'"></p>
+                <p class="text-xs text-gray-500 mt-1" x-text="'#' + assignMealForm.subscription_id"></p>
               </div>
-              <div>
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Scheduled Date') }}</label>
-                <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700" x-text="scheduledDateForDay() || '—'"></div>
+
+              <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ __('Subscription Period') }}</p>
+                <p class="text-sm font-bold text-gray-800 mt-1" x-text="subscriptionPeriodLabel()"></p>
+                <p class="text-xs text-gray-500 mt-1" x-text="subscriptionDaysLabel()"></p>
               </div>
             </div>
 
+            {{-- Assignment mode --}}
+            <div>
+              <div class="flex items-center justify-between gap-3 mb-3">
+                <div>
+                  <h4 class="font-bold text-gray-900">{{ __('Menu Assignment Option') }}</h4>
+                  <p class="text-xs text-gray-500 mt-1">{{ __('Select one of the three supported menu schedules.') }}</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                <label class="cursor-pointer rounded-2xl border p-4 transition-all"
+                       :class="assignMealForm.mode === 'daily' ? 'border-[#6E7A25] bg-[#6E7A25]/5 ring-2 ring-[#6E7A25]/10' : 'border-gray-200 hover:border-gray-300'">
+                  <div class="flex items-start gap-3">
+                    <input type="radio" value="daily" x-model="assignMealForm.mode" @change="changeMealMode()" class="mt-1 text-[#6E7A25] focus:ring-[#6E7A25]/20">
+                    <div>
+                      <p class="text-sm font-bold text-gray-800">{{ __('1. Different Menu Every Day') }}</p>
+                      <p class="text-xs text-gray-500 mt-1">{{ __('Assign one exact subscription day. The admin can return and assign the next day separately.') }}</p>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="cursor-pointer rounded-2xl border p-4 transition-all"
+                       :class="assignMealForm.mode === 'repeat_weekly' ? 'border-[#6E7A25] bg-[#6E7A25]/5 ring-2 ring-[#6E7A25]/10' : 'border-gray-200 hover:border-gray-300'">
+                  <div class="flex items-start gap-3">
+                    <input type="radio" value="repeat_weekly" x-model="assignMealForm.mode" @change="changeMealMode()" class="mt-1 text-[#6E7A25] focus:ring-[#6E7A25]/20">
+                    <div>
+                      <p class="text-sm font-bold text-gray-800">{{ __('2. Repeat One Full Week') }}</p>
+                      <p class="text-xs text-gray-500 mt-1">{{ __('Create Days 1–7 once. The same weekly menu repeats automatically until the subscription ends.') }}</p>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="cursor-pointer rounded-2xl border p-4 transition-all"
+                       :class="assignMealForm.mode === 'weekly_rotation' ? 'border-[#6E7A25] bg-[#6E7A25]/5 ring-2 ring-[#6E7A25]/10' : 'border-gray-200 hover:border-gray-300'">
+                  <div class="flex items-start gap-3">
+                    <input type="radio" value="weekly_rotation" x-model="assignMealForm.mode" @change="changeMealMode()" class="mt-1 text-[#6E7A25] focus:ring-[#6E7A25]/20">
+                    <div>
+                      <p class="text-sm font-bold text-gray-800">{{ __('3. Different Menu Each Week') }}</p>
+                      <p class="text-xs text-gray-500 mt-1">{{ __('Create a complete 7-day menu for Week 1, Week 2, Week 3 and continue until the subscription ends.') }}</p>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {{-- Mode controls --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div x-show="assignMealForm.mode === 'daily'">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">
+                  {{ __('Subscription Day') }} <span class="text-red-500">*</span>
+                </label>
+                <input type="number" min="1" :max="subscriptionDurationDays() || null"
+                       x-model.number="assignMealForm.day_number"
+                       @change="activateDailyDay()"
+                       class="w-full text-sm border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+              </div>
+
+              <div x-show="assignMealForm.mode === 'weekly_rotation'">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">
+                  {{ __('Week Number') }} <span class="text-red-500">*</span>
+                </label>
+                <input type="number" min="1" :max="subscriptionTotalWeeks() || null"
+                       x-model.number="assignMealForm.week_number"
+                       @change="changeWeekNumber()"
+                       class="w-full text-sm border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+              </div>
+
+              <div>
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Selected Date') }}</label>
+                <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700" x-text="activeScheduledDateLabel() || '—'"></div>
+              </div>
+
+              <div x-show="assignMealForm.mode !== 'daily'">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Schedule Summary') }}</label>
+                <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700" x-text="menuModeSummary()"></div>
+              </div>
+            </div>
+
+            {{-- Delivery information --}}
             <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
               <p class="text-sm font-bold text-blue-800">{{ __('Customer Delivery Information') }}</p>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2 text-xs text-blue-700">
@@ -441,54 +533,133 @@
               </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            {{-- Seven-day navigation --}}
+            <div x-show="assignMealForm.mode !== 'daily'" class="space-y-3">
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h4 class="font-bold text-gray-900">{{ __('Week Planner') }}</h4>
+                  <p class="text-xs text-gray-500 mt-1">{{ __('Open each day and select breakfast, lunch, dinner and snack.') }}</p>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                  <button type="button" @click="copyPreviousDay()" :disabled="assignMealForm.active_day <= 1"
+                          class="px-3 py-2 text-xs font-bold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed">
+                    {{ __('Copy Previous Day') }}
+                  </button>
+                  <button type="button" @click="copyActiveDayToAll()"
+                          class="px-3 py-2 text-xs font-bold rounded-lg bg-[#6E7A25]/10 text-[#6E7A25] hover:bg-[#6E7A25]/20">
+                    {{ __('Copy This Day to All') }}
+                  </button>
+                  <button type="button" @click="clearWholeWeek()"
+                          class="px-3 py-2 text-xs font-bold rounded-lg bg-red-50 text-red-600 hover:bg-red-100">
+                    {{ __('Clear Week') }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                <template x-for="day in visiblePlannerDays()" :key="'planner-day-' + day">
+                  <button type="button" @click="assignMealForm.active_day = day"
+                          class="rounded-xl border px-3 py-3 text-left transition-all"
+                          :class="assignMealForm.active_day === day ? 'border-[#6E7A25] bg-[#6E7A25] text-white shadow-md' : 'border-gray-200 bg-white text-gray-700 hover:border-[#6E7A25]/40'">
+                    <p class="text-xs font-bold" x-text="plannerDayTitle(day)"></p>
+                    <p class="text-[10px] mt-1 opacity-70" x-text="plannerDayDateLabel(day)"></p>
+                    <p class="text-[10px] mt-1 font-semibold" x-text="daySelectedMealsCount(day) + ' {{ __('meals') }}'"></p>
+                  </button>
+                </template>
+              </div>
+            </div>
+
+            {{-- Daily mode heading --}}
+            <div x-show="assignMealForm.mode === 'daily'" class="flex items-center justify-between gap-3">
               <div>
-                <h4 class="font-bold text-gray-900">{{ __('Meals for this day') }}</h4>
-                <p class="text-xs text-gray-500 mt-1">{{ __('Choose one or more meals inside every required meal time.') }}</p>
-              </div>
-              <div class="relative w-full sm:w-72">
-                <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <input type="text" x-model="mealSearch" placeholder="{{ __('Search meals...') }}" class="w-full text-sm border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+                <h4 class="font-bold text-gray-900">{{ __('Meals for Subscription Day') }} <span x-text="assignMealForm.day_number"></span></h4>
+                <p class="text-xs text-gray-500 mt-1">{{ __('Choose one or more meals in each required meal time.') }}</p>
               </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <template x-for="slot in mealSlots" :key="slot.key">
-                <section class="border border-gray-200 rounded-2xl overflow-hidden bg-white">
-                  <div class="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
-                    <div>
-                      <p class="font-bold text-gray-800" x-text="slot.label"></p>
-                      <p class="text-xs text-gray-400 mt-0.5" x-text="selectedMealIds(slot.key).length + ' {{ __('selected') }}'"></p>
+            {{-- Active day editor --}}
+            <div class="rounded-2xl border border-gray-200 bg-gray-50/40 p-4 md:p-5 space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h4 class="font-bold text-gray-900" x-text="activeDayEditorTitle()"></h4>
+                  <p class="text-xs text-gray-500 mt-1" x-text="activeDayEditorSubtitle()"></p>
+                </div>
+
+                <div class="relative w-full sm:w-72">
+                  <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                  </svg>
+                  <input type="text" x-model="mealSearch" placeholder="{{ __('Search meals...') }}"
+                         class="w-full text-sm border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <template x-for="slot in mealSlots" :key="'slot-' + slot.key + '-' + activePlannerDay()">
+                  <section class="border border-gray-200 rounded-2xl overflow-hidden bg-white">
+                    <div class="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                      <div>
+                        <p class="font-bold text-gray-800" x-text="slot.label"></p>
+                        <p class="text-xs text-gray-400 mt-0.5" x-text="selectedMealIds(slot.key).length + ' {{ __('selected') }}'"></p>
+                      </div>
+
+                      <button type="button" @click="clearMealSlot(slot.key)"
+                              x-show="selectedMealIds(slot.key).length > 0"
+                              class="text-xs font-semibold text-red-500 hover:text-red-700">
+                        {{ __('Clear') }}
+                      </button>
                     </div>
-                    <button type="button" @click="clearMealSlot(slot.key)" x-show="selectedMealIds(slot.key).length > 0" class="text-xs font-semibold text-red-500 hover:text-red-700">{{ __('Clear') }}</button>
-                  </div>
 
-                  <div class="max-h-64 overflow-y-auto divide-y divide-gray-100">
-                    <template x-for="meal in filteredMealsForSlot(slot.key)" :key="slot.key + '-' + meal.id">
-                      <label class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors">
-                        <input type="checkbox" :value="meal.id" x-model="assignMealForm.assignments[slot.key]" class="w-5 h-5 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]/20">
-                        <div class="min-w-0 flex-1">
-                          <p class="text-sm font-semibold text-gray-700 truncate" x-text="meal.name"></p>
-                          <p x-show="meal.calories" class="text-xs text-gray-400 mt-0.5" x-text="meal.calories + ' kcal'"></p>
-                        </div>
-                      </label>
-                    </template>
+                    <div class="max-h-64 overflow-y-auto divide-y divide-gray-100">
+                      <template x-for="meal in filteredMealsForSlot(slot.key)" :key="slot.key + '-' + activePlannerDay() + '-' + meal.id">
+                        <label class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors">
+                          <input type="checkbox"
+                                 :value="meal.id"
+                                 x-model="activeDayAssignments()[slot.key]"
+                                 class="w-5 h-5 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]/20">
 
-                    <div x-show="filteredMealsForSlot(slot.key).length === 0" class="px-4 py-8 text-center text-sm text-gray-400">
-                      {{ __('No matching meals available.') }}
+                          <div class="min-w-0 flex-1">
+                            <p class="text-sm font-semibold text-gray-700 truncate" x-text="meal.name"></p>
+                            <p x-show="meal.calories" class="text-xs text-gray-400 mt-0.5" x-text="meal.calories + ' kcal'"></p>
+                          </div>
+                        </label>
+                      </template>
+
+                      <div x-show="filteredMealsForSlot(slot.key).length === 0" class="px-4 py-8 text-center text-sm text-gray-400">
+                        {{ __('No matching meals available.') }}
+                      </div>
                     </div>
-                  </div>
 
-                  <div class="px-4 py-3 bg-gray-50 border-t border-gray-100" x-show="deliveryPreferenceFor(slot.key)">
-                    <p class="text-xs font-bold text-gray-600 mb-1">{{ __('Delivery preference') }}</p>
-                    <p class="text-xs text-gray-500" x-text="deliveryPreferenceSummary(slot.key)"></p>
-                  </div>
-                </section>
-              </template>
+                    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100" x-show="deliveryPreferenceFor(slot.key)">
+                      <p class="text-xs font-bold text-gray-600 mb-1">{{ __('Delivery preference') }}</p>
+                      <p class="text-xs text-gray-500" x-text="deliveryPreferenceSummary(slot.key)"></p>
+                    </div>
+                  </section>
+                </template>
+              </div>
             </div>
 
+            {{-- Week completion status --}}
+            <div x-show="assignMealForm.mode !== 'daily'" class="rounded-xl border border-gray-200 bg-white p-4">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <p class="text-sm font-bold text-gray-800">{{ __('Week Completion') }}</p>
+                  <p class="text-xs text-gray-500 mt-1" x-text="completedDaysCount() + ' / ' + visiblePlannerDays().length + ' {{ __('days contain meals') }}'"></p>
+                </div>
+                <div class="w-40 h-2 rounded-full bg-gray-100 overflow-hidden">
+                  <div class="h-full bg-[#6E7A25] transition-all" :style="`width: ${weekCompletionPercent()}%`"></div>
+                </div>
+              </div>
+            </div>
+
+            {{-- Driver --}}
             <div class="border-t border-gray-100 pt-5">
-              <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Dedicated Driver') }} <span class="text-gray-400 normal-case font-normal">({{ __('optional') }})</span></label>
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">
+                {{ __('Dedicated Driver') }}
+                <span class="text-gray-400 normal-case font-normal">({{ __('optional') }})</span>
+              </label>
+
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <select x-model="assignMealForm.driver_id" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
                   <option value="">{{ __('Do not change driver') }}</option>
@@ -496,9 +667,15 @@
                     <option :value="driver.id" x-text="driver.name + (driver.phone ? ' · ' + driver.phone : '')"></option>
                   </template>
                 </select>
-                <input type="text" x-model="assignMealForm.assignment_reason" placeholder="{{ __('Assignment reason') }}" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+
+                <input type="text" x-model="assignMealForm.assignment_reason"
+                       placeholder="{{ __('Assignment reason') }}"
+                       class="w-full text-sm border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
               </div>
-              <textarea x-show="assignMealForm.driver_id" x-model="assignMealForm.notes" rows="2" placeholder="{{ __('Optional driver notes') }}" class="mt-3 w-full text-sm border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20"></textarea>
+
+              <textarea x-show="assignMealForm.driver_id" x-model="assignMealForm.notes" rows="2"
+                        placeholder="{{ __('Optional driver notes') }}"
+                        class="mt-3 w-full text-sm border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20"></textarea>
             </div>
           </div>
         </template>
@@ -507,8 +684,16 @@
         <div x-show="assignMealSuccess" class="text-sm text-green-700 bg-green-50 border border-green-100 rounded-xl px-4 py-3" x-text="assignMealSuccess"></div>
 
         <div class="flex flex-col-reverse sm:flex-row gap-3 pt-2">
-          <button type="button" @click="showAssignMeal = false" class="flex-1 px-4 py-3 text-sm font-bold rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">{{ __('Cancel') }}</button>
-          <button type="submit" :disabled="assigningMeal || !canSubmitMealAssignment()" class="flex-1 px-4 py-3 text-sm font-bold rounded-xl bg-gradient-to-r from-[#033133] to-[#025C5F] text-white hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed" x-text="assigningMeal ? '{{ __('Saving Day Menu...') }}' : '{{ __('Save Day Menu') }}'"></button>
+          <button type="button" @click="showAssignMeal = false"
+                  class="flex-1 px-4 py-3 text-sm font-bold rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
+            {{ __('Cancel') }}
+          </button>
+
+          <button type="submit"
+                  :disabled="assigningMeal || !canSubmitMealAssignment()"
+                  class="flex-1 px-4 py-3 text-sm font-bold rounded-xl bg-gradient-to-r from-[#033133] to-[#025C5F] text-white hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  x-text="assigningMeal ? '{{ __('Saving Menu...') }}' : saveMenuButtonLabel()">
+          </button>
         </div>
       </form>
     </div>
@@ -741,7 +926,17 @@ function customersApp() {
       { key: 'dinner', label: '{{ __('Dinner') }}' },
       { key: 'snack', label: '{{ __('Snack') }}' },
     ],
-    assignMealForm: { subscription_id: 0, day_number: 1, assignments: { breakfast: [], lunch: [], dinner: [], snack: [] }, driver_id: '', assignment_reason: '', notes: '' },
+    assignMealForm: {
+      subscription_id: 0,
+      mode: 'daily',
+      day_number: 1,
+      week_number: 1,
+      active_day: 1,
+      days: {},
+      driver_id: '',
+      assignment_reason: '',
+      notes: ''
+    },
     allMeals: [],
     mealSearch: '',
     showAssignDriver: false,
@@ -784,6 +979,41 @@ function customersApp() {
       } catch(e) { console.error('Failed to fetch drivers', e); }
     },
 
+    emptyMealSlots() {
+      return {
+        breakfast: [],
+        lunch: [],
+        dinner: [],
+        snack: []
+      };
+    },
+
+    cloneMealSlots(value) {
+      const source = value || {};
+      return {
+        breakfast: [...new Set((source.breakfast || []).map(Number).filter(Boolean))],
+        lunch: [...new Set((source.lunch || []).map(Number).filter(Boolean))],
+        dinner: [...new Set((source.dinner || []).map(Number).filter(Boolean))],
+        snack: [...new Set((source.snack || []).map(Number).filter(Boolean))]
+      };
+    },
+
+    ensurePlannerDay(day) {
+      const key = String(Number(day || 1));
+      if (!this.assignMealForm.days[key]) {
+        this.assignMealForm.days[key] = this.emptyMealSlots();
+      }
+      return this.assignMealForm.days[key];
+    },
+
+    resetPlannerDays() {
+      this.assignMealForm.days = {};
+      const count = this.assignMealForm.mode === 'daily' ? 1 : 7;
+      for (let day = 1; day <= count; day++) {
+        this.assignMealForm.days[String(day)] = this.emptyMealSlots();
+      }
+    },
+
     async openAssignMeal(c) {
       this.assignMealTarget = c;
       this.showAssignMeal = true;
@@ -791,14 +1021,28 @@ function customersApp() {
       this.assignMealError = '';
       this.assignMealSuccess = '';
       this.mealSearch = '';
+
       this.assignMealForm = {
         subscription_id: Number(c?.subscription?.id || c?.current_subscription?.id || 0),
+        mode: String(
+          c?.subscription?.menu_assignment_mode ||
+          c?.subscription?.meal_assignment_mode ||
+          'daily'
+        ),
         day_number: 1,
-        assignments: { breakfast: [], lunch: [], dinner: [], snack: [] },
+        week_number: 1,
+        active_day: 1,
+        days: {},
         driver_id: '',
         assignment_reason: c?.location ? '{{ __('Same delivery zone: ') }}' + c.location : '',
-        notes: '',
+        notes: ''
       };
+
+      if (!['daily', 'repeat_weekly', 'weekly_rotation'].includes(this.assignMealForm.mode)) {
+        this.assignMealForm.mode = 'daily';
+      }
+
+      this.resetPlannerDays();
       this.allMeals = [];
 
       try {
@@ -806,108 +1050,566 @@ function customersApp() {
         if (!subId) return;
 
         const response = await fetch(`{{ url('admin/customers') }}/${c.id}/meal-selections?subscription_id=${subId}`, {
-          headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+          }
         });
+
         const data = await this.readJsonResponse(response);
+
         this.assignMealForm.subscription_id = Number(data.subscription_id || subId);
+
+        if (data.assignment_mode || data.menu_assignment_mode || data.meal_assignment_mode) {
+          const receivedMode = String(
+            data.assignment_mode ||
+            data.menu_assignment_mode ||
+            data.meal_assignment_mode
+          );
+
+          if (['daily', 'repeat_weekly', 'weekly_rotation'].includes(receivedMode)) {
+            this.assignMealForm.mode = receivedMode;
+            this.resetPlannerDays();
+          }
+        }
+
         this.allMeals = (data.meals || []).map(meal => ({
           id: Number(meal.id),
           name: meal.name || meal.name_en || '{{ __('Meal') }}',
-          meal_time: String(meal.meal_time || meal.category || meal.category_name || '').toLowerCase(),
-          category_id: meal.category_id || meal.meal_category_id || null,
-          calories: meal.calories || null,
+          meal_time: String(
+            meal.meal_time ||
+            meal.category ||
+            meal.category_name ||
+            meal.meal_category?.name_en ||
+            ''
+          ).toLowerCase(),
+          category_id: meal.category_id || meal.meal_category_id || meal.meal_category?.id || null,
+          calories: meal.calories || null
         }));
 
-        const existing = Array.isArray(data.selections) ? data.selections : [];
-        existing.forEach(item => {
-          const day = Number(item.day_number || 1);
-          if (day !== Number(this.assignMealForm.day_number)) return;
-          const slot = String(item.meal_time || '').toLowerCase();
-          if (!this.assignMealForm.assignments[slot]) return;
-          const ids = Array.isArray(item.meal_ids)
-            ? item.meal_ids
-            : Array.isArray(item.meals)
-              ? item.meals.map(meal => meal.id)
-              : item.meal_id ? [item.meal_id] : [];
-          this.assignMealForm.assignments[slot] = [...new Set(ids.map(Number).filter(Boolean))];
-        });
+        const existing = Array.isArray(data.assignments)
+          ? data.assignments
+          : Array.isArray(data.selections)
+            ? data.selections
+            : Array.isArray(data.items)
+              ? data.items
+              : [];
+
+        this.loadExistingAssignments(existing);
       } catch (error) {
-        console.error('Failed to load meals', error);
-        this.assignMealError = error.message || '{{ __('Failed to load meals.') }}';
+        console.error('Failed to load menu assignments', error);
+        this.assignMealError = error.message || '{{ __('Failed to load menu assignments.') }}';
       } finally {
         this.mealLoading = false;
       }
     },
 
+    loadExistingAssignments(existing) {
+      if (!Array.isArray(existing)) return;
+
+      existing.forEach(item => {
+        const absoluteDay = this.assignmentAbsoluteDay(item);
+        const weekDay = this.assignmentWeekDay(item, absoluteDay);
+        const weekNumber = Number(item.week_number || Math.ceil(absoluteDay / 7) || 1);
+
+        if (
+          this.assignMealForm.mode === 'weekly_rotation' &&
+          weekNumber !== Number(this.assignMealForm.week_number || 1)
+        ) {
+          return;
+        }
+
+        let plannerDay = 1;
+
+        if (this.assignMealForm.mode === 'daily') {
+          if (absoluteDay !== Number(this.assignMealForm.day_number || 1)) return;
+          plannerDay = 1;
+        } else {
+          plannerDay = weekDay;
+        }
+
+        const slots = this.ensurePlannerDay(plannerDay);
+        const slot = this.assignmentSlot(item);
+        if (!slots[slot]) return;
+
+        const ids = this.assignmentMealIds(item);
+        slots[slot] = [...new Set([...slots[slot], ...ids])];
+      });
+    },
+
+    assignmentAbsoluteDay(item) {
+      if (item?.day_number) return Number(item.day_number);
+
+      const start = this.subscriptionStartDate();
+      const delivery = item?.delivery_date || item?.scheduled_date;
+
+      if (start && delivery) {
+        const startDate = new Date(`${String(start).slice(0, 10)}T00:00:00`);
+        const deliveryDate = new Date(`${String(delivery).slice(0, 10)}T00:00:00`);
+        if (!Number.isNaN(startDate.getTime()) && !Number.isNaN(deliveryDate.getTime())) {
+          return Math.floor((deliveryDate - startDate) / 86400000) + 1;
+        }
+      }
+
+      return 1;
+    },
+
+    assignmentWeekDay(item, absoluteDay = 1) {
+      if (item?.week_day) return Number(item.week_day);
+      if (item?.day_of_week) return Number(item.day_of_week);
+      return ((Math.max(Number(absoluteDay || 1), 1) - 1) % 7) + 1;
+    },
+
+    assignmentSlot(item) {
+      const raw = String(
+        item?.meal_time ||
+        item?.category?.name_en ||
+        item?.category?.name ||
+        item?.meal_category?.name_en ||
+        item?.meal_category?.name ||
+        ''
+      ).toLowerCase();
+
+      if (raw.includes('breakfast')) return 'breakfast';
+      if (raw.includes('lunch')) return 'lunch';
+      if (raw.includes('dinner')) return 'dinner';
+      if (raw.includes('snack')) return 'snack';
+
+      const categoryId = Number(item?.meal_category_id || item?.category_id || item?.category?.id || 0);
+      const categoryMap = { 1: 'breakfast', 2: 'lunch', 3: 'dinner', 4: 'snack' };
+      return categoryMap[categoryId] || raw;
+    },
+
+    assignmentMealIds(item) {
+      if (Array.isArray(item?.meal_ids)) {
+        return item.meal_ids.map(Number).filter(Boolean);
+      }
+
+      if (Array.isArray(item?.meals)) {
+        return item.meals.map(meal => Number(meal?.id || meal?.meal_id || meal)).filter(Boolean);
+      }
+
+      if (Array.isArray(item?.items)) {
+        return item.items.map(entry => Number(entry?.meal_id || entry?.meal?.id)).filter(Boolean);
+      }
+
+      if (item?.meal_id) return [Number(item.meal_id)].filter(Boolean);
+
+      return [];
+    },
+
+    changeMealMode() {
+      this.assignMealForm.day_number = Math.max(Number(this.assignMealForm.day_number || 1), 1);
+      this.assignMealForm.week_number = Math.max(Number(this.assignMealForm.week_number || 1), 1);
+      this.assignMealForm.active_day = 1;
+      this.assignMealError = '';
+      this.assignMealSuccess = '';
+      this.resetPlannerDays();
+    },
+
+    activateDailyDay() {
+      this.assignMealForm.day_number = Math.max(Number(this.assignMealForm.day_number || 1), 1);
+      this.assignMealForm.active_day = 1;
+      this.resetPlannerDays();
+    },
+
+    changeWeekNumber() {
+      this.assignMealForm.week_number = Math.max(Number(this.assignMealForm.week_number || 1), 1);
+      this.assignMealForm.active_day = 1;
+      this.resetPlannerDays();
+    },
+
+    visiblePlannerDays() {
+      return this.assignMealForm.mode === 'daily' ? [1] : [1, 2, 3, 4, 5, 6, 7];
+    },
+
+    activePlannerDay() {
+      return this.assignMealForm.mode === 'daily'
+        ? 1
+        : Math.min(Math.max(Number(this.assignMealForm.active_day || 1), 1), 7);
+    },
+
+    activeDayAssignments() {
+      return this.ensurePlannerDay(this.activePlannerDay());
+    },
+
     selectedMealIds(slot) {
-      return Array.isArray(this.assignMealForm.assignments?.[slot])
-        ? this.assignMealForm.assignments[slot]
-        : [];
+      const slots = this.activeDayAssignments();
+      return Array.isArray(slots?.[slot]) ? slots[slot] : [];
     },
 
     clearMealSlot(slot) {
-      if (this.assignMealForm.assignments?.[slot]) this.assignMealForm.assignments[slot] = [];
+      const slots = this.activeDayAssignments();
+      if (slots?.[slot]) slots[slot] = [];
+    },
+
+    clearWholeWeek() {
+      this.resetPlannerDays();
+    },
+
+    copyPreviousDay() {
+      const current = this.activePlannerDay();
+      if (current <= 1) return;
+      this.assignMealForm.days[String(current)] = this.cloneMealSlots(
+        this.ensurePlannerDay(current - 1)
+      );
+    },
+
+    copyActiveDayToAll() {
+      const source = this.cloneMealSlots(this.activeDayAssignments());
+      this.visiblePlannerDays().forEach(day => {
+        this.assignMealForm.days[String(day)] = this.cloneMealSlots(source);
+      });
+    },
+
+    daySelectedMealsCount(day) {
+      const slots = this.ensurePlannerDay(day);
+      return Object.values(slots).reduce((total, ids) => {
+        return total + (Array.isArray(ids) ? ids.length : 0);
+      }, 0);
+    },
+
+    completedDaysCount() {
+      return this.visiblePlannerDays().filter(day => this.daySelectedMealsCount(day) > 0).length;
+    },
+
+    weekCompletionPercent() {
+      const total = this.visiblePlannerDays().length || 1;
+      return Math.round((this.completedDaysCount() / total) * 100);
     },
 
     filteredMealsForSlot(slot) {
       const term = this.mealSearch.trim().toLowerCase();
       const categoryMap = { breakfast: 1, lunch: 2, dinner: 3, snack: 4 };
+
       return this.allMeals.filter(meal => {
         const matchesSearch = !term || String(meal.name || '').toLowerCase().includes(term);
         const mealTime = String(meal.meal_time || '').toLowerCase();
-        const matchesSlot = !mealTime || mealTime === slot || Number(meal.category_id) === categoryMap[slot];
+        const matchesSlot =
+          !mealTime ||
+          mealTime === slot ||
+          Number(meal.category_id) === categoryMap[slot];
+
         return matchesSearch && matchesSlot;
       });
     },
 
     deliveryPreferenceFor(slot) {
-      return this.assignMealTarget?.delivery_preferences?.[slot] || null;
+      const preferences = this.assignMealTarget?.delivery_preferences || {};
+      if (Array.isArray(preferences)) {
+        return preferences.find(pref => {
+          const value = String(pref?.meal_time || pref?.category || pref?.meal_category?.name_en || '').toLowerCase();
+          return value === slot;
+        }) || null;
+      }
+
+      return preferences?.[slot] || null;
     },
 
     deliveryPreferenceSummary(slot) {
       const pref = this.deliveryPreferenceFor(slot);
       if (!pref) return '';
-      return [pref.place_name, pref.city, pref.delivery_area, pref.delivery_address, pref.preferred_delivery_time]
-        .filter(Boolean).join(' · ');
+
+      return [
+        pref.place_name,
+        pref.city,
+        pref.delivery_area,
+        pref.delivery_address,
+        pref.preferred_delivery_time
+      ].filter(Boolean).join(' · ');
     },
 
-    scheduledDateForDay() {
-      const start = this.assignMealTarget?.subscription?.start_date || this.assignMealTarget?.current_subscription?.start_date;
-      const day = Number(this.assignMealForm.day_number || 1);
+    subscriptionStartDate() {
+      return (
+        this.assignMealTarget?.subscription?.start_date ||
+        this.assignMealTarget?.current_subscription?.start_date ||
+        ''
+      );
+    },
+
+    subscriptionEndDate() {
+      return (
+        this.assignMealTarget?.subscription?.end_date ||
+        this.assignMealTarget?.current_subscription?.end_date ||
+        ''
+      );
+    },
+
+    subscriptionDurationDays() {
+      const explicit = Number(
+        this.assignMealTarget?.subscription?.duration_days ||
+        this.assignMealTarget?.current_subscription?.duration_days ||
+        this.assignMealTarget?.subscription?.plan?.duration_days ||
+        0
+      );
+
+      if (explicit > 0) return explicit;
+
+      const start = this.subscriptionStartDate();
+      const end = this.subscriptionEndDate();
+      if (!start || !end) return 0;
+
+      const startDate = new Date(`${String(start).slice(0, 10)}T00:00:00`);
+      const endDate = new Date(`${String(end).slice(0, 10)}T00:00:00`);
+      if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return 0;
+
+      return Math.max(Math.floor((endDate - startDate) / 86400000) + 1, 0);
+    },
+
+    subscriptionTotalWeeks() {
+      const days = this.subscriptionDurationDays();
+      return days > 0 ? Math.ceil(days / 7) : 0;
+    },
+
+    subscriptionPeriodLabel() {
+      const start = this.subscriptionStartDate();
+      const end = this.subscriptionEndDate();
+
+      const format = value => {
+        if (!value) return '—';
+        const date = new Date(`${String(value).slice(0, 10)}T00:00:00`);
+        return Number.isNaN(date.getTime())
+          ? String(value)
+          : date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      };
+
+      return `${format(start)} → ${end ? format(end) : '{{ __('Ongoing') }}'}`;
+    },
+
+    subscriptionDaysLabel() {
+      const days = this.subscriptionDurationDays();
+      const weeks = this.subscriptionTotalWeeks();
+
+      if (!days) return '{{ __('Duration not available') }}';
+      return `${days} {{ __('days') }} · ${weeks} {{ __('weeks') }}`;
+    },
+
+    absoluteDayForPlannerDay(plannerDay) {
+      const day = Number(plannerDay || 1);
+
+      if (this.assignMealForm.mode === 'daily') {
+        return Math.max(Number(this.assignMealForm.day_number || 1), 1);
+      }
+
+      if (this.assignMealForm.mode === 'weekly_rotation') {
+        return ((Math.max(Number(this.assignMealForm.week_number || 1), 1) - 1) * 7) + day;
+      }
+
+      return day;
+    },
+
+    scheduledDateForAbsoluteDay(absoluteDay) {
+      const start = this.subscriptionStartDate();
+      const day = Number(absoluteDay || 1);
+
       if (!start || day < 1) return '';
+
       const date = new Date(`${String(start).slice(0, 10)}T00:00:00`);
       if (Number.isNaN(date.getTime())) return '';
+
       date.setDate(date.getDate() + day - 1);
-      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      return date;
+    },
+
+    scheduledDateIsoForPlannerDay(plannerDay) {
+      const date = this.scheduledDateForAbsoluteDay(
+        this.absoluteDayForPlannerDay(plannerDay)
+      );
+
+      if (!date) return '';
+
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    },
+
+    plannerDayDateLabel(plannerDay) {
+      const date = this.scheduledDateForAbsoluteDay(
+        this.absoluteDayForPlannerDay(plannerDay)
+      );
+
+      return date
+        ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        : '—';
+    },
+
+    activeScheduledDateLabel() {
+      const date = this.scheduledDateForAbsoluteDay(
+        this.absoluteDayForPlannerDay(this.activePlannerDay())
+      );
+
+      return date
+        ? date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+        : '';
+    },
+
+    plannerDayTitle(plannerDay) {
+      if (this.assignMealForm.mode === 'weekly_rotation') {
+        return `{{ __('Week') }} ${this.assignMealForm.week_number} · {{ __('Day') }} ${plannerDay}`;
+      }
+
+      return `{{ __('Day') }} ${plannerDay}`;
+    },
+
+    activeDayEditorTitle() {
+      if (this.assignMealForm.mode === 'daily') {
+        return `{{ __('Subscription Day') }} ${this.assignMealForm.day_number}`;
+      }
+
+      if (this.assignMealForm.mode === 'weekly_rotation') {
+        return `{{ __('Week') }} ${this.assignMealForm.week_number} · {{ __('Day') }} ${this.activePlannerDay()}`;
+      }
+
+      return `{{ __('Repeating Week') }} · {{ __('Day') }} ${this.activePlannerDay()}`;
+    },
+
+    activeDayEditorSubtitle() {
+      const date = this.activeScheduledDateLabel();
+
+      if (this.assignMealForm.mode === 'repeat_weekly') {
+        return `{{ __('This weekday template repeats until the subscription ends.') }} ${date ? '· ' + date : ''}`;
+      }
+
+      return date;
+    },
+
+    menuModeSummary() {
+      if (this.assignMealForm.mode === 'repeat_weekly') {
+        return '{{ __('Days 1–7 will repeat until the subscription ends.') }}';
+      }
+
+      if (this.assignMealForm.mode === 'weekly_rotation') {
+        return `{{ __('Editing Week') }} ${this.assignMealForm.week_number} {{ __('of') }} ${this.subscriptionTotalWeeks() || '—'}`;
+      }
+
+      return '{{ __('One exact subscription day will be saved.') }}';
+    },
+
+    saveMenuButtonLabel() {
+      if (this.assignMealForm.mode === 'daily') {
+        return '{{ __('Save Daily Menu') }}';
+      }
+
+      if (this.assignMealForm.mode === 'repeat_weekly') {
+        return '{{ __('Save Repeating Week') }}';
+      }
+
+      return `{{ __('Save Week') }} ${this.assignMealForm.week_number}`;
     },
 
     canSubmitMealAssignment() {
-      if (!this.assignMealForm.subscription_id || Number(this.assignMealForm.day_number) < 1) return false;
-      return Object.values(this.assignMealForm.assignments || {}).some(ids => Array.isArray(ids) && ids.length > 0);
+      if (!this.assignMealForm.subscription_id) return false;
+
+      if (this.assignMealForm.mode === 'daily') {
+        return (
+          Number(this.assignMealForm.day_number) >= 1 &&
+          this.daySelectedMealsCount(1) > 0
+        );
+      }
+
+      if (this.assignMealForm.mode === 'weekly_rotation' && Number(this.assignMealForm.week_number) < 1) {
+        return false;
+      }
+
+      return this.visiblePlannerDays().every(day => this.daySelectedMealsCount(day) > 0);
+    },
+
+    buildDayAssignments(plannerDay) {
+      const slots = this.ensurePlannerDay(plannerDay);
+
+      return this.mealSlots
+        .map(slot => ({
+          meal_time: slot.key,
+          meal_ids: [...new Set((slots[slot.key] || []).map(Number).filter(Boolean))]
+        }))
+        .filter(item => item.meal_ids.length > 0);
+    },
+
+    buildMenuAssignmentPayload() {
+      const mode = this.assignMealForm.mode;
+      const plannerDays = this.visiblePlannerDays();
+
+      const days = plannerDays.map(plannerDay => ({
+        planner_day: Number(plannerDay),
+        day_number: this.absoluteDayForPlannerDay(plannerDay),
+        week_number: mode === 'weekly_rotation'
+          ? Number(this.assignMealForm.week_number)
+          : Math.ceil(this.absoluteDayForPlannerDay(plannerDay) / 7),
+        week_day: mode === 'daily'
+          ? ((this.absoluteDayForPlannerDay(plannerDay) - 1) % 7) + 1
+          : Number(plannerDay),
+        scheduled_date: this.scheduledDateIsoForPlannerDay(plannerDay),
+        assignments: this.buildDayAssignments(plannerDay)
+      }));
+
+      const payload = {
+        subscription_id: Number(this.assignMealForm.subscription_id),
+        assignment_mode: mode,
+        menu_assignment_mode: mode,
+        repeat_until_subscription_end: mode === 'repeat_weekly',
+        week_number: mode === 'weekly_rotation'
+          ? Number(this.assignMealForm.week_number)
+          : null,
+        day_number: mode === 'daily'
+          ? Number(this.assignMealForm.day_number)
+          : null,
+        days
+      };
+
+      /*
+       * Backward-compatible fields for the existing one-day controller.
+       * The updated backend can use `days`; the previous controller can
+       * still read `day_number` and `assignments` for daily mode.
+       */
+      if (mode === 'daily') {
+        payload.assignments = days[0]?.assignments || [];
+      }
+
+      return payload;
     },
 
     async readJsonResponse(response) {
       let data = {};
-      try { data = await response.json(); } catch (_) {}
+
+      try {
+        data = await response.json();
+      } catch (_) {}
+
       if (!response.ok) {
-        const validation = data?.errors ? Object.values(data.errors).flat().join(' ') : '';
-        throw new Error(validation || data?.message || data?.error || '{{ __('Request failed.') }}');
+        let validation = '';
+
+        if (Array.isArray(data?.detail)) {
+          validation = data.detail.map(item => item?.msg || JSON.stringify(item)).join(' ');
+        } else if (data?.errors) {
+          validation = Object.values(data.errors).flat().join(' ');
+        }
+
+        throw new Error(
+          validation ||
+          data?.detail ||
+          data?.message ||
+          data?.error ||
+          '{{ __('Request failed.') }}'
+        );
       }
+
       return data;
     },
 
     async submitAssignMeal() {
-      if (!this.canSubmitMealAssignment()) return;
+      if (!this.canSubmitMealAssignment()) {
+        this.assignMealError = this.assignMealForm.mode === 'daily'
+          ? '{{ __('Select at least one meal for the selected day.') }}'
+          : '{{ __('Every day in the week must contain at least one meal.') }}';
+        return;
+      }
+
       this.assigningMeal = true;
       this.assignMealError = '';
       this.assignMealSuccess = '';
 
-      const assignments = this.mealSlots
-        .map(slot => ({
-          meal_time: slot.key,
-          meal_ids: [...new Set(this.selectedMealIds(slot.key).map(Number).filter(Boolean))],
-        }))
-        .filter(item => item.meal_ids.length > 0);
+      const payload = this.buildMenuAssignmentPayload();
 
       try {
         const response = await fetch(`{{ url('admin/customers') }}/${this.assignMealTarget.id}/assign-meal`, {
@@ -918,14 +1620,11 @@ function customersApp() {
             'X-Requested-With': 'XMLHttpRequest',
             'Accept': 'application/json'
           },
-          body: JSON.stringify({
-            subscription_id: Number(this.assignMealForm.subscription_id),
-            day_number: Number(this.assignMealForm.day_number),
-            assignments,
-          })
+          body: JSON.stringify(payload)
         });
+
         const data = await this.readJsonResponse(response);
-        let message = data.message || '{{ __('Day menu assigned successfully!') }}';
+        let message = data.message || '{{ __('Menu assigned successfully!') }}';
 
         if (this.assignMealForm.driver_id) {
           const driverResponse = await fetch(`{{ url('admin/customers') }}/${this.assignMealTarget.id}/assign-driver`, {
@@ -939,24 +1638,32 @@ function customersApp() {
             body: JSON.stringify({
               driver_id: Number(this.assignMealForm.driver_id),
               assignment_reason: this.assignMealForm.assignment_reason,
-              notes: this.assignMealForm.notes,
+              notes: this.assignMealForm.notes
             })
           });
+
           const driverData = await this.readJsonResponse(driverResponse);
           message += ' ' + (driverData.message || '{{ __('Driver assigned successfully!') }}');
         }
 
         this.assignMealSuccess = message;
         await this.fetchCustomers();
-        if (this.selected?.id === this.assignMealTarget?.id) await this.showDetail(this.assignMealTarget);
-        setTimeout(() => { this.showAssignMeal = false; }, 1500);
+
+        if (this.selected?.id === this.assignMealTarget?.id) {
+          await this.showDetail(this.assignMealTarget);
+        }
+
+        setTimeout(() => {
+          this.showAssignMeal = false;
+        }, 1500);
       } catch (error) {
-        console.error('Failed to assign day menu', error);
-        this.assignMealError = error.message || '{{ __('Failed to assign day menu.') }}';
+        console.error('Failed to assign menu', error);
+        this.assignMealError = error.message || '{{ __('Failed to assign menu.') }}';
       } finally {
         this.assigningMeal = false;
       }
     },
+
     openAssignDriver(c) {
       this.assignDriverTarget = c;
       this.assignDriverForm = { driver_id: '', assignment_reason: c.location ? '{{ __('Same delivery zone: ') }}' + c.location : '', notes: '' };

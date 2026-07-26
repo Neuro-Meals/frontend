@@ -94,6 +94,16 @@ return [
             'delete' => '/meal-categories/{category_id}',
         ],
 
+        'meal_assignments' => [
+            'create' => '/meal-assignments',
+            'list' => '/meal-assignments',
+            'customer' => '/meal-assignments/user/{user_id}',
+            'show' => '/meal-assignments/{assignment_id}',
+            'update' => '/meal-assignments/{assignment_id}',
+            'delete' => '/meal-assignments/{assignment_id}',
+            'restore' => '/meal-assignments/{assignment_id}/restore',
+        ],
+
         // ─── Meals ───
         'meals' => [
             'list'   => '/meals/',
