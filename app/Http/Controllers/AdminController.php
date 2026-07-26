@@ -3413,44 +3413,180 @@ class AdminController extends Controller
 }
 
 
-    public function customerMealSelections(int $id, Request $request, SubscriptionApiService $subscriptionApi, NutritionApiService $nutritionApi, MealApiService $mealApi)
-    {
-        $subscriptionId = (int) $request->input('subscription_id');
-        if ($subscriptionId <= 0) {
-            $subsData = $this->apiData($subscriptionApi->list(['user_id' => $id, 'limit' => 50, 'status' => 'active']), fn () => []);
-            $sub = $subsData[0] ?? null;
-            $subscriptionId = $sub['id'] ?? 0;
+    public function customerMealSelections(
+    int $id,
+    Request $request,
+    SubscriptionApiService $subscriptionApi,
+    NutritionApiService $nutritionApi,
+    MealApiService $mealApi
+) {
+    $subscriptionId = (int) $request->input(
+        'subscription_id',
+        0
+    );
+
+    if ($subscriptionId <= 0) {
+        $subscriptionsResponse = $subscriptionApi->list([
+            'user_id' => $id,
+            'status' => 'active',
+            'page' => 1,
+            'limit' => 50,
+        ]);
+
+        $subscriptionsData = $this->apiData(
+            $subscriptionsResponse,
+            fn () => []
+        );
+
+        if (
+            isset($subscriptionsData['data'])
+            && is_array($subscriptionsData['data'])
+        ) {
+            $subscriptionsData = $subscriptionsData['data'];
         }
 
-        if ($subscriptionId <= 0) {
-            return response()->json(['success' => true, 'selections' => [], 'meals' => [], 'subscription_id' => 0]);
+        if (
+            isset($subscriptionsData['items'])
+            && is_array($subscriptionsData['items'])
+        ) {
+            $subscriptionsData = $subscriptionsData['items'];
         }
 
-        $selectionsResponse = $nutritionApi->subscriptionMealAssignments(
-    $id,
-    $currentSubscription['id'] ?? null
-);
+        $subscription = collect($subscriptionsData)
+            ->first(function ($subscription) {
+                return strtolower(
+                    (string) ($subscription['status'] ?? '')
+                ) === 'active';
+            });
 
-    $selections = $this->apiData(
-    $selectionsResponse,
-    fn () => []
-);
+        $subscriptionId = (int) (
+            $subscription['id']
+            ?? 0
+        );
+    }
 
-        $mealsData = $this->apiData($mealApi->list(['is_available' => true, 'limit' => 100]), fn () => []);
-        $meals = collect($mealsData)->map(function ($m) {
-            return [
-                'id' => $m['id'] ?? 0,
-                'name' => $m['name_en'] ?? $m['name'] ?? 'Meal',
-            ];
-        })->values()->toArray();
+    if ($subscriptionId <= 0) {
+        return response()->json([
+            'success' => true,
+            'assignments' => [],
+            'selections' => [],
+            'meals' => [],
+            'subscription_id' => 0,
+        ]);
+    }
+
+    try {
+        $assignmentsResponse =
+            $nutritionApi->subscriptionMealAssignments(
+                $id,
+                $subscriptionId
+            );
+
+        $assignmentsData = $this->apiData(
+            $assignmentsResponse,
+            fn () => []
+        );
+
+        if (
+            isset($assignmentsData['items'])
+            && is_array($assignmentsData['items'])
+        ) {
+            $assignments = $assignmentsData['items'];
+        } elseif (
+            isset($assignmentsData['data'])
+            && is_array($assignmentsData['data'])
+        ) {
+            $assignments = $assignmentsData['data'];
+        } else {
+            $assignments = is_array($assignmentsData)
+                ? array_values($assignmentsData)
+                : [];
+        }
+
+        $mealsResponse = $mealApi->list([
+            'is_available' => true,
+            'page' => 1,
+            'limit' => 100,
+        ]);
+
+        $mealsData = $this->apiData(
+            $mealsResponse,
+            fn () => []
+        );
+
+        if (
+            isset($mealsData['items'])
+            && is_array($mealsData['items'])
+        ) {
+            $mealsData = $mealsData['items'];
+        } elseif (
+            isset($mealsData['data'])
+            && is_array($mealsData['data'])
+        ) {
+            $mealsData = $mealsData['data'];
+        }
+
+        $meals = collect($mealsData)
+            ->filter(fn ($meal) => is_array($meal))
+            ->map(function ($meal) {
+                $category = is_array(
+                    $meal['category'] ?? null
+                )
+                    ? $meal['category']
+                    : [];
+
+                return [
+                    'id' => (int) ($meal['id'] ?? 0),
+
+                    'name' => $meal['name_en']
+                        ?? $meal['name']
+                        ?? 'Meal',
+
+                    'calories' => $meal['calories'] ?? null,
+
+                    'category_id' => (int) (
+                        $meal['category_id']
+                        ?? $meal['meal_category_id']
+                        ?? $category['id']
+                        ?? 0
+                    ),
+
+                    'meal_time' => strtolower(
+                        (string) (
+                            $meal['meal_time']
+                            ?? $category['name_en']
+                            ?? $category['name']
+                            ?? ''
+                        )
+                    ),
+                ];
+            })
+            ->values()
+            ->all();
 
         return response()->json([
             'success' => true,
-            'selections' => $selections,
+
+            // New Blade reads assignments first.
+            'assignments' => $assignments,
+
+            // Keep this temporarily for compatibility.
+            'selections' => $assignments,
+
             'meals' => $meals,
             'subscription_id' => $subscriptionId,
         ]);
+    } catch (\Throwable $exception) {
+        report($exception);
+
+        return response()->json([
+            'success' => false,
+            'message' => app()->isLocal()
+                ? $exception->getMessage()
+                : __('Unable to load customer meal assignments.'),
+        ], 500);
     }
+}
 
     public function assignDriverToCustomer(Request $request, int $id, CustomerDriverApiService $customerDriverApi, PaymentApiService $paymentApi)
     {

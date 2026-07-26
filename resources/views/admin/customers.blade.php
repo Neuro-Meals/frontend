@@ -706,7 +706,8 @@
       <div class="flex items-center justify-between mb-5">
         <div>
           <h3 class="text-base font-bold text-gray-900">{{ __('Assign Dedicated Driver') }}</h3>
-          <p class="text-sm text-gray-400 mt-1" x-text="`${__('Assign a driver to')} ${assignDriverTarget?.name}`"></p>
+          <p class="text-sm text-gray-400 mt-1"
+   x-text="`{{ __('Assign a driver to') }} ${assignDriverTarget?.name || ''}`" </p>
         </div>
         <button @click="showAssignDriver = false" class="text-gray-400 hover:text-gray-600 transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -743,7 +744,7 @@
         <div x-show="assignDriverSuccess" class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2" x-text="assignDriverSuccess"></div>
         <div class="flex gap-3 pt-2">
           <button type="button" @click="showAssignDriver = false" class="flex-1 px-4 py-3 text-sm font-bold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">{{ __('Cancel') }}</button>
-          <button type="submit" :disabled="assigningDriver" class="flex-1 px-4 py-3 text-sm font-bold rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-md transition-all disabled:opacity-50" x-text="assigningDriver ? '{{ __('Assigning...') }}' : '{{ __('Assign Driver') }}'"></button>
+          <button type="submit" :disabled="assigningDriver" class="flex-1 px-4 py-3 text-sm font-bold rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white hover:shadow-md transition-all disabled:opacity-50" x-text="`{{ __('Assign a driver to') }} ${assignDriverTarget?.name || ''}`"></button>
         </div>
       </form>
     </div>
@@ -754,7 +755,7 @@
     <div class="absolute inset-0 bg-black/40" @click="showAssignPlan = false"></div>
     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" @click.outside="showAssignPlan = false">
       <h3 class="text-sm font-bold text-gray-900 mb-1">{{ __('Assign Plan') }}</h3>
-      <p class="text-xs text-gray-400 mb-4" x-text="`${__('Assign a plan to')} ${assignTarget?.name}`"></p>
+
       <form @submit.prevent="submitAssignPlan">
         <select x-model="assignPlanId" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20 mb-4" required>
           <option value="">{{ __('Select a plan...') }}</option>
@@ -1584,7 +1585,7 @@ function customersApp() {
       };
     })
     .filter(item => item.meal_ids.length > 0);
-}
+},
 
     buildMenuAssignmentPayload() {
       const mode = this.assignMealForm.mode;
