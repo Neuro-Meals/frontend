@@ -4,383 +4,591 @@
 @section('page_title', __('Meal Plans'))
 
 @section('content')
-<div x-data="plansPage()" x-cloak>
+@php
+    /*
+     * New plan architecture:
+     *
+     * Plan
+     *  - package identity and pricing
+     *  - duration_days
+     *  - meals_per_day
+     *  - total_meals (derived when missing)
+     *  - active/inactive state
+     *
+     * Plan Menu
+     *  - configured separately through the Menu action
+     *
+     * Subscription
+     *  - links a customer to a plan
+     *
+     * Orders / Meal Assignments
+     *  - generated later from the active subscription schedule
+     */
+    $plans = is_array($plans ?? null) ? $plans : [];
+    $stats = is_array($stats ?? null) ? $stats : [];
 
-    {{-- Toast Notifications --}}
-    <div class="fixed top-5 right-5 z-[70] space-y-2">
+    $safeStats = [
+        'total' => (int) ($stats['total'] ?? count($plans)),
+        'active' => (int) ($stats['active'] ?? collect($plans)->where('is_active', true)->count()),
+        'inactive' => (int) ($stats['inactive'] ?? collect($plans)->where('is_active', false)->count()),
+        'totalSubscribers' => (int) ($stats['totalSubscribers'] ?? $stats['total_subscribers'] ?? 0),
+        'activeSubscribers' => (int) ($stats['activeSubscribers'] ?? $stats['active_subscribers'] ?? 0),
+        'avgRevenue' => (float) ($stats['avgRevenue'] ?? $stats['avg_price'] ?? 0),
+        'totalMeals' => (int) ($stats['totalMeals'] ?? $stats['total_meals'] ?? 0),
+    ];
+@endphp
+
+<div x-data="plansPage()" x-cloak>
+    {{-- Toast notifications --}}
+    <div class="fixed right-5 top-5 z-[80] space-y-2">
         <template x-for="toast in toasts" :key="toast.id">
-            <div x-show="toast.show" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-5" x-transition:enter-end="opacity-100 translate-x-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-x-0" x-transition:leave-end="opacity-0 translate-x-5" :class="toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'" class="text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm min-w-[260px]">
-                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div
+                x-show="toast.show"
+                x-transition
+                class="flex min-w-[280px] items-center gap-2 rounded-xl px-4 py-3 text-sm text-white shadow-lg"
+                :class="toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'"
+            >
                 <span x-text="toast.message"></span>
             </div>
         </template>
     </div>
 
-    {{-- KPI Cards --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20 animate__animated animate__fadeInUp" style="animation-delay: 0.1s">
-            <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
-            <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
-            <div class="relative z-10">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-xs text-white/60 font-medium">{{ __('Total Plans') }}</p>
-                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-                        <svg class="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    </div>
-                </div>
-                <p class="text-2xl font-bold tracking-tight">{{ $stats['total'] }}</p>
-                <p class="text-xs text-white/50 mt-1">{{ $stats['active'] }} {{ __('active') }}</p>
+    {{-- Architecture info --}}
+    <div class="mb-6 rounded-2xl border border-[#6E7A25]/10 bg-gradient-to-r from-[#173327]/5 to-[#6E7A25]/5 p-5">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <p class="text-xs font-extrabold uppercase tracking-widest text-[#6E7A25]">
+                    {{ __('Plan architecture') }}
+                </p>
+                <h2 class="mt-1 text-lg font-extrabold text-gray-900">
+                    {{ __('Package → Menu → Subscription → Meal Schedule') }}
+                </h2>
+                <p class="mt-1 max-w-3xl text-xs leading-relaxed text-gray-500">
+                    {{ __('A plan defines price, duration and meals per day. Configure the actual daily menu separately, then customers subscribe and receive scheduled orders automatically.') }}
+                </p>
             </div>
-        </div>
-        <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-green-500/20 animate__animated animate__fadeInUp" style="animation-delay: 0.2s">
-            <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
-            <div class="relative z-10">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-xs text-white/60 font-medium">{{ __('Subscribers') }}</p>
-                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-                        <svg class="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6-3a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM5 3a2.5 2.5 0 100 5 2.5 2.5 0 000-5z"/></svg>
-                    </div>
-                </div>
-                <p class="text-2xl font-bold tracking-tight">{{ number_format($stats['totalSubscribers']) }}</p>
-                <p class="text-xs text-white/50 mt-1">{{ __('Real subscribers') }}</p>
-            </div>
-        </div>
-        <div class="bg-gradient-to-br from-[#033133] to-[#025C5F] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#033133]/20 animate__animated animate__fadeInUp" style="animation-delay: 0.3s">
-            <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
-            <div class="relative z-10">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-xs text-white/60 font-medium">{{ __('Total Meals Served') }}</p>
-                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-                        <svg class="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    </div>
-                </div>
-                <p class="text-2xl font-bold tracking-tight">{{ number_format($stats['totalMealsServed'] ?? 0) }}</p>
-                <p class="text-xs text-white/50 mt-1">{{ __('Across all plans') }}</p>
-            </div>
-        </div>
-        <div class="bg-gradient-to-br from-[#6E7A25] to-[#949B50] rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shadow-[#6E7A25]/20 animate__animated animate__fadeInUp" style="animation-delay: 0.4s">
-            <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
-            <div class="relative z-10">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-xs text-white/60 font-medium">{{ __('Avg Price') }}</p>
-                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-                        <svg class="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                </div>
-                <p class="text-2xl font-bold tracking-tight">SAR {{ number_format($stats['avgRevenue']) }}</p>
-                <p class="text-xs text-white/50 mt-1">{{ __('Per plan') }}</p>
-            </div>
+
+            <button
+                type="button"
+                @click="openModal()"
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] px-5 py-3 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
+            >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                {{ __('Create Plan') }}
+            </button>
         </div>
     </div>
 
-    {{-- Action Bar --}}
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <div class="flex items-center bg-white rounded-xl px-4 py-3 border border-gray-100 shadow-sm flex-1 max-w-md w-full">
-            <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <input type="text" x-model="search" placeholder="{{ __('Search plans...') }}" class="bg-transparent text-sm outline-none flex-1 text-gray-700 placeholder-gray-400">
+    {{-- KPI cards --}}
+    <div class="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#173327] to-[#6E7A25] p-5 text-white shadow-lg">
+            <div class="absolute -right-8 -top-8 h-20 w-20 rounded-full bg-white/10"></div>
+            <p class="text-xs font-semibold text-white/60">{{ __('Plans') }}</p>
+            <p class="mt-2 text-3xl font-extrabold">{{ $safeStats['total'] }}</p>
+            <p class="mt-1 text-xs text-white/60">
+                {{ $safeStats['active'] }} {{ __('active') }}
+                ·
+                {{ $safeStats['inactive'] }} {{ __('inactive') }}
+            </p>
         </div>
-        <button @click="openModal" class="w-full sm:w-auto px-6 py-3 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] hover:from-[#025C5F] hover:to-[#1E8A00] rounded-xl shadow-md shadow-brand-light/20 hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            {{ __('Create Plan') }}
-        </button>
+
+        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <p class="text-xs font-semibold text-gray-400">{{ __('Subscribers') }}</p>
+            <p class="mt-2 text-3xl font-extrabold text-gray-900">
+                {{ number_format($safeStats['totalSubscribers']) }}
+            </p>
+            <p class="mt-1 text-xs text-emerald-600">
+                {{ number_format($safeStats['activeSubscribers']) }} {{ __('active subscriptions') }}
+            </p>
+        </div>
+
+        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <p class="text-xs font-semibold text-gray-400">{{ __('Configured meals') }}</p>
+            <p class="mt-2 text-3xl font-extrabold text-[#025C5F]">
+                {{ number_format($safeStats['totalMeals']) }}
+            </p>
+            <p class="mt-1 text-xs text-gray-400">
+                {{ __('Across plan menus') }}
+            </p>
+        </div>
+
+        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <p class="text-xs font-semibold text-gray-400">{{ __('Average plan price') }}</p>
+            <p class="mt-2 text-3xl font-extrabold text-[#6E7A25]">
+                SAR {{ number_format($safeStats['avgRevenue'], 2) }}
+            </p>
+            <p class="mt-1 text-xs text-gray-400">
+                {{ __('Per subscription package') }}
+            </p>
+        </div>
     </div>
 
-    @if (session('status'))
-        <div class="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm flex items-center gap-2">
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            {{ session('status') }}
+    {{-- Search and filters --}}
+    <div class="mb-6 flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm lg:flex-row lg:items-center">
+        <div class="flex flex-1 items-center rounded-xl bg-gray-50 px-4 py-3">
+            <svg class="mr-3 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/>
+            </svg>
+            <input
+                type="text"
+                x-model="search"
+                placeholder="{{ __('Search by plan name...') }}"
+                class="w-full bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400"
+            >
         </div>
+
+        <select
+            x-model="statusFilter"
+            class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-700 outline-none"
+        >
+            <option value="all">{{ __('All statuses') }}</option>
+            <option value="active">{{ __('Active') }}</option>
+            <option value="inactive">{{ __('Inactive') }}</option>
+        </select>
+
+        <select
+            x-model="durationFilter"
+            class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-700 outline-none"
+        >
+            <option value="all">{{ __('All durations') }}</option>
+            <option value="short">{{ __('Up to 14 days') }}</option>
+            <option value="monthly">{{ __('15–31 days') }}</option>
+            <option value="long">{{ __('More than 31 days') }}</option>
+        </select>
+    </div>
+
+    @if(session('status'))
+    <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+        {{ session('status') }}
+    </div>
     @endif
 
-    {{-- Plans Grid --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <template x-for="(plan, index) in filteredPlans" :key="plan.id">
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 animate__animated animate__fadeInUp" :style="`animation-delay: ${0.1 + index * 0.05}s`">
-                {{-- Header with line pattern background --}}
-                <div class="p-5 border-b border-gray-50 relative overflow-hidden" :style="`background: linear-gradient(135deg, ${plan.color}15, ${plan.color}05);`">
-                    {{-- Line pattern overlay --}}
-                    <div class="absolute inset-0 opacity-[0.07]" :style="`background-image: repeating-linear-gradient(45deg, ${plan.color} 0px, ${plan.color} 1px, transparent 1px, transparent 12px);`"></div>
-                    <div class="absolute top-0 right-0 w-20 h-20 rounded-full -mr-10 -mt-10" :style="`background: ${plan.color}10;`"></div>
-                    <div class="relative z-10">
-                        <div class="flex items-start justify-between mb-3">
-                            <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm" :style="`background: ${plan.color}20;`">
-                                <svg class="w-6 h-6" :style="`color: ${plan.color};`" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            </div>
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border" :class="plan.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'">
-                                <span x-text="statusLabel(plan.status)"></span>
-                            </span>
+    @if(session('error'))
+    <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        {{ session('error') }}
+    </div>
+    @endif
+
+    {{-- Plans grid --}}
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <template x-for="plan in filteredPlans" :key="plan.id">
+            <article class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                <div class="relative overflow-hidden border-b border-gray-100 bg-gradient-to-br from-[#173327]/5 to-[#6E7A25]/10 p-5">
+                    <div class="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-[#6E7A25]/10"></div>
+
+                    <div class="relative flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-extrabold uppercase tracking-widest text-[#6E7A25]">
+                                {{ __('Subscription package') }}
+                            </p>
+                            <h3 class="mt-1 truncate text-lg font-extrabold text-gray-900" x-text="plan.name"></h3>
+                            <p
+                                class="mt-1 line-clamp-2 min-h-[2.5rem] text-xs leading-relaxed text-gray-500"
+                                x-text="plan.description || '{{ __('No description provided.') }}'"
+                            ></p>
                         </div>
-                        <h3 class="text-base font-bold text-gray-900" x-text="plan.name"></h3>
-                        <p class="text-xs text-gray-400 mt-1" x-text="plan.calories + ' {{ __('kcal/day') }}'"></p>
+
+                        <span
+                            class="inline-flex flex-shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold"
+                            :class="plan.is_active
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'bg-gray-100 text-gray-500'"
+                            x-text="plan.is_active ? '{{ __('Active') }}' : '{{ __('Inactive') }}'"
+                        ></span>
                     </div>
                 </div>
-                {{-- Body --}}
+
                 <div class="p-5">
-                    <div class="flex items-end gap-1 mb-4">
-                        <span class="text-2xl font-bold text-gray-900" x-text="'SAR ' + Number(plan.price).toLocaleString()"></span>
-                        <span class="text-xs text-gray-400 mb-1" x-text="'/ ' + plan.duration"></span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 mb-4">
-                        <div class="bg-gray-50 rounded-lg p-2.5 text-center">
-                            <div class="w-7 h-7 mx-auto rounded-lg bg-[#6E7A25]/10 flex items-center justify-center mb-1.5">
-                                <svg class="w-3.5 h-3.5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                            </div>
-                            <p class="text-[9px] text-gray-400 uppercase tracking-wider">{{ __('Meals') }}</p>
-                            <p class="text-sm font-bold text-gray-900" x-text="plan.meals"></p>
+                    <div class="mb-5 flex items-end justify-between gap-4">
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                                {{ __('Price') }}
+                            </p>
+                            <p class="mt-1 text-2xl font-extrabold text-gray-900">
+                                <span x-text="plan.currency"></span>
+                                <span x-text="formatNumber(plan.price)"></span>
+                            </p>
                         </div>
-                        <div class="bg-gray-50 rounded-lg p-2.5 text-center">
-                            <div class="w-7 h-7 mx-auto rounded-lg bg-emerald-50 flex items-center justify-center mb-1.5">
-                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            </div>
-                            <p class="text-[9px] text-gray-400 uppercase tracking-wider">{{ __('Served') }}</p>
-                            <p class="text-sm font-bold text-gray-900" x-text="plan.total_meals_served || 0"></p>
+
+                        <p class="text-right text-xs text-gray-400">
+                            <span class="font-bold text-gray-700" x-text="plan.duration_days"></span>
+                            {{ __('days') }}
+                        </p>
+                    </div>
+
+                    <div class="mb-5 grid grid-cols-3 gap-2">
+                        <div class="rounded-xl bg-gray-50 p-3 text-center">
+                            <p class="text-lg font-extrabold text-gray-900" x-text="plan.meals_per_day"></p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-wide text-gray-400">
+                                {{ __('Meals/day') }}
+                            </p>
+                        </div>
+
+                        <div class="rounded-xl bg-gray-50 p-3 text-center">
+                            <p class="text-lg font-extrabold text-gray-900" x-text="plan.total_meals"></p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-wide text-gray-400">
+                                {{ __('Total meals') }}
+                            </p>
+                        </div>
+
+                        <div class="rounded-xl bg-gray-50 p-3 text-center">
+                            <p class="text-lg font-extrabold text-gray-900" x-text="plan.subscribers_count"></p>
+                            <p class="mt-1 text-[9px] font-bold uppercase tracking-wide text-gray-400">
+                                {{ __('Subscribers') }}
+                            </p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <a :href="'{{ url('admin/plans') }}/' + plan.id + '/menu'" class="flex-1 px-3 py-2 text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-lg transition-all hover:shadow-md flex items-center justify-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            {{ __('Menu') }}
+
+                    <div class="mb-5 rounded-xl border border-[#6E7A25]/10 bg-[#6E7A25]/5 p-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] font-bold uppercase tracking-wide text-[#6E7A25]">
+                                    {{ __('Plan menu') }}
+                                </p>
+                                <p class="mt-1 text-xs text-gray-600">
+                                    <span class="font-bold" x-text="plan.menu_days_count"></span>
+                                    {{ __('configured days') }}
+                                    ·
+                                    <span class="font-bold" x-text="plan.menu_items_count"></span>
+                                    {{ __('meal slots') }}
+                                </p>
+                            </div>
+
+                            <span
+                                class="rounded-full px-2 py-1 text-[9px] font-bold"
+                                :class="plan.menu_configured
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : 'bg-amber-100 text-amber-700'"
+                                x-text="plan.menu_configured
+                                    ? '{{ __('Configured') }}'
+                                    : '{{ __('Needs setup') }}'"
+                            ></span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <a
+                            :href="'{{ url('admin/plans') }}/' + plan.id + '/menu'"
+                            class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] px-3 py-2.5 text-xs font-bold text-white"
+                        >
+                            {{ __('Configure Menu') }}
                         </a>
-                        <button @click="editPlan(plan)" class="px-3 py-2 text-xs font-bold text-white rounded-lg transition-all hover:opacity-90" :style="`background: ${plan.color};`">
-                            {{ __('Edit') }}
+
+                        <button
+                            type="button"
+                            @click="viewPlan(plan)"
+                            class="rounded-lg bg-gray-100 px-3 py-2.5 text-xs font-bold text-gray-700 hover:bg-gray-200"
+                        >
+                            {{ __('View Details') }}
                         </button>
-                        <button @click="viewPlan(plan)" class="px-3 py-2 text-xs font-medium text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                            {{ __('View') }}
+
+                        <button
+                            type="button"
+                            @click="editPlan(plan)"
+                            class="rounded-lg bg-[#025C5F]/10 px-3 py-2.5 text-xs font-bold text-[#025C5F]"
+                        >
+                            {{ __('Edit Package') }}
                         </button>
-                        <button @click="confirmDelete(plan)" class="px-3 py-2 text-xs font-medium text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+
+                        <button
+                            type="button"
+                            @click="confirmDelete(plan)"
+                            class="rounded-lg bg-red-50 px-3 py-2.5 text-xs font-bold text-red-600"
+                        >
+                            {{ __('Delete') }}
                         </button>
                     </div>
                 </div>
-            </div>
+            </article>
         </template>
     </div>
 
-    <div x-show="filteredPlans.length === 0" class="text-center py-16">
-        <div class="w-20 h-20 mx-auto rounded-full bg-gray-50 flex items-center justify-center mb-4">
-            <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    <div x-show="filteredPlans.length === 0" class="py-16 text-center">
+        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">
+            <svg class="h-8 w-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.5L19 9.5V19a2 2 0 0 1-2 2Z"/>
+            </svg>
         </div>
-        <p class="text-gray-500 font-medium">{{ __('No plans found') }}</p>
+        <p class="mt-4 text-sm font-bold text-gray-700">{{ __('No plans found') }}</p>
     </div>
 
-    {{-- Create Plan Modal --}}
-    <div x-show="modalOpen" class="fixed inset-0 z-[60] flex items-center justify-center p-4" x-cloak>
-        <div x-show="modalOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="modalOpen = false" class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
-        <div x-show="modalOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100 translate-y-0" x-transition:leave-end="opacity-0 scale-95 translate-y-4" class="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div class="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between sticky top-0 bg-white dark:bg-gray-900 z-10">
+    {{-- Create/Edit modal --}}
+    <div x-show="modalOpen" x-cloak class="fixed inset-0 z-[70] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="closeModal()"></div>
+
+        <div class="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-2xl">
+            <div class="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white p-6">
                 <div>
-                    <h3 class="text-xl font-extrabold text-gray-900 dark:text-white" x-text="editing ? '{{ __('Edit Plan') }}' : '{{ __('Create New Plan') }}'"></h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5" x-text="editing ? '{{ __('Update the plan details below.') }}' : '{{ __('Fill in the details below to add a new meal plan.') }}'"></p>
+                    <h3
+                        class="text-xl font-extrabold text-gray-900"
+                        x-text="editing
+                            ? '{{ __('Edit Plan Package') }}'
+                            : '{{ __('Create Plan Package') }}'"
+                    ></h3>
+                    <p class="mt-1 text-xs text-gray-500">
+                        {{ __('The daily menu will be configured separately after saving the package.') }}
+                    </p>
                 </div>
-                <button @click="modalOpen = false" class="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+
+                <button type="button" @click="closeModal()" class="rounded-lg p-2 text-gray-400 hover:bg-gray-100">
+                    ✕
                 </button>
             </div>
 
-            <form class="p-6 space-y-5" @submit.prevent="submitPlan">
+            <form class="space-y-5 p-6" @submit.prevent="submitPlan">
                 @csrf
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="grid gap-5 md:grid-cols-2">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{{ __('Plan Name (English)') }} <span class="text-red-500">*</span></label>
-                        <input type="text" name="name_en" x-model="form.name_en" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all" :class="errors.name_en ? 'border-red-300 ring-2 ring-red-100' : ''" placeholder="e.g. Weight Loss Pro">
-                        <p x-show="errors.name_en" x-text="errors.name_en" class="mt-1 text-xs text-red-600"></p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{{ __('Plan Name (Arabic)') }}</label>
-                        <input type="text" name="name_ar" x-model="form.name_ar" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all" :class="errors.name_ar ? 'border-red-300 ring-2 ring-red-100' : ''" placeholder="مثال: خطة التخسيس المحترفة">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{{ __('Plan Type') }} <span class="text-red-500">*</span></label>
-                        <select name="plan_type" x-model="form.plan_type" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all">
-                            <option value="weekly">{{ __('Weekly') }}</option>
-                            <option value="monthly">{{ __('Monthly') }}</option>
-                            <option value="custom">{{ __('Custom') }}</option>
-                            <option value="corporate">{{ __('Corporate') }}</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{{ __('Goal') }}</label>
-                        <select name="goal" x-model="form.goal" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all">
-                            <option value="">{{ __('Select goal') }}</option>
-                            <option value="weight_loss">{{ __('Weight Loss') }}</option>
-                            <option value="muscle_gain">{{ __('Muscle Gain') }}</option>
-                            <option value="maintenance">{{ __('Maintenance') }}</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{{ __('Description (English)') }}</label>
-                    <textarea name="description_en" x-model="form.description_en" rows="2" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all resize-none" placeholder="Brief description of the plan..."></textarea>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{{ __('Price (SAR)') }} <span class="text-red-500">*</span></label>
-                        <input type="number" name="price" x-model="form.price" step="0.01" min="0" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all" :class="errors.price ? 'border-red-300 ring-2 ring-red-100' : ''" placeholder="0.00">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{{ __('Duration (days)') }} <span class="text-red-500">*</span></label>
-                        <input type="number" name="duration_days" x-model="form.duration_days" min="1" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all" :class="errors.duration_days ? 'border-red-300 ring-2 ring-red-100' : ''" placeholder="28">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{{ __('Meals / Day') }} <span class="text-red-500">*</span></label>
-                        <input type="number" name="meals_per_day" x-model="form.meals_per_day" min="1" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all" :class="errors.meals_per_day ? 'border-red-300 ring-2 ring-red-100' : ''" placeholder="3">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{{ __('Total Meals') }} <span class="text-red-500">*</span></label>
-                        <input type="number" name="total_meals" x-model="form.total_meals" min="1" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all" :class="errors.total_meals ? 'border-red-300 ring-2 ring-red-100' : ''" placeholder="84">
-                    </div>
-                    <div class="flex items-center gap-3 pt-7">
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="is_active" x-model="form.is_active" class="sr-only peer">
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                            <span class="ml-3 text-sm font-semibold text-gray-700 dark:text-gray-300">{{ __('Active Plan') }}</span>
+                        <label class="mb-1.5 block text-sm font-semibold text-gray-700">
+                            {{ __('Plan name (English)') }} *
                         </label>
+                        <input
+                            type="text"
+                            x-model="form.name_en"
+                            required
+                            class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#6E7A25]"
+                        >
+                        <p x-show="errors.name_en" x-text="firstError('name_en')" class="mt-1 text-xs text-red-600"></p>
+                    </div>
+
+                    <div>
+                        <label class="mb-1.5 block text-sm font-semibold text-gray-700">
+                            {{ __('Plan name (Arabic)') }}
+                        </label>
+                        <input
+                            type="text"
+                            x-model="form.name_ar"
+                            dir="rtl"
+                            class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#6E7A25]"
+                        >
                     </div>
                 </div>
 
-                <div x-show="errors.general" x-text="errors.general" class="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm" x-cloak></div>
+                <div class="grid gap-5 md:grid-cols-2">
+                    <div>
+                        <label class="mb-1.5 block text-sm font-semibold text-gray-700">
+                            {{ __('Description (English)') }}
+                        </label>
+                        <textarea
+                            x-model="form.description_en"
+                            rows="3"
+                            class="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#6E7A25]"
+                        ></textarea>
+                    </div>
 
-                <div class="flex items-center justify-end gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
-                    <button type="button" @click="modalOpen = false" class="px-6 py-2.5 text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
+                    <div>
+                        <label class="mb-1.5 block text-sm font-semibold text-gray-700">
+                            {{ __('Description (Arabic)') }}
+                        </label>
+                        <textarea
+                            x-model="form.description_ar"
+                            rows="3"
+                            dir="rtl"
+                            class="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#6E7A25]"
+                        ></textarea>
+                    </div>
+                </div>
+
+                <div class="grid gap-5 md:grid-cols-3">
+                    <div>
+                        <label class="mb-1.5 block text-sm font-semibold text-gray-700">
+                            {{ __('Price (SAR)') }} *
+                        </label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            x-model="form.price"
+                            required
+                            class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#6E7A25]"
+                        >
+                        <p x-show="errors.price" x-text="firstError('price')" class="mt-1 text-xs text-red-600"></p>
+                    </div>
+
+                    <div>
+                        <label class="mb-1.5 block text-sm font-semibold text-gray-700">
+                            {{ __('Duration (days)') }} *
+                        </label>
+                        <input
+                            type="number"
+                            min="1"
+                            x-model.number="form.duration_days"
+                            required
+                            class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#6E7A25]"
+                        >
+                        <p x-show="errors.duration_days" x-text="firstError('duration_days')" class="mt-1 text-xs text-red-600"></p>
+                    </div>
+
+                    <div>
+                        <label class="mb-1.5 block text-sm font-semibold text-gray-700">
+                            {{ __('Meals per day') }} *
+                        </label>
+                        <input
+                            type="number"
+                            min="1"
+                            x-model.number="form.meals_per_day"
+                            required
+                            class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#6E7A25]"
+                        >
+                        <p x-show="errors.meals_per_day" x-text="firstError('meals_per_day')" class="mt-1 text-xs text-red-600"></p>
+                    </div>
+                </div>
+
+                <div class="rounded-xl border border-[#6E7A25]/10 bg-[#6E7A25]/5 p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-gray-700">{{ __('Calculated total meals') }}</p>
+                            <p class="mt-1 text-[10px] text-gray-500">
+                                {{ __('Duration × meals per day') }}
+                            </p>
+                        </div>
+                        <p class="text-2xl font-extrabold text-[#173327]" x-text="calculatedTotalMeals"></p>
+                    </div>
+                </div>
+
+                <label class="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4">
+                    <input
+                        type="checkbox"
+                        x-model="form.is_active"
+                        class="h-4 w-4 rounded border-gray-300 text-[#6E7A25]"
+                    >
+                    <span>
+                        <span class="block text-sm font-bold text-gray-700">{{ __('Active plan') }}</span>
+                        <span class="block text-xs text-gray-400">
+                            {{ __('Only active plans are available for new subscriptions.') }}
+                        </span>
+                    </span>
+                </label>
+
+                <div x-show="errors.general" x-text="firstError('general')" class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"></div>
+
+                <div class="flex justify-end gap-3 border-t border-gray-100 pt-5">
+                    <button type="button" @click="closeModal()" class="rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-bold text-gray-600">
                         {{ __('Cancel') }}
                     </button>
-                    <button type="submit" :disabled="submitting" class="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] hover:from-[#025C5F] hover:to-[#1E8A00] rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
-                        <svg x-show="!submitting" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        <svg x-show="submitting" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                        <span x-text="submitting ? (editing ? '{{ __('Updating...') }}' : '{{ __('Creating...') }}') : (editing ? '{{ __('Update Plan') }}' : '{{ __('Create Plan') }}')"></span>
+
+                    <button
+                        type="submit"
+                        :disabled="submitting"
+                        class="rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] px-6 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+                    >
+                        <span
+                            x-text="submitting
+                                ? '{{ __('Saving...') }}'
+                                : (editing
+                                    ? '{{ __('Update Plan') }}'
+                                    : '{{ __('Create Plan') }}')"
+                        ></span>
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    {{-- View Plan Detail Slide-Out Panel --}}
-    <div x-show="selected" class="fixed inset-0 z-[60] flex justify-end" style="display: none" x-cloak>
+    {{-- Details panel --}}
+    <div x-show="selected" x-cloak class="fixed inset-0 z-[70] flex justify-end">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="selected = null"></div>
-        <div class="relative w-full max-w-md bg-white dark:bg-gray-900 shadow-2xl h-full overflow-y-auto" @click.outside="selected = null">
-            {{-- Header --}}
-            <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] p-6 text-white sticky top-0 z-10">
-                <div class="flex items-center justify-between mb-2">
+
+        <aside class="relative h-full w-full max-w-md overflow-y-auto bg-white shadow-2xl">
+            <div class="sticky top-0 bg-gradient-to-r from-[#173327] to-[#6E7A25] p-6 text-white">
+                <div class="flex items-start justify-between">
                     <div>
-                        <h3 class="text-base font-bold">{{ __('Plan Details') }}</h3>
-                        <p class="text-xs text-white/70" x-text="selected?.name"></p>
+                        <p class="text-xs text-white/60">{{ __('Plan details') }}</p>
+                        <h3 class="mt-1 text-xl font-extrabold" x-text="selected?.name"></h3>
                     </div>
-                    <button @click="selected = null" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </div>
-                <div class="flex items-center gap-2 mt-3">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border" :class="selected?.status === 'active' ? 'bg-white/20 text-white border-white/30' : 'bg-white/10 text-white/70 border-white/20'">
-                        <span x-text="statusLabel(selected?.status)"></span>
-                    </span>
-                    <span class="text-xs text-white/70" x-text="selected?.calories + ' {{ __('kcal/day') }}'"></span>
+                    <button type="button" @click="selected = null" class="rounded-lg bg-white/10 px-3 py-2">✕</button>
                 </div>
             </div>
 
-            <div class="p-6 space-y-6">
-                {{-- Plan Overview --}}
-                <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
-                    <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Overview') }}</h4>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-gray-700">
-                            <span class="text-xs text-gray-500">{{ __('Plan Type') }}</span>
-                            <span class="text-xs font-semibold text-gray-900 dark:text-white capitalize" x-text="selected?.plan_type || '—'"></span>
+            <div class="space-y-5 p-6">
+                <div class="rounded-xl bg-gray-50 p-4">
+                    <dl class="space-y-3 text-sm">
+                        <div class="flex justify-between gap-3">
+                            <dt class="text-gray-500">{{ __('Price') }}</dt>
+                            <dd class="font-bold text-gray-900">
+                                <span x-text="selected?.currency"></span>
+                                <span x-text="formatNumber(selected?.price)"></span>
+                            </dd>
                         </div>
-                        <div class="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-gray-700">
-                            <span class="text-xs text-gray-500">{{ __('Goal') }}</span>
-                            <span class="text-xs font-semibold text-gray-900 dark:text-white capitalize" x-text="selected?.goal ? selected.goal.replace('_', ' ') : '—'"></span>
+                        <div class="flex justify-between gap-3">
+                            <dt class="text-gray-500">{{ __('Duration') }}</dt>
+                            <dd class="font-bold text-gray-900">
+                                <span x-text="selected?.duration_days"></span> {{ __('days') }}
+                            </dd>
                         </div>
-                        <div class="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-gray-700">
-                            <span class="text-xs text-gray-500">{{ __('Duration') }}</span>
-                            <span class="text-xs font-semibold text-gray-900 dark:text-white" x-text="selected?.duration || '—'"></span>
+                        <div class="flex justify-between gap-3">
+                            <dt class="text-gray-500">{{ __('Meals per day') }}</dt>
+                            <dd class="font-bold text-gray-900" x-text="selected?.meals_per_day"></dd>
                         </div>
-                        <div class="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
-                            <span class="text-xs text-gray-500">{{ __('Total Meals Served') }}</span>
-                            <span class="text-xs font-bold text-[#6E7A25]" x-text="selected?.total_meals_served || 0"></span>
+                        <div class="flex justify-between gap-3">
+                            <dt class="text-gray-500">{{ __('Total meals') }}</dt>
+                            <dd class="font-bold text-gray-900" x-text="selected?.total_meals"></dd>
                         </div>
-                    </div>
+                        <div class="flex justify-between gap-3">
+                            <dt class="text-gray-500">{{ __('Subscribers') }}</dt>
+                            <dd class="font-bold text-gray-900" x-text="selected?.subscribers_count"></dd>
+                        </div>
+                    </dl>
                 </div>
 
-                {{-- Pricing --}}
-                <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
-                    <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Pricing') }}</h4>
-                    <div class="flex items-end gap-1">
-                        <span class="text-3xl font-bold text-[#6E7A25]" x-text="'SAR ' + Number(selected?.price || 0).toLocaleString()"></span>
-                        <span class="text-xs text-gray-400 mb-1" x-text="'/ ' + selected?.duration"></span>
-                    </div>
-                    <div class="mt-3 grid grid-cols-3 gap-2">
-                        <div class="bg-white dark:bg-gray-700 rounded-lg p-2.5 text-center">
-                            <div class="w-7 h-7 mx-auto rounded-lg bg-[#6E7A25]/10 flex items-center justify-center mb-1">
-                                <svg class="w-3.5 h-3.5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                            </div>
-                            <p class="text-[9px] text-gray-400 uppercase tracking-wider">{{ __('Meals') }}</p>
-                            <p class="text-sm font-bold text-gray-900 dark:text-white" x-text="selected?.meals || 0"></p>
-                        </div>
-                        <div class="bg-white dark:bg-gray-700 rounded-lg p-2.5 text-center">
-                            <div class="w-7 h-7 mx-auto rounded-lg bg-blue-50 flex items-center justify-center mb-1">
-                                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            </div>
-                            <p class="text-[9px] text-gray-400 uppercase tracking-wider">{{ __('Meals/Day') }}</p>
-                            <p class="text-sm font-bold text-gray-900 dark:text-white" x-text="selected?.meals_per_day || 0"></p>
-                        </div>
-                        <div class="bg-white dark:bg-gray-700 rounded-lg p-2.5 text-center">
-                            <div class="w-7 h-7 mx-auto rounded-lg bg-emerald-50 flex items-center justify-center mb-1">
-                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            </div>
-                            <p class="text-[9px] text-gray-400 uppercase tracking-wider">{{ __('Served') }}</p>
-                            <p class="text-sm font-bold text-gray-900 dark:text-white" x-text="selected?.total_meals_served || 0"></p>
-                        </div>
-                    </div>
+                <div class="rounded-xl border border-[#6E7A25]/10 bg-[#6E7A25]/5 p-4">
+                    <h4 class="text-xs font-extrabold uppercase tracking-wide text-[#6E7A25]">
+                        {{ __('Menu configuration') }}
+                    </h4>
+                    <p class="mt-2 text-sm text-gray-700">
+                        <span class="font-bold" x-text="selected?.menu_days_count"></span>
+                        {{ __('days configured') }}
+                        ·
+                        <span class="font-bold" x-text="selected?.menu_items_count"></span>
+                        {{ __('meal slots') }}
+                    </p>
+
+                    <a
+                        :href="'{{ url('admin/plans') }}/' + selected?.id + '/menu'"
+                        class="mt-4 inline-flex rounded-lg bg-[#173327] px-4 py-2 text-xs font-bold text-white"
+                    >
+                        {{ __('Open Plan Menu') }}
+                    </a>
                 </div>
 
-                {{-- Description --}}
-                <div x-show="selected?.description_en">
-                    <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{{ __('Description') }}</h4>
-                    <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
-                        <p class="text-xs text-gray-700 dark:text-gray-200 leading-relaxed" x-text="selected?.description_en"></p>
-                    </div>
+                <div x-show="selected?.description">
+                    <h4 class="text-xs font-extrabold uppercase tracking-wide text-gray-400">
+                        {{ __('Description') }}
+                    </h4>
+                    <p class="mt-2 text-sm leading-relaxed text-gray-600" x-text="selected?.description"></p>
                 </div>
 
-                {{-- Actions --}}
-                <div class="flex gap-2 pt-2">
-                    <button @click="selected && editPlan(selected)" class="flex-1 px-4 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                        {{ __('Edit Plan') }}
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" @click="editPlan(selected)" class="rounded-xl bg-[#025C5F] px-4 py-3 text-xs font-bold text-white">
+                        {{ __('Edit Package') }}
                     </button>
-                    <button @click="selected && confirmDelete(selected)" class="px-4 py-2.5 text-xs font-bold text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <button type="button" @click="confirmDelete(selected)" class="rounded-xl bg-red-50 px-4 py-3 text-xs font-bold text-red-600">
                         {{ __('Delete') }}
                     </button>
                 </div>
             </div>
-        </div>
+        </aside>
     </div>
 
-    {{-- Delete Confirmation Modal --}}
-    <div x-show="deleteModal.open" class="fixed inset-0 z-[70] flex items-center justify-center p-4" x-cloak>
-        <div x-show="deleteModal.open" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="deleteModal.open = false" class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
-        <div x-show="deleteModal.open" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
-            <div class="w-14 h-14 mx-auto rounded-full bg-red-50 flex items-center justify-center mb-4">
-                <svg class="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-            </div>
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">{{ __('Delete Plan?') }}</h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">{{ __('Are you sure you want to delete') }} <span class="font-semibold text-gray-900 dark:text-white" x-text="deleteModal.plan?.name"></span>? {{ __('This action cannot be undone.') }}</p>
-            <div class="flex gap-3">
-                <button @click="deleteModal.open = false" class="flex-1 px-4 py-2.5 text-sm font-bold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+    {{-- Delete confirmation --}}
+    <div x-show="deleteModal.open" x-cloak class="fixed inset-0 z-[80] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-gray-900/60" @click="deleteModal.open = false"></div>
+
+        <div class="relative w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl">
+            <h3 class="text-lg font-extrabold text-gray-900">{{ __('Delete plan?') }}</h3>
+            <p class="mt-2 text-sm text-gray-500">
+                {{ __('This is only allowed when the backend confirms that no protected subscription depends on this plan.') }}
+            </p>
+
+            <div class="mt-6 flex gap-3">
+                <button type="button" @click="deleteModal.open = false" class="flex-1 rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-bold text-gray-600">
                     {{ __('Cancel') }}
                 </button>
-                <button @click="deletePlan" :disabled="deleteModal.loading" class="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
-                    <svg x-show="deleteModal.loading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-                    <span x-text="deleteModal.loading ? '{{ __('Deleting...') }}' : '{{ __('Delete') }}'"></span>
+                <button type="button" @click="deletePlan()" :disabled="deleteModal.loading" class="flex-1 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">
+                    {{ __('Delete') }}
                 </button>
             </div>
         </div>
@@ -389,172 +597,306 @@
 
 @push('scripts')
 <script>
-    function plansPage() {
-        return {
-            modalOpen: false,
-            submitting: false,
-            search: '',
-            plans: @json($plans),
-            errors: {},
-            editing: false,
-            editId: null,
-            selected: null,
-            toasts: [],
-            deleteModal: {
-                open: false,
-                plan: null,
-                loading: false,
-            },
-            form: {
+function plansPage() {
+    const sourcePlans = @json($plans);
+
+    return {
+        modalOpen: false,
+        submitting: false,
+        editing: false,
+        editId: null,
+        selected: null,
+        search: '',
+        statusFilter: 'all',
+        durationFilter: 'all',
+        errors: {},
+        toasts: [],
+
+        deleteModal: {
+            open: false,
+            plan: null,
+            loading: false,
+        },
+
+        form: {
+            name_en: '',
+            name_ar: '',
+            description_en: '',
+            description_ar: '',
+            price: '',
+            duration_days: 30,
+            meals_per_day: 3,
+            total_meals: 90,
+            is_active: true,
+        },
+
+        plans: (Array.isArray(sourcePlans) ? sourcePlans : []).map((plan) => {
+            const durationDays = Number(plan.duration_days ?? plan.duration ?? 0);
+            const mealsPerDay = Number(plan.meals_per_day ?? 0);
+            const calculatedMeals = durationDays * mealsPerDay;
+
+            const menuDaysCount = Number(
+                plan.menu_days_count
+                ?? plan.configured_days
+                ?? plan.menu?.days_count
+                ?? 0
+            );
+
+            const menuItemsCount = Number(
+                plan.menu_items_count
+                ?? plan.meal_slots_count
+                ?? plan.menu?.items_count
+                ?? 0
+            );
+
+            return {
+                ...plan,
+                id: plan.id,
+                name: plan.name_en ?? plan.name ?? plan.name_ar ?? 'Unnamed Plan',
+                description: plan.description_en ?? plan.description ?? plan.description_ar ?? '',
+                price: Number(plan.price ?? 0),
+                currency: plan.currency ?? 'SAR',
+                duration_days: durationDays,
+                meals_per_day: mealsPerDay,
+                total_meals: Number(plan.total_meals ?? calculatedMeals),
+                is_active: Boolean(plan.is_active ?? plan.status === 'active'),
+                subscribers_count: Number(
+                    plan.subscribers_count
+                    ?? plan.total_subscribers
+                    ?? plan.subscriptions_count
+                    ?? 0
+                ),
+                menu_days_count: menuDaysCount,
+                menu_items_count: menuItemsCount,
+                menu_configured: menuDaysCount > 0 || menuItemsCount > 0,
+            };
+        }),
+
+        get calculatedTotalMeals() {
+            return Math.max(
+                0,
+                Number(this.form.duration_days || 0)
+                * Number(this.form.meals_per_day || 0)
+            );
+        },
+
+        get filteredPlans() {
+            const term = this.search.trim().toLowerCase();
+
+            return this.plans.filter((plan) => {
+                const searchMatches = !term
+                    || String(plan.name || '').toLowerCase().includes(term)
+                    || String(plan.description || '').toLowerCase().includes(term);
+
+                const statusMatches = this.statusFilter === 'all'
+                    || (this.statusFilter === 'active' && plan.is_active)
+                    || (this.statusFilter === 'inactive' && !plan.is_active);
+
+                const days = Number(plan.duration_days || 0);
+                const durationMatches = this.durationFilter === 'all'
+                    || (this.durationFilter === 'short' && days <= 14)
+                    || (this.durationFilter === 'monthly' && days >= 15 && days <= 31)
+                    || (this.durationFilter === 'long' && days > 31);
+
+                return searchMatches && statusMatches && durationMatches;
+            });
+        },
+
+        formatNumber(value) {
+            return Number(value || 0).toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2,
+            });
+        },
+
+        firstError(field) {
+            const value = this.errors?.[field];
+
+            if (Array.isArray(value)) {
+                return value[0] ?? '';
+            }
+
+            return value ?? '';
+        },
+
+        toast(message, type = 'success') {
+            const id = Date.now() + Math.random();
+
+            this.toasts.push({
+                id,
+                message,
+                type,
+                show: true,
+            });
+
+            setTimeout(() => {
+                const toast = this.toasts.find((item) => item.id === id);
+
+                if (toast) {
+                    toast.show = false;
+                }
+
+                setTimeout(() => {
+                    this.toasts = this.toasts.filter((item) => item.id !== id);
+                }, 300);
+            }, 3000);
+        },
+
+        resetForm() {
+            this.form = {
                 name_en: '',
                 name_ar: '',
                 description_en: '',
                 description_ar: '',
-                plan_type: 'monthly',
-                goal: '',
                 price: '',
-                duration_days: '28',
-                meals_per_day: '3',
-                total_meals: '84',
+                duration_days: 30,
+                meals_per_day: 3,
+                total_meals: 90,
                 is_active: true,
-            },
-            get filteredPlans() {
-                if (!this.search) return this.plans;
-                const term = this.search.toLowerCase();
-                return this.plans.filter(p => p.name.toLowerCase().includes(term));
-            },
-            statusLabel(s) {
-                const m = { active: '{{ __('Active') }}', draft: '{{ __('Draft') }}' };
-                return m[s] || s;
-            },
-            toast(message, type = 'success') {
-                const id = Date.now() + Math.random();
-                this.toasts.push({ id, message, type, show: true });
-                setTimeout(() => {
-                    const t = this.toasts.find(x => x.id === id);
-                    if (t) t.show = false;
-                    setTimeout(() => this.toasts = this.toasts.filter(x => x.id !== id), 300);
-                }, 3000);
-            },
-            openModal() {
-                this.errors = {};
-                this.editing = false;
-                this.editId = null;
-                this.form = {
-                    name_en: '',
-                    name_ar: '',
-                    description_en: '',
-                    description_ar: '',
-                    plan_type: 'monthly',
-                    goal: '',
-                    price: '',
-                    duration_days: '28',
-                    meals_per_day: '3',
-                    total_meals: '84',
-                    is_active: true,
-                };
-                this.modalOpen = true;
-            },
-            editPlan(plan) {
-                this.selected = null;
-                this.errors = {};
-                this.editing = true;
-                this.editId = plan.id;
-                this.form = {
-                    name_en: plan.name_en || plan.name || '',
-                    name_ar: plan.name_ar || '',
-                    description_en: plan.description_en || '',
-                    description_ar: plan.description_ar || '',
-                    plan_type: plan.plan_type || 'monthly',
-                    goal: plan.goal || '',
-                    price: plan.price || '',
-                    duration_days: plan.duration_days || 28,
-                    meals_per_day: plan.meals_per_day || 3,
-                    total_meals: plan.total_meals || 84,
-                    is_active: plan.is_active !== false,
-                };
-                this.modalOpen = true;
-            },
-            viewPlan(plan) {
-                this.selected = plan;
-            },
-            confirmDelete(plan) {
-                this.selected = null;
-                this.deleteModal.plan = plan;
-                this.deleteModal.open = true;
-            },
-            async submitPlan() {
-                this.submitting = true;
-                this.errors = {};
+            };
+        },
 
-                const url = this.editing
-                    ? @json(route('admin.plans.update', '__ID__')).replace('__ID__', this.editId)
-                    : @json(route('admin.plans.store'));
+        openModal() {
+            this.errors = {};
+            this.editing = false;
+            this.editId = null;
+            this.resetForm();
+            this.modalOpen = true;
+        },
 
-                try {
-                    const response = await fetch(url, {
-                        method: this.editing ? 'PUT' : 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(this.form)
-                    });
+        closeModal() {
+            this.modalOpen = false;
+            this.errors = {};
+        },
 
-                    const data = await response.json();
-                    this.submitting = false;
+        editPlan(plan) {
+            if (!plan) return;
 
-                    if (data.success) {
-                        this.modalOpen = false;
-                        window.location.href = data.redirect || @json(route('admin.plans'));
-                        return;
-                    }
+            this.selected = null;
+            this.errors = {};
+            this.editing = true;
+            this.editId = plan.id;
 
-                    this.errors = data.errors || { general: data.message || (this.editing ? '{{ __('Failed to update plan.') }}' : '{{ __('Failed to create plan.') }}') };
-                } catch (error) {
-                    this.submitting = false;
-                    this.errors = { general: error.message || '{{ __('Something went wrong. Please try again.') }}' };
+            this.form = {
+                name_en: plan.name_en ?? plan.name ?? '',
+                name_ar: plan.name_ar ?? '',
+                description_en: plan.description_en ?? plan.description ?? '',
+                description_ar: plan.description_ar ?? '',
+                price: plan.price ?? '',
+                duration_days: Number(plan.duration_days ?? 30),
+                meals_per_day: Number(plan.meals_per_day ?? 3),
+                total_meals: Number(plan.total_meals ?? 0),
+                is_active: Boolean(plan.is_active),
+            };
+
+            this.modalOpen = true;
+        },
+
+        viewPlan(plan) {
+            this.selected = plan;
+        },
+
+        confirmDelete(plan) {
+            this.selected = null;
+            this.deleteModal.plan = plan;
+            this.deleteModal.open = true;
+        },
+
+        async submitPlan() {
+            this.submitting = true;
+            this.errors = {};
+
+            this.form.total_meals = this.calculatedTotalMeals;
+
+            const url = this.editing
+                ? @json(route('admin.plans.update', '__ID__')).replace('__ID__', this.editId)
+                : @json(route('admin.plans.store'));
+
+            try {
+                const response = await fetch(url, {
+                    method: this.editing ? 'PUT' : 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector(
+                            'meta[name="csrf-token"]'
+                        )?.content || '',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(this.form),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    this.errors = data.errors ?? {
+                        general: data.message ?? '{{ __('Unable to save the plan.') }}',
+                    };
+                    return;
                 }
-            },
-            async deletePlan() {
-                if (!this.deleteModal.plan) return;
-                this.deleteModal.loading = true;
 
-                const url = @json(route('admin.plans.destroy', '__ID__')).replace('__ID__', this.deleteModal.plan.id);
-
-                try {
-                    const response = await fetch(url, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
-                    });
-
-                    const data = await response.json();
-                    this.deleteModal.loading = false;
-                    this.deleteModal.open = false;
-
-                    if (data.success) {
-                        this.plans = this.plans.filter(p => p.id !== this.deleteModal.plan.id);
-                        this.toast('{{ __('Plan deleted successfully.') }}');
-                    } else {
-                        this.toast(data.message || '{{ __('Failed to delete plan.') }}', 'error');
-                    }
-                    this.deleteModal.plan = null;
-                } catch (error) {
-                    this.deleteModal.loading = false;
-                    this.deleteModal.open = false;
-                    this.toast(error.message || '{{ __('Something went wrong. Please try again.') }}', 'error');
-                    this.deleteModal.plan = null;
-                }
+                this.modalOpen = false;
+                window.location.href = data.redirect ?? @json(route('admin.plans'));
+            } catch (error) {
+                this.errors = {
+                    general: error.message ?? '{{ __('Something went wrong.') }}',
+                };
+            } finally {
+                this.submitting = false;
             }
-        };
-    }
+        },
+
+        async deletePlan() {
+            const plan = this.deleteModal.plan;
+
+            if (!plan) return;
+
+            this.deleteModal.loading = true;
+
+            const url = @json(
+                route('admin.plans.destroy', '__ID__')
+            ).replace('__ID__', plan.id);
+
+            try {
+                const response = await fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector(
+                            'meta[name="csrf-token"]'
+                        )?.content || '',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    this.toast(
+                        data.message ?? '{{ __('Unable to delete the plan.') }}',
+                        'error'
+                    );
+                    return;
+                }
+
+                this.plans = this.plans.filter(
+                    (item) => item.id !== plan.id
+                );
+
+                this.toast('{{ __('Plan deleted successfully.') }}');
+                this.deleteModal.open = false;
+                this.deleteModal.plan = null;
+            } catch (error) {
+                this.toast(
+                    error.message ?? '{{ __('Something went wrong.') }}',
+                    'error'
+                );
+            } finally {
+                this.deleteModal.loading = false;
+            }
+        },
+    };
+}
 </script>
 @endpush
 @endsection
