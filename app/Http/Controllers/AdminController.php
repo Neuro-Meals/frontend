@@ -3064,7 +3064,15 @@ class AdminController extends Controller
             return response()->json(['success' => true, 'selections' => [], 'meals' => [], 'subscription_id' => 0]);
         }
 
-        $selections = $this->apiData($nutritionApi->subscriptionMealAssignments($subscriptionId), fn () => []);
+        $selectionsResponse = $nutritionApi->subscriptionMealAssignments(
+    $id,
+    $currentSubscription['id'] ?? null
+);
+
+    $selections = $this->apiData(
+    $selectionsResponse,
+    fn () => []
+);
 
         $mealsData = $this->apiData($mealApi->list(['is_available' => true, 'limit' => 100]), fn () => []);
         $meals = collect($mealsData)->map(function ($m) {

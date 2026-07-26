@@ -29,6 +29,23 @@ class NutritionApiService extends BaseApiService
     );
 }
 
+    public function subscriptionMealAssignments(
+    int $userId,
+    ?int $subscriptionId = null
+): array {
+
+    $params = [];
+
+    if ($subscriptionId) {
+        $params['subscription_id'] = $subscriptionId;
+    }
+
+    return $this->get(
+        "/meal-assignments/user/{$userId}",
+        $params
+    );
+}
+
     public function activityToday(): array
     {
         return $this->get('nutrition.activity_today');
