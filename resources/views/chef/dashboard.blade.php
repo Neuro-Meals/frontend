@@ -3,6 +3,25 @@
 @section('title', __('Kitchen Shift') . ' - ' . __('Nutrio Meals'))
 
 @section('content')
+@php
+    /*
+     * Safe defaults for optional dashboard data.
+     * The real kitchen queue comes from categories, categorizedOrders,
+     * tabSummaries and scheduleByTab. Optional API sections must never
+     * crash the page when the backend returns null.
+     */
+    $categories = is_array($categories ?? null) ? $categories : [];
+    $categorizedOrders = is_array($categorizedOrders ?? null) ? $categorizedOrders : [];
+    $tabSummaries = is_array($tabSummaries ?? null) ? $tabSummaries : [];
+    $scheduleByTab = is_array($scheduleByTab ?? null) ? $scheduleByTab : [];
+    $mealsByCategory = is_array($mealsByCategory ?? null) ? $mealsByCategory : [];
+    $notifications = is_array($notifications ?? null) ? $notifications : [];
+    $allergyCustomers = is_array($allergyCustomers ?? null) ? $allergyCustomers : [];
+    $mealsSummary = is_array($mealsSummary ?? null) ? $mealsSummary : [];
+    $stats = is_array($stats ?? null) ? $stats : [];
+    $today = $today ?? now()->toDateString();
+@endphp
+
 <div x-data="chefShift()" x-init="init()" x-cloak class="pb-10">
 
     {{-- ============ HEADER ============ --}}
@@ -25,7 +44,7 @@
                 @include('partials.language_switcher', ['isDark' => true])
                 <div class="relative w-10 h-10 rounded-full bg-white/10 border border-white/15 flex items-center justify-center flex-shrink-0">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                    @if(count($notifications) > 0)
+                    @if(!empty($notifications))
                     <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-400 pulse-dot"></span>
                     @endif
                 </div>
@@ -384,7 +403,7 @@
         </button>
 
         {{-- ============ ALLERGY ALERTS ============ --}}
-        @if(count($allergyCustomers) > 0)
+        @if(!empty($allergyCustomers))
         <div class="bg-red-50 rounded-2xl p-4 shadow-sm border border-red-100 animate-slide-up">
             <div class="flex items-center gap-2 mb-3">
                 <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
@@ -410,18 +429,18 @@
         @endif
 
         {{-- ============ NOTIFICATIONS ============ --}}
-        @if(count($notifications) > 0)
+        @if(!empty($notifications))
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up">
             <h2 class="text-sm font-bold text-gray-900 mb-3">{{ __('Notifications') }}</h2>
             <div class="space-y-3">
                 @foreach($notifications as $notification)
-                <div class="flex items-start gap-3 p-3 rounded-xl {{ $notification['is_read'] ? 'bg-gray-50' : 'bg-[#6E7A25]/5 border border-[#6E7A25]/15' }}">
-                    <div class="w-8 h-8 rounded-full {{ $notification['is_read'] ? 'bg-gray-100 text-gray-400' : 'bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white' }} flex items-center justify-center flex-shrink-0">
+                <div class="flex items-start gap-3 p-3 rounded-xl {{ ($notification['is_read'] ?? false) ? 'bg-gray-50' : 'bg-[#6E7A25]/5 border border-[#6E7A25]/15' }}">
+                    <div class="w-8 h-8 rounded-full {{ ($notification['is_read'] ?? false) ? 'bg-gray-100 text-gray-400' : 'bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white' }} flex items-center justify-center flex-shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                     </div>
                     <div class="min-w-0">
-                        <p class="text-xs font-bold text-gray-900 truncate">{{ $notification['title'] }}</p>
-                        <p class="text-[10px] text-gray-500 line-clamp-2">{{ $notification['message'] }}</p>
+                        <p class="text-xs font-bold text-gray-900 truncate">{{ $notification['title'] ?? __('Notification') }}</p>
+                        <p class="text-[10px] text-gray-500 line-clamp-2">{{ $notification['message'] ?? '' }}</p>
                     </div>
                 </div>
                 @endforeach
