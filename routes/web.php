@@ -13,6 +13,7 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Session;
+use App\Http\Controllers\User\MealsController;
 use Illuminate\Support\Facades\App;
 
 Route::get('/', [LandingController::class, 'index'])->name('landing');
@@ -307,7 +308,8 @@ Route::prefix('user')->name('user.')->middleware(['api.auth', 'api.customer'])->
     Route::post('/payments/{paymentId}/attach-moyasar', [UserController::class, 'attachMoyasarAjax'])->name('payments.attach-moyasar');
     Route::post('/subscriptions/{subscriptionId}/pause', [UserController::class, 'pauseSubscription'])->name('subscriptions.pause');
     Route::post('/subscriptions/{subscriptionId}/resume', [UserController::class, 'resumeSubscription'])->name('subscriptions.resume');
-    Route::get('/meals', [UserController::class, 'meals'])->name('meals');
+    Route::get('/meals', [MealsController::class, 'index'])
+    ->name('meals');
     Route::get('/nutrition', [UserController::class, 'nutrition'])->name('nutrition');
     Route::get('/orders', [UserController::class, 'orders'])->name('orders');
     Route::post('/orders/from-subscription', [UserController::class, 'createOrderFromSubscription'])->name('orders.from-subscription');
