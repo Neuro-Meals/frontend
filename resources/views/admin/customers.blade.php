@@ -390,167 +390,125 @@
     </div>
   </div>
 
-  {{-- Assign Meal Modal --}}
+  {{-- Assign Full-Day Menu Modal --}}
   <div x-show="showAssignMeal" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none">
     <div class="absolute inset-0 bg-black/40" @click="showAssignMeal = false"></div>
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8" @click.outside="showAssignMeal = false">
-      <div class="flex items-center justify-between mb-5">
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[92vh] overflow-y-auto p-6 md:p-8" @click.outside="showAssignMeal = false">
+      <div class="flex items-start justify-between gap-4 mb-5">
         <div>
-          <h3 class="text-base font-bold text-gray-900">{{ __('Assign Meal') }}</h3>
-          <p class="text-sm text-gray-400 mt-1" x-text="`${__('Assign a meal to')} ${assignMealTarget?.name}`"></p>
+          <h3 class="text-lg font-bold text-gray-900">{{ __('Assign Daily Menu') }}</h3>
+          <p class="text-sm text-gray-400 mt-1" x-text="`${__('Build a full day menu for')} ${assignMealTarget?.name || ''}`"></p>
         </div>
-        <button @click="showAssignMeal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
+        <button type="button" @click="showAssignMeal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
-      <div x-show="mealLoading" class="flex items-center justify-center py-6">
-        <svg class="w-6 h-6 text-gray-200 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+
+      <div x-show="mealLoading" class="flex items-center justify-center py-14">
+        <svg class="w-7 h-7 text-gray-300 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
       </div>
-      <div x-show="!mealLoading" class="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-4">
-        <div class="flex items-start gap-2">
-          <svg class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          <div class="text-sm text-blue-700 w-full">
-            <template x-if="!assignMealForm.meal_time">
+
+      <form x-show="!mealLoading" @submit.prevent="submitAssignMeal()" class="space-y-5">
+        <div x-show="!assignMealForm.subscription_id" class="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-xl p-4">
+          {{ __('This customer has no active subscription.') }}
+        </div>
+
+        <template x-if="assignMealForm.subscription_id">
+          <div class="space-y-5">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <p>{{ __('Customer Location') }}: <span class="font-bold" x-text="assignMealTarget?.location || '—'"></span></p>
-                <p>{{ __('Customer Address') }}: <span class="font-bold" x-text="assignMealTarget?.address || '—'"></span></p>
-                <p class="text-xs text-blue-500 mt-1">{{ __('Select a meal category to see delivery preference.') }}</p>
-              </div>
-            </template>
-            <template x-if="assignMealForm.meal_time && assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]">
-              <div class="space-y-1.5">
-                <p class="font-bold capitalize text-blue-800 text-sm mb-2 flex items-center gap-1.5">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  <span x-text="assignMealForm.meal_time"></span> {{ __('delivery details') }}
-                </p>
-                <div class="bg-white/60 rounded-lg p-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
-                  <div class="flex items-start gap-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].place_type">
-                    <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('Place Type') }}</span>
-                    <span class="font-semibold text-blue-800 capitalize" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].place_type"></span>
-                  </div>
-                  <div class="flex items-start gap-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].place_name">
-                    <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('Place Name') }}</span>
-                    <span class="font-semibold text-blue-800" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].place_name"></span>
-                  </div>
-                  <div class="flex items-start gap-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].city">
-                    <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('City') }}</span>
-                    <span class="font-semibold text-blue-800" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].city"></span>
-                  </div>
-                  <div class="flex items-start gap-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_area">
-                    <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('Area') }}</span>
-                    <span class="font-semibold text-blue-800" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_area"></span>
-                  </div>
-                  <div class="flex items-start gap-2 col-span-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_address">
-                    <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('Address') }}</span>
-                    <span class="font-semibold text-blue-800" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_address"></span>
-                  </div>
-                  <div class="flex items-start gap-2 col-span-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].latitude || assignMealTarget.delivery_preferences[assignMealForm.meal_time].longitude">
-                    <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('GPS') }}</span>
-                    <span class="font-semibold text-blue-800" x-text="(assignMealTarget.delivery_preferences[assignMealForm.meal_time].latitude || '—') + ', ' + (assignMealTarget.delivery_preferences[assignMealForm.meal_time].longitude || '—')"></span>
-                    <a x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].latitude && assignMealTarget.delivery_preferences[assignMealForm.meal_time].longitude" :href="'https://www.google.com/maps?q=' + assignMealTarget.delivery_preferences[assignMealForm.meal_time].latitude + ',' + assignMealTarget.delivery_preferences[assignMealForm.meal_time].longitude" target="_blank" class="text-blue-500 hover:text-blue-700 underline ml-1">{{ __('View Map') }}</a>
-                  </div>
-                  <div class="flex items-start gap-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].preferred_delivery_time">
-                    <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('Time') }}</span>
-                    <span class="font-semibold text-blue-800" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].preferred_delivery_time"></span>
-                  </div>
-                  <div class="flex items-start gap-2 col-span-2" x-show="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_note">
-                    <span class="text-blue-400 font-bold w-20 flex-shrink-0">{{ __('Note') }}</span>
-                    <span class="font-semibold text-blue-600 italic" x-text="assignMealTarget.delivery_preferences[assignMealForm.meal_time].delivery_note"></span>
-                  </div>
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Subscription') }}</label>
+                <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm">
+                  <p class="font-bold text-gray-800" x-text="assignMealTarget?.subscription?.plan_name || assignMealTarget?.plan || '{{ __('Current Plan') }}'"></p>
+                  <p class="text-xs text-gray-500 mt-1" x-text="'#' + assignMealForm.subscription_id"></p>
                 </div>
               </div>
-            </template>
-            <template x-if="assignMealForm.meal_time && !assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]">
               <div>
-                <p class="font-bold capitalize" x-text="assignMealForm.meal_time + ' ' + '{{ __('delivery') }}'"></p>
-                <p class="text-xs text-blue-500 mt-1">{{ __('No delivery preference set for this category. Using default location.') }}</p>
-                <p>{{ __('Customer Location') }}: <span class="font-bold" x-text="assignMealTarget?.location || '—'"></span></p>
-                <p>{{ __('Customer Address') }}: <span class="font-bold" x-text="assignMealTarget?.address || '—'"></span></p>
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Subscription Day') }} <span class="text-red-500">*</span></label>
+                <input type="number" min="1" x-model.number="assignMealForm.day_number" required class="w-full text-sm border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
               </div>
-            </template>
-          </div>
-        </div>
-      </div>
-      <form x-show="!mealLoading" @submit.prevent="submitAssignMeal()" class="space-y-4">
-        <div x-show="!assignMealForm.subscription_id" class="text-sm text-amber-600 bg-amber-50 border border-amber-100 rounded-lg p-3">{{ __('Customer has no active subscription.') }}</div>
-        <div x-show="assignMealForm.subscription_id">
-          <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Meal Time') }} <span class="text-red-500">*</span></label>
-          <select x-model="assignMealForm.meal_time" required @change="updateAvailableMeals()" class="w-full text-sm border border-gray-200 rounded-lg px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
-            <option value="">{{ __('Select category...') }}</option>
-            <option value="breakfast">{{ __('Breakfast') }}</option>
-            <option value="lunch">{{ __('Lunch') }}</option>
-            <option value="dinner">{{ __('Dinner') }}</option>
-          </select>
-        </div>
-        <div x-show="assignMealForm.subscription_id && assignMealForm.meal_time && availableMeals.length > 0">
-          <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Select Meals') }} <span class="text-red-500">*</span></label>
-          <div class="relative mb-2">
-            <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <input type="text" x-model="mealSearch" placeholder="{{ __('Search meals...') }}" class="w-full text-sm border border-gray-200 rounded-lg pl-9 pr-3 py-2 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
-          </div>
-          <div class="max-h-56 overflow-y-auto border border-gray-200 rounded-lg bg-gray-50 divide-y divide-gray-100">
-            <template x-for="m in availableMeals.filter(m => !mealSearch || m.name.toLowerCase().includes(mealSearch.toLowerCase()))" :key="m.id">
-              <label class="flex items-center gap-3 px-4 py-3 hover:bg-white cursor-pointer transition-colors">
-                <input type="checkbox" :value="m.id" x-model="assignMealForm.selected_meals" class="w-5 h-5 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]/20">
-                <span class="text-sm text-gray-700" x-text="m.name"></span>
-              </label>
-            </template>
-          </div>
-          <p class="text-xs text-gray-400 mt-1.5" x-text="assignMealForm.selected_meals.length + ' ' + '{{ __('meals selected') }}'"></p>
-        </div>
-        <div x-show="assignMealForm.subscription_id && assignMealForm.meal_time && availableMeals.length === 0" class="text-sm text-gray-400 bg-gray-50 rounded-lg p-3">{{ __('No meals available.') }}</div>
+              <div>
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Scheduled Date') }}</label>
+                <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700" x-text="scheduledDateForDay() || '—'"></div>
+              </div>
+            </div>
 
-        {{-- Driver selection (optional, within meal flow) --}}
-        <div x-show="assignMealForm.subscription_id && assignMealForm.meal_time && assignMealForm.selected_meals.length > 0" class="border-t border-gray-100 pt-4">
-          <div class="bg-amber-50 border border-amber-100 rounded-lg p-3 mb-3" x-show="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]">
-            <p class="text-xs font-bold text-amber-700 mb-1 flex items-center gap-1">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              {{ __('Delivery Destination for Driver') }}
-            </p>
-            <div class="text-xs text-amber-800 space-y-0.5">
-              <p x-show="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.place_type">
-                <span class="font-bold capitalize" x-text="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.place_type"></span>
-                <span x-show="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.place_name" x-text="' — ' + assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.place_name"></span>
-              </p>
-              <p x-show="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.delivery_area">
-                <span x-text="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.city ? assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.city + ', ' : ''"></span>
-                <span class="font-semibold" x-text="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.delivery_area"></span>
-              </p>
-              <p x-show="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.delivery_address" x-text="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.delivery_address"></p>
-              <p x-show="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.preferred_delivery_time" class="font-bold">
-                {{ __('Deliver by') }}: <span x-text="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.preferred_delivery_time"></span>
-              </p>
-              <p x-show="assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.delivery_note" class="italic text-amber-600" x-text="'📝 ' + assignMealTarget?.delivery_preferences?.[assignMealForm.meal_time]?.delivery_note"></p>
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
+              <p class="text-sm font-bold text-blue-800">{{ __('Customer Delivery Information') }}</p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2 text-xs text-blue-700">
+                <p>{{ __('Location') }}: <span class="font-semibold" x-text="assignMealTarget?.location || '—'"></span></p>
+                <p>{{ __('Address') }}: <span class="font-semibold" x-text="assignMealTarget?.address || '—'"></span></p>
+              </div>
             </div>
-          </div>
-          <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Assign Driver') }} <span class="text-gray-400 normal-case font-normal">({{ __('optional') }})</span></label>
-          <div class="relative mb-2">
-            <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <input type="text" x-model="driverSearch" placeholder="{{ __('Search drivers...') }}" class="w-full text-sm border border-gray-200 rounded-lg pl-9 pr-3 py-2 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
-          </div>
-          <select x-model="assignMealForm.driver_id" class="w-full text-sm border border-gray-200 rounded-lg px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
-            <option value="">{{ __('No driver') }}</option>
-            <template x-for="d in driversList.filter(d => !driverSearch || d.name.toLowerCase().includes(driverSearch.toLowerCase()) || (d.phone || '').includes(driverSearch))" :key="d.id">
-              <option :value="d.id" x-text="d.name + (d.phone ? ' · ' + d.phone : '')"></option>
-            </template>
-          </select>
-          <div x-show="assignMealForm.driver_id" class="mt-3 space-y-3">
-            <div>
-              <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Assignment Reason') }}</label>
-              <input type="text" x-model="assignMealForm.assignment_reason" class="w-full text-sm border border-gray-200 rounded-lg px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20" :placeholder="assignMealTarget?.location ? `{{ __('Same delivery zone: ') }}` + (assignMealTarget?.location || '') : '{{ __('e.g. Same delivery zone') }}'">
-            </div>
-            <div>
-              <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Notes') }}</label>
-              <textarea x-model="assignMealForm.notes" rows="2" class="w-full text-sm border border-gray-200 rounded-lg px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20" placeholder="{{ __('Optional notes') }}"></textarea>
-            </div>
-          </div>
-        </div>
 
-        <div x-show="assignMealError" class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2" x-text="assignMealError"></div>
-        <div x-show="assignMealSuccess" class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2" x-text="assignMealSuccess"></div>
-        <div class="flex gap-3 pt-2">
-          <button type="button" @click="showAssignMeal = false" class="flex-1 px-4 py-3 text-sm font-bold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">{{ __('Cancel') }}</button>
-          <button type="submit" :disabled="assigningMeal || !assignMealForm.subscription_id || assignMealForm.selected_meals.length === 0" class="flex-1 px-4 py-3 text-sm font-bold rounded-lg bg-gradient-to-r from-[#033133] to-[#025C5F] text-white hover:shadow-md transition-all disabled:opacity-50" x-text="assigningMeal ? '{{ __('Assigning...') }}' : '{{ __('Assign Meals') }}'"></button>
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h4 class="font-bold text-gray-900">{{ __('Meals for this day') }}</h4>
+                <p class="text-xs text-gray-500 mt-1">{{ __('Choose one or more meals inside every required meal time.') }}</p>
+              </div>
+              <div class="relative w-full sm:w-72">
+                <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text" x-model="mealSearch" placeholder="{{ __('Search meals...') }}" class="w-full text-sm border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 bg-white outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <template x-for="slot in mealSlots" :key="slot.key">
+                <section class="border border-gray-200 rounded-2xl overflow-hidden bg-white">
+                  <div class="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                      <p class="font-bold text-gray-800" x-text="slot.label"></p>
+                      <p class="text-xs text-gray-400 mt-0.5" x-text="selectedMealIds(slot.key).length + ' {{ __('selected') }}'"></p>
+                    </div>
+                    <button type="button" @click="clearMealSlot(slot.key)" x-show="selectedMealIds(slot.key).length > 0" class="text-xs font-semibold text-red-500 hover:text-red-700">{{ __('Clear') }}</button>
+                  </div>
+
+                  <div class="max-h-64 overflow-y-auto divide-y divide-gray-100">
+                    <template x-for="meal in filteredMealsForSlot(slot.key)" :key="slot.key + '-' + meal.id">
+                      <label class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors">
+                        <input type="checkbox" :value="meal.id" x-model="assignMealForm.assignments[slot.key]" class="w-5 h-5 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]/20">
+                        <div class="min-w-0 flex-1">
+                          <p class="text-sm font-semibold text-gray-700 truncate" x-text="meal.name"></p>
+                          <p x-show="meal.calories" class="text-xs text-gray-400 mt-0.5" x-text="meal.calories + ' kcal'"></p>
+                        </div>
+                      </label>
+                    </template>
+
+                    <div x-show="filteredMealsForSlot(slot.key).length === 0" class="px-4 py-8 text-center text-sm text-gray-400">
+                      {{ __('No matching meals available.') }}
+                    </div>
+                  </div>
+
+                  <div class="px-4 py-3 bg-gray-50 border-t border-gray-100" x-show="deliveryPreferenceFor(slot.key)">
+                    <p class="text-xs font-bold text-gray-600 mb-1">{{ __('Delivery preference') }}</p>
+                    <p class="text-xs text-gray-500" x-text="deliveryPreferenceSummary(slot.key)"></p>
+                  </div>
+                </section>
+              </template>
+            </div>
+
+            <div class="border-t border-gray-100 pt-5">
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">{{ __('Dedicated Driver') }} <span class="text-gray-400 normal-case font-normal">({{ __('optional') }})</span></label>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <select x-model="assignMealForm.driver_id" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+                  <option value="">{{ __('Do not change driver') }}</option>
+                  <template x-for="driver in driversList" :key="driver.id">
+                    <option :value="driver.id" x-text="driver.name + (driver.phone ? ' · ' + driver.phone : '')"></option>
+                  </template>
+                </select>
+                <input type="text" x-model="assignMealForm.assignment_reason" placeholder="{{ __('Assignment reason') }}" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+              </div>
+              <textarea x-show="assignMealForm.driver_id" x-model="assignMealForm.notes" rows="2" placeholder="{{ __('Optional driver notes') }}" class="mt-3 w-full text-sm border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20"></textarea>
+            </div>
+          </div>
+        </template>
+
+        <div x-show="assignMealError" class="text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3" x-text="assignMealError"></div>
+        <div x-show="assignMealSuccess" class="text-sm text-green-700 bg-green-50 border border-green-100 rounded-xl px-4 py-3" x-text="assignMealSuccess"></div>
+
+        <div class="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+          <button type="button" @click="showAssignMeal = false" class="flex-1 px-4 py-3 text-sm font-bold rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">{{ __('Cancel') }}</button>
+          <button type="submit" :disabled="assigningMeal || !canSubmitMealAssignment()" class="flex-1 px-4 py-3 text-sm font-bold rounded-xl bg-gradient-to-r from-[#033133] to-[#025C5F] text-white hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed" x-text="assigningMeal ? '{{ __('Saving Day Menu...') }}' : '{{ __('Save Day Menu') }}'"></button>
         </div>
       </form>
     </div>
@@ -777,11 +735,15 @@ function customersApp() {
     assigningMeal: false,
     assignMealError: '',
     assignMealSuccess: '',
-    assignMealForm: { subscription_id: 0, meal_time: '', selected_meals: [], driver_id: '', assignment_reason: '', notes: '' },
-    availableMeals: [],
+    mealSlots: [
+      { key: 'breakfast', label: '{{ __('Breakfast') }}' },
+      { key: 'lunch', label: '{{ __('Lunch') }}' },
+      { key: 'dinner', label: '{{ __('Dinner') }}' },
+      { key: 'snack', label: '{{ __('Snack') }}' },
+    ],
+    assignMealForm: { subscription_id: 0, day_number: 1, assignments: { breakfast: [], lunch: [], dinner: [], snack: [] }, driver_id: '', assignment_reason: '', notes: '' },
     allMeals: [],
     mealSearch: '',
-    driverSearch: '',
     showAssignDriver: false,
     assignDriverTarget: null,
     assigningDriver: false,
@@ -828,73 +790,172 @@ function customersApp() {
       this.mealLoading = true;
       this.assignMealError = '';
       this.assignMealSuccess = '';
-      this.assignMealForm = { subscription_id: 0, meal_time: '', selected_meals: [], driver_id: '', assignment_reason: c.location ? '{{ __('Same delivery zone: ') }}' + c.location : '', notes: '' };
-      this.availableMeals = [];
-      this.allMeals = [];
       this.mealSearch = '';
-      this.driverSearch = '';
+      this.assignMealForm = {
+        subscription_id: Number(c?.subscription?.id || c?.current_subscription?.id || 0),
+        day_number: 1,
+        assignments: { breakfast: [], lunch: [], dinner: [], snack: [] },
+        driver_id: '',
+        assignment_reason: c?.location ? '{{ __('Same delivery zone: ') }}' + c.location : '',
+        notes: '',
+      };
+      this.allMeals = [];
+
       try {
-        const sub = c.subscription;
-        const subId = sub?.id || 0;
-        if (subId > 0) {
-          const r = await fetch(`{{ url('admin/customers') }}/${c.id}/meal-selections?subscription_id=${subId}`, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
-          const d = await r.json();
-          this.assignMealForm.subscription_id = d.subscription_id || subId;
-          this.allMeals = d.meals || [];
-        }
-      } catch(e) { console.error('Failed to fetch meal selections', e); }
-      finally { this.mealLoading = false; }
+        const subId = this.assignMealForm.subscription_id;
+        if (!subId) return;
+
+        const response = await fetch(`{{ url('admin/customers') }}/${c.id}/meal-selections?subscription_id=${subId}`, {
+          headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+        });
+        const data = await this.readJsonResponse(response);
+        this.assignMealForm.subscription_id = Number(data.subscription_id || subId);
+        this.allMeals = (data.meals || []).map(meal => ({
+          id: Number(meal.id),
+          name: meal.name || meal.name_en || '{{ __('Meal') }}',
+          meal_time: String(meal.meal_time || meal.category || meal.category_name || '').toLowerCase(),
+          category_id: meal.category_id || meal.meal_category_id || null,
+          calories: meal.calories || null,
+        }));
+
+        const existing = Array.isArray(data.selections) ? data.selections : [];
+        existing.forEach(item => {
+          const day = Number(item.day_number || 1);
+          if (day !== Number(this.assignMealForm.day_number)) return;
+          const slot = String(item.meal_time || '').toLowerCase();
+          if (!this.assignMealForm.assignments[slot]) return;
+          const ids = Array.isArray(item.meal_ids)
+            ? item.meal_ids
+            : Array.isArray(item.meals)
+              ? item.meals.map(meal => meal.id)
+              : item.meal_id ? [item.meal_id] : [];
+          this.assignMealForm.assignments[slot] = [...new Set(ids.map(Number).filter(Boolean))];
+        });
+      } catch (error) {
+        console.error('Failed to load meals', error);
+        this.assignMealError = error.message || '{{ __('Failed to load meals.') }}';
+      } finally {
+        this.mealLoading = false;
+      }
     },
 
-    updateAvailableMeals() {
-      this.assignMealForm.selected_meals = [];
-      this.availableMeals = this.allMeals;
+    selectedMealIds(slot) {
+      return Array.isArray(this.assignMealForm.assignments?.[slot])
+        ? this.assignMealForm.assignments[slot]
+        : [];
+    },
+
+    clearMealSlot(slot) {
+      if (this.assignMealForm.assignments?.[slot]) this.assignMealForm.assignments[slot] = [];
+    },
+
+    filteredMealsForSlot(slot) {
+      const term = this.mealSearch.trim().toLowerCase();
+      const categoryMap = { breakfast: 1, lunch: 2, dinner: 3, snack: 4 };
+      return this.allMeals.filter(meal => {
+        const matchesSearch = !term || String(meal.name || '').toLowerCase().includes(term);
+        const mealTime = String(meal.meal_time || '').toLowerCase();
+        const matchesSlot = !mealTime || mealTime === slot || Number(meal.category_id) === categoryMap[slot];
+        return matchesSearch && matchesSlot;
+      });
+    },
+
+    deliveryPreferenceFor(slot) {
+      return this.assignMealTarget?.delivery_preferences?.[slot] || null;
+    },
+
+    deliveryPreferenceSummary(slot) {
+      const pref = this.deliveryPreferenceFor(slot);
+      if (!pref) return '';
+      return [pref.place_name, pref.city, pref.delivery_area, pref.delivery_address, pref.preferred_delivery_time]
+        .filter(Boolean).join(' · ');
+    },
+
+    scheduledDateForDay() {
+      const start = this.assignMealTarget?.subscription?.start_date || this.assignMealTarget?.current_subscription?.start_date;
+      const day = Number(this.assignMealForm.day_number || 1);
+      if (!start || day < 1) return '';
+      const date = new Date(`${String(start).slice(0, 10)}T00:00:00`);
+      if (Number.isNaN(date.getTime())) return '';
+      date.setDate(date.getDate() + day - 1);
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    },
+
+    canSubmitMealAssignment() {
+      if (!this.assignMealForm.subscription_id || Number(this.assignMealForm.day_number) < 1) return false;
+      return Object.values(this.assignMealForm.assignments || {}).some(ids => Array.isArray(ids) && ids.length > 0);
+    },
+
+    async readJsonResponse(response) {
+      let data = {};
+      try { data = await response.json(); } catch (_) {}
+      if (!response.ok) {
+        const validation = data?.errors ? Object.values(data.errors).flat().join(' ') : '';
+        throw new Error(validation || data?.message || data?.error || '{{ __('Request failed.') }}');
+      }
+      return data;
     },
 
     async submitAssignMeal() {
-      if (!this.assignMealForm.subscription_id || !this.assignMealForm.meal_time || this.assignMealForm.selected_meals.length === 0) return;
+      if (!this.canSubmitMealAssignment()) return;
       this.assigningMeal = true;
       this.assignMealError = '';
       this.assignMealSuccess = '';
+
+      const assignments = this.mealSlots
+        .map(slot => ({
+          meal_time: slot.key,
+          meal_ids: [...new Set(this.selectedMealIds(slot.key).map(Number).filter(Boolean))],
+        }))
+        .filter(item => item.meal_ids.length > 0);
+
       try {
-        const r = await fetch(`{{ url('admin/customers') }}/${this.assignMealTarget.id}/assign-meal`, {
+        const response = await fetch(`{{ url('admin/customers') }}/${this.assignMealTarget.id}/assign-meal`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+          },
           body: JSON.stringify({
-            subscription_id: this.assignMealForm.subscription_id,
-            meal_time: this.assignMealForm.meal_time,
-            meal_ids: this.assignMealForm.selected_meals,
+            subscription_id: Number(this.assignMealForm.subscription_id),
+            day_number: Number(this.assignMealForm.day_number),
+            assignments,
           })
         });
-        const d = await r.json();
-        if (d.success) {
-          let msg = d.message || '{{ __('Meals assigned successfully!') }}';
-          if (this.assignMealForm.driver_id) {
-            try {
-              const dr = await fetch(`{{ url('admin/customers') }}/${this.assignMealTarget.id}/assign-driver`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-                body: JSON.stringify({
-                  driver_id: this.assignMealForm.driver_id,
-                  assignment_reason: this.assignMealForm.assignment_reason,
-                  notes: this.assignMealForm.notes,
-                })
-              });
-              const dd = await dr.json();
-              if (dd.success) {
-                msg += ' ' + (dd.message || '{{ __('Driver assigned successfully!') }}');
-              } else {
-                msg += ' ' + (dd.message || '{{ __('Failed to assign driver.') }}');
-              }
-            } catch(e) { console.error('Failed to assign driver', e); msg += ' {{ __('Failed to assign driver.') }}'; }
-          }
-          this.assignMealSuccess = msg;
-          setTimeout(() => { this.showAssignMeal = false; }, 2000);
-        } else {
-          this.assignMealError = d.message || d.error || '{{ __('Failed to assign meals.') }}';
+        const data = await this.readJsonResponse(response);
+        let message = data.message || '{{ __('Day menu assigned successfully!') }}';
+
+        if (this.assignMealForm.driver_id) {
+          const driverResponse = await fetch(`{{ url('admin/customers') }}/${this.assignMealTarget.id}/assign-driver`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': '{{ csrf_token() }}',
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              driver_id: Number(this.assignMealForm.driver_id),
+              assignment_reason: this.assignMealForm.assignment_reason,
+              notes: this.assignMealForm.notes,
+            })
+          });
+          const driverData = await this.readJsonResponse(driverResponse);
+          message += ' ' + (driverData.message || '{{ __('Driver assigned successfully!') }}');
         }
-      } catch(e) { console.error('Failed to assign meals', e); this.assignMealError = '{{ __('Failed to assign meals.') }}'; }
-      finally { this.assigningMeal = false; }
+
+        this.assignMealSuccess = message;
+        await this.fetchCustomers();
+        if (this.selected?.id === this.assignMealTarget?.id) await this.showDetail(this.assignMealTarget);
+        setTimeout(() => { this.showAssignMeal = false; }, 1500);
+      } catch (error) {
+        console.error('Failed to assign day menu', error);
+        this.assignMealError = error.message || '{{ __('Failed to assign day menu.') }}';
+      } finally {
+        this.assigningMeal = false;
+      }
     },
     openAssignDriver(c) {
       this.assignDriverTarget = c;

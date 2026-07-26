@@ -2910,7 +2910,18 @@ class AdminController extends Controller
     }
 
 
+    public function assignMealDay(
+    int $subscriptionId,
+    array $payload
+){
+    return $this->post(
 
+        "/meal-assignments/subscriptions/{$subscriptionId}/assign-day",
+
+        $payload
+
+    );
+}
 
 
     public function assignMealToCustomer(
@@ -3049,19 +3060,6 @@ class AdminController extends Controller
 
 }
 
-
-     public function assignMealDay(
-    int $subscriptionId,
-    array $payload
-){
-    return $this->post(
-
-        "/meal-assignments/subscriptions/{$subscriptionId}/assign-day",
-
-        $payload
-
-    );
-}
 
     public function customerMealSelections(int $id, Request $request, SubscriptionApiService $subscriptionApi, NutritionApiService $nutritionApi, MealApiService $mealApi)
     {
