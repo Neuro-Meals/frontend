@@ -461,278 +461,2415 @@ class AdminController extends Controller
         return view('admin.dashboard', compact('stats', 'revenueTrend', 'revenueLabels', 'ordersTrend', 'ordersLabels', 'planDistribution', 'recentOrders', 'recentPayments', 'topMeals', 'deliveryZones'));
     }
 
-    public function customers(Request $request, AdminApiService $adminApi)
-    {
-        $page = (int) $request->input('page', 1);
-        $limit = (int) $request->input('limit', 20);
-        $status = $request->input('status');
-        $planId = $request->input('plan_id');
-        $search = $request->input('search');
-        $workflow = $request->input('workflow');
 
-        $query = ['limit' => $limit, 'role' => 'customer'];
-        if ($status) $query['status'] = $status;
-        if ($planId) $query['plan_id'] = $planId;
-        if ($search) $query['search'] = $search;
-        if ($workflow) $query['workflow'] = $workflow;
 
-        $usersResponse = $adminApi->usersList($query);
-        $usersData = $this->apiData($usersResponse, fn () => []);
-        $totalCustomers = $this->apiMeta($usersResponse)['total'] ?? count($usersData);
 
-        // Fetch all customers (up to 100) for accurate KPI aggregation
-        $allCustomersResponse = $adminApi->usersList(['limit' => 100, 'role' => 'customer']);
-        $allCustomersData = $this->apiData($allCustomersResponse, fn () => []);
 
-        // Fetch plans for colored chips
-        $plansData = $this->apiData($adminApi->plansList(['limit' => 100]), function () {
-            return [];
-        });
-        $planColors = [];
-        $planNames = [];
-        $planColorsList = ['#173327', '#033133', '#6E7A25', '#025C5F', '#949B50', '#f9ac00', '#3b82f6', '#8b5cf6'];
-        $colorIdx = 0;
-        foreach ($plansData as $plan) {
-            $id = $plan['id'] ?? 0;
-            $name = $plan['name_en'] ?? 'Plan';
-            $planColors[$id] = $planColorsList[$colorIdx % count($planColorsList)];
-            $planNames[$id] = $name;
-            $colorIdx++;
+
+
+    public function customers(
+    Request $request,
+    AdminApiService $adminApi
+) {
+    /*
+    |--------------------------------------------------------------------------
+    | Validate and normalize request filters
+    |--------------------------------------------------------------------------
+    */
+
+    $page = max((int) $request->input('page', 1), 1);
+    $limit = min(max((int) $request->input('limit', 20), 1), 100);
+
+    $search = trim((string) $request->input('search', ''));
+    $planId = $request->filled('plan_id')
+        ? (int) $request->input('plan_id')
+        : null;
+
+    /*
+     * Backward-compatible `status`.
+     *
+     * Your current Blade sends status=active|paused|cancelled|inactive.
+     * Active, paused and cancelled usually represent subscription status,
+     * while inactive usually represents account status.
+     */
+    $status = trim((string) $request->input('status', ''));
+
+    $accountStatus = trim(
+        (string) $request->input('account_status', '')
+    );
+
+    $subscriptionStatus = trim(
+        (string) $request->input('subscription_status', '')
+    );
+
+    $workflow = trim(
+        (string) $request->input('workflow', '')
+    );
+
+    if ($status !== '') {
+        if (in_array($status, ['active', 'paused', 'cancelled', 'expired'], true)) {
+            $subscriptionStatus = $subscriptionStatus ?: $status;
+        } elseif (in_array($status, ['inactive', 'suspended'], true)) {
+            $accountStatus = $accountStatus ?: $status;
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Build FastAPI customer-list query
+    |--------------------------------------------------------------------------
+    */
+
+    $query = [
+        'page' => $page,
+        'limit' => $limit,
+        'role' => 'customer',
+    ];
+
+    if ($search !== '') {
+        $query['search'] = $search;
+    }
+
+    if ($planId !== null && $planId > 0) {
+        $query['plan_id'] = $planId;
+    }
+
+    if ($accountStatus !== '') {
+        $query['account_status'] = $accountStatus;
+
+        /*
+         * Compatibility for a backend that still accepts `status`
+         * as the account-status filter.
+         */
+        $query['status'] = $accountStatus;
+    }
+
+    if ($subscriptionStatus !== '') {
+        $query['subscription_status'] = $subscriptionStatus;
+    }
+
+    if ($workflow !== '') {
+        $query['workflow'] = $workflow;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fetch paginated customers
+    |--------------------------------------------------------------------------
+    */
+
+    $usersResponse = $adminApi->usersList($query);
+
+    $usersData = $this->apiData(
+        $usersResponse,
+        fn () => []
+    );
+
+    /*
+     * apiData() may return:
+     *
+     * [
+     *     'data' => [...],
+     *     'meta' => [...]
+     * ]
+     *
+     * or directly:
+     *
+     * [...]
+     */
+    if (isset($usersData['data']) && is_array($usersData['data'])) {
+        $pageUsers = $usersData['data'];
+    } elseif (isset($usersData['items']) && is_array($usersData['items'])) {
+        $pageUsers = $usersData['items'];
+    } else {
+        $pageUsers = is_array($usersData)
+            ? array_values($usersData)
+            : [];
+    }
+
+    $pageMeta = $this->apiMeta($usersResponse);
+
+    $totalCustomers = (int) (
+        $pageMeta['total']
+        ?? $usersData['total']
+        ?? count($pageUsers)
+    );
+
+    $currentPage = (int) (
+        $pageMeta['page']
+        ?? $usersData['page']
+        ?? $page
+    );
+
+    $totalPages = (int) (
+        $pageMeta['pages']
+        ?? $pageMeta['total_pages']
+        ?? $usersData['pages']
+        ?? $usersData['total_pages']
+        ?? max((int) ceil($totalCustomers / max($limit, 1)), 1)
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fetch plans
+    |--------------------------------------------------------------------------
+    */
+
+    $plansResponse = $adminApi->plansList([
+        'page' => 1,
+        'limit' => 100,
+    ]);
+
+    $plansData = $this->apiData(
+        $plansResponse,
+        fn () => []
+    );
+
+    if (isset($plansData['data']) && is_array($plansData['data'])) {
+        $plansData = $plansData['data'];
+    } elseif (isset($plansData['items']) && is_array($plansData['items'])) {
+        $plansData = $plansData['items'];
+    }
+
+    $plansData = is_array($plansData)
+        ? array_values($plansData)
+        : [];
+
+    $planColorsList = [
+        '#173327',
+        '#033133',
+        '#6E7A25',
+        '#025C5F',
+        '#949B50',
+        '#f9ac00',
+        '#3b82f6',
+        '#8b5cf6',
+    ];
+
+    $planColors = [];
+    $plansList = [];
+
+    foreach ($plansData as $index => $plan) {
+        $planIdValue = (int) ($plan['id'] ?? 0);
+
+        if ($planIdValue <= 0) {
+            continue;
         }
 
-        $customers = [];
-        if (!empty($usersData)) {
-            foreach ($usersData as $user) {
-                $planName = $user['subscription']['plan_name'] ?? 'No Plan';
-                $planIdVal = $user['subscription']['plan_id'] ?? 0;
-                $customers[] = [
-                    'id' => $user['id'] ?? 0,
-                    'name' => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: 'Unknown',
-                    'first_name' => $user['first_name'] ?? '',
-                    'last_name' => $user['last_name'] ?? '',
-                    'email' => $user['email'] ?? '',
-                    'phone' => $user['phone'] ?? '',
-                    'location' => $user['location'] ?? '',
-                    'address' => $user['address'] ?? '',
-                    'plan' => $planName,
-                    'plan_id' => $planIdVal,
-                    'plan_color' => $planColors[$planIdVal] ?? '#6E7A25',
-                    'status' => $user['subscription']['status'] ?? ($user['is_active'] ?? true ? 'active' : 'inactive'),
-                    'is_active' => $user['is_active'] ?? true,
-                    'orders' => $user['orders_count'] ?? 0,
-                    'spent' => ($user['total_spent'] ?? 0) > 0 ? $user['total_spent'] : (($user['subscription']['payment_status'] ?? '') === 'paid' ? ($user['subscription']['amount'] ?? 0) : 0),
-                    'joined' => $user['created_at'] ?? date('Y-m-d'),
-                    'joined_formatted' => !empty($user['created_at']) ? date('M d, Y', strtotime($user['created_at'])) : '—',
+        $planName =
+            $plan['name_en']
+            ?? $plan['name']
+            ?? 'Plan';
+
+        $color = $planColorsList[
+            $index % count($planColorsList)
+        ];
+
+        $planColors[$planIdValue] = $color;
+
+        $plansList[] = [
+            'id' => $planIdValue,
+            'name' => $planName,
+            'name_en' => $plan['name_en'] ?? $planName,
+            'name_ar' => $plan['name_ar'] ?? '',
+            'price' => (float) ($plan['price'] ?? 0),
+            'duration_days' => (int) ($plan['duration_days'] ?? 0),
+            'is_active' => (bool) ($plan['is_active'] ?? true),
+            'color' => $color,
+        ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Normalize current subscription
+    |--------------------------------------------------------------------------
+    */
+
+    $normalizeSubscription = static function (
+        array $user
+    ): ?array {
+        $subscription = $user['subscription'] ?? null;
+
+        /*
+         * Some API responses use current_subscription instead.
+         */
+        if (!is_array($subscription)) {
+            $subscription = $user['current_subscription'] ?? null;
+        }
+
+        /*
+         * Some API responses return a subscriptions array only.
+         * Select the active subscription first, otherwise the first one.
+         */
+        if (
+            !is_array($subscription)
+            && !empty($user['subscriptions'])
+            && is_array($user['subscriptions'])
+        ) {
+            foreach ($user['subscriptions'] as $candidate) {
+                if (
+                    is_array($candidate)
+                    && strtolower((string) ($candidate['status'] ?? ''))
+                        === 'active'
+                ) {
+                    $subscription = $candidate;
+                    break;
+                }
+            }
+
+            if (
+                !is_array($subscription)
+                && isset($user['subscriptions'][0])
+                && is_array($user['subscriptions'][0])
+            ) {
+                $subscription = $user['subscriptions'][0];
+            }
+        }
+
+        if (!is_array($subscription)) {
+            return null;
+        }
+
+        $plan = is_array($subscription['plan'] ?? null)
+            ? $subscription['plan']
+            : [];
+
+        $planId =
+            $subscription['plan_id']
+            ?? $plan['id']
+            ?? null;
+
+        $planName =
+            $subscription['plan_name']
+            ?? $plan['name_en']
+            ?? $plan['name']
+            ?? 'No Plan';
+
+        return [
+            ...$subscription,
+
+            'id' => (int) ($subscription['id'] ?? 0),
+            'user_id' => (int) (
+                $subscription['user_id']
+                ?? $user['id']
+                ?? 0
+            ),
+            'plan_id' => $planId !== null
+                ? (int) $planId
+                : 0,
+            'plan_name' => $planName,
+            'status' => strtolower(
+                (string) ($subscription['status'] ?? 'inactive')
+            ),
+            'payment_status' => strtolower(
+                (string) (
+                    $subscription['payment_status']
+                    ?? 'unpaid'
+                )
+            ),
+            'amount' => (float) (
+                $subscription['amount']
+                ?? $plan['price']
+                ?? 0
+            ),
+            'start_date' => $subscription['start_date'] ?? null,
+            'end_date' => $subscription['end_date'] ?? null,
+            'plan' => $plan,
+        ];
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Normalize customer rows
+    |--------------------------------------------------------------------------
+    */
+
+    $customers = [];
+
+    foreach ($pageUsers as $user) {
+        if (!is_array($user)) {
+            continue;
+        }
+
+        $subscription = $normalizeSubscription($user);
+
+        $planIdValue = (int) (
+            $subscription['plan_id']
+            ?? 0
+        );
+
+        $planName =
+            $subscription['plan_name']
+            ?? 'No Plan';
+
+        $isActive = (bool) (
+            $user['is_active']
+            ?? true
+        );
+
+        $accountStatus = strtolower(
+            (string) (
+                $user['status']
+                ?? ($isActive ? 'active' : 'inactive')
+            )
+        );
+
+        $subscriptionStatus = strtolower(
+            (string) (
+                $subscription['status']
+                ?? 'inactive'
+            )
+        );
+
+        $paymentStatus = strtolower(
+            (string) (
+                $subscription['payment_status']
+                ?? 'unpaid'
+            )
+        );
+
+        $totalSpent = (float) (
+            $user['total_spent']
+            ?? 0
+        );
+
+        /*
+         * Temporary fallback until FastAPI always returns total_spent.
+         */
+        if (
+            $totalSpent <= 0
+            && $paymentStatus === 'paid'
+        ) {
+            $totalSpent = (float) (
+                $subscription['amount']
+                ?? 0
+            );
+        }
+
+        $firstName = trim(
+            (string) ($user['first_name'] ?? '')
+        );
+
+        $lastName = trim(
+            (string) ($user['last_name'] ?? '')
+        );
+
+        $fullName = trim("{$firstName} {$lastName}");
+
+        if ($fullName === '') {
+            $fullName =
+                $user['full_name']
+                ?? $user['email']
+                ?? 'Unknown';
+        }
+
+        $createdAt = $user['created_at'] ?? null;
+
+        /*
+         * Workflow information used by the Blade tabs.
+         */
+        $hasPaid = in_array(
+            $paymentStatus,
+            ['paid', 'captured'],
+            true
+        );
+
+        $mealAssignmentsCount = (int) (
+            $user['meal_assignments_count']
+            ?? $user['meal_selections_count']
+            ?? $user['assigned_meals_count']
+            ?? 0
+        );
+
+        $hasMealAssignments = (bool) (
+            $user['has_meal_assignments']
+            ?? ($mealAssignmentsCount > 0)
+        );
+
+        $ordersCount = (int) (
+            $user['orders_count']
+            ?? 0
+        );
+
+        $deliveriesCount = (int) (
+            $user['deliveries_count']
+            ?? 0
+        );
+
+        $currentWorkflow = 'awaiting_payment';
+
+        if ($hasPaid && !$hasMealAssignments) {
+            $currentWorkflow = 'paid_without_meals';
+        } elseif ($hasPaid && $hasMealAssignments && $ordersCount === 0) {
+            $currentWorkflow = 'paid_with_meals';
+        } elseif ($ordersCount > 0 && $deliveriesCount === 0) {
+            $currentWorkflow = 'orders_generated';
+        } elseif ($deliveriesCount > 0) {
+            $currentWorkflow = 'delivery_started';
+        }
+
+        $customers[] = [
+            'id' => (int) ($user['id'] ?? 0),
+
+            'name' => $fullName,
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+
+            'email' => $user['email'] ?? '',
+            'phone' => $user['phone'] ?? '',
+            'phone_number' => (
+                $user['phone_number']
+                ?? $user['phone']
+                ?? ''
+            ),
+
+            'location' => $user['location'] ?? '',
+            'address' => (
+                $user['address']
+                ?? $user['delivery_address']
+                ?? ''
+            ),
+
+            'gender' => $user['gender'] ?? null,
+            'birth_date' => $user['birth_date'] ?? null,
+            'age' => $user['age'] ?? null,
+
+            'height' => (
+                $user['height']
+                ?? $user['height_cm']
+                ?? null
+            ),
+            'height_cm' => (
+                $user['height_cm']
+                ?? $user['height']
+                ?? null
+            ),
+
+            'weight' => (
+                $user['weight']
+                ?? $user['weight_kg']
+                ?? null
+            ),
+            'weight_kg' => (
+                $user['weight_kg']
+                ?? $user['weight']
+                ?? null
+            ),
+
+            'activity_level' => $user['activity_level'] ?? null,
+
+            'fitness_goals' => (
+                $user['fitness_goals']
+                ?? (
+                    isset($user['fitness_goal'])
+                        ? [$user['fitness_goal']]
+                        : []
+                )
+            ),
+
+            /*
+             * Backward compatibility with the current Blade edit form.
+             */
+            'fitness_goal' => (
+                $user['fitness_goal']
+                ?? (
+                    is_array($user['fitness_goals'] ?? null)
+                        ? ($user['fitness_goals'][0] ?? null)
+                        : null
+                )
+            ),
+
+            'dietary_preferences' => (
+                $user['dietary_preferences']
+                ?? (
+                    isset($user['dietary_preference'])
+                        ? [$user['dietary_preference']]
+                        : []
+                )
+            ),
+
+            'dietary_preference' => (
+                $user['dietary_preference']
+                ?? (
+                    is_array(
+                        $user['dietary_preferences'] ?? null
+                    )
+                        ? (
+                            $user['dietary_preferences'][0]
+                            ?? null
+                        )
+                        : null
+                )
+            ),
+
+            'allergies' => is_array(
+                $user['allergies'] ?? null
+            )
+                ? $user['allergies']
+                : [],
+
+            'chronic_conditions' => is_array(
+                $user['chronic_conditions'] ?? null
+            )
+                ? $user['chronic_conditions']
+                : [],
+
+            /*
+             * This object was missing in your old method.
+             * openAssignMeal() in the Blade requires c.subscription.id.
+             */
+            'subscription' => $subscription,
+
+            'plan' => $planName,
+            'plan_id' => $planIdValue,
+            'plan_color' => (
+                $planColors[$planIdValue]
+                ?? '#6E7A25'
+            ),
+
+            /*
+             * Keep `status` for your existing table.
+             * It represents subscription status when a subscription exists.
+             */
+            'status' => $subscription
+                ? $subscriptionStatus
+                : $accountStatus,
+
+            'account_status' => $accountStatus,
+            'subscription_status' => $subscriptionStatus,
+            'payment_status' => $paymentStatus,
+
+            'is_active' => $isActive,
+            'is_verified' => (bool) (
+                $user['is_verified']
+                ?? false
+            ),
+
+            'orders' => $ordersCount,
+            'orders_count' => $ordersCount,
+
+            'deliveries' => $deliveriesCount,
+            'deliveries_count' => $deliveriesCount,
+
+            'meal_assignments_count' => $mealAssignmentsCount,
+            'has_meal_assignments' => $hasMealAssignments,
+            'has_paid' => $hasPaid,
+            'workflow' => $currentWorkflow,
+
+            'spent' => $totalSpent,
+            'total_spent' => $totalSpent,
+
+            'joined' => $createdAt ?? '',
+            'joined_formatted' => $createdAt
+                ? date('M d, Y', strtotime($createdAt))
+                : '—',
+
+            /*
+             * Preserve useful backend information for the detail modal.
+             */
+            'profile' => $user['profile'] ?? null,
+            'delivery_preferences' => (
+                $user['delivery_preferences']
+                ?? []
+            ),
+            'current_driver' => (
+                $user['current_driver']
+                ?? $user['driver']
+                ?? null
+            ),
+        ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Local workflow fallback
+    |--------------------------------------------------------------------------
+    |
+    | Keep this because some FastAPI versions may ignore workflow.
+    | Once FastAPI supports workflow filtering and accurate totals,
+    | this fallback can be removed.
+    */
+
+    if ($workflow !== '') {
+        $customers = array_values(
+            array_filter(
+                $customers,
+                static fn (array $customer): bool =>
+                    ($customer['workflow'] ?? '') === $workflow
+            )
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fetch data used for KPI cards
+    |--------------------------------------------------------------------------
+    |
+    | We fetch up to 100 customers for backward compatibility.
+    | Later, the ideal solution is:
+    |
+    | GET /admin/customers/statistics
+    */
+
+    $statisticsResponse = $adminApi->usersList([
+        'page' => 1,
+        'limit' => 100,
+        'role' => 'customer',
+    ]);
+
+    $statisticsData = $this->apiData(
+        $statisticsResponse,
+        fn () => []
+    );
+
+    if (
+        isset($statisticsData['data'])
+        && is_array($statisticsData['data'])
+    ) {
+        $statisticsCustomers = $statisticsData['data'];
+    } elseif (
+        isset($statisticsData['items'])
+        && is_array($statisticsData['items'])
+    ) {
+        $statisticsCustomers = $statisticsData['items'];
+    } else {
+        $statisticsCustomers = is_array($statisticsData)
+            ? array_values($statisticsData)
+            : [];
+    }
+
+    $statisticsMeta = $this->apiMeta($statisticsResponse);
+
+    $statisticsTotal = (int) (
+        $statisticsMeta['total']
+        ?? $totalCustomers
+    );
+
+    $totalOrders = 0;
+    $totalRevenue = 0.0;
+    $activeCustomers = 0;
+    $paidCustomers = 0;
+    $waitingForMeals = 0;
+    $customersWithMeals = 0;
+
+    foreach ($statisticsCustomers as $user) {
+        if (!is_array($user)) {
+            continue;
+        }
+
+        $subscription = $normalizeSubscription($user);
+
+        $subscriptionStatusValue = strtolower(
+            (string) (
+                $subscription['status']
+                ?? 'inactive'
+            )
+        );
+
+        $paymentStatusValue = strtolower(
+            (string) (
+                $subscription['payment_status']
+                ?? 'unpaid'
+            )
+        );
+
+        if ($subscriptionStatusValue === 'active') {
+            $activeCustomers++;
+        }
+
+        $hasPaid = in_array(
+            $paymentStatusValue,
+            ['paid', 'captured'],
+            true
+        );
+
+        if ($hasPaid) {
+            $paidCustomers++;
+        }
+
+        $mealAssignmentsCount = (int) (
+            $user['meal_assignments_count']
+            ?? $user['meal_selections_count']
+            ?? $user['assigned_meals_count']
+            ?? 0
+        );
+
+        $hasMeals = (bool) (
+            $user['has_meal_assignments']
+            ?? ($mealAssignmentsCount > 0)
+        );
+
+        if ($hasPaid && !$hasMeals) {
+            $waitingForMeals++;
+        }
+
+        if ($hasPaid && $hasMeals) {
+            $customersWithMeals++;
+        }
+
+        $totalOrders += (int) (
+            $user['orders_count']
+            ?? 0
+        );
+
+        $spent = (float) (
+            $user['total_spent']
+            ?? 0
+        );
+
+        if (
+            $spent <= 0
+            && $hasPaid
+        ) {
+            $spent = (float) (
+                $subscription['amount']
+                ?? 0
+            );
+        }
+
+        $totalRevenue += $spent;
+    }
+
+    $stats = [
+        [
+            'label' => __('Total Customers'),
+            'value' => number_format($statisticsTotal),
+            'raw_value' => $statisticsTotal,
+            'icon' => 'users',
+            'bg' => 'from-[#173327] to-[#6E7A25]',
+        ],
+        [
+            'label' => __('Active'),
+            'value' => number_format($activeCustomers),
+            'raw_value' => $activeCustomers,
+            'icon' => 'check',
+            'bg' => 'from-green-500 to-emerald-600',
+        ],
+        [
+            'label' => __('Total Orders'),
+            'value' => number_format($totalOrders),
+            'raw_value' => $totalOrders,
+            'icon' => 'shopping',
+            'bg' => 'from-[#6E7A25] to-[#949B50]',
+        ],
+        [
+            'label' => __('Total Revenue'),
+            'value' => 'SAR ' . number_format($totalRevenue, 2),
+            'raw_value' => $totalRevenue,
+            'icon' => 'money',
+            'bg' => 'from-[#033133] to-[#025C5F]',
+        ],
+    ];
+
+    $workflowStats = [
+        'total_customers' => $statisticsTotal,
+        'active_customers' => $activeCustomers,
+        'paid_customers' => $paidCustomers,
+        'waiting_for_meals' => $waitingForMeals,
+        'customers_with_meals' => $customersWithMeals,
+        'total_orders' => $totalOrders,
+        'total_revenue' => $totalRevenue,
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | JSON response for Alpine AJAX
+    |--------------------------------------------------------------------------
+    */
+
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'success' => true,
+
+            'customers' => $customers,
+            'stats' => $stats,
+            'workflow_stats' => $workflowStats,
+            'plans' => $plansList,
+
+            'page' => $currentPage,
+            'limit' => $limit,
+            'total' => $totalCustomers,
+            'total_pages' => $totalPages,
+
+            'has_more' => $currentPage < $totalPages,
+            'has_previous' => $currentPage > 1,
+
+            'filters' => [
+                'search' => $search,
+                'plan_id' => $planId,
+                'status' => $status,
+                'account_status' => $accountStatus,
+                'subscription_status' => $subscriptionStatus,
+                'workflow' => $workflow,
+            ],
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Initial Blade response
+    |--------------------------------------------------------------------------
+    */
+
+    return view(
+        'admin.customers',
+        [
+            'customers' => $customers,
+            'stats' => $stats,
+            'plansList' => $plansList,
+            'workflowStats' => $workflowStats,
+            'pagination' => [
+                'page' => $currentPage,
+                'limit' => $limit,
+                'total' => $totalCustomers,
+                'total_pages' => $totalPages,
+                'has_more' => $currentPage < $totalPages,
+                'has_previous' => $currentPage > 1,
+            ],
+        ]
+    );
+}
+
+
+
+
+
+
+   public function customerDetails(
+    int $id,
+    AdminApiService $adminApi,
+    SubscriptionApiService $subscriptionApi,
+    PaymentApiService $paymentApi,
+    OrderApiService $orderApi,
+    DeliveryApiService $deliveryApi,
+    NutritionApiService $nutritionApi
+) {
+    /*
+    |--------------------------------------------------------------------------
+    | Helper: normalize API list responses
+    |--------------------------------------------------------------------------
+    */
+
+    $normalizeList = static function ($value): array {
+        if (!is_array($value)) {
+            return [];
+        }
+
+        if (
+            isset($value['data'])
+            && is_array($value['data'])
+        ) {
+            $value = $value['data'];
+        }
+
+        if (
+            isset($value['items'])
+            && is_array($value['items'])
+        ) {
+            $value = $value['items'];
+        }
+
+        if (
+            isset($value['results'])
+            && is_array($value['results'])
+        ) {
+            $value = $value['results'];
+        }
+
+        return is_array($value)
+            ? array_values($value)
+            : [];
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Helper: normalize enum values
+    |--------------------------------------------------------------------------
+    */
+
+    $enumValue = static function (
+        mixed $value,
+        string $fallback = ''
+    ): string {
+        if (is_array($value)) {
+            return strtolower(
+                (string) (
+                    $value['value']
+                    ?? $value['name']
+                    ?? $fallback
+                )
+            );
+        }
+
+        if ($value === null || $value === '') {
+            return strtolower($fallback);
+        }
+
+        return strtolower((string) $value);
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Helper: safe date formatting
+    |--------------------------------------------------------------------------
+    */
+
+    $formatDate = static function (
+        mixed $value,
+        string $format = 'M d, Y',
+        string $fallback = '—'
+    ): string {
+        if (empty($value)) {
+            return $fallback;
+        }
+
+        $timestamp = strtotime((string) $value);
+
+        if ($timestamp === false) {
+            return $fallback;
+        }
+
+        return date($format, $timestamp);
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fetch customer
+    |--------------------------------------------------------------------------
+    */
+
+    $userResponse = $adminApi->userShow($id);
+
+    $user = $this->apiData(
+        $userResponse,
+        fn () => []
+    );
+
+    if (
+        isset($user['data'])
+        && is_array($user['data'])
+    ) {
+        $user = $user['data'];
+    }
+
+    if (
+        isset($user['user'])
+        && is_array($user['user'])
+    ) {
+        $user = $user['user'];
+    }
+
+    if (empty($user) || !is_array($user)) {
+        return response()->json([
+            'success' => false,
+            'message' => __('Customer not found.'),
+        ], 404);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fetch related customer data
+    |--------------------------------------------------------------------------
+    */
+
+    $subscriptionsResponse = $subscriptionApi->list([
+        'user_id' => $id,
+        'page' => 1,
+        'limit' => 100,
+    ]);
+
+    $paymentsResponse = $paymentApi->list([
+        'user_id' => $id,
+        'page' => 1,
+        'limit' => 100,
+    ]);
+
+    $ordersResponse = $orderApi->list([
+        'user_id' => $id,
+        'page' => 1,
+        'limit' => 100,
+    ]);
+
+    $deliveriesResponse = $deliveryApi->list([
+        'customer_id' => $id,
+        'page' => 1,
+        'limit' => 100,
+    ]);
+
+    $subscriptionsRaw = $this->apiData(
+        $subscriptionsResponse,
+        fn () => []
+    );
+
+    $paymentsRaw = $this->apiData(
+        $paymentsResponse,
+        fn () => []
+    );
+
+    $ordersRaw = $this->apiData(
+        $ordersResponse,
+        fn () => []
+    );
+
+    $deliveriesRaw = $this->apiData(
+        $deliveriesResponse,
+        fn () => []
+    );
+
+    $subscriptionsData = $normalizeList($subscriptionsRaw);
+    $paymentsData = $normalizeList($paymentsRaw);
+    $ordersData = $normalizeList($ordersRaw);
+    $deliveriesData = $normalizeList($deliveriesRaw);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Normalize subscriptions
+    |--------------------------------------------------------------------------
+    */
+
+    $subscriptions = [];
+    $currentSubscription = null;
+
+    foreach ($subscriptionsData as $subscription) {
+        if (!is_array($subscription)) {
+            continue;
+        }
+
+        $plan = is_array($subscription['plan'] ?? null)
+            ? $subscription['plan']
+            : [];
+
+        $status = $enumValue(
+            $subscription['status'] ?? null,
+            'pending'
+        );
+
+        $paymentStatus = $enumValue(
+            $subscription['payment_status'] ?? null,
+            'unpaid'
+        );
+
+        $planName =
+            $subscription['plan_name']
+            ?? $plan['name_en']
+            ?? $plan['name']
+            ?? 'Plan';
+
+        $normalizedSubscription = [
+            ...$subscription,
+
+            'id' => (int) ($subscription['id'] ?? 0),
+            'user_id' => (int) (
+                $subscription['user_id']
+                ?? $id
+            ),
+            'plan_id' => (int) (
+                $subscription['plan_id']
+                ?? $plan['id']
+                ?? 0
+            ),
+            'plan_name' => $planName,
+            'plan' => $plan,
+            'amount' => (float) (
+                $subscription['amount']
+                ?? $plan['price']
+                ?? 0
+            ),
+            'currency' => strtoupper(
+                (string) (
+                    $subscription['currency']
+                    ?? 'SAR'
+                )
+            ),
+            'status' => $status,
+            'payment_status' => $paymentStatus,
+            'start_date' => $subscription['start_date'] ?? null,
+            'end_date' => $subscription['end_date'] ?? null,
+            'start_formatted' => $formatDate(
+                $subscription['start_date'] ?? null
+            ),
+            'end_formatted' => $formatDate(
+                $subscription['end_date'] ?? null,
+                'M d, Y',
+                'Ongoing'
+            ),
+            'created_at' => $subscription['created_at'] ?? null,
+            'created_formatted' => $formatDate(
+                $subscription['created_at'] ?? null
+            ),
+            'notes' => $subscription['notes'] ?? '',
+        ];
+
+        $subscriptions[] = $normalizedSubscription;
+
+        if (
+            $currentSubscription === null
+            && $status === 'active'
+        ) {
+            $currentSubscription = $normalizedSubscription;
+        }
+    }
+
+    /*
+     * If no active subscription exists, prefer the user's embedded
+     * subscription or the newest subscription.
+     */
+    if ($currentSubscription === null) {
+        $embeddedSubscription =
+            $user['subscription']
+            ?? $user['current_subscription']
+            ?? null;
+
+        if (
+            is_array($embeddedSubscription)
+            && !empty($embeddedSubscription)
+        ) {
+            $embeddedPlan = is_array(
+                $embeddedSubscription['plan'] ?? null
+            )
+                ? $embeddedSubscription['plan']
+                : [];
+
+            $currentSubscription = [
+                ...$embeddedSubscription,
+
+                'id' => (int) (
+                    $embeddedSubscription['id']
+                    ?? 0
+                ),
+                'user_id' => (int) (
+                    $embeddedSubscription['user_id']
+                    ?? $id
+                ),
+                'plan_id' => (int) (
+                    $embeddedSubscription['plan_id']
+                    ?? $embeddedPlan['id']
+                    ?? 0
+                ),
+                'plan_name' =>
+                    $embeddedSubscription['plan_name']
+                    ?? $embeddedPlan['name_en']
+                    ?? $embeddedPlan['name']
+                    ?? 'Plan',
+                'plan' => $embeddedPlan,
+                'amount' => (float) (
+                    $embeddedSubscription['amount']
+                    ?? $embeddedPlan['price']
+                    ?? 0
+                ),
+                'currency' => strtoupper(
+                    (string) (
+                        $embeddedSubscription['currency']
+                        ?? 'SAR'
+                    )
+                ),
+                'status' => $enumValue(
+                    $embeddedSubscription['status']
+                    ?? null,
+                    'inactive'
+                ),
+                'payment_status' => $enumValue(
+                    $embeddedSubscription['payment_status']
+                    ?? null,
+                    'unpaid'
+                ),
+                'start_date' =>
+                    $embeddedSubscription['start_date']
+                    ?? null,
+                'end_date' =>
+                    $embeddedSubscription['end_date']
+                    ?? null,
+                'start_formatted' => $formatDate(
+                    $embeddedSubscription['start_date']
+                    ?? null
+                ),
+                'end_formatted' => $formatDate(
+                    $embeddedSubscription['end_date']
+                    ?? null,
+                    'M d, Y',
+                    'Ongoing'
+                ),
+            ];
+        } elseif (!empty($subscriptions)) {
+            usort(
+                $subscriptions,
+                static function (
+                    array $first,
+                    array $second
+                ): int {
+                    return strtotime(
+                        $second['created_at']
+                        ?? $second['start_date']
+                        ?? '1970-01-01'
+                    ) <=> strtotime(
+                        $first['created_at']
+                        ?? $first['start_date']
+                        ?? '1970-01-01'
+                    );
+                }
+            );
+
+            $currentSubscription = $subscriptions[0];
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Load menu selections for the current subscription
+    |--------------------------------------------------------------------------
+    */
+
+    $mealSelections = [];
+
+    if (
+        is_array($currentSubscription)
+        && (int) ($currentSubscription['id'] ?? 0) > 0
+    ) {
+        try {
+            $mealSelectionsRaw = $this->apiData(
+                $nutritionApi->subscriptionMealSelections(
+                    (int) $currentSubscription['id']
+                ),
+                fn () => []
+            );
+
+            $mealSelections = $normalizeList(
+                $mealSelectionsRaw
+            );
+        } catch (\Throwable $exception) {
+            report($exception);
+            $mealSelections = [];
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Normalize meal selections / assignments
+    |--------------------------------------------------------------------------
+    */
+
+    $mealSchedule = [];
+
+    foreach ($mealSelections as $selection) {
+        if (!is_array($selection)) {
+            continue;
+        }
+
+        $meal = is_array($selection['meal'] ?? null)
+            ? $selection['meal']
+            : [];
+
+        $category = is_array(
+            $selection['meal_category'] ?? null
+        )
+            ? $selection['meal_category']
+            : [];
+
+        $driver = is_array($selection['driver'] ?? null)
+            ? $selection['driver']
+            : [];
+
+        $deliveryPreference = is_array(
+            $selection['delivery_preference'] ?? null
+        )
+            ? $selection['delivery_preference']
+            : [];
+
+        $mealTime = $enumValue(
+            $selection['meal_time']
+            ?? $category['name_en']
+            ?? null,
+            'meal'
+        );
+
+        $dayNumber = max(
+            (int) ($selection['day_number'] ?? 1),
+            1
+        );
+
+        $scheduleKey = $dayNumber . ':' . $mealTime;
+
+        if (!isset($mealSchedule[$scheduleKey])) {
+            $mealSchedule[$scheduleKey] = [
+                'day_number' => $dayNumber,
+                'meal_time' => $mealTime,
+                'delivery_date' =>
+                    $selection['delivery_date']
+                    ?? $selection['scheduled_date']
+                    ?? null,
+                'delivery_date_formatted' => $formatDate(
+                    $selection['delivery_date']
+                    ?? $selection['scheduled_date']
+                    ?? null
+                ),
+                'delivery_time' =>
+                    $selection['delivery_time']
+                    ?? $deliveryPreference[
+                        'preferred_delivery_time'
+                    ]
+                    ?? null,
+                'driver' => !empty($driver)
+                    ? [
+                        'id' => (int) (
+                            $driver['id']
+                            ?? $selection['driver_id']
+                            ?? 0
+                        ),
+                        'name' => trim(
+                            (string) (
+                                $driver['full_name']
+                                ?? (
+                                    ($driver['first_name'] ?? '')
+                                    . ' '
+                                    . ($driver['last_name'] ?? '')
+                                )
+                            )
+                        ),
+                        'phone' =>
+                            $driver['phone']
+                            ?? $driver['phone_number']
+                            ?? '',
+                    ]
+                    : null,
+                'delivery_preference' =>
+                    $deliveryPreference,
+                'meals' => [],
+            ];
+        }
+
+        if (!empty($meal)) {
+            $mealSchedule[$scheduleKey]['meals'][] = [
+                'id' => (int) (
+                    $meal['id']
+                    ?? $selection['meal_id']
+                    ?? 0
+                ),
+                'name' =>
+                    $meal['name_en']
+                    ?? $meal['name']
+                    ?? 'Meal',
+                'name_ar' => $meal['name_ar'] ?? '',
+                'image_url' => $meal['image_url'] ?? '',
+                'calories' => $meal['calories'] ?? null,
+                'protein' => $meal['protein'] ?? null,
+                'carbs' => $meal['carbs'] ?? null,
+                'fat' => $meal['fat'] ?? null,
+            ];
+        } elseif (!empty($selection['meals'])) {
+            foreach ($selection['meals'] as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+
+                $mealSchedule[$scheduleKey]['meals'][] = [
+                    'id' => (int) ($item['id'] ?? 0),
+                    'name' =>
+                        $item['name_en']
+                        ?? $item['name']
+                        ?? 'Meal',
+                    'name_ar' => $item['name_ar'] ?? '',
+                    'image_url' => $item['image_url'] ?? '',
+                    'calories' => $item['calories'] ?? null,
+                    'protein' => $item['protein'] ?? null,
+                    'carbs' => $item['carbs'] ?? null,
+                    'fat' => $item['fat'] ?? null,
                 ];
             }
         }
-
-        // Compute KPIs from all customers data (not just current page)
-        $kpiOrders = 0;
-        $kpiSpent = 0;
-        $kpiActive = 0;
-        $kpiPaused = 0;
-        $kpiCancelled = 0;
-        $kpiNoPlan = 0;
-        foreach ($allCustomersData as $user) {
-            $kpiOrders += $user['orders_count'] ?? 0;
-            $spent = (float) ($user['total_spent'] ?? 0);
-            // Fallback: if total_spent is 0 but has paid subscription, use subscription amount
-            if ($spent == 0 && isset($user['subscription']['amount']) && ($user['subscription']['payment_status'] ?? '') === 'paid') {
-                $spent = (float) $user['subscription']['amount'];
-            }
-            $kpiSpent += $spent;
-            $subStatus = $user['subscription']['status'] ?? ($user['is_active'] ?? true ? 'active' : 'inactive');
-            if ($subStatus === 'active') $kpiActive++;
-            if ($subStatus === 'paused') $kpiPaused++;
-            if ($subStatus === 'cancelled') $kpiCancelled++;
-            $planName = $user['subscription']['plan_name'] ?? 'No Plan';
-            if ($planName === 'No Plan') $kpiNoPlan++;
-        }
-
-        $total = $totalCustomers;
-        $totalOrders = $kpiOrders;
-        $totalSpent = $kpiSpent;
-        $activeCount = $kpiActive;
-        $pausedCount = $kpiPaused;
-        $cancelledCount = $kpiCancelled;
-        $noPlanCount = $kpiNoPlan;
-
-        $stats = [
-            ['label' => __('Total Customers'), 'value' => number_format($total), 'color' => 'text-gray-900', 'icon' => 'users', 'bg' => 'from-[#173327] to-[#6E7A25]'],
-            ['label' => __('Active'), 'value' => number_format($activeCount), 'color' => 'text-green-600', 'icon' => 'check', 'bg' => 'from-green-500 to-emerald-600'],
-            ['label' => __('Total Orders'), 'value' => number_format($totalOrders), 'color' => 'text-[#6E7A25]', 'icon' => 'shopping', 'bg' => 'from-[#6E7A25] to-[#949B50]'],
-            ['label' => __('Total Revenue'), 'value' => 'SAR ' . number_format($totalSpent, 2), 'color' => 'text-[#173327]', 'icon' => 'money', 'bg' => 'from-[#033133] to-[#025C5F]'],
-        ];
-
-        // Build plans list for filter dropdown
-        $plansList = [];
-        foreach ($plansData as $plan) {
-            $plansList[] = [
-                'id' => $plan['id'] ?? 0,
-                'name' => $plan['name_en'] ?? 'Plan',
-                'price' => $plan['price'] ?? 0,
-                'color' => $planColors[$plan['id'] ?? 0] ?? '#6E7A25',
-            ];
-        }
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'customers' => $customers,
-                'stats' => $stats,
-                'plans' => $plansList,
-                'has_more' => ($page * $limit) < $totalCustomers,
-                'total' => $totalCustomers,
-                'page' => $page,
-            ]);
-        }
-
-        return view('admin.customers', compact('customers', 'stats', 'plansList'));
     }
 
-    public function customerDetails(int $id, AdminApiService $adminApi, SubscriptionApiService $subscriptionApi, PaymentApiService $paymentApi, OrderApiService $orderApi)
-    {
-        $user = $this->apiData($adminApi->userShow($id), fn () => []);
-        $subscriptionsRaw = $this->apiData($subscriptionApi->list(['user_id' => $id, 'limit' => 50]), fn () => []);
-        $paymentsRaw = $this->apiData($paymentApi->list(['user_id' => $id, 'limit' => 50]), fn () => []);
-        $ordersRaw = $this->apiData($orderApi->list(['user_id' => $id, 'limit' => 50]), fn () => []);
+    $mealSchedule = array_values($mealSchedule);
 
-        $subscriptionsData = $subscriptionsRaw['data'] ?? $subscriptionsRaw;
-        $paymentsData = $paymentsRaw['data'] ?? $paymentsRaw;
-        $ordersData = $ordersRaw['data'] ?? $ordersRaw;
+    usort(
+        $mealSchedule,
+        static function (
+            array $first,
+            array $second
+        ): int {
+            $dayComparison =
+                ($first['day_number'] ?? 0)
+                <=> ($second['day_number'] ?? 0);
 
-        if (isset($subscriptionsData['items'])) $subscriptionsData = $subscriptionsData['items'];
-        if (isset($paymentsData['items'])) $paymentsData = $paymentsData['items'];
-        if (isset($ordersData['items'])) $ordersData = $ordersData['items'];
+            if ($dayComparison !== 0) {
+                return $dayComparison;
+            }
 
-        $subscriptions = [];
-        $totalSpent = 0;
-        $activeSubsCount = 0;
-        foreach ($subscriptionsData as $sub) {
-            $planName = $sub['plan']['name_en'] ?? ($sub['plan_name'] ?? 'Plan');
-            $amount = $sub['amount'] ?? 0;
-            $status = $sub['status'] ?? 'active';
-            if ($status === 'active') $activeSubsCount++;
-            $subscriptions[] = [
-                'id' => $sub['id'] ?? 0,
-                'plan_name' => $planName,
-                'plan' => $planName,
-                'amount' => $amount,
-                'status' => $status,
-                'start_date' => $sub['start_date'] ?? '',
-                'end_date' => $sub['end_date'] ?? '',
-                'start_formatted' => !empty($sub['start_date']) ? date('M d, Y', strtotime($sub['start_date'])) : '—',
-                'end_formatted' => !empty($sub['end_date']) ? date('M d, Y', strtotime($sub['end_date'])) : 'Ongoing',
-                'payment_status' => $sub['payment_status'] ?? '',
+            $order = [
+                'breakfast' => 1,
+                'lunch' => 2,
+                'dinner' => 3,
+                'snack' => 4,
             ];
+
+            return (
+                $order[$first['meal_time'] ?? ''] ?? 99
+            ) <=> (
+                $order[$second['meal_time'] ?? ''] ?? 99
+            );
+        }
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Normalize payments
+    |--------------------------------------------------------------------------
+    */
+
+    $payments = [];
+    $totalSpent = 0.0;
+    $successfulPayments = 0;
+    $failedPayments = 0;
+    $pendingPayments = 0;
+
+    foreach ($paymentsData as $paymentRecord) {
+        if (!is_array($paymentRecord)) {
+            continue;
         }
 
-        $currentSub = null;
-        foreach ($subscriptions as $sub) {
-            if ($sub['status'] === 'active') {
-                $currentSub = $sub;
+        $payment = is_array(
+            $paymentRecord['payment'] ?? null
+        )
+            ? $paymentRecord['payment']
+            : $paymentRecord;
+
+        $status = $enumValue(
+            $payment['status'] ?? null,
+            'pending'
+        );
+
+        $amount = (float) (
+            $payment['amount']
+            ?? 0
+        );
+
+        if (in_array(
+            $status,
+            ['paid', 'captured', 'successful'],
+            true
+        )) {
+            $successfulPayments++;
+            $totalSpent += $amount;
+        } elseif ($status === 'failed') {
+            $failedPayments++;
+        } elseif (in_array(
+            $status,
+            ['pending', 'processing', 'unpaid'],
+            true
+        )) {
+            $pendingPayments++;
+        }
+
+        $payments[] = [
+            ...$payment,
+
+            'id' => (int) ($payment['id'] ?? 0),
+            'display_id' => 'PAY-' . (
+                $payment['id']
+                ?? 0
+            ),
+            'amount' => $amount,
+            'currency' => strtoupper(
+                (string) (
+                    $payment['currency']
+                    ?? 'SAR'
+                )
+            ),
+            'status' => $status,
+            'provider' =>
+                $payment['provider']
+                ?? $payment['payment_method']
+                ?? 'N/A',
+            'transaction_reference' =>
+                $payment['transaction_reference']
+                ?? $payment['reference']
+                ?? '',
+            'plan_name' =>
+                $paymentRecord['subscription']['plan_name']
+                ?? $paymentRecord['plan_name']
+                ?? '',
+            'paid_at' => $payment['paid_at'] ?? null,
+            'created_at' => $payment['created_at'] ?? null,
+            'date' => $formatDate(
+                $payment['paid_at']
+                ?? $payment['created_at']
+                ?? null,
+                'M d, Y H:i'
+            ),
+        ];
+    }
+
+    usort(
+        $payments,
+        static fn (
+            array $first,
+            array $second
+        ): int => strtotime(
+            $second['paid_at']
+            ?? $second['created_at']
+            ?? '1970-01-01'
+        ) <=> strtotime(
+            $first['paid_at']
+            ?? $first['created_at']
+            ?? '1970-01-01'
+        )
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Normalize orders
+    |--------------------------------------------------------------------------
+    */
+
+    $orders = [];
+    $completedOrders = 0;
+    $activeOrders = 0;
+    $cancelledOrders = 0;
+
+    foreach ($ordersData as $order) {
+        if (!is_array($order)) {
+            continue;
+        }
+
+        $status = $enumValue(
+            $order['status'] ?? null,
+            'pending'
+        );
+
+        if (in_array(
+            $status,
+            ['delivered', 'completed'],
+            true
+        )) {
+            $completedOrders++;
+        } elseif ($status === 'cancelled') {
+            $cancelledOrders++;
+        } else {
+            $activeOrders++;
+        }
+
+        $driver = is_array($order['driver'] ?? null)
+            ? $order['driver']
+            : [];
+
+        $orders[] = [
+            ...$order,
+
+            'id' => (int) ($order['id'] ?? 0),
+            'display_id' =>
+                $order['order_number']
+                ?? ('ORD-' . ($order['id'] ?? 0)),
+            'order_number' =>
+                $order['order_number']
+                ?? ('ORD-' . ($order['id'] ?? 0)),
+            'amount' => (float) (
+                $order['total_amount']
+                ?? $order['amount']
+                ?? 0
+            ),
+            'currency' => strtoupper(
+                (string) (
+                    $order['currency']
+                    ?? 'SAR'
+                )
+            ),
+            'status' => $status,
+            'delivery_date' =>
+                $order['delivery_date']
+                ?? null,
+            'delivery_time' =>
+                $order['delivery_time']
+                ?? null,
+            'date' => $formatDate(
+                $order['created_at'] ?? null
+            ),
+            'delivery_date_formatted' => $formatDate(
+                $order['delivery_date'] ?? null
+            ),
+            'driver' => !empty($driver)
+                ? [
+                    'id' => (int) (
+                        $driver['id']
+                        ?? $order['driver_id']
+                        ?? 0
+                    ),
+                    'name' => trim(
+                        (string) (
+                            $driver['full_name']
+                            ?? (
+                                ($driver['first_name'] ?? '')
+                                . ' '
+                                . ($driver['last_name'] ?? '')
+                            )
+                        )
+                    ),
+                    'phone' =>
+                        $driver['phone']
+                        ?? $driver['phone_number']
+                        ?? '',
+                ]
+                : null,
+            'items' => is_array(
+                $order['items'] ?? null
+            )
+                ? $order['items']
+                : [],
+        ];
+    }
+
+    usort(
+        $orders,
+        static fn (
+            array $first,
+            array $second
+        ): int => strtotime(
+            $second['delivery_date']
+            ?? $second['created_at']
+            ?? '1970-01-01'
+        ) <=> strtotime(
+            $first['delivery_date']
+            ?? $first['created_at']
+            ?? '1970-01-01'
+        )
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Normalize deliveries
+    |--------------------------------------------------------------------------
+    */
+
+    $deliveries = [];
+    $currentDelivery = null;
+    $upcomingDeliveries = [];
+    $completedDeliveries = 0;
+    $failedDeliveries = 0;
+
+    $activeDeliveryStatuses = [
+        'pending',
+        'assigned',
+        'preparing',
+        'ready_for_pickup',
+        'picked_up',
+        'in_transit',
+        'out_for_delivery',
+    ];
+
+    foreach ($deliveriesData as $delivery) {
+        if (!is_array($delivery)) {
+            continue;
+        }
+
+        $order = is_array($delivery['order'] ?? null)
+            ? $delivery['order']
+            : [];
+
+        $driver = is_array($delivery['driver'] ?? null)
+            ? $delivery['driver']
+            : [];
+
+        $status = $enumValue(
+            $delivery['status'] ?? null,
+            'pending'
+        );
+
+        $scheduledDate =
+            $delivery['scheduled_date']
+            ?? $delivery['delivery_date']
+            ?? $order['delivery_date']
+            ?? null;
+
+        if (in_array(
+            $status,
+            ['delivered', 'completed'],
+            true
+        )) {
+            $completedDeliveries++;
+        }
+
+        if (in_array(
+            $status,
+            ['failed', 'cancelled'],
+            true
+        )) {
+            $failedDeliveries++;
+        }
+
+        $normalizedDelivery = [
+            ...$delivery,
+
+            'id' => (int) ($delivery['id'] ?? 0),
+            'status' => $status,
+            'order_id' => (int) (
+                $delivery['order_id']
+                ?? $order['id']
+                ?? 0
+            ),
+            'order_number' =>
+                $order['order_number']
+                ?? $delivery['order_number']
+                ?? '',
+            'scheduled_date' => $scheduledDate,
+            'scheduled_date_formatted' => $formatDate(
+                $scheduledDate
+            ),
+            'delivery_time' =>
+                $delivery['delivery_time']
+                ?? $order['delivery_time']
+                ?? null,
+            'delivery_address' =>
+                $delivery['delivery_address']
+                ?? $order['delivery_address']
+                ?? '',
+            'delivery_note' =>
+                $delivery['delivery_note']
+                ?? $order['delivery_note']
+                ?? '',
+            'failure_reason' =>
+                $delivery['failure_reason']
+                ?? '',
+            'delivered_at' =>
+                $delivery['delivered_at']
+                ?? null,
+            'driver' => !empty($driver)
+                ? [
+                    'id' => (int) (
+                        $driver['id']
+                        ?? $delivery['driver_id']
+                        ?? 0
+                    ),
+                    'name' => trim(
+                        (string) (
+                            $driver['full_name']
+                            ?? (
+                                ($driver['first_name'] ?? '')
+                                . ' '
+                                . ($driver['last_name'] ?? '')
+                            )
+                        )
+                    ),
+                    'phone' =>
+                        $driver['phone']
+                        ?? $driver['phone_number']
+                        ?? '',
+                    'location' =>
+                        $driver['location']
+                        ?? '',
+                ]
+                : null,
+            'created_at' => $delivery['created_at'] ?? null,
+        ];
+
+        $deliveries[] = $normalizedDelivery;
+
+        if (
+            $currentDelivery === null
+            && in_array(
+                $status,
+                $activeDeliveryStatuses,
+                true
+            )
+        ) {
+            $currentDelivery = $normalizedDelivery;
+        }
+
+        if (
+            !empty($scheduledDate)
+            && substr((string) $scheduledDate, 0, 10)
+                >= date('Y-m-d')
+            && !in_array(
+                $status,
+                ['delivered', 'completed', 'cancelled'],
+                true
+            )
+        ) {
+            $upcomingDeliveries[] = $normalizedDelivery;
+        }
+    }
+
+    usort(
+        $deliveries,
+        static fn (
+            array $first,
+            array $second
+        ): int => strtotime(
+            $second['scheduled_date']
+            ?? $second['created_at']
+            ?? '1970-01-01'
+        ) <=> strtotime(
+            $first['scheduled_date']
+            ?? $first['created_at']
+            ?? '1970-01-01'
+        )
+    );
+
+    usort(
+        $upcomingDeliveries,
+        static fn (
+            array $first,
+            array $second
+        ): int => strtotime(
+            $first['scheduled_date']
+            ?? '2999-12-31'
+        ) <=> strtotime(
+            $second['scheduled_date']
+            ?? '2999-12-31'
+        )
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Delivery preferences
+    |--------------------------------------------------------------------------
+    */
+
+    $deliveryPreferencesRaw =
+        $user['delivery_preferences']
+        ?? $user['profile']['delivery_preferences']
+        ?? [];
+
+    $deliveryPreferencesRaw = is_array(
+        $deliveryPreferencesRaw
+    )
+        ? $deliveryPreferencesRaw
+        : [];
+
+    $deliveryPreferences = [];
+    $deliveryByCategory = [];
+
+    $categoryMap = [
+        1 => 'breakfast',
+        2 => 'lunch',
+        3 => 'dinner',
+        4 => 'snack',
+    ];
+
+    foreach ($deliveryPreferencesRaw as $preference) {
+        if (!is_array($preference)) {
+            continue;
+        }
+
+        $category = is_array(
+            $preference['meal_category'] ?? null
+        )
+            ? $preference['meal_category']
+            : [];
+
+        $categoryId = (int) (
+            $preference['meal_category_id']
+            ?? $category['id']
+            ?? 0
+        );
+
+        $categoryName = strtolower(
+            (string) (
+                $category['name_en']
+                ?? $categoryMap[$categoryId]
+                ?? 'general'
+            )
+        );
+
+        $normalizedPreference = [
+            ...$preference,
+
+            'id' => (int) ($preference['id'] ?? 0),
+            'meal_category_id' => $categoryId,
+            'meal_category' => $categoryName,
+            'place_type' =>
+                $preference['place_type']
+                ?? '',
+            'place_name' =>
+                $preference['place_name']
+                ?? '',
+            'city' => $preference['city'] ?? '',
+            'delivery_area' =>
+                $preference['delivery_area']
+                ?? '',
+            'delivery_address' =>
+                $preference['delivery_address']
+                ?? '',
+            'latitude' =>
+                $preference['latitude']
+                ?? null,
+            'longitude' =>
+                $preference['longitude']
+                ?? null,
+            'preferred_delivery_time' =>
+                $preference['preferred_delivery_time']
+                ?? '',
+            'delivery_note' =>
+                $preference['delivery_note']
+                ?? '',
+            'is_active' => (bool) (
+                $preference['is_active']
+                ?? true
+            ),
+        ];
+
+        $deliveryPreferences[] = $normalizedPreference;
+        $deliveryByCategory[$categoryName] =
+            $normalizedPreference;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Nutrition profile
+    |--------------------------------------------------------------------------
+    */
+
+    $profile = is_array($user['profile'] ?? null)
+        ? $user['profile']
+        : [];
+
+    $normalizeArrayField = static function (
+        mixed $value
+    ): array {
+        if (is_array($value)) {
+            return array_values(
+                array_filter(
+                    $value,
+                    static fn ($item): bool =>
+                        $item !== null
+                        && $item !== ''
+                )
+            );
+        }
+
+        if (is_string($value) && trim($value) !== '') {
+            $decoded = json_decode($value, true);
+
+            if (is_array($decoded)) {
+                return array_values($decoded);
+            }
+
+            return array_values(
+                array_filter(
+                    array_map(
+                        'trim',
+                        explode(',', $value)
+                    )
+                )
+            );
+        }
+
+        return [];
+    };
+
+    $fitnessGoals = $normalizeArrayField(
+        $user['fitness_goals']
+        ?? $profile['fitness_goals']
+        ?? $user['fitness_goal']
+        ?? $profile['fitness_goal']
+        ?? []
+    );
+
+    $dietaryPreferences = $normalizeArrayField(
+        $user['dietary_preferences']
+        ?? $profile['dietary_preferences']
+        ?? $user['dietary_preference']
+        ?? $profile['dietary_preference']
+        ?? []
+    );
+
+    $allergies = $normalizeArrayField(
+        $user['allergies']
+        ?? $profile['allergies']
+        ?? []
+    );
+
+    $chronicConditions = $normalizeArrayField(
+        $user['chronic_conditions']
+        ?? $profile['chronic_conditions']
+        ?? []
+    );
+
+    $nutritionProfile = [
+        'gender' =>
+            $user['gender']
+            ?? $profile['gender']
+            ?? null,
+        'birth_date' =>
+            $user['birth_date']
+            ?? $profile['birth_date']
+            ?? null,
+        'age' =>
+            $user['age']
+            ?? $profile['age']
+            ?? null,
+        'height' =>
+            $user['height']
+            ?? $user['height_cm']
+            ?? $profile['height']
+            ?? $profile['height_cm']
+            ?? null,
+        'height_cm' =>
+            $user['height_cm']
+            ?? $user['height']
+            ?? $profile['height_cm']
+            ?? $profile['height']
+            ?? null,
+        'weight' =>
+            $user['weight']
+            ?? $user['weight_kg']
+            ?? $profile['weight']
+            ?? $profile['weight_kg']
+            ?? null,
+        'weight_kg' =>
+            $user['weight_kg']
+            ?? $user['weight']
+            ?? $profile['weight_kg']
+            ?? $profile['weight']
+            ?? null,
+        'activity_level' =>
+            $user['activity_level']
+            ?? $profile['activity_level']
+            ?? null,
+        'fitness_goals' => $fitnessGoals,
+        'fitness_goal' => $fitnessGoals[0] ?? null,
+        'dietary_preferences' =>
+            $dietaryPreferences,
+        'dietary_preference' =>
+            $dietaryPreferences[0] ?? null,
+        'allergies' => $allergies,
+        'chronic_conditions' =>
+            $chronicConditions,
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Determine dedicated/current driver
+    |--------------------------------------------------------------------------
+    */
+
+    $currentDriver =
+        $user['current_driver']
+        ?? $user['assigned_driver']
+        ?? $user['driver']
+        ?? null;
+
+    if (
+        !is_array($currentDriver)
+        && is_array($currentDelivery['driver'] ?? null)
+    ) {
+        $currentDriver = $currentDelivery['driver'];
+    }
+
+    if (
+        !is_array($currentDriver)
+        && !empty($mealSchedule)
+    ) {
+        foreach ($mealSchedule as $schedule) {
+            if (
+                is_array($schedule['driver'] ?? null)
+                && !empty($schedule['driver'])
+            ) {
+                $currentDriver = $schedule['driver'];
                 break;
             }
         }
-
-        $payments = [];
-        $totalPayments = 0;
-        $successfulPayments = 0;
-        foreach ($paymentsData as $payment) {
-            $paymentInfo = $payment['payment'] ?? $payment;
-            $amount = $paymentInfo['amount'] ?? 0;
-            $status = $paymentInfo['status'] ?? 'pending';
-            $totalPayments++;
-            if ($status === 'paid' || $status === 'captured') {
-                $successfulPayments++;
-                $totalSpent += $amount;
-            }
-            $payments[] = [
-                'id' => 'PAY-' . ($paymentInfo['id'] ?? 0),
-                'amount' => $amount,
-                'currency' => strtoupper($paymentInfo['currency'] ?? 'SAR'),
-                'status' => $status,
-                'provider' => $paymentInfo['provider'] ?? 'N/A',
-                'plan_name' => $payment['subscription']['plan_name'] ?? '',
-                'date' => !empty($paymentInfo['paid_at']) ? date('M d, Y H:i', strtotime($paymentInfo['paid_at'])) : (!empty($paymentInfo['created_at']) ? date('M d, Y H:i', strtotime($paymentInfo['created_at'])) : '—'),
-            ];
-        }
-
-        $orders = [];
-        $totalOrders = 0;
-        foreach ($ordersData as $order) {
-            $totalOrders++;
-            $orders[] = [
-                'id' => $order['order_number'] ?? ('ORD-' . ($order['id'] ?? 0)),
-                'amount' => $order['total_amount'] ?? 0,
-                'status' => $order['status'] ?? 'pending',
-                'date' => !empty($order['created_at']) ? date('M d, Y', strtotime($order['created_at'])) : '—',
-                'delivery_date' => !empty($order['delivery_date']) ? date('M d, Y', strtotime($order['delivery_date'])) : '—',
-            ];
-        }
-
-        $customerStats = [
-            'total_spent' => $totalSpent,
-            'total_orders' => $totalOrders,
-            'total_payments' => $totalPayments,
-            'successful_payments' => $successfulPayments,
-            'active_subscriptions' => $activeSubsCount,
-            'total_subscriptions' => count($subscriptions),
-        ];
-
-        $deliveryPrefs = $user['delivery_preferences'] ?? ($user['profile']['delivery_preferences'] ?? []);
-        $deliveryByCategory = [];
-        $categoryMap = [1 => 'breakfast', 2 => 'lunch', 3 => 'dinner', 4 => 'snack'];
-        foreach ($deliveryPrefs as $pref) {
-            $catId = $pref['meal_category_id'] ?? 0;
-            $catName = $categoryMap[$catId] ?? null;
-            if ($catName) {
-                $deliveryByCategory[$catName] = [
-                    'place_type' => $pref['place_type'] ?? '',
-                    'place_name' => $pref['place_name'] ?? '',
-                    'city' => $pref['city'] ?? '',
-                    'delivery_area' => $pref['delivery_area'] ?? '',
-                    'delivery_address' => $pref['delivery_address'] ?? '',
-                    'latitude' => $pref['latitude'] ?? null,
-                    'longitude' => $pref['longitude'] ?? null,
-                    'preferred_delivery_time' => $pref['preferred_delivery_time'] ?? '',
-                    'delivery_note' => $pref['delivery_note'] ?? '',
-                ];
-            }
-        }
-
-        $customer = [
-            'id' => $user['id'] ?? $id,
-            'name' => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: 'Unknown',
-            'first_name' => $user['first_name'] ?? '',
-            'last_name' => $user['last_name'] ?? '',
-            'email' => $user['email'] ?? '',
-            'phone' => $user['phone'] ?? '',
-            'location' => $user['location'] ?? '',
-            'address' => $user['address'] ?? '',
-            'gender' => $user['gender'] ?? null,
-            'age' => $user['age'] ?? null,
-            'height_cm' => $user['height_cm'] ?? null,
-            'weight_kg' => $user['weight_kg'] ?? null,
-            'fitness_goal' => $user['fitness_goal'] ?? null,
-            'dietary_preference' => $user['dietary_preference'] ?? null,
-            'allergies' => $user['allergies'] ?? [],
-            'plan' => $currentSub['plan_name'] ?? ($user['subscription']['plan_name'] ?? 'No Plan'),
-            'status' => $currentSub['status'] ?? ($user['subscription']['status'] ?? ($user['is_active'] ?? true ? 'active' : 'inactive')),
-            'joined' => $user['created_at'] ?? date('Y-m-d'),
-            'joined_formatted' => !empty($user['created_at']) ? date('M d, Y', strtotime($user['created_at'])) : '—',
-            'is_active' => $user['is_active'] ?? true,
-            'is_verified' => $user['is_verified'] ?? false,
-            'subscription' => $currentSub,
-            'subscriptions' => $subscriptions,
-            'payments' => $payments,
-            'orders' => $orders,
-            'customerStats' => $customerStats,
-            'delivery_preferences' => $deliveryByCategory,
-        ];
-
-        return response()->json(['customer' => $customer]);
     }
+
+    if (is_array($currentDriver)) {
+        $currentDriver = [
+            ...$currentDriver,
+
+            'id' => (int) (
+                $currentDriver['id']
+                ?? $currentDriver['driver_id']
+                ?? 0
+            ),
+            'name' => trim(
+                (string) (
+                    $currentDriver['name']
+                    ?? $currentDriver['full_name']
+                    ?? (
+                        ($currentDriver['first_name'] ?? '')
+                        . ' '
+                        . ($currentDriver['last_name'] ?? '')
+                    )
+                )
+            ),
+            'phone' =>
+                $currentDriver['phone']
+                ?? $currentDriver['phone_number']
+                ?? '',
+            'email' =>
+                $currentDriver['email']
+                ?? '',
+            'location' =>
+                $currentDriver['location']
+                ?? '',
+        ];
+    } else {
+        $currentDriver = null;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Operational workflow
+    |--------------------------------------------------------------------------
+    */
+
+    $hasSuccessfulPayment = $successfulPayments > 0;
+
+    if (
+        !$hasSuccessfulPayment
+        && is_array($currentSubscription)
+    ) {
+        $hasSuccessfulPayment = in_array(
+            $currentSubscription['payment_status']
+                ?? 'unpaid',
+            ['paid', 'captured', 'successful'],
+            true
+        );
+    }
+
+    $hasMealAssignments = !empty($mealSchedule);
+    $hasOrders = !empty($orders);
+    $hasDeliveries = !empty($deliveries);
+
+    $workflow = 'awaiting_payment';
+    $workflowLabel = __('Awaiting Payment');
+
+    if ($hasSuccessfulPayment && !$hasMealAssignments) {
+        $workflow = 'paid_without_meals';
+        $workflowLabel = __('Waiting for Menu');
+    } elseif (
+        $hasSuccessfulPayment
+        && $hasMealAssignments
+        && !$hasOrders
+    ) {
+        $workflow = 'paid_with_meals';
+        $workflowLabel = __('Menu Assigned');
+    } elseif ($hasOrders && !$hasDeliveries) {
+        $workflow = 'orders_generated';
+        $workflowLabel = __('Orders Generated');
+    } elseif ($currentDelivery !== null) {
+        $workflow = 'delivery_started';
+        $workflowLabel = __('Delivery in Progress');
+    } elseif (
+        $hasDeliveries
+        && $completedDeliveries > 0
+    ) {
+        $workflow = 'served';
+        $workflowLabel = __('Meals Served');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Customer statistics
+    |--------------------------------------------------------------------------
+    */
+
+    $activeSubscriptions = count(
+        array_filter(
+            $subscriptions,
+            static fn (array $subscription): bool =>
+                ($subscription['status'] ?? '')
+                    === 'active'
+        )
+    );
+
+    $customerStats = [
+        'total_spent' => $totalSpent,
+        'total_orders' => count($orders),
+        'completed_orders' => $completedOrders,
+        'active_orders' => $activeOrders,
+        'cancelled_orders' => $cancelledOrders,
+
+        'total_payments' => count($payments),
+        'successful_payments' => $successfulPayments,
+        'failed_payments' => $failedPayments,
+        'pending_payments' => $pendingPayments,
+
+        'total_subscriptions' => count($subscriptions),
+        'active_subscriptions' => $activeSubscriptions,
+
+        'total_deliveries' => count($deliveries),
+        'completed_deliveries' => $completedDeliveries,
+        'failed_deliveries' => $failedDeliveries,
+        'upcoming_deliveries' => count(
+            $upcomingDeliveries
+        ),
+
+        'meal_schedule_count' => count(
+            $mealSchedule
+        ),
+        'has_paid' => $hasSuccessfulPayment,
+        'has_meal_assignments' =>
+            $hasMealAssignments,
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Build final customer response
+    |--------------------------------------------------------------------------
+    */
+
+    $firstName = trim(
+        (string) ($user['first_name'] ?? '')
+    );
+
+    $lastName = trim(
+        (string) ($user['last_name'] ?? '')
+    );
+
+    $fullName = trim("{$firstName} {$lastName}");
+
+    if ($fullName === '') {
+        $fullName =
+            $user['full_name']
+            ?? $user['email']
+            ?? 'Unknown';
+    }
+
+    $isActive = (bool) (
+        $user['is_active']
+        ?? true
+    );
+
+    $accountStatus = $enumValue(
+        $user['status'] ?? null,
+        $isActive ? 'active' : 'inactive'
+    );
+
+    $subscriptionStatus = $enumValue(
+        $currentSubscription['status'] ?? null,
+        'inactive'
+    );
+
+    $paymentStatus = $enumValue(
+        $currentSubscription['payment_status']
+            ?? null,
+        'unpaid'
+    );
+
+    $customer = [
+        'id' => (int) ($user['id'] ?? $id),
+
+        'name' => $fullName,
+        'full_name' => $fullName,
+        'first_name' => $firstName,
+        'last_name' => $lastName,
+
+        'email' => $user['email'] ?? '',
+        'phone' =>
+            $user['phone']
+            ?? $user['phone_number']
+            ?? '',
+        'phone_number' =>
+            $user['phone_number']
+            ?? $user['phone']
+            ?? '',
+
+        'location' => $user['location'] ?? '',
+        'address' =>
+            $user['address']
+            ?? $user['delivery_address']
+            ?? '',
+
+        'account_status' => $accountStatus,
+        'subscription_status' => $subscriptionStatus,
+        'payment_status' => $paymentStatus,
+
+        /*
+         * Keep status for your current Blade.
+         */
+        'status' => is_array($currentSubscription)
+            ? $subscriptionStatus
+            : $accountStatus,
+
+        'is_active' => $isActive,
+        'is_verified' => (bool) (
+            $user['is_verified']
+            ?? false
+        ),
+
+        'joined' => $user['created_at'] ?? null,
+        'joined_formatted' => $formatDate(
+            $user['created_at'] ?? null
+        ),
+
+        /*
+         * Nutrition fields kept both as a nested profile
+         * and top-level values for backward compatibility.
+         */
+        'profile' => $profile,
+        'nutrition_profile' => $nutritionProfile,
+
+        'gender' => $nutritionProfile['gender'],
+        'birth_date' =>
+            $nutritionProfile['birth_date'],
+        'age' => $nutritionProfile['age'],
+        'height' => $nutritionProfile['height'],
+        'height_cm' =>
+            $nutritionProfile['height_cm'],
+        'weight' => $nutritionProfile['weight'],
+        'weight_kg' =>
+            $nutritionProfile['weight_kg'],
+        'activity_level' =>
+            $nutritionProfile['activity_level'],
+        'fitness_goals' =>
+            $nutritionProfile['fitness_goals'],
+        'fitness_goal' =>
+            $nutritionProfile['fitness_goal'],
+        'dietary_preferences' =>
+            $nutritionProfile[
+                'dietary_preferences'
+            ],
+        'dietary_preference' =>
+            $nutritionProfile[
+                'dietary_preference'
+            ],
+        'allergies' =>
+            $nutritionProfile['allergies'],
+        'chronic_conditions' =>
+            $nutritionProfile[
+                'chronic_conditions'
+            ],
+
+        'plan' =>
+            $currentSubscription['plan_name']
+            ?? 'No Plan',
+        'plan_id' => (int) (
+            $currentSubscription['plan_id']
+            ?? 0
+        ),
+
+        'subscription' => $currentSubscription,
+        'current_subscription' =>
+            $currentSubscription,
+        'subscriptions' => $subscriptions,
+
+        'payments' => $payments,
+        'orders' => $orders,
+
+        'meal_selections' => $mealSelections,
+        'meal_schedule' => $mealSchedule,
+
+        'deliveries' => $deliveries,
+        'current_delivery' => $currentDelivery,
+        'upcoming_deliveries' =>
+            $upcomingDeliveries,
+
+        'delivery_preferences' =>
+            $deliveryByCategory,
+        'delivery_preferences_list' =>
+            $deliveryPreferences,
+
+        'current_driver' => $currentDriver,
+
+        'workflow' => $workflow,
+        'workflow_label' => $workflowLabel,
+
+        'customerStats' => $customerStats,
+        'stats' => $customerStats,
+    ];
+
+    return response()->json([
+        'success' => true,
+        'customer' => $customer,
+    ]);
+}
 
     public function assignPlanToCustomer(Request $request, SubscriptionApiService $subscriptionApi, int $id)
     {
@@ -772,46 +2909,157 @@ class AdminController extends Controller
         return false;
     }
 
+
+
+
+
     public function assignMealToCustomer(
     Request $request,
     int $id,
     NutritionApiService $nutritionApi,
     PaymentApiService $paymentApi
 ) {
+
     $validated = $request->validate([
-        'subscription_id' => ['required', 'integer', 'min:1'],
-        'meal_time' => ['required', 'string'],
-        'meal_ids' => ['required', 'array', 'min:1'],
-        'meal_ids.*' => ['required', 'integer', 'min:1'],
-        'day_number' => ['nullable', 'integer', 'min:1'],
+
+        'subscription_id' => [
+            'required',
+            'integer',
+            'min:1'
+        ],
+
+        'day_number' => [
+            'required',
+            'integer',
+            'min:1'
+        ],
+
+        'assignments' => [
+            'required',
+            'array',
+            'min:1'
+        ],
+
+        'assignments.*.meal_time' => [
+            'required',
+            'string'
+        ],
+
+        'assignments.*.meal_ids' => [
+            'required',
+            'array',
+            'min:1'
+        ],
+
+        'assignments.*.meal_ids.*' => [
+            'required',
+            'integer'
+        ],
+
     ]);
 
+    /*
+    ------------------------------------------
+    Customer must have paid
+    ------------------------------------------
+    */
+
     if (!$this->customerHasPaid($id, $paymentApi)) {
+
         return response()->json([
             'success' => false,
-            'message' => __('Cannot assign meal: customer has not paid.')
-        ], 403);
+            'message' => __('Customer has not completed payment.')
+        ],403);
+
     }
 
+    /*
+    ------------------------------------------
+    Normalize payload
+    ------------------------------------------
+    */
+
     $payload = [
+
         'subscription_id' => $validated['subscription_id'],
-        'meal_ids' => $validated['meal_ids'],
-        'meal_time' => strtolower($validated['meal_time']),
-        'day_number' => $validated['day_number'] ?? 1,
+
+        'day_number' => $validated['day_number'],
+
+        'assignments' => []
+
     ];
 
-    \Log::info($payload);
+    foreach($validated['assignments'] as $assignment){
 
-    $result = $nutritionApi->assignMeal(
-        $validated['subscription_id'],
+        $payload['assignments'][] = [
+
+            'meal_time' => strtolower(
+                $assignment['meal_time']
+            ),
+
+            'meal_ids' => array_values(
+                array_unique(
+                    $assignment['meal_ids']
+                )
+            )
+
+        ];
+
+    }
+
+    /*
+    ------------------------------------------
+    Call FastAPI
+    ------------------------------------------
+    */
+
+    try{
+
+        $response = $nutritionApi
+            ->assignMealDay(
+                $validated['subscription_id'],
+                $payload
+            );
+
+        return response()->json(
+
+            $response,
+
+            ($response['success'] ?? false)
+                ? 200
+                : 422
+
+        );
+
+    }
+
+    catch(\Throwable $e){
+
+        report($e);
+
+        return response()->json([
+
+            'success'=>false,
+
+            'message'=>$e->getMessage()
+
+        ],500);
+
+    }
+
+}
+
+
+     public function assignMealDay(
+    int $subscriptionId,
+    array $payload
+){
+    return $this->post(
+
+        "/meal-assignments/subscriptions/{$subscriptionId}/assign-day",
+
         $payload
-    );
-    
-    \Log::info($result);
 
-    return response()->json(
-        $result,
-        $result['success'] ?? false ? 200 : 422
     );
 }
 
