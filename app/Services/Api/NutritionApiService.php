@@ -19,6 +19,16 @@ class NutritionApiService extends BaseApiService
         return $this->get('nutrition.weight_history');
     }
 
+    public function assignMealDay(
+    int $subscriptionId,
+    array $payload
+): array {
+    return $this->post(
+        "/meal-assignments/subscriptions/{$subscriptionId}/assign-day",
+        $payload
+    );
+}
+
     public function activityToday(): array
     {
         return $this->get('nutrition.activity_today');

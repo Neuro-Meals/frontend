@@ -2910,154 +2910,144 @@ class AdminController extends Controller
     }
 
 
-    public function assignMealDay(
-    int $subscriptionId,
-    array $payload
-){
-    return $this->post(
-
-        "/meal-assignments/subscriptions/{$subscriptionId}/assign-day",
-
-        $payload
-
-    );
-}
-
-
     public function assignMealToCustomer(
     Request $request,
     int $id,
     NutritionApiService $nutritionApi,
     PaymentApiService $paymentApi
 ) {
-
     $validated = $request->validate([
-
         'subscription_id' => [
             'required',
             'integer',
-            'min:1'
+            'min:1',
         ],
 
         'day_number' => [
             'required',
             'integer',
-            'min:1'
+            'min:1',
         ],
 
         'assignments' => [
             'required',
             'array',
-            'min:1'
+            'min:1',
         ],
 
         'assignments.*.meal_time' => [
             'required',
-            'string'
+            'string',
+            'in:breakfast,lunch,dinner,snack',
         ],
 
         'assignments.*.meal_ids' => [
             'required',
             'array',
-            'min:1'
+            'min:1',
         ],
 
         'assignments.*.meal_ids.*' => [
             'required',
-            'integer'
+            'integer',
+            'min:1',
         ],
-
     ]);
 
-    /*
-    ------------------------------------------
-    Customer must have paid
-    ------------------------------------------
-    */
-
     if (!$this->customerHasPaid($id, $paymentApi)) {
-
         return response()->json([
             'success' => false,
-            'message' => __('Customer has not completed payment.')
-        ],403);
-
+            'message' => __('Customer has not completed payment.'),
+        ], 403);
     }
 
-    /*
-    ------------------------------------------
-    Normalize payload
-    ------------------------------------------
-    */
+    $assignments = [];
 
-    $payload = [
-
-        'subscription_id' => $validated['subscription_id'],
-
-        'day_number' => $validated['day_number'],
-
-        'assignments' => []
-
-    ];
-
-    foreach($validated['assignments'] as $assignment){
-
-        $payload['assignments'][] = [
-
-            'meal_time' => strtolower(
-                $assignment['meal_time']
-            ),
-
-            'meal_ids' => array_values(
-                array_unique(
+    foreach ($validated['assignments'] as $assignment) {
+        $mealIds = array_values(
+            array_unique(
+                array_map(
+                    'intval',
                     $assignment['meal_ids']
                 )
             )
-
-        ];
-
-    }
-
-    /*
-    ------------------------------------------
-    Call FastAPI
-    ------------------------------------------
-    */
-
-    try{
-
-        $response = $nutritionApi
-            ->assignMealDay(
-                $validated['subscription_id'],
-                $payload
-            );
-
-        return response()->json(
-
-            $response,
-
-            ($response['success'] ?? false)
-                ? 200
-                : 422
-
         );
 
+        if (empty($mealIds)) {
+            continue;
+        }
+
+        $assignments[] = [
+            'meal_time' => strtolower(
+                trim($assignment['meal_time'])
+            ),
+            'meal_ids' => $mealIds,
+        ];
     }
 
-    catch(\Throwable $e){
+    if (empty($assignments)) {
+        return response()->json([
+            'success' => false,
+            'message' => __('Select at least one meal.'),
+        ], 422);
+    }
 
-        report($e);
+    $payload = [
+        'subscription_id' => (int) $validated['subscription_id'],
+        'day_number' => (int) $validated['day_number'],
+        'assignments' => $assignments,
+    ];
+
+    try {
+        $apiResponse = $nutritionApi->assignMealDay(
+            (int) $validated['subscription_id'],
+            $payload
+        );
+
+        $result = $this->apiData(
+            $apiResponse,
+            fn () => []
+        );
+
+        $explicitSuccess = $apiResponse['success']
+            ?? $result['success']
+            ?? null;
+
+        $success = $explicitSuccess !== null
+            ? (bool) $explicitSuccess
+            : !empty($result);
+
+        if (!$success) {
+            return response()->json([
+                'success' => false,
+                'message' => $apiResponse['message']
+                    ?? $apiResponse['detail']
+                    ?? $result['message']
+                    ?? $result['detail']
+                    ?? __('Failed to assign the daily menu.'),
+                'errors' => $apiResponse['errors']
+                    ?? $result['errors']
+                    ?? null,
+            ], 422);
+        }
 
         return response()->json([
+            'success' => true,
+            'message' => $apiResponse['message']
+                ?? $result['message']
+                ?? __('Daily menu assigned successfully.'),
+            'assignment' => $result,
+        ]);
+    } catch (\Throwable $exception) {
+        report($exception);
 
-            'success'=>false,
-
-            'message'=>$e->getMessage()
-
-        ],500);
-
+        return response()->json([
+            'success' => false,
+            'message' => app()->isLocal()
+                ? $exception->getMessage()
+                : __('Unable to assign the daily menu. Please try again.'),
+        ], 500);
     }
-
 }
 
 
@@ -3074,7 +3064,7 @@ class AdminController extends Controller
             return response()->json(['success' => true, 'selections' => [], 'meals' => [], 'subscription_id' => 0]);
         }
 
-        $selections = $this->apiData($nutritionApi->subscriptionMealSelections($subscriptionId), fn () => []);
+        $selections = $this->apiData($nutritionApi->subscriptionMealAssignments($subscriptionId), fn () => []);
 
         $mealsData = $this->apiData($mealApi->list(['is_available' => true, 'limit' => 100]), fn () => []);
         $meals = collect($mealsData)->map(function ($m) {
