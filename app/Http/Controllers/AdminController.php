@@ -2914,8 +2914,15 @@ class AdminController extends Controller
     Request $request,
     int $id,
     NutritionApiService $nutritionApi,
-    PaymentApiService $paymentApi
+    PaymentApiService $paymentApi,
+    SubscriptionApiService $subscriptionApi
 ) {
+    /*
+    |--------------------------------------------------------------------------
+    | Validate the planner payload
+    |--------------------------------------------------------------------------
+    */
+
     $validated = $request->validate([
         'subscription_id' => [
             'required',
@@ -2923,36 +2930,123 @@ class AdminController extends Controller
             'min:1',
         ],
 
-        'day_number' => [
+        'assignment_mode' => [
             'required',
+            'string',
+            'in:daily,repeat_weekly,weekly_rotation',
+        ],
+
+        'repeat_until_subscription_end' => [
+            'nullable',
+            'boolean',
+        ],
+
+        'day_number' => [
+            'nullable',
             'integer',
             'min:1',
         ],
 
-        'assignments' => [
+        'week_number' => [
+            'nullable',
+            'integer',
+            'min:1',
+        ],
+
+        'days' => [
             'required',
             'array',
             'min:1',
         ],
 
-        'assignments.*.meal_time' => [
+        'days.*.planner_day' => [
+            'required',
+            'integer',
+            'min:1',
+            'max:7',
+        ],
+
+        'days.*.day_number' => [
+            'required',
+            'integer',
+            'min:1',
+        ],
+
+        'days.*.week_number' => [
+            'required',
+            'integer',
+            'min:1',
+        ],
+
+        'days.*.week_day' => [
+            'required',
+            'integer',
+            'min:1',
+            'max:7',
+        ],
+
+        'days.*.scheduled_date' => [
+            'required',
+            'date_format:Y-m-d',
+        ],
+
+        'days.*.assignments' => [
+            'required',
+            'array',
+            'min:1',
+        ],
+
+        'days.*.assignments.*.meal_time' => [
             'required',
             'string',
             'in:breakfast,lunch,dinner,snack',
         ],
 
-        'assignments.*.meal_ids' => [
+        'days.*.assignments.*.meal_ids' => [
             'required',
             'array',
             'min:1',
         ],
 
-        'assignments.*.meal_ids.*' => [
+        'days.*.assignments.*.meal_ids.*' => [
             'required',
             'integer',
             'min:1',
         ],
+
+        /*
+         * These fields are required by the current FastAPI
+         * MealCategoryAssignmentCreate schema.
+         */
+        'days.*.assignments.*.meal_category_id' => [
+            'required',
+            'integer',
+            'min:1',
+        ],
+
+        'days.*.assignments.*.delivery_preference_id' => [
+            'required',
+            'integer',
+            'min:1',
+        ],
+
+        'days.*.assignments.*.driver_id' => [
+            'required',
+            'integer',
+            'min:1',
+        ],
+
+        'days.*.assignments.*.delivery_time' => [
+            'required',
+            'date_format:H:i',
+        ],
     ]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Customer must have completed payment
+    |--------------------------------------------------------------------------
+    */
 
     if (!$this->customerHasPaid($id, $paymentApi)) {
         return response()->json([
@@ -2961,83 +3055,351 @@ class AdminController extends Controller
         ], 403);
     }
 
-    $assignments = [];
+    /*
+    |--------------------------------------------------------------------------
+    | Find and verify subscription ownership
+    |--------------------------------------------------------------------------
+    */
 
-    foreach ($validated['assignments'] as $assignment) {
-        $mealIds = array_values(
-            array_unique(
-                array_map(
-                    'intval',
-                    $assignment['meal_ids']
-                )
-            )
-        );
+    $subscriptionsResponse = $subscriptionApi->list([
+        'user_id' => $id,
+        'page' => 1,
+        'limit' => 100,
+    ]);
 
-        if (empty($mealIds)) {
-            continue;
-        }
+    $subscriptionsData = $this->apiData(
+        $subscriptionsResponse,
+        fn () => []
+    );
 
-        $assignments[] = [
-            'meal_time' => strtolower(
-                trim($assignment['meal_time'])
-            ),
-            'meal_ids' => $mealIds,
-        ];
+    if (
+        isset($subscriptionsData['data'])
+        && is_array($subscriptionsData['data'])
+    ) {
+        $subscriptionsData = $subscriptionsData['data'];
     }
 
-    if (empty($assignments)) {
+    if (
+        isset($subscriptionsData['items'])
+        && is_array($subscriptionsData['items'])
+    ) {
+        $subscriptionsData = $subscriptionsData['items'];
+    }
+
+    $subscription = collect($subscriptionsData)
+        ->first(function ($subscription) use ($validated) {
+            return (int) ($subscription['id'] ?? 0)
+                === (int) $validated['subscription_id'];
+        });
+
+    if (!$subscription) {
         return response()->json([
             'success' => false,
-            'message' => __('Select at least one meal.'),
+            'message' => __('The subscription does not belong to this customer.'),
         ], 422);
     }
 
-    $payload = [
-        'subscription_id' => (int) $validated['subscription_id'],
-        'day_number' => (int) $validated['day_number'],
-        'assignments' => $assignments,
-    ];
+    $subscriptionStart = $subscription['start_date'] ?? null;
+    $subscriptionEnd = $subscription['end_date'] ?? null;
 
-    try {
-        $apiResponse = $nutritionApi->assignMealDay(
-            (int) $validated['subscription_id'],
-            $payload
-        );
+    if (!$subscriptionStart) {
+        return response()->json([
+            'success' => false,
+            'message' => __('The subscription has no start date.'),
+        ], 422);
+    }
 
-        $result = $this->apiData(
-            $apiResponse,
-            fn () => []
-        );
+    /*
+    |--------------------------------------------------------------------------
+    | Normalize the seven-day template
+    |--------------------------------------------------------------------------
+    */
 
-        $explicitSuccess = $apiResponse['success']
-            ?? $result['success']
-            ?? null;
+    $templateDays = collect($validated['days'])
+        ->sortBy('planner_day')
+        ->values()
+        ->all();
 
-        $success = $explicitSuccess !== null
-            ? (bool) $explicitSuccess
-            : !empty($result);
+    $mode = $validated['assignment_mode'];
 
-        if (!$success) {
+    if (
+        in_array($mode, ['repeat_weekly', 'weekly_rotation'], true)
+        && count($templateDays) !== 7
+    ) {
+        return response()->json([
+            'success' => false,
+            'message' => __(
+                'A complete weekly menu must contain exactly seven days.'
+            ),
+        ], 422);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Build actual dated assignment requests
+    |--------------------------------------------------------------------------
+    */
+
+    $datedDays = [];
+
+    if ($mode === 'daily') {
+        /*
+         * Only the selected subscription day is created.
+         */
+        $datedDays = $templateDays;
+    } elseif ($mode === 'weekly_rotation') {
+        /*
+         * Save only the selected week.
+         *
+         * Admin returns later and creates Week 2, Week 3 and so on.
+         */
+        $datedDays = $templateDays;
+    } elseif ($mode === 'repeat_weekly') {
+        /*
+         * Expand the seven-day template until subscription end.
+         */
+        if (!$subscriptionEnd) {
             return response()->json([
                 'success' => false,
-                'message' => $apiResponse['message']
-                    ?? $apiResponse['detail']
-                    ?? $result['message']
-                    ?? $result['detail']
-                    ?? __('Failed to assign the daily menu.'),
-                'errors' => $apiResponse['errors']
-                    ?? $result['errors']
-                    ?? null,
+                'message' => __(
+                    'A subscription end date is required for repeating weekly menus.'
+                ),
             ], 422);
         }
 
+        $startDate = new \DateTimeImmutable(
+            substr($subscriptionStart, 0, 10)
+        );
+
+        $endDate = new \DateTimeImmutable(
+            substr($subscriptionEnd, 0, 10)
+        );
+
+        if ($endDate < $startDate) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Subscription end date is invalid.'),
+            ], 422);
+        }
+
+        $subscriptionDay = 1;
+        $currentDate = $startDate;
+
+        while ($currentDate <= $endDate) {
+            $weekDay = (($subscriptionDay - 1) % 7) + 1;
+
+            $templateDay = collect($templateDays)
+                ->first(function ($day) use ($weekDay) {
+                    return (int) $day['planner_day'] === $weekDay;
+                });
+
+            if ($templateDay) {
+                $datedDays[] = [
+                    ...$templateDay,
+
+                    'planner_day' => $weekDay,
+                    'week_day' => $weekDay,
+                    'day_number' => $subscriptionDay,
+                    'week_number' => (int) ceil($subscriptionDay / 7),
+                    'scheduled_date' => $currentDate->format('Y-m-d'),
+                ];
+            }
+
+            $subscriptionDay++;
+            $currentDate = $currentDate->modify('+1 day');
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Ensure every generated date belongs to the subscription
+    |--------------------------------------------------------------------------
+    */
+
+    $subscriptionStartDate = new \DateTimeImmutable(
+        substr($subscriptionStart, 0, 10)
+    );
+
+    $subscriptionEndDate = $subscriptionEnd
+        ? new \DateTimeImmutable(substr($subscriptionEnd, 0, 10))
+        : null;
+
+    foreach ($datedDays as $day) {
+        $scheduledDate = new \DateTimeImmutable(
+            $day['scheduled_date']
+        );
+
+        if ($scheduledDate < $subscriptionStartDate) {
+            return response()->json([
+                'success' => false,
+                'message' => __(
+                    'A scheduled menu date is before the subscription start date.'
+                ),
+            ], 422);
+        }
+
+        if (
+            $subscriptionEndDate
+            && $scheduledDate > $subscriptionEndDate
+        ) {
+            return response()->json([
+                'success' => false,
+                'message' => __(
+                    'A scheduled menu date is after the subscription end date.'
+                ),
+            ], 422);
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Send one FastAPI request for each delivery date
+    |--------------------------------------------------------------------------
+    */
+
+    $results = [];
+    $createdDates = 0;
+    $failedDates = [];
+
+    try {
+        foreach ($datedDays as $day) {
+            $fastApiAssignments = [];
+
+            foreach ($day['assignments'] as $assignment) {
+                $mealIds = array_values(
+                    array_unique(
+                        array_map(
+                            'intval',
+                            $assignment['meal_ids']
+                        )
+                    )
+                );
+
+                if (empty($mealIds)) {
+                    continue;
+                }
+
+                $meals = array_map(
+                    static fn (int $mealId): array => [
+                        'meal_id' => $mealId,
+                        'quantity' => 1,
+                        'notes' => null,
+                    ],
+                    $mealIds
+                );
+
+                $fastApiAssignments[] = [
+                    'meal_category_id' => (int) $assignment['meal_category_id'],
+
+                    'delivery_preference_id' => (int) (
+                        $assignment['delivery_preference_id']
+                    ),
+
+                    'driver_id' => (int) $assignment['driver_id'],
+
+                    'delivery_time' => $assignment['delivery_time'],
+
+                    'notes' => $assignment['notes'] ?? null,
+
+                    'meals' => $meals,
+                ];
+            }
+
+            if (empty($fastApiAssignments)) {
+                $failedDates[] = [
+                    'date' => $day['scheduled_date'],
+                    'message' => __('No valid meals were provided.'),
+                ];
+
+                continue;
+            }
+
+            $payload = [
+                'user_id' => $id,
+                'subscription_id' => (int) $validated['subscription_id'],
+                'delivery_date' => $day['scheduled_date'],
+                'assignments' => $fastApiAssignments,
+            ];
+
+            try {
+                $apiResponse = $nutritionApi
+                    ->createMealAssignments($payload);
+
+                $result = $this->apiData(
+                    $apiResponse,
+                    fn () => []
+                );
+
+                $success = (
+                    ($apiResponse['success'] ?? true) !== false
+                    && !isset($apiResponse['error'])
+                );
+
+                if (!$success) {
+                    $failedDates[] = [
+                        'date' => $day['scheduled_date'],
+                        'message' => $apiResponse['message']
+                            ?? $apiResponse['detail']
+                            ?? __('FastAPI rejected the assignment.'),
+                    ];
+
+                    continue;
+                }
+
+                $createdDates++;
+
+                $results[] = [
+                    'date' => $day['scheduled_date'],
+                    'day_number' => $day['day_number'],
+                    'week_number' => $day['week_number'],
+                    'result' => $result,
+                ];
+            } catch (\Throwable $exception) {
+                report($exception);
+
+                $failedDates[] = [
+                    'date' => $day['scheduled_date'],
+                    'message' => $exception->getMessage(),
+                ];
+            }
+        }
+
+        if ($createdDates === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => __('No menu assignments were saved.'),
+                'failed_dates' => $failedDates,
+            ], 422);
+        }
+
+        $message = match ($mode) {
+            'daily' => __('Daily menu saved successfully.'),
+
+            'repeat_weekly' => __(
+                'The seven-day menu was saved and repeated until the subscription end date.'
+            ),
+
+            'weekly_rotation' => __(
+                'The selected weekly menu was saved successfully.'
+            ),
+
+            default => __('Menu assignments saved successfully.'),
+        };
+
         return response()->json([
-            'success' => true,
-            'message' => $apiResponse['message']
-                ?? $result['message']
-                ?? __('Daily menu assigned successfully.'),
-            'assignment' => $result,
-        ]);
+            'success' => empty($failedDates),
+            'partial_success' => !empty($failedDates),
+            'message' => $message,
+
+            'assignment_mode' => $mode,
+            'subscription_id' => (int) $validated['subscription_id'],
+
+            'created_dates_count' => $createdDates,
+            'failed_dates_count' => count($failedDates),
+
+            'results' => $results,
+            'failed_dates' => $failedDates,
+        ], empty($failedDates) ? 200 : 207);
     } catch (\Throwable $exception) {
         report($exception);
 
@@ -3045,7 +3407,7 @@ class AdminController extends Controller
             'success' => false,
             'message' => app()->isLocal()
                 ? $exception->getMessage()
-                : __('Unable to assign the daily menu. Please try again.'),
+                : __('Unable to assign the customer menu.'),
         ], 500);
     }
 }

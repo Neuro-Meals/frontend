@@ -921,11 +921,31 @@ function customersApp() {
     assignMealError: '',
     assignMealSuccess: '',
     mealSlots: [
-      { key: 'breakfast', label: '{{ __('Breakfast') }}' },
-      { key: 'lunch', label: '{{ __('Lunch') }}' },
-      { key: 'dinner', label: '{{ __('Dinner') }}' },
-      { key: 'snack', label: '{{ __('Snack') }}' },
-    ],
+  {
+    key: 'breakfast',
+    label: '{{ __('Breakfast') }}',
+    category_id: 1,
+    default_time: '07:00'
+  },
+  {
+    key: 'lunch',
+    label: '{{ __('Lunch') }}',
+    category_id: 2,
+    default_time: '12:00'
+  },
+  {
+    key: 'dinner',
+    label: '{{ __('Dinner') }}',
+    category_id: 3,
+    default_time: '19:00'
+  },
+  {
+    key: 'snack',
+    label: '{{ __('Snack') }}',
+    category_id: 4,
+    default_time: '15:00'
+  }
+],
     assignMealForm: {
       subscription_id: 0,
       mode: 'daily',
@@ -1516,15 +1536,55 @@ function customersApp() {
     },
 
     buildDayAssignments(plannerDay) {
-      const slots = this.ensurePlannerDay(plannerDay);
+  const slots = this.ensurePlannerDay(plannerDay);
 
-      return this.mealSlots
-        .map(slot => ({
-          meal_time: slot.key,
-          meal_ids: [...new Set((slots[slot.key] || []).map(Number).filter(Boolean))]
-        }))
-        .filter(item => item.meal_ids.length > 0);
-    },
+  return this.mealSlots
+    .map(slot => {
+      const preference = this.deliveryPreferenceFor(slot.key);
+
+      const selectedDriverId = Number(
+        this.assignMealForm.driver_id ||
+        this.assignMealTarget?.current_driver?.id ||
+        preference?.driver_id ||
+        0
+      );
+
+      return {
+        meal_time: slot.key,
+
+        meal_category_id: Number(
+          preference?.meal_category_id ||
+          preference?.category_id ||
+          slot.category_id ||
+          0
+        ),
+
+        delivery_preference_id: Number(
+          preference?.id ||
+          preference?.delivery_preference_id ||
+          0
+        ),
+
+        driver_id: selectedDriverId,
+
+        delivery_time: String(
+          preference?.preferred_delivery_time ||
+          preference?.delivery_time ||
+          slot.default_time ||
+          ''
+        ).slice(0, 5),
+
+        meal_ids: [
+          ...new Set(
+            (slots[slot.key] || [])
+              .map(Number)
+              .filter(Boolean)
+          )
+        ]
+      };
+    })
+    .filter(item => item.meal_ids.length > 0);
+}
 
     buildMenuAssignmentPayload() {
       const mode = this.assignMealForm.mode;
