@@ -16,7 +16,7 @@
     {{ session('error') }}
 </div>
 @endif
-
+k
 {{-- Active Subscription Banner --}}
 @if($subscriptionInfo)
 <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-2xl p-5 sm:p-6 text-white shadow-lg mb-6 relative overflow-hidden">
