@@ -166,10 +166,27 @@
                     <span class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-semibold border" :class="meal.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'" x-text="meal.status.charAt(0).toUpperCase() + meal.status.slice(1)"></span>
                 </div>
                 {{-- Price --}}
-                {{-- <div class="mt-2 flex items-center justify-between">
-                    <span class="text-[10px] text-gray-400">{{ __('Price') }}</span>
-                    <span class="text-sm font-bold text-[#6E7A25]" x-text="'SAR ' + parseFloat(meal.price).toFixed(2)"></span>
-                </div> --}}
+                <div>
+    <label class="block text-xs font-bold text-gray-700 mb-1">
+        {{ __('Price (SAR)') }}
+        <span class="text-red-500">*</span>
+    </label>
+
+    <input
+        type="number"
+        name="price"
+        x-model.number="form.price"
+        step="0.01"
+        min="0"
+        placeholder="0.00"
+        required
+        class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-400
+               focus:text-gray-900
+               focus:border-[#6E7A25]
+               focus:ring-2
+               focus:ring-[#6E7A25]/20
+               outline-none">
+</div>
                 {{-- Macros --}}
                 <div class="grid grid-cols-4 gap-2 mt-3">
                     <div class="text-center bg-gray-50 rounded-lg py-2">
@@ -386,10 +403,10 @@
                     <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Sodium (mg)') }}</label>
                     <input type="number" name="sodium_mg" x-model="form.sodium_mg" step="0.1" min="0" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
                 </div>
-                {{-- <div>
+                <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1">{{ __('Price (SAR)') }} <span class="text-red-500">*</span></label>
                     <input type="number" name="price" x-model="form.price" step="0.01" min="0" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/20 outline-none">
-                </div> --}}
+                </div>
             </div>
 
             <div>
@@ -828,7 +845,7 @@
                 this.form = {
                     name_en: '', name_ar: '', description_en: '', description_ar: '',
                     category_id: '', calories: '', protein_g: '', carbs_g: '', fat_g: '',
-                    fiber_g: '', sugar_g: '', sodium_mg: '', price: '',
+                    fiber_g: '', sugar_g: '', sodium_mg: '', price: 0,
                     image_url: '', ingredients: '', allergens: '', diet_tags: '', is_available: '1'
                 };
                 this.formError = '';
