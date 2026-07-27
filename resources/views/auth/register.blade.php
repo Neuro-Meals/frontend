@@ -3,7 +3,7 @@
 @section('title', __('Register') . ' - ' . __('Nutrio Meals'))
 
 @section('content')
-<div class="w-full max-w-md animate-simple-fade-in" x-data="registerForm()" x-init="loadRegions()">
+     <div class="w-full max-w-md animate-simple-fade-in" x-data="registerForm()" x-init="loadRegions()">
     <div class="bg-white rounded-2xl shadow-xl border border-gray-100">
         {{-- Header --}}
         <div class="bg-white px-8 py-8 text-center border-b border-gray-100">
@@ -147,7 +147,7 @@
                             </svg>
                         </div>
                         <input id="password" :type="showPassword ? 'text' : 'password'" name="password"
-                            x-model="form.password" required autocomplete="new-password" minlength="6"
+                        x-model="form.password" required autocomplete="new-password" minlength="6"
                             class="w-full pl-11 pr-11 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                             :class="errors.password ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'"
                             placeholder="Min. 6 characters">
@@ -209,76 +209,85 @@
                 {{-- Region --}}
                 <div>
                     <label for="region"
-                        class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Region') }}</label>
-                    <select id="region" x-model="selectedRegion" @change="loadCities()" required
-                        class="w-full px-4 py-2.5 rounded-lg border outline-none transition-all text-sm bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
-                        :class="errors.region ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'">
-                        <option value="">{{ __('Select a region') }}</option>
+                        class="block text-sm font-semibold text-gray-700 mb-1.5">
+                        {{ __('Region') }}
+                    </label>
+
+                    <select
+                        id="region"
+                        x-model="selectedRegion"
+                        @change="onRegionSelectChange()"
+                        :disabled="locationLoading && !regions.length"
+                        required
+                        class="w-full px-4 py-2.5 rounded-lg border outline-none transition-all text-sm bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 disabled:bg-gray-100 disabled:text-gray-400"
+                        :class="errors.location ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'">
+
+                        <option value="">
+                            {{ __('Select a region') }}
+                        </option>
+
                         <template x-for="region in regions" :key="region.code">
-                            <option :value="region.code"
-                                x-text="region.name_en + (region.name_ar ? ' (' + region.name_ar + ')' : '')">
+                            <option
+                                :value="region.code"
+                                x-text="region.name_en + (region.name_ar ? ' / ' + region.name_ar : '')">
                             </option>
                         </template>
                     </select>
+
+                    <p x-show="locationLoading && !regions.length"
+                        class="mt-1.5 text-xs text-gray-400">
+                        {{ __('Loading regions...') }}
+                    </p>
                 </div>
 
                 {{-- City --}}
                 <div>
-                    <label for="location"
-                        class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('City') }}</label>
-                    <select id="location" x-model="selectedCityCode" @change="onCitySelectChange()"
-                        :disabled="!selectedRegion || locationLoading" required
+                    <label for="city"
+                        class="block text-sm font-semibold text-gray-700 mb-1.5">
+                        {{ __('City') }}
+                    </label>
+
+                    <select
+                        id="city"
+                        x-model="selectedCityCode"
+                        @change="onCitySelectChange()"
+                        :disabled="!selectedRegion || locationLoading"
+                        required
                         class="w-full px-4 py-2.5 rounded-lg border outline-none transition-all text-sm bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 disabled:bg-gray-100 disabled:text-gray-400"
-                        :class="errors.location ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'">
-                        <option value=""
-                            x-text="selectedRegion ? '{{ __('Select a city') }}' : '{{ __('Select a region first') }}'">
+                        :class="errors.address ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'">
+
+                        <option
+                            value=""
+                            x-text="selectedRegion
+                                ? '{{ __('Select a city') }}'
+                                : '{{ __('Select a region first') }}'">
                         </option>
+
                         <template x-for="city in cities" :key="city.code">
-                            <option :value="city.code"
+                            <option
+                                :value="city.code"
                                 x-text="city.name_en + (city.name_ar ? ' / ' + city.name_ar : '')">
                             </option>
                         </template>
                     </select>
 
-                    <input type="hidden" name="region" :value="selectedRegion">
-                    <input type="hidden" name="location" x-model="form.location">
-
-                    <p x-show="locationLoading" class="mt-1.5 text-xs text-gray-400">
-                        {{ __('Loading locations...') }}
+                    <p x-show="locationLoading && selectedRegion"
+                        class="mt-1.5 text-xs text-gray-400">
+                        {{ __('Loading cities...') }}
                     </p>
-
-                    <p x-show="locationError" class="mt-1.5 text-xs text-red-600" x-text="locationError"></p>
                 </div>
 
-                {{-- Address --}}
-                <div>
-                    <label for="address"
-                        class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Address') }}</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                            </svg>
-                        </div>
-                        <select id="location_city" x-model="selectedCity" @change="selectCity()"
-                            class="w-full pl-11 pr-4 py-2.5 rounded-lg border outline-none transition-all text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 bg-white"
-                            :class="errors.location ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-200'">
-                            <option value="">{{ __('Select city...') }}</option>
-                            <template x-for="city in cities" :key="city.code">
-                                <option :value="city.name_en"
-                                    x-text="city.name_en + (city.name_ar ? ' / ' + city.name_ar : '')"></option>
-                            </template>
-                        </select>
-                    </div>
-                </div>
-
-                <div x-show="selectedRegion && !cities.length && !locationLoading"
+                <div
+                    x-show="selectedRegion && !cities.length && !locationLoading && !locationError"
                     class="text-center py-2 text-sm text-gray-400">
                     {{ __('No cities found for this region.') }}
                 </div>
-                <div x-show="locationError" class="p-3 rounded-lg bg-red-50 text-red-700 text-xs"
-                    x-text="locationError"></div>
+
+                <div
+                    x-show="locationError"
+                    class="p-3 rounded-lg bg-red-50 text-red-700 text-xs"
+                    x-text="locationError">
+                </div>
 
                 {{-- Terms & Conditions and Refund Policy Agreement --}}
                 <div class="flex items-start gap-2.5 mt-4">
@@ -494,6 +503,7 @@ function registerForm() {
         networkError: @json(__('Network error. Please try again.')),
         registerUrl: @json(route('register')),
         locationsUrl: @json(route('register.locations')),
+
         form: {
             first_name: '',
             last_name: '',
@@ -501,10 +511,11 @@ function registerForm() {
             email: '',
             password: '',
             password_confirmation: '',
-            location: '',
-            address: '',
+            location: '', // Backend location = selected region name
+            address: '',  // Backend address = selected city name
             agree_terms: false
         },
+
         showTermsModal: false,
         locationLoading: false,
         locationError: '',
@@ -512,80 +523,183 @@ function registerForm() {
         cities: [],
         selectedRegion: '',
         selectedCityCode: '',
+
         async loadRegions() {
             this.locationLoading = true;
             this.locationError = '';
+            this.regions = [];
+
             try {
-                const response = await fetch(this.locationsUrl + '?type=regions');
+                const response = await fetch(this.locationsUrl + '?type=regions', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
                 const result = await response.json();
+
+                console.log('Regions response:', result);
+
                 if (result.success && Array.isArray(result.data)) {
-                    this.regions = result.data.sort((a, b) => a.name_en.localeCompare(b.name_en));
+                    this.regions = result.data.sort((a, b) =>
+                        String(a.name_en || '').localeCompare(
+                            String(b.name_en || '')
+                        )
+                    );
                 } else {
-                    this.locationError = result.message || @json(__('Unable to load regions.'));
+                    this.locationError =
+                        result.message ||
+                        @json(__('Unable to load regions.'));
                 }
-            } catch (err) {
-                this.locationError = @json(__('Network error. Please try again.'));
+            } catch (error) {
+                console.error('Region loading error:', error);
+                this.locationError =
+                    @json(__('Network error. Please try again.'));
             } finally {
                 this.locationLoading = false;
             }
         },
+
+        async onRegionSelectChange() {
+            this.cities = [];
+            this.selectedCityCode = '';
+            this.form.address = '';
+            this.locationError = '';
+
+            const region = this.regions.find(
+                item => String(item.code) === String(this.selectedRegion)
+            );
+
+            if (!region) {
+                this.form.location = '';
+                return;
+            }
+
+            // Keep the backend unchanged:
+            // location stores the selected region name.
+            this.form.location =
+                region.name_en ||
+                region.name_ar ||
+                '';
+
+            delete this.errors.location;
+
+            await this.loadCities();
+        },
+
         async loadCities() {
             this.cities = [];
             this.selectedCityCode = '';
-            this.form.location = '';
+            this.form.address = '';
+
             if (!this.selectedRegion) {
                 return;
             }
+
             this.locationLoading = true;
             this.locationError = '';
+
             try {
-                const response = await fetch(this.locationsUrl + '?type=cities&region_code=' + encodeURIComponent(
-                    this.selectedRegion));
+                const response = await fetch(
+                    this.locationsUrl +
+                    '?type=cities&region_code=' +
+                    encodeURIComponent(this.selectedRegion),
+                    {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    }
+                );
+
                 const result = await response.json();
+
+                console.log('Cities response:', result);
+
                 if (result.success && Array.isArray(result.data)) {
-                    this.cities = result.data.sort((a, b) => a.name_en.localeCompare(b.name_en));
+                    this.cities = result.data.sort((a, b) =>
+                        String(a.name_en || '').localeCompare(
+                            String(b.name_en || '')
+                        )
+                    );
                 } else {
-                    this.locationError = result.message || @json(__('Unable to load cities.'));
+                    this.locationError =
+                        result.message ||
+                        @json(__('Unable to load cities.'));
                 }
-            } catch (err) {
-                this.locationError = @json(__('Network error. Please try again.'));
+            } catch (error) {
+                console.error('City loading error:', error);
+                this.locationError =
+                    @json(__('Network error. Please try again.'));
             } finally {
                 this.locationLoading = false;
             }
         },
-        onCitySelectChange() {
-            const city = this.cities.find(c => c.code === this.selectedCityCode);
-            if (city) {
-                this.selectCity(city);
-            }
-        },
-        selectCity(city) {
-            this.selectedCityCode = city.code;
-            this.form.location = city.name_en;
 
-            if (!this.form.address || this.form.address.trim() === '') {
-                this.form.address = city.name_en + ', ';
+        onCitySelectChange() {
+            const city = this.cities.find(
+                item => String(item.code) === String(this.selectedCityCode)
+            );
+
+            if (!city) {
+                this.form.address = '';
+                return;
             }
+
+            // Keep the backend unchanged:
+            // address stores the selected city name.
+            this.form.address =
+                city.name_en ||
+                city.name_ar ||
+                '';
+
+            delete this.errors.address;
         },
+
         showToast(message, type = 'error') {
             this.toast = {
                 show: true,
                 message: message,
                 type: type,
-                title: type === 'success' ? this.successTitle : this.registrationFailed
+                title:
+                    type === 'success'
+                        ? this.successTitle
+                        : this.registrationFailed
             };
+
             setTimeout(() => {
-                this.toast.show = false
+                this.toast.show = false;
             }, 7000);
         },
+
         async submit() {
             if (!this.form.agree_terms) {
-                this.showToast(@json(__(
-                    'Please read and agree to the Terms & Conditions and Return & Refund Policy to register.'
-                )));
-                this.showToast(@json(__(
-                    'Please read and agree to the Terms & Conditions and Return & Refund Policy to register.'
-                )));
+                this.showToast(
+                    @json(__('Please read and agree to the Terms & Conditions and Return & Refund Policy to register.'))
+                );
+                return;
+            }
+
+            if (!this.selectedRegion || !this.form.location) {
+                this.errors.location = [
+                    @json(__('The region field is required.'))
+                ];
+                this.showToast(
+                    @json(__('Please select a region.'))
+                );
+                return;
+            }
+
+            if (!this.selectedCityCode || !this.form.address) {
+                this.errors.address = [
+                    @json(__('The city field is required.'))
+                ];
+                this.showToast(
+                    @json(__('Please select a city.'))
+                );
                 return;
             }
 
@@ -593,53 +707,98 @@ function registerForm() {
             this.errors = {};
             this.toast.show = false;
 
-            console.log('Register form data:', JSON.parse(JSON.stringify(this.form)));
+            const payload = {
+                first_name: this.form.first_name,
+                last_name: this.form.last_name,
+                phone: this.form.phone,
+                email: this.form.email,
+                password: this.form.password,
+                password_confirmation: this.form.password_confirmation,
+                location: this.form.location,
+                address: this.form.address,
+                agree_terms: this.form.agree_terms
+            };
+
+            console.log(
+                'Register form data:',
+                JSON.stringify(payload, null, 2)
+            );
 
             try {
+                const csrfToken = document
+                    .querySelector('meta[name="csrf-token"]')
+                    ?.getAttribute('content');
+
                 const response = await fetch(this.registerUrl, {
                     method: 'POST',
                     headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
-                            'content'),
+                        'X-CSRF-TOKEN': csrfToken || '',
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(this.form)
+                    body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
                 this.loading = false;
-                console.log('Register response:', data);
+
+                console.log(
+                    'Register response JSON:',
+                    JSON.stringify(data, null, 2)
+                );
 
                 if (data.success) {
                     this.showToast(data.message, 'success');
+
                     if (data.requires_verification) {
                         setTimeout(() => {
-                            window.location.href = data.redirect || (@json(route('verify.email')) +
-                                '?email=' + encodeURIComponent(this.form.email));
+                            window.location.href =
+                                data.redirect ||
+                                (
+                                    @json(route('verify.email')) +
+                                    '?email=' +
+                                    encodeURIComponent(this.form.email)
+                                );
                         }, 1500);
                         return;
                     }
+
                     if (data.redirect) {
                         window.location.href = data.redirect;
                     }
+
                     return;
                 }
 
                 this.errors = data.errors || {};
 
                 const messages = [];
-                if (data.message) messages.push(data.message);
+
+                if (data.message) {
+                    messages.push(data.message);
+                }
+
                 Object.values(this.errors).forEach(fieldErrors => {
-                    if (Array.isArray(fieldErrors)) messages.push(...fieldErrors);
-                    else messages.push(fieldErrors);
+                    if (Array.isArray(fieldErrors)) {
+                        messages.push(...fieldErrors);
+                    } else if (fieldErrors) {
+                        messages.push(fieldErrors);
+                    }
                 });
 
-                this.showToast(messages.length ? messages.join(' | ') : this.registrationFailed);
+                this.showToast(
+                    messages.length
+                        ? messages.join(' | ')
+                        : this.registrationFailed
+                );
             } catch (error) {
                 this.loading = false;
-                this.showToast(error.message || this.networkError);
+                console.error('Registration error:', error);
+                this.showToast(
+                    error.message ||
+                    this.networkError
+                );
             }
         }
     };
