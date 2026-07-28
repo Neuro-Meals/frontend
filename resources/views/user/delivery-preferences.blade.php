@@ -1661,8 +1661,4 @@ console.log('Delivery payload:', payload);
     });
 })();
 </script>
-
-
-
-
 @endsection
