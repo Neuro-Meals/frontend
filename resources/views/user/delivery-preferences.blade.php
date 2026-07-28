@@ -1021,10 +1021,7 @@ function customerOnboardingPage() {
             athlete: '{{ __("Athlete") }}'
         },
 
-        dietaryOptions: [{
-                value: 'halal',
-                label: '{{ __('Halal') }}'
-            },
+        dietaryOptions: [
             {
                 value: 'balanced',
                 label: '{{ __('Balanced') }}'
@@ -1049,14 +1046,6 @@ function customerOnboardingPage() {
                 value: 'vegetarian',
                 label: '{{ __('Vegetarian') }}'
             },
-            {
-                value: 'vegan',
-                label: '{{ __('Vegan') }}'
-            },
-            {
-                value: 'pescatarian',
-                label: '{{ __('Pescatarian') }}'
-            }
         ],
 
         allergyOptions: [{
