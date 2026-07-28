@@ -3322,46 +3322,89 @@ class AdminController extends Controller
             ];
 
             try {
-                $apiResponse = $nutritionApi
-                    ->createMealAssignments($payload);
+    \Log::info('MEAL ASSIGNMENT PAYLOAD', [
+        'customer_id' => $id,
+        'payload' => $payload,
+    ]);
 
-                $result = $this->apiData(
-                    $apiResponse,
-                    fn () => []
-                );
+    $apiResponse = $nutritionApi->createMealAssignments($payload);
 
-                $success = (
-                    ($apiResponse['success'] ?? true) !== false
-                    && !isset($apiResponse['error'])
-                );
+    \Log::info('MEAL ASSIGNMENT API RESPONSE', [
+        'customer_id' => $id,
+        'response' => $apiResponse,
+    ]);
 
-                if (!$success) {
-                    $failedDates[] = [
-                        'date' => $day['scheduled_date'],
-                        'message' => $apiResponse['message']
-                            ?? $apiResponse['detail']
-                            ?? __('FastAPI rejected the assignment.'),
-                    ];
+    /*
+    |--------------------------------------------------------------------------
+    | Determine whether FastAPI saved the assignments
+    |--------------------------------------------------------------------------
+    |
+    | FastAPI's successful response does not contain:
+    |
+    |     "success": true
+    |
+    | It returns created_count, updated_count, total_count and assignments.
+    |
+    */
 
-                    continue;
-                }
+    $createdCount = (int) ($apiResponse['created_count'] ?? 0);
+    $updatedCount = (int) ($apiResponse['updated_count'] ?? 0);
+    $totalCount = (int) ($apiResponse['total_count'] ?? 0);
+    $returnedAssignments = $apiResponse['assignments'] ?? [];
 
-                $createdDates++;
+    $success = (
+        ($apiResponse['success'] ?? null) === true
+        || $createdCount > 0
+        || $updatedCount > 0
+        || $totalCount > 0
+        || (
+            is_array($returnedAssignments)
+            && count($returnedAssignments) > 0
+        )
+    );
 
-                $results[] = [
-                    'date' => $day['scheduled_date'],
-                    'day_number' => $day['day_number'],
-                    'week_number' => $day['week_number'],
-                    'result' => $result,
-                ];
-            } catch (\Throwable $exception) {
-                report($exception);
+    if (!$success) {
+        $failedDates[] = [
+            'date' => $day['scheduled_date'],
+            'message' => $apiResponse['message']
+                ?? $apiResponse['detail']
+                ?? __('FastAPI rejected the assignment.'),
+        ];
 
-                $failedDates[] = [
-                    'date' => $day['scheduled_date'],
-                    'message' => $exception->getMessage(),
-                ];
-            }
+        continue;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | The request succeeded
+    |--------------------------------------------------------------------------
+    */
+
+    $createdDates++;
+
+    $results[] = [
+        'date' => $day['scheduled_date'],
+        'day_number' => $day['day_number'],
+        'week_number' => $day['week_number'],
+        'created_count' => $createdCount,
+        'updated_count' => $updatedCount,
+        'total_count' => $totalCount,
+        'result' => $apiResponse,
+    ];
+} catch (\Throwable $exception) {
+    report($exception);
+
+    \Log::error('MEAL ASSIGNMENT PROCESSING ERROR', [
+        'customer_id' => $id,
+        'date' => $day['scheduled_date'] ?? null,
+        'message' => $exception->getMessage(),
+    ]);
+
+    $failedDates[] = [
+        'date' => $day['scheduled_date'],
+        'message' => $exception->getMessage(),
+    ];
+}
         }
 
         if ($createdDates === 0) {

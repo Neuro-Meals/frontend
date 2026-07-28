@@ -27,15 +27,28 @@ class NutritionApiService extends BaseApiService
     /**
      * Create or update meal assignments for one delivery date.
      */
-    public function createMealAssignments(
-        array $payload
-    ): array {
-        return $this->post(
-            'meal_assignments.create',
-            [],
-            $payload
-        );
-    }
+     /**
+ * Create or update meal assignments for one delivery date.
+ */
+public function createMealAssignments(array $payload): array
+{
+    \Log::info('FastAPI meal assignment request', [
+        'endpoint' => config('api.endpoints.meal_assignments.create'),
+        'payload' => $payload,
+    ]);
+
+    $response = $this->post(
+        'meal_assignments.create',
+        [],
+        $payload
+    );
+
+    \Log::info('FastAPI meal assignment response', [
+        'response' => $response,
+    ]);
+
+    return $response;
+}
 
     /**
      * Get meal assignments for one customer.

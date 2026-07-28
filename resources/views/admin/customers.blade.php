@@ -538,7 +538,7 @@
               <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <h4 class="font-bold text-gray-900">{{ __('Week Planner') }}</h4>
-                  <p class="text-xs text-gray-500 mt-1">{{ __('Open each day and select breakfast, lunch, dinner and snack.') }}</p>
+                  <p class="text-xs text-gray-500 mt-1">{{ __('Open each day and select meals from the available meal categories.') }}</p>
                 </div>
 
                 <div class="flex flex-wrap gap-2">
@@ -921,32 +921,8 @@ function customersApp() {
     assigningMeal: false,
     assignMealError: '',
     assignMealSuccess: '',
-    mealSlots: [
-  {
-    key: 'breakfast',
-    label: '{{ __('Breakfast') }}',
-    category_id: 1,
-    default_time: '07:00'
-  },
-  {
-    key: 'lunch',
-    label: '{{ __('Lunch') }}',
-    category_id: 2,
-    default_time: '12:00'
-  },
-  {
-    key: 'dinner',
-    label: '{{ __('Dinner') }}',
-    category_id: 3,
-    default_time: '19:00'
-  },
-  {
-    key: 'snack',
-    label: '{{ __('Snack') }}',
-    category_id: 4,
-    default_time: '15:00'
-  }
-],
+    locale: '{{ app()->getLocale() }}',
+    mealSlots: [],
     assignMealForm: {
       subscription_id: 0,
       mode: 'daily',
@@ -1001,30 +977,324 @@ function customersApp() {
     },
 
     emptyMealSlots() {
-      return {
-        breakfast: [],
-        lunch: [],
-        dinner: [],
-        snack: []
-      };
+      return this.mealSlots.reduce((slots, slot) => {
+        slots[slot.key] = [];
+        return slots;
+      }, {});
     },
 
     cloneMealSlots(value) {
       const source = value || {};
-      return {
-        breakfast: [...new Set((source.breakfast || []).map(Number).filter(Boolean))],
-        lunch: [...new Set((source.lunch || []).map(Number).filter(Boolean))],
-        dinner: [...new Set((source.dinner || []).map(Number).filter(Boolean))],
-        snack: [...new Set((source.snack || []).map(Number).filter(Boolean))]
-      };
+
+      return this.mealSlots.reduce((slots, slot) => {
+        slots[slot.key] = [
+          ...new Set(
+            (source[slot.key] || [])
+              .map(Number)
+              .filter(Boolean)
+          )
+        ];
+
+        return slots;
+      }, {});
     },
 
     ensurePlannerDay(day) {
       const key = String(Number(day || 1));
+
       if (!this.assignMealForm.days[key]) {
         this.assignMealForm.days[key] = this.emptyMealSlots();
       }
+
+      /*
+       * When categories are loaded after the planner object was created,
+       * add any missing dynamic category keys without deleting selections.
+       */
+      this.mealSlots.forEach(slot => {
+        if (!Array.isArray(this.assignMealForm.days[key][slot.key])) {
+          this.assignMealForm.days[key][slot.key] = [];
+        }
+      });
+
       return this.assignMealForm.days[key];
+    },
+
+    localizedValue(item, fallback = '') {
+      if (!item || typeof item !== 'object') return fallback;
+
+      if (this.locale === 'ar') {
+        return (
+          item.name_ar ||
+          item.label_ar ||
+          item.name ||
+          item.name_en ||
+          fallback
+        );
+      }
+
+      return (
+        item.name_en ||
+        item.label_en ||
+        item.name ||
+        item.name_ar ||
+        fallback
+      );
+    },
+
+    mealTimeForCategory(categoryId, fallback = '') {
+      /*
+       * The Laravel validator accepts only these meal_time values:
+       * breakfast, lunch, dinner and snack.
+       *
+       * Database category IDs:
+       * 1 = Breakfast, 2 = Dinner, 3 = Lunch, 4 = Snacks.
+       */
+      const mealTimes = {
+        1: 'breakfast',
+        2: 'dinner',
+        3: 'lunch',
+        4: 'snack'
+      };
+
+      const mapped = mealTimes[Number(categoryId)];
+
+      if (mapped) {
+        return mapped;
+      }
+
+      const normalized = String(fallback || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+
+      return ['breakfast', 'lunch', 'dinner', 'snack'].includes(normalized)
+        ? normalized
+        : '';
+    },
+
+    categoryFallbackName(categoryId) {
+      const names = {
+        1: { en: 'Breakfast', ar: 'الإفطار' },
+        2: { en: 'Dinner', ar: 'العشاء' },
+        3: { en: 'Lunch', ar: 'وجبة غداء' },
+        4: { en: 'Snacks', ar: 'وجبات خفيفة' }
+      };
+
+      const category = names[Number(categoryId)];
+
+      if (!category) {
+        return `{{ __('Category') }} #${Number(categoryId)}`;
+      }
+
+      return this.locale === 'ar' ? category.ar : category.en;
+    },
+
+    normalizeCategoryCode(value, categoryId = 0) {
+      const normalized = String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+
+      return normalized || `category_${Number(categoryId || 0)}`;
+    },
+
+    categoryDefaultTime(category, code = '') {
+      const directTime = String(
+        category?.default_time ||
+        category?.delivery_time ||
+        category?.preferred_delivery_time ||
+        ''
+      ).slice(0, 5);
+
+      if (directTime) return directTime;
+
+      /*
+       * These are time fallbacks by stable semantic code, not database IDs.
+       * A delivery preference or backend category time always takes priority.
+       */
+      const fallbackTimes = {
+        breakfast: '07:00',
+        lunch: '12:30',
+        dinner: '19:00',
+        snack: '16:00'
+      };
+
+      return fallbackTimes[code] || '';
+    },
+
+    buildMealSlots(data = {}) {
+      const categoryMap = new Map();
+
+      const registerCategory = rawCategory => {
+        if (!rawCategory || typeof rawCategory !== 'object') return;
+
+        const categoryId = Number(
+          rawCategory.id ||
+          rawCategory.category_id ||
+          rawCategory.meal_category_id ||
+          0
+        );
+
+        if (!categoryId) return;
+
+        const existing = categoryMap.get(categoryId) || {};
+
+        categoryMap.set(categoryId, {
+          ...existing,
+          ...rawCategory,
+          id: categoryId
+        });
+      };
+
+      const explicitCategories =
+        data.meal_categories ||
+        data.categories ||
+        data.mealCategories ||
+        [];
+
+      if (Array.isArray(explicitCategories)) {
+        explicitCategories.forEach(registerCategory);
+      }
+
+      /*
+       * Derive category metadata from meals as a safe fallback.
+       * This means category creation order and IDs do not matter.
+       */
+      (Array.isArray(data.meals) ? data.meals : []).forEach(meal => {
+        const categoryObject =
+          meal.meal_category ||
+          meal.category ||
+          {};
+
+        const categoryId = Number(
+          meal.meal_category_id ||
+          meal.category_id ||
+          categoryObject.id ||
+          0
+        );
+
+        if (!categoryId) return;
+
+        registerCategory({
+          ...categoryObject,
+          id: categoryId,
+          code:
+            categoryObject.code ||
+            meal.category_code ||
+            meal.meal_time ||
+            '',
+          name_en:
+            categoryObject.name_en ||
+            meal.category_name_en ||
+            meal.category_name ||
+            '',
+          name_ar:
+            categoryObject.name_ar ||
+            meal.category_name_ar ||
+            '',
+          default_time:
+            categoryObject.default_time ||
+            meal.default_delivery_time ||
+            ''
+        });
+      });
+
+      /*
+       * Delivery preferences may contain categories even when no meal
+       * currently exists under that category.
+       */
+      const preferences =
+        data.delivery_preferences ||
+        this.assignMealTarget?.delivery_preferences ||
+        [];
+
+      const preferenceItems = Array.isArray(preferences)
+        ? preferences
+        : Object.values(preferences || {});
+
+      preferenceItems.forEach(preference => {
+        const categoryObject =
+          preference?.meal_category ||
+          preference?.category_details ||
+          {};
+
+        const categoryId = Number(
+          preference?.meal_category_id ||
+          preference?.category_id ||
+          categoryObject?.id ||
+          0
+        );
+
+        if (!categoryId) return;
+
+        registerCategory({
+          ...categoryObject,
+          id: categoryId,
+          code:
+            categoryObject?.code ||
+            preference?.category_code ||
+            preference?.meal_time ||
+            preference?.category ||
+            '',
+          name_en:
+            categoryObject?.name_en ||
+            preference?.category_name_en ||
+            preference?.category_name ||
+            '',
+          name_ar:
+            categoryObject?.name_ar ||
+            preference?.category_name_ar ||
+            '',
+          default_time:
+            preference?.preferred_delivery_time ||
+            preference?.delivery_time ||
+            categoryObject?.default_time ||
+            ''
+        });
+      });
+
+      this.mealSlots = [...categoryMap.values()]
+        .map(category => {
+          const categoryId = Number(category.id);
+          const code = this.normalizeCategoryCode(
+            category.code ||
+            category.slug ||
+            category.key ||
+            category.name_en ||
+            '',
+            categoryId
+          );
+
+          return {
+            /*
+             * The state key is based on the real database category ID.
+             * It remains stable in English and Arabic.
+             */
+            key: `category_${categoryId}`,
+            code,
+            category_id: categoryId,
+            label: this.localizedValue(
+              category,
+              this.categoryFallbackName(categoryId)
+            ),
+            default_time: this.categoryDefaultTime(category, code),
+            sort_order: Number(
+              category.sort_order ||
+              category.display_order ||
+              category.position ||
+              categoryId
+            )
+          };
+        })
+        .sort((a, b) => {
+          if (a.sort_order !== b.sort_order) {
+            return a.sort_order - b.sort_order;
+          }
+
+          return a.label.localeCompare(b.label);
+        });
     },
 
     resetPlannerDays() {
@@ -1063,6 +1333,7 @@ function customersApp() {
         this.assignMealForm.mode = 'daily';
       }
 
+      this.mealSlots = [];
       this.resetPlannerDays();
       this.allMeals = [];
 
@@ -1094,19 +1365,70 @@ function customersApp() {
           }
         }
 
-        this.allMeals = (data.meals || []).map(meal => ({
-          id: Number(meal.id),
-          name: meal.name || meal.name_en || '{{ __('Meal') }}',
-          meal_time: String(
-            meal.meal_time ||
-            meal.category ||
-            meal.category_name ||
-            meal.meal_category?.name_en ||
-            ''
-          ).toLowerCase(),
-          category_id: meal.category_id || meal.meal_category_id || meal.meal_category?.id || null,
-          calories: meal.calories || null
-        }));
+        this.buildMealSlots(data);
+
+        if (this.mealSlots.length === 0) {
+          throw new Error('{{ __('No meal categories were returned by the server.') }}');
+        }
+
+        /*
+         * Rebuild planner state now that the real category IDs are known.
+         */
+        this.resetPlannerDays();
+
+        this.allMeals = (data.meals || [])
+          .map(meal => {
+            const categoryObject =
+              meal.meal_category ||
+              meal.category ||
+              {};
+
+            return {
+              id: Number(meal.id),
+
+              name:
+                this.locale === 'ar'
+                  ? (
+                      meal.name_ar ||
+                      meal.name ||
+                      meal.name_en ||
+                      '{{ __('Meal') }}'
+                    )
+                  : (
+                      meal.name_en ||
+                      meal.name ||
+                      meal.name_ar ||
+                      '{{ __('Meal') }}'
+                    ),
+
+              category_id: Number(
+                meal.meal_category_id ||
+                meal.category_id ||
+                categoryObject.id ||
+                0
+              ),
+
+              category_code: this.normalizeCategoryCode(
+                categoryObject.code ||
+                meal.category_code ||
+                meal.meal_time ||
+                '',
+                Number(
+                  meal.meal_category_id ||
+                  meal.category_id ||
+                  categoryObject.id ||
+                  0
+                )
+              ),
+
+              calories:
+                meal.calories !== null &&
+                meal.calories !== undefined
+                  ? Number(meal.calories)
+                  : null
+            };
+          })
+          .filter(meal => meal.id > 0 && meal.category_id > 0);
 
         const existing = Array.isArray(data.assignments)
           ? data.assignments
@@ -1117,12 +1439,30 @@ function customersApp() {
               : [];
 
         this.loadExistingAssignments(existing);
+        this.sanitizeAllMealSelections();
       } catch (error) {
         console.error('Failed to load menu assignments', error);
         this.assignMealError = error.message || '{{ __('Failed to load menu assignments.') }}';
       } finally {
         this.mealLoading = false;
       }
+    },
+
+    sanitizeAllMealSelections() {
+      Object.keys(this.assignMealForm.days || {}).forEach(dayKey => {
+        const daySlots = this.assignMealForm.days[dayKey];
+
+        if (!daySlots) {
+          return;
+        }
+
+        this.mealSlots.forEach(slot => {
+          daySlots[slot.key] = this.validMealIdsForSlot(
+            slot.key,
+            daySlots[slot.key] || []
+          );
+        });
+      });
     },
 
     loadExistingAssignments(existing) {
@@ -1182,23 +1522,41 @@ function customersApp() {
     },
 
     assignmentSlot(item) {
-      const raw = String(
+      const categoryId = Number(
+        item?.meal_category_id ||
+        item?.category_id ||
+        item?.category?.id ||
+        item?.meal_category?.id ||
+        item?.meal?.category_id ||
+        item?.meal?.meal_category_id ||
+        0
+      );
+
+      if (categoryId > 0) {
+        const slotById = this.mealSlots.find(
+          slot => Number(slot.category_id) === categoryId
+        );
+
+        if (slotById) return slotById.key;
+      }
+
+      /*
+       * Compatibility fallback for older assignment records that may only
+       * contain a category code or meal_time.
+       */
+      const rawCode = this.normalizeCategoryCode(
+        item?.category_code ||
         item?.meal_time ||
-        item?.category?.name_en ||
-        item?.category?.name ||
-        item?.meal_category?.name_en ||
-        item?.meal_category?.name ||
+        item?.category?.code ||
+        item?.meal_category?.code ||
         ''
-      ).toLowerCase();
+      );
 
-      if (raw.includes('breakfast')) return 'breakfast';
-      if (raw.includes('lunch')) return 'lunch';
-      if (raw.includes('dinner')) return 'dinner';
-      if (raw.includes('snack')) return 'snack';
+      const slotByCode = this.mealSlots.find(
+        slot => slot.code === rawCode
+      );
 
-      const categoryId = Number(item?.meal_category_id || item?.category_id || item?.category?.id || 0);
-      const categoryMap = { 1: 'breakfast', 2: 'lunch', 3: 'dinner', 4: 'snack' };
-      return categoryMap[categoryId] || raw;
+      return slotByCode?.key || '';
     },
 
     assignmentMealIds(item) {
@@ -1299,32 +1657,113 @@ function customersApp() {
       return Math.round((this.completedDaysCount() / total) * 100);
     },
 
-    filteredMealsForSlot(slot) {
-      const term = this.mealSearch.trim().toLowerCase();
-      const categoryMap = { breakfast: 1, lunch: 2, dinner: 3, snack: 4 };
+    filteredMealsForSlot(slotKey) {
+      const term = String(this.mealSearch || '')
+        .trim()
+        .toLocaleLowerCase(this.locale || undefined);
+
+      const slot = this.mealSlots.find(
+        item => item.key === slotKey
+      );
+
+      const requiredCategoryId = Number(
+        slot?.category_id || 0
+      );
+
+      if (!requiredCategoryId) return [];
 
       return this.allMeals.filter(meal => {
-        const matchesSearch = !term || String(meal.name || '').toLowerCase().includes(term);
-        const mealTime = String(meal.meal_time || '').toLowerCase();
-        const matchesSlot =
-          !mealTime ||
-          mealTime === slot ||
-          Number(meal.category_id) === categoryMap[slot];
+        const matchesSearch =
+          !term ||
+          String(meal.name || '')
+            .toLocaleLowerCase(this.locale || undefined)
+            .includes(term);
 
-        return matchesSearch && matchesSlot;
+        return (
+          matchesSearch &&
+          Number(meal.category_id) === requiredCategoryId
+        );
       });
     },
 
-    deliveryPreferenceFor(slot) {
-      const preferences = this.assignMealTarget?.delivery_preferences || {};
-      if (Array.isArray(preferences)) {
-        return preferences.find(pref => {
-          const value = String(pref?.meal_time || pref?.category || pref?.meal_category?.name_en || '').toLowerCase();
-          return value === slot;
-        }) || null;
-      }
+    validMealIdsForSlot(slot, mealIds = []) {
+      const requiredCategoryId = Number(
+        this.mealSlots.find(item => item.key === slot)?.category_id || 0
+      );
 
-      return preferences?.[slot] || null;
+      return [
+        ...new Set(
+          (Array.isArray(mealIds) ? mealIds : [])
+            .map(Number)
+            .filter(mealId => {
+              if (!mealId) {
+                return false;
+              }
+
+              const meal = this.allMeals.find(
+                item => Number(item.id) === mealId
+              );
+
+              if (!meal) {
+                return false;
+              }
+
+              return (
+                requiredCategoryId > 0 &&
+                Number(meal.category_id) === requiredCategoryId
+              );
+            })
+        )
+      ];
+    },
+
+    deliveryPreferenceFor(slotKey) {
+      const slot = this.mealSlots.find(
+        item => item.key === slotKey
+      );
+
+      if (!slot) return null;
+
+      const preferences =
+        this.assignMealTarget?.delivery_preferences ||
+        [];
+
+      const preferenceItems = Array.isArray(preferences)
+        ? preferences
+        : Object.entries(preferences || {}).map(([key, value]) => ({
+            ...(value || {}),
+            _source_key: key
+          }));
+
+      return preferenceItems.find(preference => {
+        const preferenceCategoryId = Number(
+          preference?.meal_category_id ||
+          preference?.category_id ||
+          preference?.meal_category?.id ||
+          preference?.category_details?.id ||
+          0
+        );
+
+        /*
+         * When the preference contains a real category ID, match strictly
+         * by that ID. Do not fall through to a text/code match after an ID
+         * mismatch, otherwise one preference can be reused for every slot.
+         */
+        if (preferenceCategoryId > 0) {
+          return preferenceCategoryId === Number(slot.category_id);
+        }
+
+        const preferenceCode = this.normalizeCategoryCode(
+          preference?.category_code ||
+          preference?.meal_time ||
+          preference?.category ||
+          preference?.meal_category?.code ||
+          preference?._source_key ||
+          ''
+        );
+
+        return preferenceCode === slot.code;
+      }) || null;
     },
 
     deliveryPreferenceSummary(slot) {
@@ -1537,55 +1976,55 @@ function customersApp() {
     },
 
     buildDayAssignments(plannerDay) {
-  const slots = this.ensurePlannerDay(plannerDay);
+      const slots = this.ensurePlannerDay(plannerDay);
 
-  return this.mealSlots
-    .map(slot => {
-      const preference = this.deliveryPreferenceFor(slot.key);
+      return this.mealSlots
+        .map(slot => {
+          const preference = this.deliveryPreferenceFor(slot.key);
 
-      const selectedDriverId = Number(
-        this.assignMealForm.driver_id ||
-        this.assignMealTarget?.current_driver?.id ||
-        preference?.driver_id ||
-        0
-      );
+          const selectedDriverId = Number(
+            this.assignMealForm.driver_id ||
+            this.assignMealTarget?.current_driver?.id ||
+            preference?.driver_id ||
+            0
+          );
 
-      return {
-        meal_time: slot.key,
+          return {
+            meal_time: this.mealTimeForCategory(
+              slot.category_id,
+              slot.code
+            ),
 
-        meal_category_id: Number(
-          preference?.meal_category_id ||
-          preference?.category_id ||
-          slot.category_id ||
-          0
-        ),
+            /*
+             * The assignment category must always come from the slot itself.
+             * A delivery preference must never override the selected meal
+             * category.
+             */
+            meal_category_id: Number(slot.category_id || 0),
 
-        delivery_preference_id: Number(
-          preference?.id ||
-          preference?.delivery_preference_id ||
-          0
-        ),
+            delivery_preference_id: Number(
+              preference?.id ||
+              preference?.delivery_preference_id ||
+              0
+            ),
 
-        driver_id: selectedDriverId,
+            driver_id: selectedDriverId,
 
-        delivery_time: String(
-          preference?.preferred_delivery_time ||
-          preference?.delivery_time ||
-          slot.default_time ||
-          ''
-        ).slice(0, 5),
+            delivery_time: String(
+              preference?.preferred_delivery_time ||
+              preference?.delivery_time ||
+              slot.default_time ||
+              ''
+            ).slice(0, 5),
 
-        meal_ids: [
-          ...new Set(
-            (slots[slot.key] || [])
-              .map(Number)
-              .filter(Boolean)
-          )
-        ]
-      };
-    })
-    .filter(item => item.meal_ids.length > 0);
-},
+            meal_ids: this.validMealIdsForSlot(
+              slot.key,
+              slots[slot.key] || []
+            )
+          };
+        })
+        .filter(item => item.meal_ids.length > 0);
+    },
 
     buildMenuAssignmentPayload() {
       const mode = this.assignMealForm.mode;
