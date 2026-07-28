@@ -925,11 +925,11 @@
                                     <input x-model.trim="pref.delivery_address" required class="form-input">
                                 </div>
 
-                                <div>
+                                {{-- <div>
                                     <label class="form-label">{{ __('Preferred Delivery Time') }} *</label>
                                     <input type="time" x-model="pref.preferred_delivery_time" required
                                         class="form-input">
-                                </div>
+                                </div> --}}
 
                                 <div>
                                     <label class="form-label">{{ __('Delivery Note') }}</label>
@@ -1086,6 +1086,25 @@ function customerOnboardingPage() {
             }
         ],
 
+        getDefaultDeliveryTime(categoryId) {
+    switch (Number(categoryId)) {
+        case 1:
+            return '07:00';
+
+        case 2:
+            return '12:30';
+
+        case 3:
+            return '19:00';
+
+        case 4:
+            return '16:00';
+
+        default:
+            return '12:00';
+    }
+},
+
         conditionOptions: [{
                 value: 'none',
                 label: '{{ __('None') }}'
@@ -1131,7 +1150,9 @@ function customerOnboardingPage() {
                 delivery_address: pref.delivery_address || '',
                 latitude: pref.latitude ?? null,
                 longitude: pref.longitude ?? null,
-                preferred_delivery_time: pref.preferred_delivery_time || '',
+                preferred_delivery_time:
+    pref.preferred_delivery_time ||
+    this.getDefaultDeliveryTime(pref.meal_category_id),
                 delivery_note: pref.delivery_note || ''
     }));
 
