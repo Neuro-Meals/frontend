@@ -884,11 +884,27 @@
                 <form id="delivery-form" @submit.prevent="saveDelivery()" class="space-y-4">
                     <template x-for="(pref,index) in preferences" :key="pref.meal_category_id || index">
                         <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
-                            <div class="p-4 border-b bg-gray-50 flex justify-between">
-                                <h4 class="text-sm font-bold" x-text="pref.category_name"></h4>
-                                <span class="text-xs"
-                                    :class="isCategoryComplete(pref) ? 'text-green-600' : 'text-amber-500'"
-                                    x-text="isCategoryComplete(pref) ? '{{ __('Completed') }}' : '{{ __('Required') }}'"></span>
+                            <div class="p-4 border-b bg-gray-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div class="flex items-center justify-between gap-3">
+                                    <h4 class="text-sm font-bold" x-text="pref.category_name"></h4>
+                                    <span class="text-xs"
+                                        :class="isCategoryComplete(pref) ? 'text-green-600' : 'text-amber-500'"
+                                        x-text="isCategoryComplete(pref) ? '{{ __('Completed') }}' : '{{ __('Required') }}'"></span>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    @click="copyLocationToAll(pref)"
+                                    class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl
+                                           bg-[#173327] text-white text-xs font-bold
+                                           hover:bg-[#6E7A25] transition-colors shadow-sm">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"
+                                         stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                    {{ __('Use this location for all meals') }}
+                                </button>
                             </div>
 
                             <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1227,6 +1243,41 @@ function customerOnboardingPage() {
         isCategoryComplete(pref) {
             return !!(pref.place_type && pref.city && pref.delivery_area &&
                 pref.delivery_address && pref.preferred_delivery_time);
+        },
+
+        copyLocationToAll(sourcePref) {
+            this.deliveryMessage = '';
+            this.deliverySuccess = false;
+
+            if (
+                !sourcePref.place_type ||
+                !sourcePref.city ||
+                !sourcePref.delivery_area ||
+                !sourcePref.delivery_address
+            ) {
+                this.deliveryMessage =
+                    '{{ __("Please complete the place type, city, delivery area and delivery address before copying.") }}';
+                return;
+            }
+
+            this.preferences = this.preferences.map(pref => ({
+                ...pref,
+                place_type: sourcePref.place_type,
+                place_name: sourcePref.place_name || '',
+                city: sourcePref.city,
+                delivery_area: sourcePref.delivery_area,
+                delivery_address: sourcePref.delivery_address,
+                latitude: sourcePref.latitude ?? null,
+                longitude: sourcePref.longitude ?? null,
+                delivery_note: sourcePref.delivery_note || '',
+                preferred_delivery_time:
+                    pref.preferred_delivery_time ||
+                    this.getDefaultDeliveryTime(pref.meal_category_id)
+            }));
+
+            this.deliverySuccess = true;
+            this.deliveryMessage =
+                '{{ __("The delivery location has been copied to all meal categories.") }}';
         },
 
         validateProfile() {
