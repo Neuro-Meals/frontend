@@ -2923,124 +2923,147 @@ class AdminController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    $validated = $request->validate([
-        'subscription_id' => [
-            'required',
-            'integer',
-            'min:1',
-        ],
+    $validated = $request->validate(
+        [
+            'subscription_id' => [
+                'required',
+                'integer',
+                'min:1',
+            ],
 
-        'assignment_mode' => [
-            'required',
-            'string',
-            'in:daily,repeat_weekly,weekly_rotation',
-        ],
+            'assignment_mode' => [
+                'required',
+                'string',
+                'in:daily,repeat_weekly,weekly_rotation',
+            ],
 
-        'repeat_until_subscription_end' => [
-            'nullable',
-            'boolean',
-        ],
+            'repeat_until_subscription_end' => [
+                'nullable',
+                'boolean',
+            ],
 
-        'day_number' => [
-            'nullable',
-            'integer',
-            'min:1',
-        ],
+            'day_number' => [
+                'nullable',
+                'integer',
+                'min:1',
+            ],
 
-        'week_number' => [
-            'nullable',
-            'integer',
-            'min:1',
-        ],
+            'week_number' => [
+                'nullable',
+                'integer',
+                'min:1',
+            ],
 
-        'days' => [
-            'required',
-            'array',
-            'min:1',
-        ],
+            'days' => [
+                'required',
+                'array',
+                'min:1',
+            ],
 
-        'days.*.planner_day' => [
-            'required',
-            'integer',
-            'min:1',
-            'max:7',
-        ],
+            'days.*.planner_day' => [
+                'required',
+                'integer',
+                'min:1',
+                'max:7',
+            ],
 
-        'days.*.day_number' => [
-            'required',
-            'integer',
-            'min:1',
-        ],
+            'days.*.day_number' => [
+                'required',
+                'integer',
+                'min:1',
+            ],
 
-        'days.*.week_number' => [
-            'required',
-            'integer',
-            'min:1',
-        ],
+            'days.*.week_number' => [
+                'required',
+                'integer',
+                'min:1',
+            ],
 
-        'days.*.week_day' => [
-            'required',
-            'integer',
-            'min:1',
-            'max:7',
-        ],
+            'days.*.week_day' => [
+                'required',
+                'integer',
+                'min:1',
+                'max:7',
+            ],
 
-        'days.*.scheduled_date' => [
-            'required',
-            'date_format:Y-m-d',
-        ],
+            'days.*.scheduled_date' => [
+                'required',
+                'date_format:Y-m-d',
+            ],
 
-        'days.*.assignments' => [
-            'required',
-            'array',
-            'min:1',
-        ],
+            'days.*.assignments' => [
+                'required',
+                'array',
+                'min:1',
+            ],
 
-        'days.*.assignments.*.meal_time' => [
-            'required',
-            'string',
-            'in:breakfast,lunch,dinner,snack',
-        ],
+            'days.*.assignments.*.meal_time' => [
+                'required',
+                'string',
+                'in:breakfast,lunch,dinner,snack',
+            ],
 
-        'days.*.assignments.*.meal_ids' => [
-            'required',
-            'array',
-            'min:1',
-        ],
+            'days.*.assignments.*.meal_ids' => [
+                'required',
+                'array',
+                'min:1',
+            ],
 
-        'days.*.assignments.*.meal_ids.*' => [
-            'required',
-            'integer',
-            'min:1',
-        ],
+            'days.*.assignments.*.meal_ids.*' => [
+                'required',
+                'integer',
+                'min:1',
+            ],
 
-        /*
-         * These fields are required by the current FastAPI
-         * MealCategoryAssignmentCreate schema.
-         */
-        'days.*.assignments.*.meal_category_id' => [
-            'required',
-            'integer',
-            'min:1',
-        ],
+            'days.*.assignments.*.meal_category_id' => [
+                'required',
+                'integer',
+                'min:1',
+            ],
 
-        'days.*.assignments.*.delivery_preference_id' => [
-            'required',
-            'integer',
-            'min:1',
-        ],
+            'days.*.assignments.*.delivery_preference_id' => [
+                'required',
+                'integer',
+                'min:1',
+            ],
 
-        'days.*.assignments.*.driver_id' => [
-            'required',
-            'integer',
-            'min:1',
-        ],
+            'days.*.assignments.*.driver_id' => [
+                'required',
+                'integer',
+                'min:1',
+            ],
 
-        'days.*.assignments.*.delivery_time' => [
-            'required',
-            'date_format:H:i',
+            'days.*.assignments.*.delivery_time' => [
+                'required',
+                'date_format:H:i',
+            ],
         ],
-    ]);
+        [
+            'days.*.assignments.*.delivery_preference_id.required' =>
+                __('The customer must complete delivery information before meals can be assigned.'),
+
+            'days.*.assignments.*.delivery_preference_id.integer' =>
+                __('The customer delivery preference is invalid.'),
+
+            'days.*.assignments.*.delivery_preference_id.min' =>
+                __('The customer must complete delivery information before meals can be assigned.'),
+
+            'days.*.assignments.*.delivery_time.required' =>
+                __('A delivery time is required for every selected meal category.'),
+
+            'days.*.assignments.*.delivery_time.date_format' =>
+                __('Delivery time must use the HH:MM format.'),
+
+            'days.*.assignments.*.driver_id.required' =>
+                __('Please select a driver.'),
+
+            'days.*.assignments.*.driver_id.integer' =>
+                __('Please select a valid driver.'),
+
+            'days.*.assignments.*.driver_id.min' =>
+                __('Please select a valid driver.'),
+        ]
+    );
 
     /*
     |--------------------------------------------------------------------------
@@ -3374,12 +3397,6 @@ class AdminController extends Controller
         continue;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | The request succeeded
-    |--------------------------------------------------------------------------
-    */
-
     $createdDates++;
 
     $results[] = [
@@ -3461,12 +3478,201 @@ class AdminController extends Controller
     Request $request,
     SubscriptionApiService $subscriptionApi,
     NutritionApiService $nutritionApi,
-    MealApiService $mealApi
+    MealApiService $mealApi,
+    AdminApiService $adminApi
 ) {
     $subscriptionId = (int) $request->input(
         'subscription_id',
         0
     );
+
+     /*
+|--------------------------------------------------------------------------
+| Load full customer details
+|--------------------------------------------------------------------------
+|
+| The paginated customer-list endpoint may not include delivery
+| preferences. Load the complete customer record so that the meal
+| assignment modal receives real delivery preference IDs.
+|
+*/
+
+$customerResponse = $adminApi->userShow($id);
+
+$customerData = $this->apiData(
+    $customerResponse,
+    fn () => []
+);
+
+if (
+    isset($customerData['user'])
+    && is_array($customerData['user'])
+) {
+    $customerData = $customerData['user'];
+}
+
+if (
+    isset($customerData['customer'])
+    && is_array($customerData['customer'])
+) {
+    $customerData = $customerData['customer'];
+}
+
+$customerData = is_array($customerData)
+    ? $customerData
+    : [];
+    
+    \Log::info('CUSTOMER MEAL PREFERENCE DEBUG', [
+    'customer_id' => $id,
+    'customer_data' => $customerData,
+    'top_level_delivery_preferences' =>
+        $customerData['delivery_preferences'] ?? null,
+    'profile_delivery_preferences' =>
+        $customerData['profile']['delivery_preferences'] ?? null,
+]);
+
+$deliveryPreferencesRaw =
+    $customerData['delivery_preferences']
+    ?? $customerData['profile']['delivery_preferences']
+    ?? [];
+
+$deliveryPreferencesRaw = is_array(
+    $deliveryPreferencesRaw
+)
+    ? $deliveryPreferencesRaw
+    : [];
+
+$deliveryPreferences = [];
+$deliveryByCategory = [];
+
+$categoryMap = [
+    1 => 'breakfast',
+    2 => 'lunch',
+    3 => 'dinner',
+    4 => 'snack',
+];
+
+foreach ($deliveryPreferencesRaw as $preference) {
+    if (!is_array($preference)) {
+        continue;
+    }
+
+    $category = is_array(
+        $preference['meal_category'] ?? null
+    )
+        ? $preference['meal_category']
+        : [];
+
+    $categoryId = (int) (
+        $preference['meal_category_id']
+        ?? $preference['category_id']
+        ?? $category['id']
+        ?? 0
+    );
+
+    $categoryName = strtolower(
+        (string) (
+            $category['code']
+            ?? $category['name_en']
+            ?? $preference['category_code']
+            ?? $preference['meal_time']
+            ?? $categoryMap[$categoryId]
+            ?? 'general'
+        )
+    );
+
+    $preferenceId = (int) (
+        $preference['id']
+        ?? $preference['delivery_preference_id']
+        ?? 0
+    );
+
+    /*
+     * Ignore records without a real database ID.
+     */
+    if ($preferenceId <= 0) {
+        continue;
+    }
+
+    $normalizedPreference = [
+        ...$preference,
+
+        'id' => $preferenceId,
+
+        'delivery_preference_id' =>
+            $preferenceId,
+
+        'meal_category_id' =>
+            $categoryId,
+
+        'category_id' =>
+            $categoryId,
+
+        'category_code' =>
+            $categoryName,
+
+        'meal_time' =>
+            $categoryName,
+
+        'meal_category' => [
+            ...$category,
+            'id' => $categoryId,
+            'code' => $categoryName,
+            'name_en' =>
+                $category['name_en']
+                ?? ucfirst($categoryName),
+        ],
+
+        'place_type' =>
+            $preference['place_type']
+            ?? '',
+
+        'place_name' =>
+            $preference['place_name']
+            ?? '',
+
+        'city' =>
+            $preference['city']
+            ?? '',
+
+        'delivery_area' =>
+            $preference['delivery_area']
+            ?? '',
+
+        'delivery_address' =>
+            $preference['delivery_address']
+            ?? $customerData['address']
+            ?? '',
+
+        'preferred_delivery_time' =>
+            $preference['preferred_delivery_time']
+            ?? $preference['delivery_time']
+            ?? '',
+
+        'delivery_time' =>
+            $preference['delivery_time']
+            ?? $preference['preferred_delivery_time']
+            ?? '',
+
+        'driver_id' => (
+            $preference['driver_id']
+            ?? $customerData['current_driver']['id']
+            ?? $customerData['driver']['id']
+            ?? null
+        ),
+
+        'is_active' => (bool) (
+            $preference['is_active']
+            ?? true
+        ),
+    ];
+
+    $deliveryPreferences[] =
+        $normalizedPreference;
+
+    $deliveryByCategory[$categoryName] =
+        $normalizedPreference;
+}
 
     if ($subscriptionId <= 0) {
         $subscriptionsResponse = $subscriptionApi->list([
@@ -3509,13 +3715,24 @@ class AdminController extends Controller
     }
 
     if ($subscriptionId <= 0) {
-        return response()->json([
-            'success' => true,
-            'assignments' => [],
-            'selections' => [],
-            'meals' => [],
-            'subscription_id' => 0,
-        ]);
+    return response()->json([
+        'success' => true,
+        'assignments' => [],
+        'selections' => [],
+        'meals' => [],
+        'subscription_id' => 0,
+
+        'delivery_preferences' =>
+            $deliveryByCategory,
+
+        'delivery_preferences_list' =>
+            $deliveryPreferences,
+
+        'current_driver' =>
+            $customerData['current_driver']
+            ?? $customerData['driver']
+            ?? null,
+    ]);
     }
 
     try {
@@ -3608,17 +3825,34 @@ class AdminController extends Controller
             ->all();
 
         return response()->json([
-            'success' => true,
+    'success' => true,
 
-            // New Blade reads assignments first.
-            'assignments' => $assignments,
+    'assignments' =>
+        $assignments,
 
-            // Keep this temporarily for compatibility.
-            'selections' => $assignments,
+    'selections' =>
+        $assignments,
 
-            'meals' => $meals,
-            'subscription_id' => $subscriptionId,
-        ]);
+    'meals' =>
+        $meals,
+
+    'subscription_id' =>
+        $subscriptionId,
+
+    /*
+     * Send both structures because the Blade supports both.
+     */
+    'delivery_preferences' =>
+        $deliveryByCategory,
+
+    'delivery_preferences_list' =>
+        $deliveryPreferences,
+
+    'current_driver' =>
+        $customerData['current_driver']
+        ?? $customerData['driver']
+        ?? null,
+]);
     } catch (\Throwable $exception) {
         report($exception);
 

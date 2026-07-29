@@ -1341,6 +1341,43 @@ function customersApp() {
         const subId = this.assignMealForm.subscription_id;
         if (!subId) return;
 
+        /*
+         * The customer table response may contain only summary data.
+         * Load the full customer record first so delivery preference IDs
+         * are available when buildDayAssignments() creates the payload.
+         */
+        const detailsResponse = await fetch(
+          `{{ url('admin/customers') }}/${c.id}/details`,
+          {
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json'
+            }
+          }
+        );
+
+        const detailsData = await this.readJsonResponse(detailsResponse);
+
+        if (detailsData?.customer) {
+          this.assignMealTarget = {
+            ...c,
+            ...detailsData.customer,
+            delivery_preferences:
+              detailsData.customer.delivery_preferences ||
+              c?.delivery_preferences ||
+              {},
+            delivery_preferences_list:
+              detailsData.customer.delivery_preferences_list ||
+              c?.delivery_preferences_list ||
+              []
+          };
+
+          /*
+           * Keep the selected customer object synchronized as well.
+           */
+          Object.assign(c, this.assignMealTarget);
+        }
+
         const response = await fetch(`{{ url('admin/customers') }}/${c.id}/meal-selections?subscription_id=${subId}`, {
           headers: {
             'X-Requested-With': 'XMLHttpRequest',
@@ -1349,6 +1386,26 @@ function customersApp() {
         });
 
         const data = await this.readJsonResponse(response);
+
+        /*
+         * Prefer any fresh delivery preferences returned by this endpoint.
+         */
+        if (
+          data?.delivery_preferences ||
+          data?.delivery_preferences_list
+        ) {
+          this.assignMealTarget = {
+            ...this.assignMealTarget,
+            delivery_preferences:
+              data.delivery_preferences ||
+              this.assignMealTarget?.delivery_preferences ||
+              {},
+            delivery_preferences_list:
+              data.delivery_preferences_list ||
+              this.assignMealTarget?.delivery_preferences_list ||
+              []
+          };
+        }
 
         this.assignMealForm.subscription_id = Number(data.subscription_id || subId);
 
@@ -1722,20 +1779,83 @@ function customersApp() {
         item => item.key === slotKey
       );
 
-      if (!slot) return null;
+      if (!slot) {
+        return null;
+      }
 
-      const preferences =
-        this.assignMealTarget?.delivery_preferences ||
-        [];
+      /*
+       * Customer details can expose delivery preferences as:
+       *
+       * delivery_preferences:
+       * {
+       *   breakfast: {...},
+       *   lunch: {...}
+       * }
+       *
+       * or:
+       *
+       * delivery_preferences_list:
+       * [
+       *   {...},
+       *   {...}
+       * ]
+       */
+      const mappedPreferences =
+        this.assignMealTarget?.delivery_preferences || {};
 
-      const preferenceItems = Array.isArray(preferences)
-        ? preferences
-        : Object.entries(preferences || {}).map(([key, value]) => ({
-            ...(value || {}),
-            _source_key: key
-          }));
+      const listedPreferences =
+        this.assignMealTarget?.delivery_preferences_list || [];
 
-      return preferenceItems.find(preference => {
+      const preferences = [
+        ...(
+          Array.isArray(mappedPreferences)
+            ? mappedPreferences
+            : Object.entries(mappedPreferences).map(
+                ([key, value]) => ({
+                  ...(value || {}),
+                  _source_key: key
+                })
+              )
+        ),
+        ...(
+          Array.isArray(listedPreferences)
+            ? listedPreferences
+            : Object.values(listedPreferences || {})
+        )
+      ];
+
+      /*
+       * Keep only real delivery-preference database records and remove
+       * duplicate copies returned in both response formats.
+       */
+      const preferenceItems = preferences.filter(
+        (preference, index, items) => {
+          const preferenceId = Number(
+            preference?.id ||
+            preference?.delivery_preference_id ||
+            0
+          );
+
+          if (preferenceId < 1) {
+            return false;
+          }
+
+          return index === items.findIndex(item => {
+            const itemId = Number(
+              item?.id ||
+              item?.delivery_preference_id ||
+              0
+            );
+
+            return itemId === preferenceId;
+          });
+        }
+      );
+
+      /*
+       * First, match by the real meal-category ID.
+       */
+      const categoryIdMatch = preferenceItems.find(preference => {
         const preferenceCategoryId = Number(
           preference?.meal_category_id ||
           preference?.category_id ||
@@ -1744,26 +1864,115 @@ function customersApp() {
           0
         );
 
-        /*
-         * When the preference contains a real category ID, match strictly
-         * by that ID. Do not fall through to a text/code match after an ID
-         * mismatch, otherwise one preference can be reused for every slot.
-         */
-        if (preferenceCategoryId > 0) {
-          return preferenceCategoryId === Number(slot.category_id);
-        }
+        return (
+          preferenceCategoryId > 0 &&
+          preferenceCategoryId === Number(slot.category_id)
+        );
+      });
 
+      if (categoryIdMatch) {
+        return categoryIdMatch;
+      }
+
+      /*
+       * Next, match by category code or name.
+       */
+      const codeMatch = preferenceItems.find(preference => {
         const preferenceCode = this.normalizeCategoryCode(
           preference?.category_code ||
           preference?.meal_time ||
           preference?.category ||
-          preference?.meal_category?.code ||
+          (
+            typeof preference?.meal_category === 'string'
+              ? preference.meal_category
+              : preference?.meal_category?.code
+          ) ||
           preference?._source_key ||
           ''
         );
 
         return preferenceCode === slot.code;
-      }) || null;
+      });
+
+      if (codeMatch) {
+        return codeMatch;
+      }
+
+      /*
+       * A general/default preference can be used for all meal categories.
+       */
+      const generalPreference = preferenceItems.find(preference => {
+        const preferenceCategoryId = Number(
+          preference?.meal_category_id ||
+          preference?.category_id ||
+          preference?.meal_category?.id ||
+          0
+        );
+
+        const preferenceCode = this.normalizeCategoryCode(
+          preference?.category_code ||
+          preference?.category ||
+          (
+            typeof preference?.meal_category === 'string'
+              ? preference.meal_category
+              : preference?.meal_category?.code
+          ) ||
+          preference?._source_key ||
+          ''
+        );
+
+        return (
+          preferenceCategoryId === 0 ||
+          preferenceCode === 'general' ||
+          preferenceCode === 'default'
+        );
+      });
+
+      if (generalPreference) {
+        return generalPreference;
+      }
+
+      /*
+       * When the customer has only one active preference, use it as the
+       * customer's common address for all selected meal categories.
+       */
+      const activePreferences = preferenceItems.filter(
+        preference => preference?.is_active !== false
+      );
+
+      if (activePreferences.length === 1) {
+        return activePreferences[0];
+      }
+
+      return null;
+    },
+
+    defaultDeliveryTimeForSlot(slot) {
+      const preference = this.deliveryPreferenceFor(slot.key);
+
+      const configuredTime = String(
+        preference?.preferred_delivery_time ||
+        preference?.delivery_time ||
+        slot?.default_time ||
+        ''
+      ).slice(0, 5);
+
+      if (/^\d{2}:\d{2}$/.test(configuredTime)) {
+        return configuredTime;
+      }
+
+      /*
+       * Operational fallback times. These prevent empty delivery_time
+       * values, while database/customer preferences still take priority.
+       */
+      const defaults = {
+        breakfast: '08:00',
+        lunch: '13:00',
+        dinner: '19:00',
+        snack: '16:00'
+      };
+
+      return defaults[slot?.code] || '12:00';
     },
 
     deliveryPreferenceSummary(slot) {
@@ -1980,7 +2189,25 @@ function customersApp() {
 
       return this.mealSlots
         .map(slot => {
+          const mealIds = this.validMealIdsForSlot(
+            slot.key,
+            slots[slot.key] || []
+          );
+
+          /*
+           * Do not submit categories where no meal was selected.
+           */
+          if (mealIds.length === 0) {
+            return null;
+          }
+
           const preference = this.deliveryPreferenceFor(slot.key);
+
+          const deliveryPreferenceId = Number(
+            preference?.id ||
+            preference?.delivery_preference_id ||
+            0
+          );
 
           const selectedDriverId = Number(
             this.assignMealForm.driver_id ||
@@ -1995,35 +2222,22 @@ function customersApp() {
               slot.code
             ),
 
-            /*
-             * The assignment category must always come from the slot itself.
-             * A delivery preference must never override the selected meal
-             * category.
-             */
-            meal_category_id: Number(slot.category_id || 0),
-
-            delivery_preference_id: Number(
-              preference?.id ||
-              preference?.delivery_preference_id ||
-              0
+            meal_category_id: Number(
+              slot.category_id || 0
             ),
+
+            delivery_preference_id:
+              deliveryPreferenceId,
 
             driver_id: selectedDriverId,
 
-            delivery_time: String(
-              preference?.preferred_delivery_time ||
-              preference?.delivery_time ||
-              slot.default_time ||
-              ''
-            ).slice(0, 5),
+            delivery_time:
+              this.defaultDeliveryTimeForSlot(slot),
 
-            meal_ids: this.validMealIdsForSlot(
-              slot.key,
-              slots[slot.key] || []
-            )
+            meal_ids: mealIds
           };
         })
-        .filter(item => item.meal_ids.length > 0);
+        .filter(Boolean);
     },
 
     buildMenuAssignmentPayload() {
@@ -2097,11 +2311,93 @@ function customersApp() {
       return data;
     },
 
+    validateMealAssignmentPayload(payload) {
+      const errors = [];
+
+      if (Number(payload?.subscription_id || 0) < 1) {
+        errors.push(
+          '{{ __('The customer does not have a valid subscription.') }}'
+        );
+      }
+
+      const days = Array.isArray(payload?.days)
+        ? payload.days
+        : [];
+
+      days.forEach((day, dayIndex) => {
+        const assignments = Array.isArray(day?.assignments)
+          ? day.assignments
+          : [];
+
+        assignments.forEach((assignment, assignmentIndex) => {
+          const position =
+            `${dayIndex + 1}.${assignmentIndex + 1}`;
+
+          if (Number(assignment?.meal_category_id || 0) < 1) {
+            errors.push(
+              `Assignment ${position}: meal category is missing.`
+            );
+          }
+
+          if (
+            Number(
+              assignment?.delivery_preference_id || 0
+            ) < 1
+          ) {
+            errors.push(
+              `Assignment ${position}: customer delivery preference is missing.`
+            );
+          }
+
+          if (Number(assignment?.driver_id || 0) < 1) {
+            errors.push(
+              `Assignment ${position}: select a driver.`
+            );
+          }
+
+          if (
+            !/^\d{2}:\d{2}$/.test(
+              String(assignment?.delivery_time || '')
+            )
+          ) {
+            errors.push(
+              `Assignment ${position}: delivery time is missing or invalid.`
+            );
+          }
+
+          if (
+            !Array.isArray(assignment?.meal_ids) ||
+            assignment.meal_ids.length === 0
+          ) {
+            errors.push(
+              `Assignment ${position}: select at least one meal.`
+            );
+          }
+        });
+      });
+
+      return [...new Set(errors)];
+    },
+
     async submitAssignMeal() {
       if (!this.canSubmitMealAssignment()) {
-        this.assignMealError = this.assignMealForm.mode === 'daily'
-          ? '{{ __('Select at least one meal for the selected day.') }}'
-          : '{{ __('Every day in the week must contain at least one meal.') }}';
+        this.assignMealError =
+          this.assignMealForm.mode === 'daily'
+            ? '{{ __('Select at least one meal for the selected day.') }}'
+            : '{{ __('Every day in the week must contain at least one meal.') }}';
+
+        return;
+      }
+
+      const payload = this.buildMenuAssignmentPayload();
+
+      const validationErrors =
+        this.validateMealAssignmentPayload(payload);
+
+      if (validationErrors.length > 0) {
+        this.assignMealError =
+          validationErrors.join(' ');
+
         return;
       }
 
@@ -2109,25 +2405,10 @@ function customersApp() {
       this.assignMealError = '';
       this.assignMealSuccess = '';
 
-      const payload = this.buildMenuAssignmentPayload();
-
       try {
-        const response = await fetch(`{{ url('admin/customers') }}/${this.assignMealTarget.id}/assign-meal`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
-
-        const data = await this.readJsonResponse(response);
-        let message = data.message || '{{ __('Menu assigned successfully!') }}';
-
-        if (this.assignMealForm.driver_id) {
-          const driverResponse = await fetch(`{{ url('admin/customers') }}/${this.assignMealTarget.id}/assign-driver`, {
+        const response = await fetch(
+          `{{ url('admin/customers') }}/${this.assignMealTarget.id}/assign-meal`,
+          {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -2135,30 +2416,79 @@ function customersApp() {
               'X-Requested-With': 'XMLHttpRequest',
               'Accept': 'application/json'
             },
-            body: JSON.stringify({
-              driver_id: Number(this.assignMealForm.driver_id),
-              assignment_reason: this.assignMealForm.assignment_reason,
-              notes: this.assignMealForm.notes
-            })
-          });
+            body: JSON.stringify(payload)
+          }
+        );
 
-          const driverData = await this.readJsonResponse(driverResponse);
-          message += ' ' + (driverData.message || '{{ __('Driver assigned successfully!') }}');
+        const data =
+          await this.readJsonResponse(response);
+
+        let message =
+          data.message ||
+          '{{ __('Menu assigned successfully!') }}';
+
+        /*
+         * Keep the separate customer-driver assignment endpoint for the
+         * existing business flow. The same driver ID is already included
+         * in every meal assignment sent above.
+         */
+        if (this.assignMealForm.driver_id) {
+          const driverResponse = await fetch(
+            `{{ url('admin/customers') }}/${this.assignMealTarget.id}/assign-driver`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                driver_id: Number(
+                  this.assignMealForm.driver_id
+                ),
+                assignment_reason:
+                  this.assignMealForm.assignment_reason,
+                notes:
+                  this.assignMealForm.notes
+              })
+            }
+          );
+
+          const driverData =
+            await this.readJsonResponse(driverResponse);
+
+          message += ' ' + (
+            driverData.message ||
+            '{{ __('Driver assigned successfully!') }}'
+          );
         }
 
         this.assignMealSuccess = message;
+
         await this.fetchCustomers();
 
-        if (this.selected?.id === this.assignMealTarget?.id) {
-          await this.showDetail(this.assignMealTarget);
+        if (
+          this.selected?.id ===
+          this.assignMealTarget?.id
+        ) {
+          await this.showDetail(
+            this.assignMealTarget
+          );
         }
 
         setTimeout(() => {
           this.showAssignMeal = false;
         }, 1500);
       } catch (error) {
-        console.error('Failed to assign menu', error);
-        this.assignMealError = error.message || '{{ __('Failed to assign menu.') }}';
+        console.error(
+          'Failed to assign menu',
+          error
+        );
+
+        this.assignMealError =
+          error.message ||
+          '{{ __('Failed to assign menu.') }}';
       } finally {
         this.assigningMeal = false;
       }
