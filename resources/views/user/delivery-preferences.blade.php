@@ -949,30 +949,122 @@
                                     <input x-model.trim="pref.place_name" class="form-input">
                                 </div>
 
-                                <div>
-                                    <label class="form-label">{{ __('City') }} *</label>
-                                    <input x-model.trim="pref.city" required class="form-input">
+                                <div class="sm:col-span-2">
+                                    <div class="rounded-xl border border-[#DDE4B4] bg-[#F8FAF0] p-4">
+                                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                            <div>
+                                                <p class="text-xs font-extrabold text-[#173327]">
+                                                    {{ __('Use your current registered location') }}
+                                                </p>
+                                                <p class="mt-1 text-[11px] leading-5 text-gray-500">
+                                                    {{ __('Allow location access to automatically detect the city, ward and street. You can still choose from the dropdowns below.') }}
+                                                </p>
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                @click="detectCurrentLocation(pref)"
+                                                :disabled="pref.location_loading"
+                                                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl
+                                                       bg-[#173327] text-white text-xs font-bold
+                                                       hover:bg-[#6E7A25] disabled:opacity-60 disabled:cursor-not-allowed">
+                                                <svg x-show="!pref.location_loading" class="w-4 h-4" viewBox="0 0 24 24"
+                                                     fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M12 21s7-5.2 7-12a7 7 0 1 0-14 0c0 6.8 7 12 7 12Z"></path>
+                                                    <circle cx="12" cy="9" r="2.5"></circle>
+                                                </svg>
+
+                                                <svg x-show="pref.location_loading" x-cloak class="w-4 h-4 animate-spin"
+                                                     viewBox="0 0 24 24" fill="none">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="9"
+                                                        stroke="currentColor" stroke-width="3"></circle>
+                                                    <path class="opacity-90" fill="currentColor"
+                                                        d="M12 3a9 9 0 0 1 9 9h-3a6 6 0 0 0-6-6V3z"></path>
+                                                </svg>
+
+                                                <span x-text="pref.location_loading
+                                                    ? '{{ __('Detecting...') }}'
+                                                    : '{{ __('Use Current Location') }}'"></span>
+                                            </button>
+                                        </div>
+
+                                        <p x-show="pref.location_message" x-cloak
+                                            class="mt-3 text-xs font-semibold"
+                                            :class="pref.location_success ? 'text-green-700' : 'text-red-600'"
+                                            x-text="pref.location_message"></p>
+                                    </div>
                                 </div>
 
                                 <div>
-                                    <label class="form-label">{{ __('Delivery Area') }} *</label>
-                                    <input x-model.trim="pref.delivery_area" required class="form-input">
+                                    <label class="form-label">{{ __('City') }} *</label>
+                                    <select
+                                        x-model="pref.city"
+                                        @change="onCityChanged(pref)"
+                                        required
+                                        class="form-input">
+                                        <option value="">{{ __('Select city') }}</option>
+                                        <template x-for="city in availableCities(pref)" :key="city">
+                                            <option :value="city" x-text="city"></option>
+                                        </template>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="form-label">{{ __('Ward') }} *</label>
+                                    <select
+                                        x-model="pref.delivery_area"
+                                        @change="onWardChanged(pref)"
+                                        :disabled="!pref.city"
+                                        required
+                                        class="form-input disabled:bg-gray-100 disabled:text-gray-400">
+                                        <option value="">{{ __('Select ward') }}</option>
+                                        <template x-for="ward in availableWards(pref)" :key="ward">
+                                            <option :value="ward" x-text="ward"></option>
+                                        </template>
+                                    </select>
                                 </div>
 
                                 <div class="sm:col-span-2">
-                                    <label class="form-label">{{ __('Delivery Address') }} *</label>
-                                    <input x-model.trim="pref.delivery_address" required class="form-input">
-                                </div>
+                                    <label class="form-label">{{ __('Street') }} *</label>
+                                    <select
+                                        x-model="pref.delivery_address"
+                                        :disabled="!pref.delivery_area"
+                                        required
+                                        class="form-input disabled:bg-gray-100 disabled:text-gray-400">
+                                        <option value="">{{ __('Select street') }}</option>
+                                        <template x-for="street in availableStreets(pref)" :key="street">
+                                            <option :value="street" x-text="street"></option>
+                                        </template>
+                                    </select>
 
-                                {{-- <div>
-                                    <label class="form-label">{{ __('Preferred Delivery Time') }} *</label>
-                                    <input type="time" x-model="pref.preferred_delivery_time" required
-                                        class="form-input">
-                                </div> --}}
+                                    <p class="mt-1.5 text-[11px] text-gray-400">
+                                        {{ __('The street list is filled from the saved address or your detected current location.') }}
+                                    </p>
+                                </div>
 
                                 <div>
                                     <label class="form-label">{{ __('Delivery Note') }}</label>
-                                    <input x-model.trim="pref.delivery_note" class="form-input">
+                                    <select
+                                        x-model="pref.delivery_note_option"
+                                        @change="syncDeliveryNote(pref)"
+                                        class="form-input">
+                                        <option value="">{{ __('Select delivery instruction') }}</option>
+                                        <option value="call_on_arrival">{{ __('Call me on arrival') }}</option>
+                                        <option value="leave_at_reception">{{ __('Leave at reception') }}</option>
+                                        <option value="leave_at_door">{{ __('Leave at the door') }}</option>
+                                        <option value="security_gate">{{ __('Deliver through the security gate') }}</option>
+                                        <option value="hand_to_customer">{{ __('Hand directly to customer') }}</option>
+                                        <option value="other">{{ __('Other instruction') }}</option>
+                                    </select>
+                                </div>
+
+                                <div x-show="pref.delivery_note_option === 'other'" x-cloak>
+                                    <label class="form-label">{{ __('Other Delivery Instruction') }}</label>
+                                    <input
+                                        x-model.trim="pref.delivery_note_other"
+                                        @input="syncDeliveryNote(pref)"
+                                        class="form-input"
+                                        placeholder="{{ __('Enter a short delivery instruction') }}">
                                 </div>
                             </div>
                         </div>
@@ -1066,25 +1158,93 @@ function customerOnboardingPage() {
 
         dietaryOptions: [],
         allergyOptions: [],
+        conditionOptions: [],
+
+        /*
+         * Default Riyadh service-area catalogue.
+         *
+         * The dropdown also preserves any previously saved city, ward
+         * and street and adds values returned by browser geolocation.
+         */
+        locationCatalogue: {
+            'Riyadh': {
+                wards: {
+                    'Al Olaya': [
+                        'Olaya Street',
+                        'King Fahd Road',
+                        'Tahlia Street'
+                    ],
+                    'Al Malaz': [
+                        'Salah Ad Din Al Ayyubi Road',
+                        'Al Ihsa Street',
+                        'Jarir Street'
+                    ],
+                    'Al Murabba': [
+                        'King Faisal Road',
+                        'Al Wazir Street',
+                        'Prince Faisal Bin Turki Street'
+                    ],
+                    'Al Nakheel': [
+                        'King Khalid Road',
+                        'Imam Saud Bin Abdulaziz Road',
+                        'Prince Turki Bin Abdulaziz Road'
+                    ],
+                    'Al Yasmin': [
+                        'Anas Bin Malik Road',
+                        'King Abdulaziz Road',
+                        'Al Thumamah Road'
+                    ],
+                    'Al Narjis': [
+                        'Uthman Bin Affan Road',
+                        'Al Kair Road',
+                        'Prince Saud Bin Abdullah Road'
+                    ],
+                    'Al Rawdah': [
+                        'Khurais Road',
+                        'Hafsah Bint Umar Street',
+                        'Abdulrahman Al Ghafiqi Street'
+                    ],
+                    'Qurtubah': [
+                        'Khalid Bin Al Walid Street',
+                        'Dammam Road',
+                        'Saeed Bin Zaid Road'
+                    ]
+                }
+            }
+        },
 
         async init() {
             await this.loadHealthOptions();
 
             this.preferences = this.preferences.map(pref => ({
-                meal_category_id: pref.meal_category_id,
-                category_name: pref.category_name || '{{ __("Meal") }}',
-                place_type: pref.place_type || '',
-                place_name: pref.place_name || '',
-                city: pref.city || '',
-                delivery_area: pref.delivery_area || '',
-                delivery_address: pref.delivery_address || '',
-                latitude: pref.latitude ?? null,
-                longitude: pref.longitude ?? null,
-                preferred_delivery_time:
-    pref.preferred_delivery_time ||
-    this.getDefaultDeliveryTime(pref.meal_category_id),
-                delivery_note: pref.delivery_note || ''
-    }));
+    ...pref,
+    place_type: sourcePref.place_type,
+    place_name: sourcePref.place_name,
+    city: sourcePref.city,
+    delivery_area: sourcePref.delivery_area,
+    delivery_address: sourcePref.delivery_address,
+    latitude: sourcePref.latitude,
+    longitude: sourcePref.longitude,
+    delivery_note: sourcePref.delivery_note,
+    delivery_note_option: sourcePref.delivery_note_option,
+    delivery_note_other: sourcePref.delivery_note_other,
+    detected_city: sourcePref.detected_city,
+    detected_ward: sourcePref.detected_ward,
+    detected_street: sourcePref.detected_street,
+    preferred_delivery_time:
+        pref.preferred_delivery_time ||
+        this.getDefaultDeliveryTime(pref.meal_category_id)
+}));
+
+this.$nextTick(() => {
+    this.preferences.forEach(pref => {
+        this.onCityChanged(pref);
+        this.onWardChanged(pref);
+
+        // restore copied value
+        pref.delivery_address = sourcePref.delivery_address;
+    });
+});
 
     if (this.deliveryModalOpen) {
         document.body.classList.add('overflow-hidden');
@@ -1212,6 +1372,239 @@ function customerOnboardingPage() {
             });
         },
 
+        deliveryNoteLabels() {
+            return {
+                call_on_arrival: '{{ __('Call me on arrival') }}',
+                leave_at_reception: '{{ __('Leave at reception') }}',
+                leave_at_door: '{{ __('Leave at the door') }}',
+                security_gate: '{{ __('Deliver through the security gate') }}',
+                hand_to_customer: '{{ __('Hand directly to customer') }}'
+            };
+        },
+
+        deliveryNoteOptionFromValue(value) {
+            const normalized = String(value || '').trim();
+            const labels = this.deliveryNoteLabels();
+
+            const match = Object.entries(labels).find(
+                ([key, label]) => normalized === key || normalized === label
+            );
+
+            if (match) {
+                return match[0];
+            }
+
+            return normalized ? 'other' : '';
+        },
+
+        syncDeliveryNote(pref) {
+            if (!pref) return;
+
+            if (pref.delivery_note_option === 'other') {
+                pref.delivery_note = pref.delivery_note_other || '';
+                return;
+            }
+
+            const labels = this.deliveryNoteLabels();
+            pref.delivery_note =
+                labels[pref.delivery_note_option] ||
+                '';
+        },
+
+        uniqueValues(values) {
+            return [...new Set(
+                (values || [])
+                    .map(value => String(value || '').trim())
+                    .filter(Boolean)
+            )];
+        },
+
+        availableCities(pref) {
+            return this.uniqueValues([
+                ...Object.keys(this.locationCatalogue),
+                pref?.city,
+                pref?.detected_city
+            ]);
+        },
+
+        availableWards(pref) {
+            const configuredWards = Object.keys(
+                this.locationCatalogue?.[pref?.city]?.wards || {}
+            );
+
+            return this.uniqueValues([
+                ...configuredWards,
+                pref?.delivery_area,
+                pref?.detected_ward
+            ]);
+        },
+
+        availableStreets(pref) {
+            const configuredStreets =
+                this.locationCatalogue
+                    ?.[pref?.city]
+                    ?.wards
+                    ?.[pref?.delivery_area] || [];
+
+            return this.uniqueValues([
+                ...configuredStreets,
+                pref?.delivery_address,
+                pref?.detected_street
+            ]);
+        },
+
+        onCityChanged(pref) {
+            if (!pref) return;
+
+            const availableWards = this.availableWards(pref);
+
+            if (
+                pref.delivery_area &&
+                !availableWards.includes(pref.delivery_area)
+            ) {
+                pref.delivery_area = '';
+            }
+
+            const availableStreets = this.availableStreets(pref);
+
+            if (
+                pref.delivery_address &&
+                !availableStreets.includes(pref.delivery_address)
+            ) {
+                pref.delivery_address = '';
+            }
+        },
+
+        onWardChanged(pref) {
+            if (!pref) return;
+
+            const availableStreets = this.availableStreets(pref);
+
+            if (
+                pref.delivery_address &&
+                !availableStreets.includes(pref.delivery_address)
+            ) {
+                pref.delivery_address = '';
+            }
+        },
+
+        async detectCurrentLocation(pref) {
+            if (!pref || pref.location_loading) {
+                return;
+            }
+
+            pref.location_message = '';
+            pref.location_success = false;
+
+            if (!navigator.geolocation) {
+                pref.location_message =
+                    '{{ __('Location detection is not supported by this browser.') }}';
+                return;
+            }
+
+            pref.location_loading = true;
+
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(
+                        resolve,
+                        reject,
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 15000,
+                            maximumAge: 60000
+                        }
+                    );
+                });
+
+                const latitude = Number(position.coords.latitude);
+                const longitude = Number(position.coords.longitude);
+
+                pref.latitude = latitude;
+                pref.longitude = longitude;
+
+                const language = this.locale === 'ar' ? 'ar' : 'en';
+                const url = new URL(
+                    'https://nominatim.openstreetmap.org/reverse'
+                );
+
+                url.searchParams.set('format', 'jsonv2');
+                url.searchParams.set('lat', String(latitude));
+                url.searchParams.set('lon', String(longitude));
+                url.searchParams.set('addressdetails', '1');
+                url.searchParams.set('accept-language', language);
+
+                const response = await fetch(url.toString(), {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(
+                        '{{ __('Unable to identify the detected address.') }}'
+                    );
+                }
+
+                const data = await response.json();
+                const address = data?.address || {};
+
+                const detectedCity =
+                    address.city ||
+                    address.town ||
+                    address.municipality ||
+                    address.county ||
+                    'Riyadh';
+
+                const detectedWard =
+                    address.suburb ||
+                    address.neighbourhood ||
+                    address.city_district ||
+                    address.quarter ||
+                    address.residential ||
+                    '';
+
+                const detectedStreet =
+                    address.road ||
+                    address.pedestrian ||
+                    address.footway ||
+                    address.path ||
+                    address.house_number ||
+                    '';
+
+                pref.detected_city = detectedCity;
+                pref.detected_ward = detectedWard;
+                pref.detected_street = detectedStreet;
+
+                pref.city = detectedCity;
+                pref.delivery_area = detectedWard;
+                pref.delivery_address = detectedStreet;
+
+                pref.location_success = true;
+                pref.location_message =
+                    '{{ __('Current location detected successfully. Please confirm the dropdown selections.') }}';
+            } catch (error) {
+                console.error('Location detection failed:', error);
+
+                if (error?.code === 1) {
+                    pref.location_message =
+                        '{{ __('Location permission was denied. Please enable location access and try again.') }}';
+                } else if (error?.code === 2) {
+                    pref.location_message =
+                        '{{ __('Your current location could not be determined.') }}';
+                } else if (error?.code === 3) {
+                    pref.location_message =
+                        '{{ __('Location detection timed out. Please try again.') }}';
+                } else {
+                    pref.location_message =
+                        error?.message ||
+                        '{{ __('Unable to detect your current location.') }}';
+                }
+            } finally {
+                pref.location_loading = false;
+            }
+        },
+
         selectGender(gender) {
             this.profile.gender = gender;
             if (window.applyGenderVisualState) {
@@ -1305,6 +1698,21 @@ function customerOnboardingPage() {
                 latitude: sourcePref.latitude ?? null,
                 longitude: sourcePref.longitude ?? null,
                 delivery_note: sourcePref.delivery_note || '',
+                delivery_note_option:
+                    sourcePref.delivery_note_option || '',
+                delivery_note_other:
+                    sourcePref.delivery_note_other || '',
+                detected_city: sourcePref.detected_city || sourcePref.city || '',
+                detected_ward:
+                    sourcePref.detected_ward ||
+                    sourcePref.delivery_area ||
+                    '',
+                detected_street:
+                    sourcePref.detected_street ||
+                    sourcePref.delivery_address ||
+                    '',
+                location_success: sourcePref.location_success || false,
+                location_message: '',
                 preferred_delivery_time:
                     pref.preferred_delivery_time ||
                     this.getDefaultDeliveryTime(pref.meal_category_id)
@@ -1465,6 +1873,10 @@ function customerOnboardingPage() {
             try {
 
                 const profilePayload = this.buildProfilePayload();
+
+                this.preferences.forEach(pref => {
+                    this.syncDeliveryNote(pref);
+                });
 
                 const payload = {
     delivery_preferences: this.preferences.map(pref => ({
