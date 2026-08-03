@@ -162,7 +162,8 @@ return [
             'cancel'        => '/orders/{order_id}/cancel',
         ],
 
-        // ─── Deliveries ───
+
+ // ─── Deliveries ───
         'deliveries' => [
     'list'             => '/deliveries/',
     'create'           => '/deliveries/',
@@ -178,6 +179,7 @@ return [
     'update_status'    => '/deliveries/{delivery_id}/status',
     'update_location'  => '/deliveries/{delivery_id}/location',
 ],
+
         // ─── Locations ───
         'locations' => [
             'list'              => '/locations/',

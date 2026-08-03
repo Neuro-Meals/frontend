@@ -49,9 +49,12 @@ class DriverApiService extends BaseApiService
     }
 
     public function showDelivery(int $deliveryId): array
-    {
-        return $this->get('driver.show_delivery', ['delivery_id' => $deliveryId]);
-    }
+{
+    return $this->get(
+        'deliveries.show',
+        ['delivery_id' => $deliveryId]
+    );
+}
 
     public function pickupDelivery(int $deliveryId): array
     {
