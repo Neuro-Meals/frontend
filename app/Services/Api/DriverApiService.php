@@ -30,9 +30,9 @@ class DriverApiService extends BaseApiService
     }
 
     public function myDeliveries(): array
-    {
-        return $this->get('driver.my_deliveries');
-    }
+{
+    return $this->get('deliveries.driver_today');
+}
 
     /**
      * Ready-for-delivery orders with no driver yet, so a driver can

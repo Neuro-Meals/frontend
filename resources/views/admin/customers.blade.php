@@ -160,7 +160,6 @@
       </div>
     </div>
   </div>
-
   {{-- Customer Detail Slide-Out Panel --}}
   <div x-show="selected" class="fixed inset-0 z-50 flex justify-end" style="display: none">
     <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" @click="selected = null"></div>
@@ -173,7 +172,7 @@
           <button @click="selected = null" class="text-white/60 hover:text-white transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
-        </div>
+        </div  >
         <div class="flex items-center gap-4">
           <div class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-white font-bold text-2xl flex-shrink-0 shadow-lg" x-text="selected?.name?.charAt(0)?.toUpperCase()"></div>
           <div class="flex-1 min-w-0">

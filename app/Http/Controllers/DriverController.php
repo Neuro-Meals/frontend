@@ -361,7 +361,16 @@ class DriverController extends Controller
             'cancelled' => __('Cancelled'),
         ];
 
-        $status = $delivery['status'] ?? 'pending';
+        $rawStatus = strtolower(
+    (string) ($delivery['status'] ?? 'pending')
+);
+
+$status = match ($rawStatus) {
+    'ready_for_pickup' => 'assigned',
+    'ready_for_delivery' => 'assigned',
+    'confirmed' => 'assigned',
+    default => $rawStatus,
+};
         $order = $orderData ?: ($delivery['order'] ?? []);
         $customer = $delivery['customer'] ?? ($order['customer'] ?? ($order['user'] ?? []));
         $address = $delivery['delivery_address'] ?? ($order['delivery_address'] ?? ($customer['address'] ?? ''));

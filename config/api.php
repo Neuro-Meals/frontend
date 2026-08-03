@@ -164,16 +164,20 @@ return [
 
         // ─── Deliveries ───
         'deliveries' => [
-            'list'           => '/deliveries/',
-            'create'         => '/deliveries/',
-            'my'             => '/deliveries/my',
-            'driver_my'      => '/deliveries/driver/my',
-            'show'           => '/deliveries/{delivery_id}',
-            'assign_driver'  => '/deliveries/{delivery_id}/assign-driver',
-            'update_status'  => '/deliveries/{delivery_id}/status',
-            'update_location' => '/deliveries/{delivery_id}/location',
-        ],
+    'list'             => '/deliveries/',
+    'create'           => '/deliveries/',
+    'my'               => '/deliveries/my',
 
+    'driver_today'     => '/deliveries/driver/me/today',
+    'driver_tomorrow'  => '/deliveries/driver/me/tomorrow',
+    'driver_history'   => '/deliveries/driver/me/history',
+    'driver_dashboard' => '/deliveries/driver/me/dashboard',
+
+    'show'             => '/deliveries/{delivery_id}',
+    'assign_driver'    => '/deliveries/{delivery_id}/assign-driver',
+    'update_status'    => '/deliveries/{delivery_id}/status',
+    'update_location'  => '/deliveries/{delivery_id}/location',
+],
         // ─── Locations ───
         'locations' => [
             'list'              => '/locations/',
