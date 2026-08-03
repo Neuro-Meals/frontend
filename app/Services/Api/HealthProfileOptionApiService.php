@@ -4,23 +4,35 @@ namespace App\Services\Api;
 
 class HealthProfileOptionApiService extends BaseApiService
 {
-    public function adminList(array $query = []): array
+    public function publicOptions(): array
     {
-        return $this->get('health_profile_options.admin_list', [], $query);
+        return $this->get(
+            'health_profile_options.public'
+        );
     }
 
-    public function publicList(): array
+    public function adminList(array $query = []): array
     {
-        return $this->get('health_profile_options.public');
+        return $this->get(
+            'health_profile_options.admin_list',
+            [],
+            $query
+        );
     }
 
     public function create(array $data): array
     {
-        return $this->post('health_profile_options.admin_create', [], $data);
+        return $this->post(
+            'health_profile_options.admin_create',
+            [],
+            $data
+        );
     }
 
-    public function update(int $optionId, array $data): array
-    {
+    public function update(
+        int $optionId,
+        array $data
+    ): array {
         return $this->put(
             'health_profile_options.admin_update',
             ['option_id' => $optionId],
@@ -28,17 +40,22 @@ class HealthProfileOptionApiService extends BaseApiService
         );
     }
 
-    public function updateStatus(int $optionId, bool $isActive): array
-    {
+    public function updateStatus(
+        int $optionId,
+        bool $isActive
+    ): array {
         return $this->patch(
             'health_profile_options.admin_status',
             ['option_id' => $optionId],
-            ['is_active' => $isActive]
+            [
+                'is_active' => $isActive,
+            ]
         );
     }
 
-    public function destroy(int $optionId): array
-    {
+    public function deleteOption(
+        int $optionId
+    ): array {
         return $this->delete(
             'health_profile_options.admin_delete',
             ['option_id' => $optionId]
