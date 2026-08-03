@@ -84,6 +84,10 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             {{ __('Security') }}
         </button>
+        <button @click="activeTab = 'health_profile'" class="px-4 py-2.5 text-sm font-bold rounded-xl transition-all flex items-center gap-2 whitespace-nowrap" :class="activeTab === 'health_profile' ? 'bg-gradient-to-r from-[#6E7A25] to-[#173327] text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-3-3v6m7-3a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            {{ __('Health Profile') }}
+        </button>
         <button @click="activeTab = 'system'" class="px-4 py-2.5 text-sm font-bold rounded-xl transition-all flex items-center gap-2 whitespace-nowrap" :class="activeTab === 'system' ? 'bg-gradient-to-r from-[#6E7A25] to-[#173327] text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             {{ __('System') }}
@@ -455,6 +459,102 @@
         </div>
     </div>
 
+
+    {{-- Health Profile Options Tab --}}
+    <div x-show="activeTab === 'health_profile'" x-cloak class="space-y-6">
+        <div class="bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-2xl p-6 text-white shadow-lg">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <p class="text-[10px] font-bold tracking-[.18em] text-white/60 uppercase">{{ __('Customer Onboarding Controls') }}</p>
+                    <h3 class="text-xl font-black mt-1">{{ __('Health Profile Options') }}</h3>
+                    <p class="text-xs text-white/75 mt-2 max-w-2xl">{{ __('Manage the choices customers see for dietary preferences, food allergies and health conditions.') }}</p>
+                </div>
+                <button type="button" @click="openHealthOptionModal()" class="px-5 py-3 rounded-xl bg-white text-[#173327] text-sm font-black shadow-md hover:bg-gray-50 transition-colors">
+                    + {{ __('Add Health Option') }}
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <select x-model="healthFilter.type" @change="loadHealthOptions()" class="px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#6E7A25]">
+                    <option value="">{{ __('All Types') }}</option>
+                    <option value="dietary_preference">{{ __('Dietary Preferences') }}</option>
+                    <option value="allergy">{{ __('Food Allergies') }}</option>
+                    <option value="health_condition">{{ __('Health Conditions') }}</option>
+                </select>
+                <select x-model="healthFilter.active" @change="loadHealthOptions()" class="px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#6E7A25]">
+                    <option value="">{{ __('All Statuses') }}</option>
+                    <option value="true">{{ __('Active') }}</option>
+                    <option value="false">{{ __('Inactive') }}</option>
+                </select>
+                <input x-model.trim="healthFilter.search" @keydown.enter.prevent="loadHealthOptions()" type="search" class="px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#6E7A25]" placeholder="{{ __('Search options...') }}">
+                <button type="button" @click="loadHealthOptions()" class="px-4 py-2.5 rounded-xl bg-[#173327] text-white text-sm font-bold">{{ __('Search') }}</button>
+            </div>
+        </div>
+
+        <template x-if="healthLoading">
+            <div class="bg-white rounded-2xl border border-gray-100 p-10 text-center text-sm text-gray-400">{{ __('Loading health profile options...') }}</div>
+        </template>
+
+        <template x-if="!healthLoading && healthOptions.length === 0">
+            <div class="bg-white rounded-2xl border border-gray-100 p-10 text-center">
+                <p class="text-sm font-bold text-gray-700">{{ __('No health profile options found.') }}</p>
+                <p class="text-xs text-gray-400 mt-1">{{ __('Create the first option using the Add Health Option button.') }}</p>
+            </div>
+        </template>
+
+        <div x-show="!healthLoading && healthOptions.length" class="grid grid-cols-1 gap-3">
+            <template x-for="option in healthOptions" :key="option.id">
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col lg:flex-row lg:items-center gap-4">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-black" :class="healthTypeBadge(option.option_type)" x-text="healthTypeLabel(option.option_type)"></span>
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold" :class="option.is_active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'" x-text="option.is_active ? '{{ __('Active') }}' : '{{ __('Inactive') }}'"></span>
+                            <span class="text-[10px] text-gray-400" x-text="'{{ __('Order') }}: ' + option.sort_order"></span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                            <div><p class="text-[10px] uppercase text-gray-400 font-bold">{{ __('English') }}</p><p class="text-sm font-bold text-gray-900" x-text="option.label_en"></p></div>
+                            <div dir="rtl"><p class="text-[10px] uppercase text-gray-400 font-bold">{{ __('Arabic') }}</p><p class="text-sm font-bold text-gray-900" x-text="option.label_ar || '—'"></p></div>
+                            <div><p class="text-[10px] uppercase text-gray-400 font-bold">{{ __('Internal Value') }}</p><code class="text-xs text-[#6E7A25]" x-text="option.value"></code></div>
+                        </div>
+                        <p x-show="option.description" class="text-xs text-gray-500 mt-3" x-text="option.description"></p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button type="button" @click="toggleHealthOption(option)" class="px-3 py-2 rounded-xl text-xs font-bold border" :class="option.is_active ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-green-200 bg-green-50 text-green-700'" x-text="option.is_active ? '{{ __('Deactivate') }}' : '{{ __('Activate') }}'"></button>
+                        <button type="button" @click="openHealthOptionModal(option)" class="px-3 py-2 rounded-xl text-xs font-bold border border-blue-200 bg-blue-50 text-blue-700">{{ __('Edit') }}</button>
+                        <button type="button" @click="deleteHealthOption(option)" class="px-3 py-2 rounded-xl text-xs font-bold border border-red-200 bg-red-50 text-red-700">{{ __('Delete') }}</button>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    {{-- Health Option Modal --}}
+    <div x-show="healthModalOpen" x-cloak class="fixed inset-0 z-[70] flex items-center justify-center px-4 py-6">
+        <div class="absolute inset-0 bg-gray-950/60 backdrop-blur-sm" @click="closeHealthOptionModal()"></div>
+        <form @submit.prevent="saveHealthOption()" class="relative z-10 w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white flex items-center justify-between">
+                <div><p class="text-[10px] text-white/60 uppercase font-bold">{{ __('Health Profile Settings') }}</p><h3 class="text-base font-black" x-text="healthForm.id ? '{{ __('Edit Option') }}' : '{{ __('Add Option') }}'"></h3></div>
+                <button type="button" @click="closeHealthOptionModal()" class="w-9 h-9 rounded-xl bg-white/10">×</button>
+            </div>
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><label class="text-xs font-bold text-gray-600 mb-1.5 block">{{ __('Option Type') }} *</label><select x-model="healthForm.option_type" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm"><option value="dietary_preference">{{ __('Dietary Preference') }}</option><option value="allergy">{{ __('Food Allergy') }}</option><option value="health_condition">{{ __('Health Condition') }}</option></select></div>
+                <div><label class="text-xs font-bold text-gray-600 mb-1.5 block">{{ __('Internal Value') }} *</label><input x-model.trim="healthForm.value" @input="healthForm.value = normalizeHealthValue(healthForm.value)" required pattern="[a-z0-9]+(?:_[a-z0-9]+)*" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm" placeholder="high_protein"><p class="text-[10px] text-gray-400 mt-1">{{ __('Lowercase letters, numbers and underscores only.') }}</p></div>
+                <div><label class="text-xs font-bold text-gray-600 mb-1.5 block">{{ __('English Label') }} *</label><input x-model.trim="healthForm.label_en" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm"></div>
+                <div><label class="text-xs font-bold text-gray-600 mb-1.5 block">{{ __('Arabic Label') }}</label><input dir="rtl" x-model.trim="healthForm.label_ar" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm"></div>
+                <div><label class="text-xs font-bold text-gray-600 mb-1.5 block">{{ __('Display Order') }}</label><input type="number" min="0" max="100000" x-model.number="healthForm.sort_order" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm"></div>
+                <div class="flex items-center"><label class="flex items-center gap-3 mt-5"><input type="checkbox" x-model="healthForm.is_active" class="rounded text-[#6E7A25]"><span class="text-sm font-bold text-gray-700">{{ __('Active and visible to customers') }}</span></label></div>
+                <div class="md:col-span-2"><label class="text-xs font-bold text-gray-600 mb-1.5 block">{{ __('Description') }}</label><textarea rows="3" x-model.trim="healthForm.description" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm"></textarea></div>
+                <div x-show="healthFormError" class="md:col-span-2 p-3 rounded-xl bg-red-50 border border-red-100 text-red-700 text-xs" x-text="healthFormError"></div>
+            </div>
+            <div class="px-6 py-4 border-t bg-gray-50 flex justify-end gap-2">
+                <button type="button" @click="closeHealthOptionModal()" class="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-bold text-gray-600">{{ __('Cancel') }}</button>
+                <button type="submit" :disabled="healthSaving" class="px-5 py-2.5 rounded-xl bg-[#173327] text-white text-sm font-black disabled:opacity-50" x-text="healthSaving ? '{{ __('Saving...') }}' : '{{ __('Save Option') }}'"></button>
+            </div>
+        </form>
+    </div>
+
     {{-- System Tab --}}
     <div x-show="activeTab === 'system'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-cloak class="space-y-6">
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -553,9 +653,191 @@ function settingsApp() {
         toastMessage: '',
         originalSettings: null,
         settings: @json($settings),
+        healthOptions: [],
+        healthLoading: false,
+        healthSaving: false,
+        healthModalOpen: false,
+        healthFormError: '',
+        healthFilter: { type: '', active: '', search: '' },
+        healthForm: {
+            id: null,
+            option_type: 'dietary_preference',
+            value: '',
+            label_en: '',
+            label_ar: '',
+            description: '',
+            is_active: true,
+            sort_order: 0,
+        },
 
         init() {
             this.originalSettings = JSON.parse(JSON.stringify(this.settings));
+            this.loadHealthOptions();
+        },
+
+
+        async readJson(response) {
+            const text = await response.text();
+            if (!text) return {};
+            try { return JSON.parse(text); } catch (_) { return { message: text }; }
+        },
+
+        normalizeHealthValue(value) {
+            return String(value || '')
+                .toLowerCase()
+                .trim()
+                .replace(/[^a-z0-9]+/g, '_')
+                .replace(/^_+|_+$/g, '');
+        },
+
+        healthTypeLabel(type) {
+            return {
+                dietary_preference: '{{ __('Dietary Preference') }}',
+                allergy: '{{ __('Food Allergy') }}',
+                health_condition: '{{ __('Health Condition') }}',
+            }[type] || type;
+        },
+
+        healthTypeBadge(type) {
+            return {
+                dietary_preference: 'bg-emerald-50 text-emerald-700',
+                allergy: 'bg-amber-50 text-amber-700',
+                health_condition: 'bg-violet-50 text-violet-700',
+            }[type] || 'bg-gray-100 text-gray-600';
+        },
+
+        async loadHealthOptions() {
+            this.healthLoading = true;
+            try {
+                const params = new URLSearchParams({ limit: '500' });
+                if (this.healthFilter.type) params.set('option_type', this.healthFilter.type);
+                if (this.healthFilter.active !== '') params.set('is_active', this.healthFilter.active);
+                if (this.healthFilter.search) params.set('search', this.healthFilter.search);
+
+                const response = await fetch(`{{ route('admin.health-profile-options.index') }}?${params.toString()}`, {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await this.readJson(response);
+                if (!response.ok) throw new Error(data.message || '{{ __('Unable to load health profile options.') }}');
+                this.healthOptions = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
+            } catch (error) {
+                this.healthOptions = [];
+                this.showToast('error', error.message || '{{ __('Unable to load health profile options.') }}');
+            } finally {
+                this.healthLoading = false;
+            }
+        },
+
+        openHealthOptionModal(option = null) {
+            this.healthFormError = '';
+            this.healthForm = option ? {
+                id: Number(option.id),
+                option_type: option.option_type,
+                value: option.value,
+                label_en: option.label_en,
+                label_ar: option.label_ar || '',
+                description: option.description || '',
+                is_active: Boolean(option.is_active),
+                sort_order: Number(option.sort_order || 0),
+            } : {
+                id: null,
+                option_type: this.healthFilter.type || 'dietary_preference',
+                value: '',
+                label_en: '',
+                label_ar: '',
+                description: '',
+                is_active: true,
+                sort_order: this.healthOptions.length + 1,
+            };
+            this.healthModalOpen = true;
+        },
+
+        closeHealthOptionModal() {
+            if (this.healthSaving) return;
+            this.healthModalOpen = false;
+            this.healthFormError = '';
+        },
+
+        async saveHealthOption() {
+            this.healthSaving = true;
+            this.healthFormError = '';
+            try {
+                const editing = Boolean(this.healthForm.id);
+                const url = editing
+                    ? `{{ url('admin/health-profile-options') }}/${this.healthForm.id}`
+                    : `{{ route('admin.health-profile-options.store') }}`;
+                const payload = {
+                    ...this.healthForm,
+                    value: this.normalizeHealthValue(this.healthForm.value),
+                    sort_order: Number(this.healthForm.sort_order || 0),
+                    is_active: Boolean(this.healthForm.is_active),
+                };
+                delete payload.id;
+
+                const response = await fetch(url, {
+                    method: editing ? 'PUT' : 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify(payload),
+                });
+                const data = await this.readJson(response);
+                if (!response.ok) {
+                    const validation = data.errors ? Object.values(data.errors).flat().join(' ') : '';
+                    throw new Error(validation || data.message || '{{ __('Unable to save health profile option.') }}');
+                }
+                this.healthModalOpen = false;
+                this.showToast('success', editing ? '{{ __('Option updated successfully.') }}' : '{{ __('Option created successfully.') }}');
+                await this.loadHealthOptions();
+            } catch (error) {
+                this.healthFormError = error.message || '{{ __('Unable to save health profile option.') }}';
+            } finally {
+                this.healthSaving = false;
+            }
+        },
+
+        async toggleHealthOption(option) {
+            try {
+                const response = await fetch(`{{ url('admin/health-profile-options') }}/${option.id}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({ is_active: !option.is_active }),
+                });
+                const data = await this.readJson(response);
+                if (!response.ok) throw new Error(data.message || '{{ __('Unable to update option status.') }}');
+                option.is_active = Boolean(data.is_active);
+                this.showToast('success', '{{ __('Option status updated.') }}');
+            } catch (error) {
+                this.showToast('error', error.message || '{{ __('Unable to update option status.') }}');
+            }
+        },
+
+        async deleteHealthOption(option) {
+            if (!confirm(`{{ __('Delete') }} “${option.label_en}”?`)) return;
+            try {
+                const response = await fetch(`{{ url('admin/health-profile-options') }}/${option.id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+                const data = await this.readJson(response);
+                if (!response.ok) throw new Error(data.message || '{{ __('Unable to delete health profile option.') }}');
+                this.healthOptions = this.healthOptions.filter(item => Number(item.id) !== Number(option.id));
+                this.showToast('success', '{{ __('Option deleted successfully.') }}');
+            } catch (error) {
+                this.showToast('error', error.message || '{{ __('Unable to delete health profile option.') }}');
+            }
         },
 
         async saveSettings() {

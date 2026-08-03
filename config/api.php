@@ -85,6 +85,16 @@ return [
             'update' => '/profile/',
         ],
 
+        // ─── Health Profile Options ───
+'health_profile_options' => [
+    'public'       => '/health-profile-options/public',
+    'admin_list'   => '/health-profile-options/admin',
+    'create'       => '/health-profile-options/admin',
+    'update'       => '/health-profile-options/admin/{option_id}',
+    'status'       => '/health-profile-options/admin/{option_id}/status',
+    'delete'       => '/health-profile-options/admin/{option_id}',
+],
+
         // ─── Meal Categories ───
         'meal_categories' => [
             'list'   => '/meal-categories/',

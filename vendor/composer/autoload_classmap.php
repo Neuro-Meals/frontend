@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'App\\Http\\Controllers\\AdminController' => $baseDir . '/app/Http/Controllers/AdminController.php',
+    'App\\Http\\Controllers\\Admin\\HealthProfileOptionController' => $baseDir . '/app/Http/Controllers/Admin/HealthProfileOptionController.php',
     'App\\Http\\Controllers\\Auth\\ConfirmPasswordController' => $baseDir . '/app/Http/Controllers/Auth/ConfirmPasswordController.php',
     'App\\Http\\Controllers\\Auth\\ForgotPasswordController' => $baseDir . '/app/Http/Controllers/Auth/ForgotPasswordController.php',
     'App\\Http\\Controllers\\Auth\\LoginController' => $baseDir . '/app/Http/Controllers/Auth/LoginController.php',
@@ -44,6 +45,7 @@ return array(
     'App\\Services\\Api\\DeliveryApiService' => $baseDir . '/app/Services/Api/DeliveryApiService.php',
     'App\\Services\\Api\\DriverApiService' => $baseDir . '/app/Services/Api/DriverApiService.php',
     'App\\Services\\Api\\HasApiData' => $baseDir . '/app/Services/Api/HasApiData.php',
+    'App\\Services\\Api\\HealthProfileOptionApiService' => $baseDir . '/app/Services/Api/HealthProfileOptionApiService.php',
     'App\\Services\\Api\\LocationApiService' => $baseDir . '/app/Services/Api/LocationApiService.php',
     'App\\Services\\Api\\MealApiService' => $baseDir . '/app/Services/Api/MealApiService.php',
     'App\\Services\\Api\\MealScheduleApiService' => $baseDir . '/app/Services/Api/MealScheduleApiService.php',

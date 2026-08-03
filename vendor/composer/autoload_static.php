@@ -545,6 +545,7 @@ class ComposerStaticInit36793882908b6cbdd344b5a4840231db
 
     public static $classMap = array (
         'App\\Http\\Controllers\\AdminController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdminController.php',
+        'App\\Http\\Controllers\\Admin\\HealthProfileOptionController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/HealthProfileOptionController.php',
         'App\\Http\\Controllers\\Auth\\ConfirmPasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/ConfirmPasswordController.php',
         'App\\Http\\Controllers\\Auth\\ForgotPasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/ForgotPasswordController.php',
         'App\\Http\\Controllers\\Auth\\LoginController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/LoginController.php',
@@ -582,6 +583,7 @@ class ComposerStaticInit36793882908b6cbdd344b5a4840231db
         'App\\Services\\Api\\DeliveryApiService' => __DIR__ . '/../..' . '/app/Services/Api/DeliveryApiService.php',
         'App\\Services\\Api\\DriverApiService' => __DIR__ . '/../..' . '/app/Services/Api/DriverApiService.php',
         'App\\Services\\Api\\HasApiData' => __DIR__ . '/../..' . '/app/Services/Api/HasApiData.php',
+        'App\\Services\\Api\\HealthProfileOptionApiService' => __DIR__ . '/../..' . '/app/Services/Api/HealthProfileOptionApiService.php',
         'App\\Services\\Api\\LocationApiService' => __DIR__ . '/../..' . '/app/Services/Api/LocationApiService.php',
         'App\\Services\\Api\\MealApiService' => __DIR__ . '/../..' . '/app/Services/Api/MealApiService.php',
         'App\\Services\\Api\\MealScheduleApiService' => __DIR__ . '/../..' . '/app/Services/Api/MealScheduleApiService.php',
