@@ -740,7 +740,28 @@
             </p>
         </section>
 
-        <section class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div x-show="healthOptionsLoading" x-cloak
+            class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex items-center justify-center gap-3 text-sm text-gray-600">
+            <svg class="w-5 h-5 animate-spin text-[#6E7A25]" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3"></circle>
+                <path class="opacity-90" fill="currentColor"
+                    d="M12 3a9 9 0 0 1 9 9h-3a6 6 0 0 0-6-6V3z"></path>
+            </svg>
+            <span>{{ __('Loading health profile options...') }}</span>
+        </div>
+
+        <div x-show="healthOptionsError" x-cloak
+            class="bg-red-50 border border-red-200 text-red-700 rounded-2xl px-5 py-4 text-sm">
+            <p class="font-bold">{{ __('Unable to load health profile options.') }}</p>
+            <p class="mt-1" x-text="healthOptionsError"></p>
+            <button type="button" @click="loadHealthOptions()"
+                class="mt-3 px-4 py-2 rounded-xl bg-red-600 text-white text-xs font-bold">
+                {{ __('Try Again') }}
+            </button>
+        </div>
+
+        <section x-show="!healthOptionsLoading && !healthOptionsError"
+            class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/60">
                 <h3 class="text-sm font-bold text-gray-800">{{ __('Dietary Preferences') }}</h3>
             </div>
@@ -754,7 +775,8 @@
             </div>
         </section>
 
-        <section class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <section x-show="!healthOptionsLoading && !healthOptionsError"
+            class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/60">
                 <h3 class="text-sm font-bold text-gray-800">{{ __('Food Allergies') }}</h3>
             </div>
@@ -771,7 +793,8 @@
             </div>
         </section>
 
-        <section class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <section x-show="!healthOptionsLoading && !healthOptionsError"
+            class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/60">
                 <h3 class="text-sm font-bold text-gray-800">{{ __('Health Conditions') }}</h3>
             </div>
@@ -815,7 +838,7 @@
 
         <button id="continue-delivery-btn"
             type="submit"
-            :disabled="savingProfile"
+            :disabled="savingProfile || healthOptionsLoading || !!healthOptionsError"
             class="profile-submit-btn"
             aria-label="{{ __('Continue to Delivery Preferences') }}">
 
@@ -995,6 +1018,10 @@ function customerOnboardingPage() {
         deliverySuccess: false,
         deliveryModalOpen: @json($startAtDelivery ?? false),
         today: new Date().toISOString().split('T')[0],
+        locale: @json(app()->getLocale()),
+        healthOptionsLoading: true,
+        healthOptionsError: '',
+        healthOptionsUrl: @json(route('user.health-profile-options.public')),
 
         profile: {
             age: Number(initialProfile.age ?? '') || '',
@@ -1037,125 +1064,12 @@ function customerOnboardingPage() {
             athlete: '{{ __("Athlete") }}'
         },
 
-        dietaryOptions: [
-            {
-                value: 'balanced',
-                label: '{{ __('Balanced') }}'
-            },
-            {
-                value: 'high_protein',
-                label: '{{ __('High Protein') }}'
-            },
-            {
-                value: 'low_carb',
-                label: '{{ __('Low Carb') }}'
-            },
-            {
-                value: 'low_fat',
-                label: '{{ __('Low Fat') }}'
-            },
-            {
-                value: 'keto',
-                label: '{{ __('Keto') }}'
-            },
-            {
-                value: 'vegetarian',
-                label: '{{ __('Vegetarian') }}'
-            },
-        ],
+        dietaryOptions: [],
+        allergyOptions: [],
 
-        allergyOptions: [{
-                value: 'none',
-                label: '{{ __('None') }}'
-            },
-            {
-                value: 'milk',
-                label: '{{ __('Milk') }}'
-            },
-            {
-                value: 'eggs',
-                label: '{{ __('Eggs') }}'
-            },
-            {
-                value: 'fish',
-                label: '{{ __('Fish') }}'
-            },
-            {
-                value: 'shellfish',
-                label: '{{ __('Shellfish') }}'
-            },
-            {
-                value: 'peanuts',
-                label: '{{ __('Peanuts') }}'
-            },
-            {
-                value: 'tree_nuts',
-                label: '{{ __('Tree Nuts') }}'
-            },
-            {
-                value: 'soy',
-                label: '{{ __('Soy') }}'
-            },
-            {
-                value: 'gluten',
-                label: '{{ __('Gluten') }}'
-            }
-        ],
+        async init() {
+            await this.loadHealthOptions();
 
-        getDefaultDeliveryTime(categoryId) {
-    switch (Number(categoryId)) {
-        case 1:
-            return '07:00';
-
-        case 2:
-            return '12:30';
-
-        case 3:
-            return '19:00';
-
-        case 4:
-            return '16:00';
-
-        default:
-            return '12:00';
-    }
-},
-
-        conditionOptions: [{
-                value: 'none',
-                label: '{{ __('None') }}'
-            },
-            {
-                value: 'diabetes',
-                label: '{{ __('Diabetes') }}'
-            },
-            {
-                value: 'hypertension',
-                label: '{{ __('Hypertension') }}'
-            },
-            {
-                value: 'high_cholesterol',
-                label: '{{ __('High Cholesterol') }}'
-            },
-            {
-                value: 'heart_disease',
-                label: '{{ __('Heart Disease') }}'
-            },
-            {
-                value: 'kidney_disease',
-                label: '{{ __('Kidney Disease') }}'
-            },
-            {
-                value: 'thyroid',
-                label: '{{ __('Thyroid') }}'
-            },
-            {
-                value: 'pcos',
-                label: '{{ __('PCOS') }}'
-            }
-        ],
-
-        init() {
             this.preferences = this.preferences.map(pref => ({
                 meal_category_id: pref.meal_category_id,
                 category_name: pref.category_name || '{{ __("Meal") }}',
@@ -1176,6 +1090,127 @@ function customerOnboardingPage() {
         document.body.classList.add('overflow-hidden');
     }
 },
+
+        optionLabel(option) {
+            if (!option || typeof option !== 'object') {
+                return '';
+            }
+
+            if (this.locale === 'ar') {
+                return option.label_ar || option.label_en || option.value || '';
+            }
+
+            return option.label_en || option.label_ar || option.value || '';
+        },
+
+        normalizeHealthOption(option) {
+            return {
+                id: Number(option?.id || 0),
+                value: String(option?.value || '').trim(),
+                label: this.optionLabel(option),
+                label_en: option?.label_en || '',
+                label_ar: option?.label_ar || '',
+                description: option?.description || '',
+                sort_order: Number(option?.sort_order || 0)
+            };
+        },
+
+        async loadHealthOptions() {
+            this.healthOptionsLoading = true;
+            this.healthOptionsError = '';
+
+            try {
+                const response = await fetch(this.healthOptionsUrl, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const responseText = await response.text();
+                let data = {};
+
+                try {
+                    data = responseText ? JSON.parse(responseText) : {};
+                } catch (error) {
+                    console.error('Health options returned non-JSON:', responseText);
+                }
+
+                if (!response.ok || data.success === false) {
+                    throw new Error(
+                        data.message ||
+                        data.error ||
+                        '{{ __('Unable to load health profile options.') }}'
+                    );
+                }
+
+                const payload = data.data || data;
+
+                this.dietaryOptions = (
+                    payload.dietary_preferences || []
+                ).map(option => this.normalizeHealthOption(option))
+                 .filter(option => option.value);
+
+                this.allergyOptions = (
+                    payload.allergies || []
+                ).map(option => this.normalizeHealthOption(option))
+                 .filter(option => option.value);
+
+                this.conditionOptions = (
+                    payload.health_conditions || []
+                ).map(option => this.normalizeHealthOption(option))
+                 .filter(option => option.value);
+
+                /*
+                 * Keep saved historical values visible even when an admin
+                 * later deactivates or removes an option.
+                 */
+                this.preserveSelectedOptionValues(
+                    'dietary_preferences',
+                    this.dietaryOptions
+                );
+                this.preserveSelectedOptionValues(
+                    'allergies',
+                    this.allergyOptions
+                );
+                this.preserveSelectedOptionValues(
+                    'chronic_conditions',
+                    this.conditionOptions
+                );
+            } catch (error) {
+                console.error(error);
+                this.healthOptionsError =
+                    error.message ||
+                    '{{ __('Unable to load health profile options.') }}';
+            } finally {
+                this.healthOptionsLoading = false;
+            }
+        },
+
+        preserveSelectedOptionValues(field, options) {
+            const selectedValues = Array.isArray(this.profile[field])
+                ? this.profile[field]
+                : [];
+
+            selectedValues.forEach(value => {
+                const normalizedValue = String(value || '').trim();
+
+                if (
+                    normalizedValue &&
+                    !options.some(option => option.value === normalizedValue)
+                ) {
+                    options.push({
+                        id: 0,
+                        value: normalizedValue,
+                        label: normalizedValue.replaceAll('_', ' '),
+                        label_en: normalizedValue,
+                        label_ar: '',
+                        description: '',
+                        sort_order: 999999
+                    });
+                }
+            });
+        },
 
         selectGender(gender) {
             this.profile.gender = gender;

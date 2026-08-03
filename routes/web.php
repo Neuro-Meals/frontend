@@ -323,3 +323,4 @@ Route::prefix('user')->name('user.')->middleware(['api.auth', 'api.customer'])->
     Route::post('/onboarding/delivery-preferences', [UserController::class, 'saveDeliveryPreferences'])->name('onboarding.delivery-preferences');
 });
 require __DIR__ . '/health_profile_options.php';
+require __DIR__ . '/health_profile_options_public.php';
