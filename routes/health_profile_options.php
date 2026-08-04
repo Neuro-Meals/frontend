@@ -3,14 +3,6 @@
 use App\Http\Controllers\Admin\HealthProfileOptionController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Phase 1 Task 2 - Admin Health Profile Options
-|--------------------------------------------------------------------------
-|
-| This file is loaded from routes/web.php by the installer.
-|
-*/
 Route::prefix('admin')
     ->name('admin.')
     ->middleware('api.admin')
@@ -26,3 +18,4 @@ Route::prefix('admin')
         Route::delete('/health-profile-options/{optionId}', [HealthProfileOptionController::class, 'destroy'])
             ->name('health-profile-options.destroy');
     });
+    
