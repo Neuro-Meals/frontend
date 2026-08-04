@@ -259,7 +259,7 @@ return [
             'dashboard'             => '/chef/dashboard',
             'orders'                => '/chef/orders',
             'orders_today'          => '/chef/orders/today',
-            'orders_today_grouped'  => '/chef/orders/today/grouped',
+            'orders_today_grouped'  => '/chef/orders/today/',
             'orders_tomorrow'       => '/chef/orders/tomorrow',
             'show_order'            => '/chef/orders/{order_id}',
             'start_preparing'       => '/chef/orders/{order_id}/start-preparing',

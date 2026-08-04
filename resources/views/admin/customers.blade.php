@@ -600,7 +600,7 @@
                             <template x-for="meal in (assignment.meals || [])" :key="'history-meal-' + (meal.id || meal.meal_id)">
                               <li class="flex items-center justify-between gap-2 text-xs text-gray-700">
                                 <span class="truncate" x-text="meal.name || meal.name_en || meal.name_ar || ('{{ __('Meal') }} #' + (meal.id || meal.meal_id))"></span>
-                                <span class="flex-shrink-0 text-[10px] font-bold text-gray-400" x-text="'×' + Number(meal.quantity || 1)"></span>
+                                <span class="flex-shrink-0 text-[10px] font-bold text-[#59651f]" x-text="meal.preparation_quantity ? Number(meal.preparation_quantity) + ' ' + (meal.preparation_unit || 'portion') : '×' + Number(meal.quantity || 1)"></span>
                               </li>
                             </template>
                           </ul>
@@ -899,17 +899,45 @@
 
                     <div class="assignment-meal-list divide-y divide-gray-100">
                       <template x-for="meal in filteredMealsForSlot(slot.key)" :key="slot.key + '-' + activePlannerDay() + '-' + meal.id">
-                        <label class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors">
-                          <input type="checkbox"
-                                 :value="meal.id"
-                                 x-model="activeDayAssignments()[slot.key]"
-                                 class="w-5 h-5 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]/20">
+                        <div class="px-4 py-3 hover:bg-gray-50 transition-colors">
+                          <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" :value="meal.id"
+                              x-model="activeDayAssignments()[slot.key]"
+                              @change="mealSelectionChanged(slot.key, meal.id)"
+                              class="w-5 h-5 rounded border-gray-300 text-[#6E7A25] focus:ring-[#6E7A25]/20">
+                            <div class="min-w-0 flex-1">
+                              <p class="text-sm font-semibold text-gray-700 truncate" x-text="meal.name"></p>
+                              <p x-show="meal.calories" class="text-xs text-gray-400 mt-0.5" x-text="meal.calories + ' kcal'"></p>
+                            </div>
+                          </label>
 
-                          <div class="min-w-0 flex-1">
-                            <p class="text-sm font-semibold text-gray-700 truncate" x-text="meal.name"></p>
-                            <p x-show="meal.calories" class="text-xs text-gray-400 mt-0.5" x-text="meal.calories + ' kcal'"></p>
+                          <div x-show="isMealSelected(slot.key, meal.id)" x-cloak
+                            class="mt-3 ml-8 rounded-xl border border-[#6E7A25]/15 bg-[#6E7A25]/5 p-3">
+                            <p class="mb-2 text-[10px] font-black uppercase tracking-wider text-[#59651f]">{{ __('Customer Meal Quantity') }}</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                              <div>
+                                <label class="mb-1 block text-[10px] font-bold text-gray-500">{{ __('Package/Portions') }}</label>
+                                <input type="number" min="1" max="20" step="1"
+                                  x-model.number="mealItemDetail(slot.key, meal.id).quantity"
+                                  class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+                              </div>
+                              <div>
+                                <label class="mb-1 block text-[10px] font-bold text-gray-500">{{ __('Actual Amount') }} <span class="text-red-500">*</span></label>
+                                <input type="number" min="0.001" step="0.001" required
+                                  x-model="mealItemDetail(slot.key, meal.id).preparation_quantity"
+                                  class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-[#6E7A25]/20" placeholder="1">
+                              </div>
+                              <div>
+                                <label class="mb-1 block text-[10px] font-bold text-gray-500">{{ __('Unit') }} <span class="text-red-500">*</span></label>
+                                <select x-model="mealItemDetail(slot.key, meal.id).preparation_unit" required
+                                  class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+                                  <option value="portion">{{ __('Portion') }}</option><option value="kg">{{ __('Kilogram (kg)') }}</option><option value="g">{{ __('Gram (g)') }}</option><option value="whole">{{ __('Whole') }}</option><option value="half">{{ __('Half') }}</option><option value="quarter">{{ __('Quarter') }}</option><option value="piece">{{ __('Piece') }}</option><option value="litre">{{ __('Litre') }}</option><option value="ml">{{ __('Millilitre (ml)') }}</option><option value="tray">{{ __('Tray') }}</option><option value="pack">{{ __('Pack') }}</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div class="mt-2"><label class="mb-1 block text-[10px] font-bold text-gray-500">{{ __('Meal Notes') }}</label><input type="text" maxlength="500" x-model.trim="mealItemDetail(slot.key, meal.id).notes" class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-[#6E7A25]/20" placeholder="{{ __('Example: no sauce, cut into small pieces') }}"></div>
                           </div>
-                        </label>
+                        </div>
                       </template>
 
                       <div x-show="filteredMealsForSlot(slot.key).length === 0" class="px-4 py-8 text-center text-sm text-gray-400">
@@ -1284,6 +1312,7 @@ function customersApp() {
       week_number: 1,
       active_day: 1,
       days: {},
+      meal_item_details: {},
       category_settings: {},
       driver_id: '',
       assignment_reason: '',
@@ -1896,10 +1925,46 @@ function customersApp() {
 
     resetPlannerDays() {
       this.assignMealForm.days = {};
+      this.assignMealForm.meal_item_details = {};
       const count = this.assignMealForm.mode === 'daily' ? 1 : 7;
       for (let day = 1; day <= count; day++) {
         this.assignMealForm.days[String(day)] = this.emptyMealSlots();
+        this.assignMealForm.meal_item_details[String(day)] = {};
       }
+    },
+
+    ensureMealItemDay(day) {
+      const dayKey = String(Number(day || 1));
+      if (!this.assignMealForm.meal_item_details) this.assignMealForm.meal_item_details = {};
+      if (!this.assignMealForm.meal_item_details[dayKey]) this.assignMealForm.meal_item_details[dayKey] = {};
+      this.mealSlots.forEach(slot => {
+        if (!this.assignMealForm.meal_item_details[dayKey][slot.key]) this.assignMealForm.meal_item_details[dayKey][slot.key] = {};
+      });
+      return this.assignMealForm.meal_item_details[dayKey];
+    },
+
+    mealItemDetail(slotKey, mealId, plannerDay = null) {
+      const day = Number(plannerDay || this.activePlannerDay());
+      const details = this.ensureMealItemDay(day);
+      const mealKey = String(Number(mealId));
+      if (!details[slotKey][mealKey]) details[slotKey][mealKey] = { quantity: 1, preparation_quantity: 1, preparation_unit: 'portion', notes: '' };
+      return details[slotKey][mealKey];
+    },
+
+    isMealSelected(slotKey, mealId, plannerDay = null) {
+      const day = Number(plannerDay || this.activePlannerDay());
+      return (this.ensurePlannerDay(day)[slotKey] || []).map(Number).includes(Number(mealId));
+    },
+
+    mealSelectionChanged(slotKey, mealId) {
+      const day = this.activePlannerDay();
+      if (this.isMealSelected(slotKey, mealId, day)) { this.mealItemDetail(slotKey, mealId, day); return; }
+      const details = this.ensureMealItemDay(day);
+      delete details[slotKey][String(Number(mealId))];
+    },
+
+    cloneMealItemDay(day) {
+      return JSON.parse(JSON.stringify(this.ensureMealItemDay(day) || {}));
     },
 
     async openAssignMeal(c, options = {}) {
@@ -1922,6 +1987,7 @@ function customersApp() {
         week_number: 1,
         active_day: 1,
         days: {},
+        meal_item_details: {},
         category_settings: {},
         driver_id: '',
         assignment_reason: c?.location ? '{{ __('Same delivery zone: ') }}' + c.location : '',
@@ -2175,6 +2241,16 @@ function customersApp() {
         const ids = this.assignmentMealIds(item);
         slots[slot] = [...new Set([...slots[slot], ...ids])];
 
+        const submittedItems = Array.isArray(item?.meals) ? item.meals : (Array.isArray(item?.items) ? item.items : []);
+        ids.forEach(mealId => {
+          const submittedItem = submittedItems.find(entry => Number(entry?.meal_id || entry?.id || entry?.meal?.id || entry) === Number(mealId));
+          const detail = this.mealItemDetail(slot, mealId, plannerDay);
+          detail.quantity = Number(submittedItem?.quantity || 1);
+          detail.preparation_quantity = submittedItem?.preparation_quantity ?? submittedItem?.amount ?? submittedItem?.customer_quantity ?? submittedItem?.quantity ?? 1;
+          detail.preparation_unit = String(submittedItem?.preparation_unit || submittedItem?.unit || 'portion').toLowerCase();
+          detail.notes = submittedItem?.notes || submittedItem?.item_notes || '';
+        });
+
         const setting = this.categorySetting(slot);
         setting.delivery_preference_id = Number(item?.delivery_preference_id || item?.delivery_preference?.id || setting.delivery_preference_id || 0);
         setting.driver_id = String(item?.driver_id || item?.driver?.id || setting.driver_id || '');
@@ -2351,8 +2427,10 @@ function customersApp() {
     },
 
     clearMealSlot(slot) {
+      const day = this.activePlannerDay();
       const slots = this.activeDayAssignments();
       if (slots?.[slot]) slots[slot] = [];
+      this.ensureMealItemDay(day)[slot] = {};
     },
 
     clearWholeWeek() {
@@ -2362,15 +2440,17 @@ function customersApp() {
     copyPreviousDay() {
       const current = this.activePlannerDay();
       if (current <= 1) return;
-      this.assignMealForm.days[String(current)] = this.cloneMealSlots(
-        this.ensurePlannerDay(current - 1)
-      );
+      this.assignMealForm.days[String(current)] = this.cloneMealSlots(this.ensurePlannerDay(current - 1));
+      this.assignMealForm.meal_item_details[String(current)] = this.cloneMealItemDay(current - 1);
     },
 
     copyActiveDayToAll() {
+      const activeDay = this.activePlannerDay();
       const source = this.cloneMealSlots(this.activeDayAssignments());
+      const sourceDetails = this.cloneMealItemDay(activeDay);
       this.visiblePlannerDays().forEach(day => {
         this.assignMealForm.days[String(day)] = this.cloneMealSlots(source);
+        this.assignMealForm.meal_item_details[String(day)] = JSON.parse(JSON.stringify(sourceDetails));
       });
     },
 
@@ -2945,13 +3025,25 @@ function customersApp() {
         const setting = this.categorySetting(slot.key);
         const preference = this.deliveryPreferenceFor(slot.key);
 
+        const meals = mealIds.map(mealId => {
+          const detail = this.mealItemDetail(slot.key, mealId, plannerDay);
+          return {
+            meal_id: Number(mealId),
+            quantity: Math.max(1, Math.min(Number(detail.quantity || 1), 20)),
+            preparation_quantity: Number(detail.preparation_quantity || 0),
+            preparation_unit: String(detail.preparation_unit || 'portion').toLowerCase(),
+            notes: String(detail.notes || '').trim() || null
+          };
+        });
+
         return {
           meal_time: this.mealTimeForCategory(slot.category_id, slot.code),
           meal_category_id: Number(slot.category_id || 0),
           delivery_preference_id: Number(setting.delivery_preference_id || preference?.id || preference?.delivery_preference_id || 0),
           driver_id: Number(setting.driver_id || 0),
           delivery_time: String(setting.delivery_time || '').slice(0, 5),
-          meal_ids: mealIds
+          meal_ids: mealIds,
+          meals
         };
       }).filter(Boolean);
     },
@@ -3081,14 +3173,19 @@ function customersApp() {
             );
           }
 
-          if (
-            !Array.isArray(assignment?.meal_ids) ||
-            assignment.meal_ids.length === 0
-          ) {
-            errors.push(
-              `Assignment ${position}: select at least one meal.`
-            );
+          if (!Array.isArray(assignment?.meal_ids) || assignment.meal_ids.length === 0) {
+            errors.push(`Assignment ${position}: select at least one meal.`);
           }
+
+          const meals = Array.isArray(assignment?.meals) ? assignment.meals : [];
+          if (meals.length !== assignment.meal_ids.length) errors.push(`Assignment ${position}: meal quantity details are incomplete.`);
+          meals.forEach((meal, mealIndex) => {
+            const mealPosition = `${position}.${mealIndex + 1}`;
+            if (Number(meal?.meal_id || 0) < 1) errors.push(`Meal ${mealPosition}: meal ID is missing.`);
+            if (Number(meal?.quantity || 0) < 1 || Number(meal?.quantity || 0) > 20) errors.push(`Meal ${mealPosition}: portions must be between 1 and 20.`);
+            if (!Number.isFinite(Number(meal?.preparation_quantity)) || Number(meal?.preparation_quantity) <= 0) errors.push(`Meal ${mealPosition}: enter an actual quantity greater than zero.`);
+            if (!String(meal?.preparation_unit || '').trim()) errors.push(`Meal ${mealPosition}: select a preparation unit.`);
+          });
         });
       });
 

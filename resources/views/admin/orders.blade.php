@@ -4,6 +4,31 @@
 @section('page_title', __('Orders'))
 
 @section('content')
+<style>
+[x-cloak] { display: none !important; }
+
+.orders-scroll {
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.orders-scroll::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.orders-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #d1d5db;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+</style>
+
 <div x-data="ordersApp()" x-init="init()" class="space-y-4">
 
   {{-- KPI Cards --}}
@@ -38,34 +63,158 @@
     </template>
   </div>
 
-  {{-- Filter Bar --}}
-  <div class="bg-white rounded-2xl border border-gray-100 p-3 shadow-sm flex flex-wrap items-center gap-2">
-    <div class="flex items-center gap-2 mr-auto">
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center shadow-sm">
-        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+  {{-- Operational Toolbar --}}
+  <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+    <div class="flex flex-col xl:flex-row xl:items-center gap-4">
+      <div class="flex items-center gap-3 flex-1 min-w-0">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center shadow-sm flex-shrink-0">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+        </div>
+
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <p class="text-sm font-bold text-gray-900">{{ __('Today\'s Generated Orders') }}</p>
+            <span class="rounded-full bg-green-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-green-700 border border-green-100">
+              {{ __('Live Data') }}
+            </span>
+          </div>
+          <p class="text-[10px] text-gray-400 mt-0.5" x-text="todayDate"></p>
+          <p class="text-[10px] text-gray-400 mt-0.5">
+            {{ __('Last refreshed') }}:
+            <span class="font-semibold text-gray-600" x-text="lastUpdatedLabel"></span>
+          </p>
+        </div>
       </div>
-      <div>
-        <p class="text-sm font-bold text-gray-900">{{ __('Today\'s Orders') }}</p>
-        <p class="text-[10px] text-gray-400" x-text="todayDate"></p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:flex xl:items-center gap-2 w-full xl:w-auto">
+        <div class="relative sm:col-span-2 xl:w-64">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input
+            type="text"
+            x-model.trim="search"
+            placeholder="{{ __('Search customer, order, meal or driver...') }}"
+            class="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-9 pr-3 text-xs outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+        </div>
+
+        <select
+          x-model="statusFilter"
+          class="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-xs text-gray-700 outline-none">
+          <option value="">{{ __('All Statuses') }}</option>
+          <option value="pending">{{ __('Pending') }}</option>
+          <option value="confirmed">{{ __('Confirmed') }}</option>
+          <option value="preparing">{{ __('Preparing') }}</option>
+          <option value="ready_for_delivery">{{ __('Ready for Delivery') }}</option>
+          <option value="out_for_delivery">{{ __('Out for Delivery') }}</option>
+          <option value="delivered">{{ __('Delivered') }}</option>
+          <option value="cancelled">{{ __('Cancelled') }}</option>
+        </select>
+
+        <button @click="fetchOrders()"
+          :disabled="loading"
+          class="px-3 py-2.5 text-xs font-bold text-white bg-[#6E7A25] rounded-xl hover:bg-[#5a6820] transition-all shadow-sm whitespace-nowrap flex items-center justify-center gap-1.5 disabled:opacity-60">
+          <svg :class="loading ? 'animate-spin' : ''" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          {{ __('Refresh') }}
+        </button>
+
+        {{-- Keep this manual fallback button. It is intentionally not removed. --}}
+        <button @click="generateOrders()"
+          :disabled="generating"
+          class="px-3 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-xl hover:opacity-90 transition-all shadow-sm whitespace-nowrap flex items-center justify-center gap-1.5 disabled:opacity-60">
+          <svg x-show="!generating" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+          </svg>
+          <svg x-show="generating" x-cloak class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          <span x-text="generating ? '{{ __('Generating...') }}' : '{{ __('Generate Orders') }}'"></span>
+        </button>
+
+        <button @click="toggleCompleted()"
+          :class="includeCompleted ? 'bg-[#173327] text-white' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'"
+          class="px-3 py-2.5 text-xs font-bold border border-gray-100 rounded-xl transition-all whitespace-nowrap flex items-center justify-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span x-text="includeCompleted ? '{{ __('Hide Completed') }}' : '{{ __('Show Completed') }}'"></span>
+        </button>
       </div>
     </div>
-    <button @click="fetchOrders()" class="px-3 py-2 text-xs font-bold text-white bg-[#6E7A25] rounded-lg hover:bg-[#5a6820] transition-all shadow-sm whitespace-nowrap flex items-center gap-1.5">
-      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-      {{ __('Refresh') }}
-    </button>
-    <button @click="generateOrders()"
-      class="px-3 py-2 text-xs font-bold text-white bg-gradient-to-r from-[#173327] to-[#6E7A25] rounded-lg hover:opacity-90 transition-all shadow-sm whitespace-nowrap flex items-center gap-1.5">
-      <svg x-show="!generating" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-      <svg x-show="generating" class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-      {{ __('Generate Orders') }}
-    </button>
-    <button @click="toggleCompleted()"
-      :class="includeCompleted ? 'bg-[#173327] text-white' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'"
-      class="px-3 py-2 text-xs font-bold border border-gray-100 rounded-lg transition-all whitespace-nowrap flex items-center gap-1.5">
-      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      {{ __('Show Completed') }}
-      <span x-show="includeCompleted" class="ml-1">×</span>
-    </button>
+
+    <div x-show="notice.message" x-cloak
+      class="mt-4 rounded-xl border px-4 py-3 text-xs font-semibold"
+      :class="notice.type === 'success'
+        ? 'border-green-100 bg-green-50 text-green-700'
+        : notice.type === 'error'
+          ? 'border-red-100 bg-red-50 text-red-700'
+          : 'border-blue-100 bg-blue-50 text-blue-700'">
+      <div class="flex items-start justify-between gap-3">
+        <span x-text="notice.message"></span>
+        <button type="button" @click="notice.message = ''" class="opacity-60 hover:opacity-100">×</button>
+      </div>
+    </div>
+  </div>
+
+  {{-- Operational Snapshot --}}
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+      <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">{{ __('Order Readiness') }}</p>
+      <div class="mt-3 flex items-end justify-between">
+        <div>
+          <p class="text-2xl font-black text-gray-900" x-text="operationalSummary.ready + '/' + operationalSummary.total"></p>
+          <p class="text-xs text-gray-500">{{ __('ready or beyond') }}</p>
+        </div>
+        <div class="h-12 w-12 rounded-xl bg-indigo-50 flex items-center justify-center">
+          <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M5 13l4 4L19 7"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+      <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">{{ __('Driver Coverage') }}</p>
+      <div class="mt-3 flex items-end justify-between">
+        <div>
+          <p class="text-2xl font-black text-gray-900" x-text="operationalSummary.assignedDrivers + '/' + operationalSummary.total"></p>
+          <p class="text-xs text-gray-500">{{ __('orders with drivers') }}</p>
+        </div>
+        <div class="h-12 w-12 rounded-xl bg-blue-50 flex items-center justify-center">
+          <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0zM13 16V6H4v10h1m8 0h2m-6 0h4"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+      <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">{{ __('Packaging Quantity') }}</p>
+      <div class="mt-3 flex items-end justify-between">
+        <div>
+          <p class="text-2xl font-black text-gray-900" x-text="operationalSummary.totalPortions"></p>
+          <p class="text-xs text-gray-500">{{ __('total portions/packages') }}</p>
+        </div>
+        <div class="h-12 w-12 rounded-xl bg-amber-50 flex items-center justify-center">
+          <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M20 7l-8-4-8 4m16 0-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
+          </svg>
+        </div>
+      </div>
+    </div>
   </div>
 
   {{-- Shopping List (All ingredients needed for today) --}}
@@ -130,14 +279,15 @@
         </div>
         <h3 class="text-sm font-bold text-gray-900" x-text="activeCategoryName + ' ' + '{{ __('Orders') }}'"></h3>
       </div>
-      <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#173327]/10 text-[#173327]" x-text="activeOrders.length + ' {{ __('orders') }}' + (activeCategoryQty ? ' · ' + activeCategoryQty + ' {{ __('qty') }}' : '')"></span>
+      <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#173327]/10 text-[#173327]"
+        x-text="filteredActiveOrders.length + ' {{ __('orders') }}' + (activeCategoryQty ? ' · ' + activeCategoryQty + ' {{ __('qty') }}' : '')"></span>
     </div>
 
     <template x-if="loading">
       <div class="px-4 py-8"><div class="space-y-3 animate-pulse"><template x-for="i in 4"><div class="h-16 bg-gray-50 rounded-xl"></div></template></div></div>
     </template>
 
-    <template x-if="!loading && activeOrders.length === 0">
+    <template x-if="!loading && filteredActiveOrders.length === 0">
       <div class="px-4 py-16 text-center">
         <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 flex items-center justify-center mx-auto mb-4">
           <svg class="w-8 h-8 text-[#6E7A25]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
@@ -147,8 +297,8 @@
       </div>
     </template>
 
-    <div class="divide-y divide-gray-50" x-show="!loading && activeOrders.length > 0">
-      <template x-for="order in activeOrders" :key="order.order_id">
+    <div class="divide-y divide-gray-50" x-show="!loading && filteredActiveOrders.length > 0">
+      <template x-for="order in filteredActiveOrders" :key="order.order_id">
         <div class="px-4 py-3.5 hover:bg-gray-50/30 transition-colors cursor-pointer" @click="showDetail(order)">
           <div class="flex items-center justify-between gap-3 mb-2">
             <div class="flex items-center gap-2.5 min-w-0">
@@ -164,7 +314,10 @@
           </div>
           {{-- Summary row --}}
           <div class="flex items-center gap-3 flex-wrap">
-            <span class="text-xs font-medium text-gray-700 truncate" x-text="order.meal_summary"></span>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-semibold text-gray-700 truncate" x-text="order.meal_summary"></p>
+              <p class="mt-1 text-[10px] text-gray-400 truncate" x-text="orderDescription(order)"></p>
+            </div>
             <div class="flex items-center gap-2 ml-auto flex-shrink-0">
               <span x-show="order.total_quantity" class="text-[10px] font-bold text-[#173327] bg-[#173327]/10 px-2 py-0.5 rounded-full" x-text="order.total_quantity + ' {{ __('qty') }}'"></span>
               <span x-show="order.total_calories" class="text-[10px] font-bold text-[#6E7A25] bg-[#6E7A25]/10 px-2 py-0.5 rounded-full" x-text="order.total_calories + ' kcal'"></span>
@@ -177,7 +330,7 @@
   </div>
 
   {{-- Per-Category Delivery Assignment --}}
-  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4" x-show="activeOrders.length > 0">
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4" x-show="filteredActiveOrders.length > 0">
     <div class="flex items-center gap-2 mb-3">
       <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
         <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
@@ -332,7 +485,13 @@
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center justify-between gap-2">
                         <p class="text-sm font-bold text-gray-900" x-text="item.meal_name || item.name || 'Item'"></p>
-                        <span class="text-xs font-bold text-[#6E7A25] bg-[#6E7A25]/10 px-2 py-0.5 rounded-full flex-shrink-0" x-text="'×' + (item.quantity || 1)"></span>
+                        <div class="flex items-center gap-1.5 flex-shrink-0">
+                          <span class="text-xs font-bold text-[#6E7A25] bg-[#6E7A25]/10 px-2 py-0.5 rounded-full"
+                            x-text="'×' + (item.quantity || 1)"></span>
+                          <span x-show="item.preparation_quantity"
+                            class="text-xs font-bold text-[#173327] bg-[#173327]/10 px-2 py-0.5 rounded-full"
+                            x-text="formatPreparation(item)"></span>
+                        </div>
                       </div>
                       <p x-show="item.category_name" class="text-[10px] text-gray-400 mt-0.5" x-text="item.category_name"></p>
                       <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
@@ -437,68 +596,326 @@ function ordersApp() {
     drivers: @json($drivers),
     todayDate: @json($todayDate),
     shoppingList: @json($shoppingList),
+
     activeTab: @json($categories[0]['id'] ?? 0),
     selected: null,
     selectedStatus: '',
+
     loading: false,
     actionLoading: false,
     generating: false,
     includeCompleted: false,
+
+    search: '',
+    statusFilter: '',
+    lastUpdatedAt: null,
+    notice: {
+      type: '',
+      message: ''
+    },
+
     assignDriverId: '',
     assignTime: '',
     categoryDriverId: '',
     categoryDeliveryTime: '',
 
-    statusClass(s) {
-      const m = { delivered:'bg-green-50 text-green-700 border-green-200', out_for_delivery:'bg-blue-50 text-blue-700 border-blue-200', ready_for_delivery:'bg-indigo-50 text-indigo-700 border-indigo-200', preparing:'bg-amber-50 text-amber-700 border-amber-200', pending:'bg-gray-50 text-gray-600 border-gray-200', cancelled:'bg-red-50 text-red-600 border-red-200' };
-      return m[s] || 'bg-gray-50 text-gray-600 border-gray-200';
-    },
-    statusLabel(s) {
-      const m = { delivered:'Delivered', out_for_delivery:'Out for Delivery', ready_for_delivery:'Ready for Delivery', preparing:'Preparing', pending:'Pending', cancelled:'Cancelled' };
-      return m[s] || s;
-    },
-
-    get activeOrders() {
-      return this.categorizedOrders[this.activeTab] || [];
-    },
-    get activeMeals() {
-      return this.mealsByCategory[this.activeTab] || [];
-    },
-    get activeCategoryName() {
-      const cat = this.categories.find(c => c.id === this.activeTab);
-      return cat ? cat.name : '';
-    },
-    get activeCategoryQty() {
-      const cat = this.categories.find(c => c.id === this.activeTab);
-      return cat ? (cat.total_quantity || 0) : 0;
-    },
-    get activeIngredientTotals() {
-      const totals = {};
-      const orders = this.activeOrders;
-      for (const order of orders) {
-        const items = order.items || [];
-        for (const item of items) {
-          const qty = item.quantity || 1;
-          const ings = item.ingredients || [];
-          for (const ing of ings) {
-            const key = String(ing).trim().toLowerCase();
-            if (!key) continue;
-            if (!totals[key]) {
-              totals[key] = { name: String(ing).trim(), total: 0 };
-            }
-            totals[key].total += qty;
-          }
-        }
-      }
-      return Object.values(totals).sort((a, b) => b.total - a.total);
-    },
-
     init() {
+      this.normalizeCurrentState();
       this.fetchOrders();
     },
 
-    switchTab(catId) {
-      this.activeTab = catId;
+    normalizeCurrentState() {
+      this.categories = Array.isArray(this.categories)
+        ? this.categories.map(category => ({
+            ...category,
+            id: Number(category.id || 0),
+            count: Number(category.count || 0),
+            total_quantity: Number(category.total_quantity || 0)
+          }))
+        : [];
+
+      const normalized = {};
+
+      Object.entries(this.categorizedOrders || {}).forEach(([categoryId, orders]) => {
+        normalized[Number(categoryId)] = Array.isArray(orders)
+          ? orders.map(order => this.normalizeOrder(order))
+          : [];
+      });
+
+      this.categorizedOrders = normalized;
+      this.drivers = Array.isArray(this.drivers) ? this.drivers : [];
+      this.shoppingList = Array.isArray(this.shoppingList) ? this.shoppingList : [];
+
+      if (
+        this.categories.length > 0 &&
+        !this.categories.some(category => Number(category.id) === Number(this.activeTab))
+      ) {
+        this.activeTab = Number(this.categories[0].id);
+      }
+    },
+
+    normalizeOrder(order) {
+      const items = Array.isArray(order?.items)
+        ? order.items.map(item => ({
+            ...item,
+            quantity: Number(item.quantity || 1),
+            preparation_quantity:
+              item.preparation_quantity !== null &&
+              item.preparation_quantity !== undefined
+                ? Number(item.preparation_quantity)
+                : null,
+            preparation_unit: item.preparation_unit || null
+          }))
+        : [];
+
+      const customer =
+        order?.customer ||
+        order?.customer_name ||
+        order?.user_name ||
+        'Unknown Customer';
+
+      const orderId = Number(
+        order?.order_id ||
+        order?.id ||
+        0
+      );
+
+      return {
+        ...order,
+        order_id: orderId,
+        id:
+          order?.order_number ||
+          order?.id ||
+          (orderId ? `#${orderId}` : '—'),
+        customer,
+        status: String(order?.status || 'pending').toLowerCase(),
+        driver:
+          order?.driver ||
+          order?.driver_name ||
+          'Unassigned',
+        driver_id:
+          order?.driver_id ||
+          order?.driver?.id ||
+          '',
+        time:
+          order?.time ||
+          order?.delivery_time ||
+          order?.scheduled_at ||
+          '--:--',
+        meal_summary:
+          order?.meal_summary ||
+          items
+            .map(item => item.meal_name || item.name)
+            .filter(Boolean)
+            .join(', ') ||
+          'No meal description',
+        items,
+        total_quantity:
+          Number(
+            order?.total_quantity ??
+            items.reduce(
+              (sum, item) => sum + Number(item.quantity || 1),
+              0
+            )
+          ),
+        total_calories: Number(order?.total_calories || 0),
+        category_amount: Number(order?.category_amount || order?.total_amount || 0),
+        delivery_address:
+          order?.delivery_address ||
+          order?.address ||
+          '—'
+      };
+    },
+
+    statusClass(statusValue) {
+      const status = String(statusValue || '').toLowerCase();
+
+      const classes = {
+        delivered: 'bg-green-50 text-green-700 border-green-200',
+        out_for_delivery: 'bg-blue-50 text-blue-700 border-blue-200',
+        ready_for_delivery: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+        ready_for_pickup: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+        preparing: 'bg-amber-50 text-amber-700 border-amber-200',
+        confirmed: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+        scheduled: 'bg-purple-50 text-purple-700 border-purple-200',
+        pending: 'bg-gray-50 text-gray-600 border-gray-200',
+        cancelled: 'bg-red-50 text-red-600 border-red-200',
+        failed: 'bg-red-50 text-red-600 border-red-200'
+      };
+
+      return classes[status] || classes.pending;
+    },
+
+    statusLabel(statusValue) {
+      const status = String(statusValue || '').toLowerCase();
+
+      const labels = {
+        delivered: '{{ __('Delivered') }}',
+        out_for_delivery: '{{ __('Out for Delivery') }}',
+        ready_for_delivery: '{{ __('Ready for Delivery') }}',
+        ready_for_pickup: '{{ __('Ready for Pickup') }}',
+        preparing: '{{ __('Preparing') }}',
+        confirmed: '{{ __('Confirmed') }}',
+        scheduled: '{{ __('Scheduled') }}',
+        pending: '{{ __('Pending') }}',
+        cancelled: '{{ __('Cancelled') }}',
+        failed: '{{ __('Failed') }}'
+      };
+
+      return labels[status] || status.replaceAll('_', ' ');
+    },
+
+    get activeOrders() {
+      return this.categorizedOrders[Number(this.activeTab)] || [];
+    },
+
+    get filteredActiveOrders() {
+      const needle = String(this.search || '').trim().toLowerCase();
+      const status = String(this.statusFilter || '').trim().toLowerCase();
+
+      return this.activeOrders.filter(order => {
+        if (
+          status &&
+          String(order.status || '').toLowerCase() !== status
+        ) {
+          return false;
+        }
+
+        if (!needle) {
+          return true;
+        }
+
+        const searchable = [
+          order.id,
+          order.order_number,
+          order.customer,
+          order.customer_email,
+          order.customer_phone,
+          order.driver,
+          order.meal_summary,
+          order.delivery_address,
+          ...(order.items || []).flatMap(item => [
+            item.meal_name,
+            item.name,
+            item.category_name,
+            item.preparation_unit
+          ])
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+
+        return searchable.includes(needle);
+      });
+    },
+
+    get allOrders() {
+      return Object.values(this.categorizedOrders || {})
+        .flat()
+        .filter((order, index, array) =>
+          array.findIndex(candidate =>
+            Number(candidate.order_id) === Number(order.order_id)
+          ) === index
+        );
+    },
+
+    get operationalSummary() {
+      const orders = this.allOrders;
+
+      const readyStatuses = new Set([
+        'ready_for_delivery',
+        'ready_for_pickup',
+        'out_for_delivery',
+        'delivered'
+      ]);
+
+      return {
+        total: orders.length,
+        ready: orders.filter(order =>
+          readyStatuses.has(String(order.status || '').toLowerCase())
+        ).length,
+        assignedDrivers: orders.filter(order =>
+          Number(order.driver_id || 0) > 0 ||
+          (
+            order.driver &&
+            String(order.driver).toLowerCase() !== 'unassigned'
+          )
+        ).length,
+        totalPortions: orders.reduce(
+          (sum, order) =>
+            sum + Number(order.total_quantity || 0),
+          0
+        )
+      };
+    },
+
+    get activeMeals() {
+      return this.mealsByCategory[this.activeTab] || [];
+    },
+
+    get activeCategoryName() {
+      const category = this.categories.find(
+        item => Number(item.id) === Number(this.activeTab)
+      );
+
+      return category ? category.name : '';
+    },
+
+    get activeCategoryQty() {
+      const category = this.categories.find(
+        item => Number(item.id) === Number(this.activeTab)
+      );
+
+      return category
+        ? Number(category.total_quantity || 0)
+        : 0;
+    },
+
+    get activeIngredientTotals() {
+      const totals = {};
+
+      for (const order of this.filteredActiveOrders) {
+        for (const item of order.items || []) {
+          const quantity = Number(item.quantity || 1);
+
+          for (const ingredient of item.ingredients || []) {
+            const key = String(ingredient).trim().toLowerCase();
+
+            if (!key) continue;
+
+            if (!totals[key]) {
+              totals[key] = {
+                name: String(ingredient).trim(),
+                total: 0
+              };
+            }
+
+            totals[key].total += quantity;
+          }
+        }
+      }
+
+      return Object.values(totals)
+        .sort((a, b) => b.total - a.total);
+    },
+
+    get lastUpdatedLabel() {
+      if (!this.lastUpdatedAt) {
+        return '{{ __('Not yet') }}';
+      }
+
+      return this.lastUpdatedAt.toLocaleTimeString(
+        undefined,
+        {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        }
+      );
+    },
+
+    switchTab(categoryId) {
+      this.activeTab = Number(categoryId);
       this.categoryDriverId = '';
       this.categoryDeliveryTime = '';
     },
@@ -512,158 +929,483 @@ function ordersApp() {
       this.selected = order;
       this.selectedStatus = order.status || 'preparing';
       this.assignDriverId = order.driver_id || '';
-      this.assignTime = order.scheduled_at || '';
+      this.assignTime = this.timeInputValue(
+        order.delivery_time ||
+        order.scheduled_at ||
+        order.time
+      );
+    },
+
+    timeInputValue(value) {
+      const match = String(value || '').match(/(\d{2}):(\d{2})/);
+      return match ? `${match[1]}:${match[2]}` : '';
+    },
+
+    formatPreparation(item) {
+      if (
+        item?.preparation_quantity === null ||
+        item?.preparation_quantity === undefined ||
+        item?.preparation_quantity === ''
+      ) {
+        return '';
+      }
+
+      return `${Number(item.preparation_quantity)} ${item.preparation_unit || 'portion'}`;
+    },
+
+    orderDescription(order) {
+      const parts = [];
+
+      if (order.driver && order.driver !== 'Unassigned') {
+        parts.push(`{{ __('Driver') }}: ${order.driver}`);
+      } else {
+        parts.push('{{ __('Driver not assigned') }}');
+      }
+
+      if (order.delivery_address && order.delivery_address !== '—') {
+        parts.push(order.delivery_address);
+      }
+
+      const amounts = (order.items || [])
+        .filter(item => item.preparation_quantity)
+        .slice(0, 3)
+        .map(item =>
+          `${item.meal_name || item.name}: ${this.formatPreparation(item)}`
+        );
+
+      if (amounts.length > 0) {
+        parts.push(amounts.join(', '));
+      }
+
+      return parts.join(' · ');
+    },
+
+    showNotice(type, message) {
+      this.notice = {
+        type,
+        message
+      };
+    },
+
+    async readJson(response) {
+      const contentType = response.headers.get('content-type') || '';
+      let data = {};
+
+      if (contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const body = await response.text();
+        data = {
+          message: body || `HTTP ${response.status}`
+        };
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+          data.detail ||
+          `HTTP ${response.status}`
+        );
+      }
+
+      return data;
     },
 
     async fetchOrders() {
       this.loading = true;
+
       try {
-        const p = new URLSearchParams();
-        if (this.includeCompleted) p.set('include_completed', '1');
-        const r = await fetch(`{{ route('admin.orders') }}?${p.toString()}`, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
-        const d = await r.json();
-        this.categories = d.categories || this.categories;
-        this.categorizedOrders = d.categorizedOrders || this.categorizedOrders;
-        this.mealsByCategory = d.mealsByCategory || this.mealsByCategory;
-        this.stats = d.stats || this.stats;
-        this.drivers = d.drivers || this.drivers;
-        this.shoppingList = d.shoppingList || this.shoppingList;
-        if (this.categories.length > 0 && !this.categories.find(c => c.id === this.activeTab)) {
-          this.activeTab = this.categories[0].id;
+        const params = new URLSearchParams();
+
+        if (this.includeCompleted) {
+          params.set('include_completed', '1');
         }
-      } catch(e) { console.error('Failed to fetch orders', e); }
-      finally { this.loading = false; }
+
+        const response = await fetch(
+          `{{ route('admin.orders') }}?${params.toString()}`,
+          {
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json'
+            }
+          }
+        );
+
+        const data = await this.readJson(response);
+
+        this.categories = data.categories || [];
+        this.categorizedOrders = data.categorizedOrders || {};
+        this.mealsByCategory = data.mealsByCategory || {};
+        this.stats = data.stats || [];
+        this.drivers = data.drivers || [];
+        this.shoppingList = data.shoppingList || [];
+        this.todayDate = data.todayDate || this.todayDate;
+
+        this.normalizeCurrentState();
+        this.lastUpdatedAt = new Date();
+      } catch (error) {
+        console.error('Failed to fetch orders', error);
+
+        this.showNotice(
+          'error',
+          error.message ||
+          '{{ __('Unable to load today\'s generated orders.') }}'
+        );
+      } finally {
+        this.loading = false;
+      }
     },
 
     async generateOrders() {
+      if (this.generating) return;
+
       this.generating = true;
+      this.showNotice(
+        'info',
+        '{{ __('Checking today\'s meal assignments and generating any missing orders...') }}'
+      );
+
       try {
-        const r = await fetch(`{{ route('admin.orders.generate') }}`, {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-          },
-          body: JSON.stringify({ action: 'generate' })
-        });
-        const d = await r.json();
+        const response = await fetch(
+          `{{ route('admin.orders.generate') }}`,
+          {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN':
+                document
+                  .querySelector('meta[name="csrf-token"]')
+                  ?.getAttribute('content') || ''
+            },
+            body: JSON.stringify({
+              action: 'generate'
+            })
+          }
+        );
+
+        const data = await this.readJson(response);
+
+        const result =
+          data.data ||
+          data.result ||
+          data;
+
+        const created = Number(
+          result.orders_created ||
+          result.created_count ||
+          result.created ||
+          0
+        );
+
+        const existing = Number(
+          result.already_existing ||
+          result.existing_count ||
+          result.existing ||
+          0
+        );
+
+        this.showNotice(
+          'success',
+          data.message ||
+          `{{ __('Order generation completed.') }} ${created} {{ __('created') }}, ${existing} {{ __('already existed') }}.`
+        );
+
         await this.fetchOrders();
-      } catch(e) { console.error('Failed to generate orders', e); }
-      finally { this.generating = false; }
+      } catch (error) {
+        console.error('Failed to generate orders', error);
+
+        this.showNotice(
+          'error',
+          error.message ||
+          '{{ __('Failed to generate today\'s orders.') }}'
+        );
+      } finally {
+        this.generating = false;
+      }
     },
 
     async updateStatus() {
       if (!this.selected?.order_id) return;
+
       this.actionLoading = true;
+
       try {
-        const r = await fetch(`{{ route('admin.orders.approve', '__ID__') }}`.replace('__ID__', this.selected.order_id), {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-          },
-          body: JSON.stringify({ status: this.selectedStatus })
-        });
-        const d = await r.json();
-        if (d.success) {
-          this.selected.status = this.selectedStatus;
-          this.fetchOrders();
-        } else {
-          alert(d.message || 'Failed to update order status.');
+        const response = await fetch(
+          `{{ route('admin.orders.approve', '__ID__') }}`.replace(
+            '__ID__',
+            this.selected.order_id
+          ),
+          {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN':
+                document
+                  .querySelector('meta[name="csrf-token"]')
+                  ?.getAttribute('content') || ''
+            },
+            body: JSON.stringify({
+              status: this.selectedStatus
+            })
+          }
+        );
+
+        const data = await this.readJson(response);
+
+        if (data.success === false) {
+          throw new Error(
+            data.message ||
+            '{{ __('Failed to update order status.') }}'
+          );
         }
-      } catch(e) { console.error(e); alert('Network error.'); }
-      finally { this.actionLoading = false; }
+
+        this.selected.status = this.selectedStatus;
+        this.showNotice(
+          'success',
+          data.message ||
+          '{{ __('Order status updated successfully.') }}'
+        );
+
+        await this.fetchOrders();
+      } catch (error) {
+        console.error(error);
+        this.showNotice('error', error.message);
+      } finally {
+        this.actionLoading = false;
+      }
     },
 
     async assignDriver() {
-      if (!this.selected?.order_id || !this.assignDriverId) return;
+      if (
+        !this.selected?.order_id ||
+        !this.assignDriverId
+      ) {
+        return;
+      }
+
       this.actionLoading = true;
+
       try {
-        const scheduledAt = this.assignTime ? `{{ date('Y-m-d') }}T${this.assignTime}:00` : null;
-        const r = await fetch(`{{ route('admin.orders.assign-driver', '__ID__') }}`.replace('__ID__', this.selected.order_id), {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-          },
-          body: JSON.stringify({ driver_id: this.assignDriverId, scheduled_at: scheduledAt })
-        });
-        const d = await r.json();
-        if (d.success) {
-          const driver = this.drivers.find(drv => drv.id == this.assignDriverId);
-          this.selected.driver = driver?.name || 'Assigned';
-          this.selected.driver_id = this.assignDriverId;
-          this.selected.scheduled_at = this.assignTime || null;
-          this.fetchOrders();
-        } else {
-          alert(d.message || 'Failed to assign driver.');
+        const scheduledAt = this.assignTime
+          ? `${new Date().toISOString().slice(0, 10)}T${this.assignTime}:00`
+          : null;
+
+        const response = await fetch(
+          `{{ route('admin.orders.assign-driver', '__ID__') }}`.replace(
+            '__ID__',
+            this.selected.order_id
+          ),
+          {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN':
+                document
+                  .querySelector('meta[name="csrf-token"]')
+                  ?.getAttribute('content') || ''
+            },
+            body: JSON.stringify({
+              driver_id: Number(this.assignDriverId),
+              scheduled_at: scheduledAt
+            })
+          }
+        );
+
+        const data = await this.readJson(response);
+
+        if (data.success === false) {
+          throw new Error(
+            data.message ||
+            '{{ __('Failed to assign driver.') }}'
+          );
         }
-      } catch(e) { console.error(e); alert('Network error.'); }
-      finally { this.actionLoading = false; }
+
+        const driver = this.drivers.find(
+          item => Number(item.id) === Number(this.assignDriverId)
+        );
+
+        this.selected.driver =
+          driver?.name ||
+          '{{ __('Assigned') }}';
+
+        this.selected.driver_id =
+          Number(this.assignDriverId);
+
+        this.showNotice(
+          'success',
+          data.message ||
+          '{{ __('Driver assigned successfully.') }}'
+        );
+
+        await this.fetchOrders();
+      } catch (error) {
+        console.error(error);
+        this.showNotice('error', error.message);
+      } finally {
+        this.actionLoading = false;
+      }
     },
 
     async assignCategoryDriver() {
-      if (!this.categoryDriverId || this.activeOrders.length === 0) return;
+      if (
+        !this.categoryDriverId ||
+        this.filteredActiveOrders.length === 0
+      ) {
+        return;
+      }
+
       this.actionLoading = true;
+
       try {
-        const orderIds = this.activeOrders.map(o => o.order_id).filter(id => id > 0);
+        const orderIds = this.filteredActiveOrders
+          .map(order => Number(order.order_id))
+          .filter(orderId => orderId > 0);
+
         if (orderIds.length === 0) {
-          alert('No valid orders to assign.');
-          return;
+          throw new Error(
+            '{{ __('No valid orders are available for bulk assignment.') }}'
+          );
         }
-        const r = await fetch(`{{ route('admin.deliveries.bulk-assign-driver') }}`, {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-          },
-          body: JSON.stringify({ driver_id: parseInt(this.categoryDriverId), order_ids: orderIds })
-        });
-        const d = await r.json();
-        if (d.success) {
-          this.fetchOrders();
-        } else {
-          alert(d.message || 'Failed to assign driver.');
+
+        const response = await fetch(
+          `{{ route('admin.deliveries.bulk-assign-driver') }}`,
+          {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN':
+                document
+                  .querySelector('meta[name="csrf-token"]')
+                  ?.getAttribute('content') || ''
+            },
+            body: JSON.stringify({
+              driver_id: Number(this.categoryDriverId),
+              order_ids: orderIds,
+              delivery_time: this.categoryDeliveryTime || null
+            })
+          }
+        );
+
+        const data = await this.readJson(response);
+
+        if (data.success === false) {
+          throw new Error(
+            data.message ||
+            '{{ __('Failed to assign driver.') }}'
+          );
         }
-      } catch(e) { console.error(e); alert('Network error.'); }
-      finally { this.actionLoading = false; }
+
+        this.showNotice(
+          'success',
+          data.message ||
+          '{{ __('Driver assigned to all visible category orders.') }}'
+        );
+
+        await this.fetchOrders();
+      } catch (error) {
+        console.error(error);
+        this.showNotice('error', error.message);
+      } finally {
+        this.actionLoading = false;
+      }
     },
 
     async cancelOrder() {
       if (!this.selected?.order_id) return;
-      if (!confirm('{{ __('Are you sure you want to cancel this order?') }}')) return;
+
+      if (
+        !confirm(
+          '{{ __('Are you sure you want to cancel this order?') }}'
+        )
+      ) {
+        return;
+      }
+
       this.actionLoading = true;
+
       try {
-        const r = await fetch(`{{ route('admin.orders.approve', '__ID__') }}`.replace('__ID__', this.selected.order_id), {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-          },
-          body: JSON.stringify({ status: 'cancelled' })
-        });
-        const d = await r.json();
-        if (d.success) {
-          this.selected.status = 'cancelled';
-          this.fetchOrders();
-        } else {
-          alert(d.message || 'Failed to cancel order.');
+        const response = await fetch(
+          `{{ route('admin.orders.approve', '__ID__') }}`.replace(
+            '__ID__',
+            this.selected.order_id
+          ),
+          {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN':
+                document
+                  .querySelector('meta[name="csrf-token"]')
+                  ?.getAttribute('content') || ''
+            },
+            body: JSON.stringify({
+              status: 'cancelled'
+            })
+          }
+        );
+
+        const data = await this.readJson(response);
+
+        if (data.success === false) {
+          throw new Error(
+            data.message ||
+            '{{ __('Failed to cancel order.') }}'
+          );
         }
-      } catch(e) { console.error(e); alert('Network error.'); }
-      finally { this.actionLoading = false; }
+
+        this.selected.status = 'cancelled';
+        this.showNotice(
+          'success',
+          data.message ||
+          '{{ __('Order cancelled successfully.') }}'
+        );
+
+        await this.fetchOrders();
+      } catch (error) {
+        console.error(error);
+        this.showNotice('error', error.message);
+      } finally {
+        this.actionLoading = false;
+      }
     },
 
     printOrder() {
-      const w = window.open('', '_blank');
-      w.document.write(`<html><head><title>Order ${this.selected?.id}</title><script src="https://cdn.tailwindcss.com"><\/script></head><body class="p-8"><div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-lg">${document.getElementById('order-detail-content')?.innerHTML || ''}</div><script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);
-      w.document.close();
+      const printWindow = window.open('', '_blank');
+
+      if (!printWindow) {
+        this.showNotice(
+          'error',
+          '{{ __('The browser blocked the print window.') }}'
+        );
+        return;
+      }
+
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Order ${this.selected?.id || ''}</title>
+            <script src="https://cdn.tailwindcss.com"><\/script>
+          </head>
+          <body class="p-8 bg-gray-50">
+            <div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-lg">
+              ${document.getElementById('order-detail-content')?.innerHTML || ''}
+            </div>
+            <script>
+              window.onload = () =>
+                setTimeout(() => window.print(), 300);
+            <\/script>
+          </body>
+        </html>
+      `);
+
+      printWindow.document.close();
     }
-  }
+  };
 }
 </script>
 @endpush

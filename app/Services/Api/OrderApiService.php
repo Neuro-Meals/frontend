@@ -9,6 +9,24 @@ class OrderApiService extends BaseApiService
         return $this->get('orders.list', [], $query);
     }
 
+
+    /**
+     * Load generated orders for a delivery date from the management endpoint.
+     */
+    public function today(
+        ?string $deliveryDate = null
+    ): array {
+        return $this->get(
+            'orders.list',
+            [],
+            [
+                'delivery_date' => $deliveryDate ?: date('Y-m-d'),
+                'page' => 1,
+                'limit' => 100,
+            ]
+        );
+    }
+
     public function my(): array
     {
         return $this->get('orders.my');

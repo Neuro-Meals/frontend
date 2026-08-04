@@ -5503,306 +5503,399 @@ foreach ($deliveryPreferencesRaw as $preference) {
         return redirect()->route('admin.meals')->with('status', __('Category deleted successfully.'));
     }
 
-    public function orders(Request $request, ChefApiService $chefApi, DriverApiService $driverApi, MealApiService $mealApi)
-    {
+    public function orders(
+        Request $request,
+        OrderApiService $orderApi,
+        ChefApiService $chefApi,
+        DriverApiService $driverApi,
+        MealApiService $mealApi
+    ) {
         $todayDate = date('Y-m-d');
         $includeCompleted = $request->input('include_completed') === '1';
 
-        // ─── Icon mapping for meal categories ───
         $iconMap = [
             'breakfast' => 'sunrise',
-            'lunch'     => 'sun',
-            'dinner'    => 'moon',
-            'supper'    => 'moon',
-            'snack'     => 'cookie',
+            'lunch' => 'sun',
+            'dinner' => 'moon',
+            'supper' => 'moon',
+            'snack' => 'cookie',
         ];
-        $getIconForName = function (string $name) use ($iconMap): string {
+
+        $getIconForName = static function (
+            string $name
+        ) use ($iconMap): string {
             $lower = strtolower($name);
+
             foreach ($iconMap as $keyword => $icon) {
                 if (str_contains($lower, $keyword)) {
                     return $icon;
                 }
             }
+
             return 'dots';
         };
-        $mealTimeOrder = ['breakfast', 'lunch', 'dinner', 'snacks', 'other'];
-        $getMealTimeRank = function (string $catName): int {
-            $lower = strtolower($catName);
+
+        $getMealTimeRank = static function (
+            string $name
+        ): int {
+            $lower = strtolower($name);
+
             if (str_contains($lower, 'breakfast')) return 0;
             if (str_contains($lower, 'lunch')) return 1;
-            if (str_contains($lower, 'dinner') || str_contains($lower, 'supper')) return 2;
+
+            if (
+                str_contains($lower, 'dinner')
+                || str_contains($lower, 'supper')
+            ) {
+                return 2;
+            }
+
             if (str_contains($lower, 'snack')) return 3;
+
             return 4;
         };
 
-        // ─── Auto-generate today's orders from active paid subscriptions ───
-        // This ensures orders appear even if the backend cron job hasn't run yet.
-        try {
-            $chefApi->generateTodayOrders();
-            $chefApi->confirmTodayOrders();
-        } catch (\Throwable $e) {
-            \Log::warning('Auto-generate orders failed (non-fatal)', ['error' => $e->getMessage()]);
+        /*
+         * Load real orders generated for today.
+         *
+         * This deliberately uses /orders/?delivery_date=... instead of
+         * the missing /chef/orders/today/grouped route.
+         */
+        $ordersResponse = $orderApi->today($todayDate);
+
+        $ordersData = $this->apiData(
+            $ordersResponse,
+            fn () => []
+        );
+
+        if (
+            isset($ordersData['data'])
+            && is_array($ordersData['data'])
+        ) {
+            $ordersData = $ordersData['data'];
+        } elseif (
+            isset($ordersData['items'])
+            && is_array($ordersData['items'])
+        ) {
+            $ordersData = $ordersData['items'];
         }
 
-        // ─── Fetch grouped orders from chef API ───
-        $groupedResponse = $chefApi->ordersTodayGrouped($includeCompleted);
-        $useGrouped = !isset($groupedResponse['success']) || $groupedResponse['success'] !== false;
+        $ordersData = is_array($ordersData)
+            ? array_values($ordersData)
+            : [];
 
-        $categories = [];
+        if (!$includeCompleted) {
+            $ordersData = array_values(
+                array_filter(
+                    $ordersData,
+                    static function (array $order): bool {
+                        $status = strtolower(
+                            (string) ($order['status'] ?? 'pending')
+                        );
+
+                        return !in_array(
+                            $status,
+                            ['delivered', 'cancelled'],
+                            true
+                        );
+                    }
+                )
+            );
+        }
+
+        $categoriesData = $this->apiData(
+            $mealApi->categoriesList([
+                'limit' => 100,
+            ]),
+            fn () => []
+        );
+
+        $categoriesMap = [];
+
+        foreach (
+            is_array($categoriesData)
+                ? $categoriesData
+                : []
+            as $category
+        ) {
+            if (!is_array($category)) continue;
+
+            $id = (int) ($category['id'] ?? 0);
+            if ($id <= 0) continue;
+
+            $name =
+                $category['name_en']
+                ?? $category['name_ar']
+                ?? __('Uncategorized');
+
+            $categoriesMap[$id] = [
+                'id' => $id,
+                'name' => $name,
+                'icon' => $getIconForName($name),
+                'count' => 0,
+                'total_quantity' => 0,
+            ];
+        }
+
+        $mealsData = $this->apiData(
+            $mealApi->list([
+                'limit' => 100,
+            ]),
+            fn () => []
+        );
+
+        $mealsByCategory = [];
+
+        foreach (
+            is_array($mealsData)
+                ? $mealsData
+                : []
+            as $meal
+        ) {
+            if (!is_array($meal)) continue;
+
+            $categoryId = (int) (
+                $meal['category_id'] ?? 0
+            );
+
+            $mealsByCategory[$categoryId][] = [
+                'id' => (int) ($meal['id'] ?? 0),
+                'name' =>
+                    $meal['name_en']
+                    ?? $meal['name_ar']
+                    ?? __('Unknown Meal'),
+                'image_url' => $meal['image_url'] ?? null,
+                'ingredients' => is_array(
+                    $meal['ingredients'] ?? null
+                ) ? $meal['ingredients'] : [],
+                'allergens' => is_array(
+                    $meal['allergens'] ?? null
+                ) ? $meal['allergens'] : [],
+                'calories' => (float) ($meal['calories'] ?? 0),
+                'protein_g' => (float) ($meal['protein_g'] ?? 0),
+                'carbs_g' => (float) ($meal['carbs_g'] ?? 0),
+                'fat_g' => (float) ($meal['fat_g'] ?? 0),
+                'price' => (float) ($meal['price'] ?? 0),
+                'is_available' => (bool) (
+                    $meal['is_available'] ?? true
+                ),
+                'description' =>
+                    $meal['description_en']
+                    ?? $meal['description']
+                    ?? '',
+            ];
+        }
+
         $categorizedOrders = [];
         $allOrders = [];
-        $categorySeen = [];
 
-        if ($useGrouped) {
-            $groups = $groupedResponse['groups'] ?? [];
+        foreach ($ordersData as $order) {
+            if (!is_array($order)) continue;
 
-            // ─── Step 1: Collect ALL unique orders from all groups ───
-            // The backend only assigns each order to its first item's category.
-            // We need to re-categorize by looking at each order's items.
-            $uniqueOrders = []; // keyed by order_id to avoid duplicates
-            $categoryNameMap = []; // catId => catName, built from groups + all categories API later
+            $formatted = $this->formatAdminOrder($order);
 
-            foreach ($groups as $group) {
-                if (!isset($group['categories'])) {
-                    continue;
-                }
-                foreach ($group['categories'] as $catGroup) {
-                    $catId = $catGroup['category_id'] ?? 0;
-                    $catName = $catGroup['category_name'] ?? __('Uncategorized');
-                    $categoryNameMap[$catId] = $catName;
+            $categoryId = (int) (
+                $order['meal_category_id']
+                ?? $formatted['primary_category_id']
+                ?? 0
+            );
 
-                    foreach ($catGroup['orders'] as $order) {
-                        $orderId = $order['id'] ?? 0;
-                        if ($orderId && !isset($uniqueOrders[$orderId])) {
-                            $uniqueOrders[$orderId] = $order;
-                        }
+            if ($categoryId <= 0) {
+                foreach ($formatted['items'] ?? [] as $item) {
+                    $candidate = (int) (
+                        $item['category_id'] ?? 0
+                    );
+
+                    if ($candidate > 0) {
+                        $categoryId = $candidate;
+                        break;
                     }
                 }
             }
 
-            // ─── Step 2: For each unique order, find ALL categories its items belong to ───
-            foreach ($uniqueOrders as $orderId => $order) {
-                $formatted = $this->formatAdminOrder($order);
-                $items = $formatted['items'] ?? [];
+            $categoryName =
+                $order['meal_category']['name_en']
+                ?? $order['category']['name_en']
+                ?? (
+                    $categoriesMap[$categoryId]['name']
+                    ?? __('Uncategorized')
+                );
 
-                // Group items by their category_id
-                $itemsByCat = [];
-                foreach ($items as $itm) {
-                    $itmCatId = $itm['category_id'] ?? 0;
-                    if (!isset($itemsByCat[$itmCatId])) {
-                        $itemsByCat[$itmCatId] = [];
-                    }
-                    $itemsByCat[$itmCatId][] = $itm;
-                    // Learn category name from item if we don't have it
-                    if (!isset($categoryNameMap[$itmCatId]) && !empty($itm['category_name'])) {
-                        $categoryNameMap[$itmCatId] = $itm['category_name'];
-                    }
-                }
-
-                // If no category_id on items, fall back to 0 (uncategorized)
-                if (empty($itemsByCat)) {
-                    $itemsByCat[0] = [];
-                }
-
-                // ─── Step 3: Add the order to each category it has items for ───
-                foreach ($itemsByCat as $catId => $catItems) {
-                    $catName = $categoryNameMap[$catId] ?? __('Uncategorized');
-
-                    // Register category if not seen
-                    if (!isset($categorySeen[$catId])) {
-                        $categories[] = [
-                            'id' => $catId,
-                            'name' => $catName,
-                            'icon' => $getIconForName($catName),
-                            'count' => 0,
-                        ];
-                        $categorizedOrders[$catId] = [];
-                        $categorySeen[$catId] = count($categories) - 1;
-                    }
-
-                    // Recalculate totals for this category's items only
-                    $catMealNames = [];
-                    $catCalories = 0;
-                    $catProtein = 0;
-                    $catCarbs = 0;
-                    $catFat = 0;
-                    $catAmount = 0;
-                    $catTotalQty = 0;
-                    foreach ($catItems as $ci) {
-                        $qty = $ci['quantity'] ?? 1;
-                        $catTotalQty += $qty;
-                        $name = $ci['meal_name'] ?? '';
-                        if ($name) {
-                            $catMealNames[] = $qty > 1 ? "{$name} x{$qty}" : $name;
-                        }
-                        $catCalories += (float) ($ci['calories'] ?? 0) * $qty;
-                        $catProtein += (float) ($ci['protein_g'] ?? 0) * $qty;
-                        $catCarbs += (float) ($ci['carbs_g'] ?? 0) * $qty;
-                        $catFat += (float) ($ci['fat_g'] ?? 0) * $qty;
-                        $catAmount += (float) ($ci['line_total'] ?? 0);
-                    }
-
-                    $item = $formatted;
-                    $item['primary_category_id'] = $catId;
-                    $item['primary_category_name'] = $catName;
-                    $item['items'] = $catItems;
-                    $item['meal_summary'] = implode(', ', $catMealNames) ?: __('No items');
-                    $item['meal_count'] = count($catItems);
-                    $item['total_quantity'] = $catTotalQty;
-                    $item['total_calories'] = round($catCalories);
-                    $item['total_protein_g'] = round($catProtein);
-                    $item['total_carbs_g'] = round($catCarbs);
-                    $item['total_fat_g'] = round($catFat);
-                    $item['category_amount'] = round($catAmount, 2);
-
-                    $categorizedOrders[$catId][] = $item;
-                    $allOrders[] = $item;
-                }
-            }
-
-            foreach ($categories as &$cat) {
-                $catOrders = $categorizedOrders[$cat['id']] ?? [];
-                $cat['count'] = count($catOrders);
-                $cat['total_quantity'] = array_sum(array_map(fn ($o) => $o['total_quantity'] ?? 0, $catOrders));
-            }
-            unset($cat);
-        }
-
-        // ─── Fetch ALL meal categories from API (including ones with no orders) ───
-        $allCategoriesData = $this->apiData($mealApi->categoriesList(['limit' => 100]), fn () => []);
-        $allCategories = [];
-        if (is_array($allCategoriesData)) {
-            foreach ($allCategoriesData as $cat) {
-                $catId = $cat['id'] ?? 0;
-                $catName = $cat['name_en'] ?? ($cat['name_ar'] ?? __('Uncategorized'));
-                $allCategories[$catId] = [
-                    'id' => $catId,
-                    'name' => $catName,
-                    'icon' => $getIconForName($catName),
+            if (!isset($categoriesMap[$categoryId])) {
+                $categoriesMap[$categoryId] = [
+                    'id' => $categoryId,
+                    'name' => $categoryName,
+                    'icon' => $getIconForName($categoryName),
                     'count' => 0,
                     'total_quantity' => 0,
                 ];
             }
-        }
-        foreach ($categories as $orderCat) {
-            if (isset($allCategories[$orderCat['id']])) {
-                $allCategories[$orderCat['id']]['count'] = $orderCat['count'];
-                $allCategories[$orderCat['id']]['total_quantity'] = $orderCat['total_quantity'] ?? 0;
-            } else {
-                $allCategories[$orderCat['id']] = $orderCat;
-            }
-        }
-        $allCategoryList = array_values($allCategories);
-        usort($allCategoryList, fn ($a, $b) => $getMealTimeRank($a['name']) <=> $getMealTimeRank($b['name']));
-        $categories = $allCategoryList;
 
-        foreach ($categories as $cat) {
-            if (!isset($categorizedOrders[$cat['id']])) {
-                $categorizedOrders[$cat['id']] = [];
-            }
+            $formatted['primary_category_id'] = $categoryId;
+            $formatted['primary_category_name'] = $categoryName;
+
+            $categorizedOrders[$categoryId][] = $formatted;
+            $allOrders[] = $formatted;
         }
 
-        // ─── Fetch ALL meals with ingredients, grouped by category ───
-        $mealsData = $this->apiData($mealApi->list(['limit' => 100]), fn () => []);
-        $mealsByCategory = [];
-        if (is_array($mealsData)) {
-            foreach ($mealsData as $meal) {
-                $catId = $meal['category_id'] ?? 0;
-                $mealsByCategory[$catId][] = [
-                    'id' => $meal['id'] ?? 0,
-                    'name' => $meal['name_en'] ?? ($meal['name_ar'] ?? 'Unknown'),
-                    'image_url' => $meal['image_url'] ?? null,
-                    'ingredients' => $meal['ingredients'] ?? [],
-                    'allergens' => $meal['allergens'] ?? [],
-                    'calories' => $meal['calories'] ?? 0,
-                    'protein_g' => $meal['protein_g'] ?? 0,
-                    'carbs_g' => $meal['carbs_g'] ?? 0,
-                    'fat_g' => $meal['fat_g'] ?? 0,
-                    'price' => $meal['price'] ?? 0,
-                    'is_available' => $meal['is_available'] ?? true,
-                    'description' => $meal['description'] ?? '',
-                ];
-            }
+        foreach ($categoriesMap as $categoryId => &$category) {
+            $categoryOrders =
+                $categorizedOrders[$categoryId] ?? [];
+
+            $category['count'] = count($categoryOrders);
+
+            $category['total_quantity'] = array_sum(
+                array_map(
+                    static fn (array $order): int =>
+                        (int) ($order['total_quantity'] ?? 0),
+                    $categoryOrders
+                )
+            );
+
+            $categorizedOrders[$categoryId] =
+                $categoryOrders;
         }
 
-        // ─── Fetch drivers for delivery assignment ───
-        $driversData = $this->apiData($driverApi->list(), fn () => []);
+        unset($category);
+
+        $categories = array_values($categoriesMap);
+
+        usort(
+            $categories,
+            static fn (array $a, array $b): int =>
+                $getMealTimeRank((string) ($a['name'] ?? ''))
+                <=>
+                $getMealTimeRank((string) ($b['name'] ?? ''))
+        );
+
+        $driversData = $this->apiData(
+            $driverApi->list(),
+            fn () => []
+        );
+
         $drivers = [];
-        foreach ($driversData as $d) {
+
+        foreach (
+            is_array($driversData)
+                ? $driversData
+                : []
+            as $driver
+        ) {
+            if (!is_array($driver)) continue;
+
             $drivers[] = [
-                'id' => $d['id'] ?? 0,
-                'name' => trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? '')) ?: 'Driver',
-                'is_active' => $d['is_active'] ?? true,
+                'id' => (int) ($driver['id'] ?? 0),
+                'name' => trim(
+                    ($driver['first_name'] ?? '')
+                    . ' '
+                    . ($driver['last_name'] ?? '')
+                ) ?: __('Driver'),
+                'phone' => $driver['phone'] ?? '',
+                'is_active' => (bool) (
+                    $driver['is_active'] ?? true
+                ),
             ];
         }
 
-        // ─── Stats (count unique orders, not duplicated per category) ───
-        $uniqueOrderIds = [];
-        foreach ($allOrders as $o) {
-            $uniqueOrderIds[$o['order_id']] = true;
-        }
-        $total = count($uniqueOrderIds);
-        $pendingOrders = [];
-        $deliveredOrders = [];
-        $revenue = 0;
-        foreach ($allOrders as $o) {
-            if (isset($pendingOrders[$o['order_id']])) {
-                // already counted
-            } elseif (in_array($o['status'], ['pending', 'preparing'])) {
-                $pendingOrders[$o['order_id']] = true;
-            }
-            if ($o['status'] === 'delivered' && !isset($deliveredOrders[$o['order_id']])) {
-                $deliveredOrders[$o['order_id']] = true;
-            }
-            if ($o['status'] !== 'cancelled') {
-                $revenue += (float) ($o['category_amount'] ?? 0);
-            }
-        }
-        $pending = count($pendingOrders);
-        $delivered = count($deliveredOrders);
-
-        // ─── Richer KPIs: preparing, ready, total quantity, total calories ───
-        $preparingOrders = [];
-        $readyOrders = [];
+        $total = count($allOrders);
+        $preparing = 0;
+        $ready = 0;
+        $delivered = 0;
         $totalQuantity = 0;
         $totalCalories = 0;
-        $shoppingList = []; // ingredient_name => total qty needed
+        $revenue = 0.0;
+        $shoppingList = [];
 
-        foreach ($allOrders as $o) {
-            if (in_array($o['status'] ?? '', ['preparing']) && !isset($preparingOrders[$o['order_id']])) {
-                $preparingOrders[$o['order_id']] = true;
-            }
-            if (in_array($o['status'] ?? '', ['ready_for_delivery']) && !isset($readyOrders[$o['order_id']])) {
-                $readyOrders[$o['order_id']] = true;
-            }
-            $totalQuantity += (int) ($o['total_quantity'] ?? 0);
-            $totalCalories += (int) ($o['total_calories'] ?? 0);
+        foreach ($allOrders as $order) {
+            $status = strtolower(
+                (string) ($order['status'] ?? 'pending')
+            );
 
-            // Build shopping list from order items' ingredients
-            $items = $o['items'] ?? [];
-            foreach ($items as $item) {
-                $qty = $item['quantity'] ?? 1;
-                $ings = $item['ingredients'] ?? [];
-                foreach ($ings as $ing) {
-                    $key = trim(strtolower($ing));
-                    if (!$key) continue;
+            if ($status === 'preparing') $preparing++;
+
+            if (
+                in_array(
+                    $status,
+                    ['ready_for_delivery', 'ready_for_pickup'],
+                    true
+                )
+            ) {
+                $ready++;
+            }
+
+            if ($status === 'delivered') $delivered++;
+
+            $totalQuantity += (int) (
+                $order['total_quantity'] ?? 0
+            );
+
+            $totalCalories += (int) (
+                $order['total_calories'] ?? 0
+            );
+
+            if ($status !== 'cancelled') {
+                $revenue += (float) (
+                    $order['category_amount']
+                    ?? $order['amount']
+                    ?? 0
+                );
+            }
+
+            foreach ($order['items'] ?? [] as $item) {
+                $packageQuantity = max(
+                    (int) ($item['quantity'] ?? 1),
+                    1
+                );
+
+                foreach (
+                    is_array($item['ingredients'] ?? null)
+                        ? $item['ingredients']
+                        : []
+                    as $ingredient
+                ) {
+                    $name = trim((string) $ingredient);
+                    $key = strtolower($name);
+
+                    if ($key === '') continue;
+
                     if (!isset($shoppingList[$key])) {
-                        $shoppingList[$key] = ['name' => trim($ing), 'total' => 0, 'meals' => []];
+                        $shoppingList[$key] = [
+                            'name' => $name,
+                            'total' => 0,
+                            'meals' => [],
+                        ];
                     }
-                    $shoppingList[$key]['total'] += $qty;
-                    $mealName = $item['meal_name'] ?? '';
-                    if ($mealName && !in_array($mealName, $shoppingList[$key]['meals'])) {
-                        $shoppingList[$key]['meals'][] = $mealName;
+
+                    $shoppingList[$key]['total'] +=
+                        $packageQuantity;
+
+                    $mealName =
+                        $item['meal_name'] ?? '';
+
+                    if (
+                        $mealName !== ''
+                        && !in_array(
+                            $mealName,
+                            $shoppingList[$key]['meals'],
+                            true
+                        )
+                    ) {
+                        $shoppingList[$key]['meals'][] =
+                            $mealName;
                     }
                 }
             }
         }
 
         $shoppingList = array_values($shoppingList);
-        usort($shoppingList, fn($a, $b) => $b['total'] <=> $a['total']);
 
-        $preparing = count($preparingOrders);
-        $ready = count($readyOrders);
+        usort(
+            $shoppingList,
+            static fn (array $a, array $b): int =>
+                ($b['total'] ?? 0)
+                <=>
+                ($a['total'] ?? 0)
+        );
 
         $stats = [
             ['label' => __('Total Orders'), 'value' => number_format($total), 'color' => 'text-gray-900', 'icon' => 'clipboard', 'gradient' => 'from-[#173327] to-[#6E7A25]'],
@@ -5811,23 +5904,30 @@ foreach ($deliveryPreferencesRaw as $preference) {
             ['label' => __('Delivered'), 'value' => number_format($delivered), 'color' => 'text-[#6E7A25]', 'icon' => 'check', 'gradient' => 'from-[#6E7A25] to-[#8b5cf6]'],
             ['label' => __('Total Meals'), 'value' => number_format($totalQuantity), 'color' => 'text-gray-900', 'icon' => 'food', 'gradient' => 'from-[#033133] to-[#6E7A25]'],
             ['label' => __('Total Calories'), 'value' => number_format($totalCalories), 'color' => 'text-gray-900', 'icon' => 'flame', 'gradient' => 'from-rose-500 to-red-600'],
-            ['label' => __('Revenue'), 'value' => 'SAR ' . number_format($revenue), 'color' => 'text-gray-900', 'icon' => 'money', 'gradient' => 'from-[#173327] to-[#033133]'],
+            ['label' => __('Revenue'), 'value' => 'SAR ' . number_format($revenue, 2), 'color' => 'text-gray-900', 'icon' => 'money', 'gradient' => 'from-[#173327] to-[#033133]'],
             ['label' => __('Ingredients Needed'), 'value' => count($shoppingList), 'color' => 'text-gray-900', 'icon' => 'shopping', 'gradient' => 'from-[#6E7A25] to-[#173327]'],
         ];
 
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'categories' => $categories,
-                'categorizedOrders' => $categorizedOrders,
-                'mealsByCategory' => $mealsByCategory,
-                'stats' => $stats,
-                'drivers' => $drivers,
-                'total' => $total,
-                'shoppingList' => $shoppingList,
-            ]);
+        $responseData = [
+            'success' => true,
+            'categories' => $categories,
+            'categorizedOrders' => $categorizedOrders,
+            'mealsByCategory' => $mealsByCategory,
+            'stats' => $stats,
+            'drivers' => $drivers,
+            'total' => $total,
+            'shoppingList' => $shoppingList,
+            'todayDate' => $todayDate,
+        ];
+
+        if (
+            $request->ajax()
+            || $request->wantsJson()
+        ) {
+            return response()->json($responseData);
         }
 
-        return view('admin.orders', compact('categories', 'categorizedOrders', 'mealsByCategory', 'stats', 'drivers', 'todayDate', 'shoppingList'));
+        return view('admin.orders', $responseData);
     }
 
     public function generateOrders(Request $request, ChefApiService $chefApi)
@@ -5899,6 +5999,11 @@ foreach ($deliveryPreferencesRaw as $preference) {
                     'category_id' => $item['category_id'] ?? null,
                     'category_name' => $item['category_name'] ?? null,
                     'quantity' => $qty,
+                    'preparation_quantity' => isset($item['preparation_quantity'])
+                        ? (float) $item['preparation_quantity']
+                        : null,
+                    'preparation_unit' => $item['preparation_unit'] ?? null,
+                    'notes' => $item['notes'] ?? null,
                     'unit_price' => $item['unit_price'] ?? 0,
                     'line_total' => $item['line_total'] ?? 0,
                     'calories' => $cal,
@@ -5930,21 +6035,52 @@ foreach ($deliveryPreferencesRaw as $preference) {
             'delivery_notes' => $order['delivery_notes'] ?? '',
             'delivery_date' => $deliveryDate,
             'delivery' => $deliveryDate ? date('M d, Y', strtotime($deliveryDate)) : 'N/A',
-            'time' => $deliveryDate ? date('H:i', strtotime($deliveryDate)) : '--:--',
+            'delivery_time' => $order['delivery_time'] ?? null,
+            'time' => !empty($order['delivery_time'])
+                ? date('H:i', strtotime($order['delivery_time']))
+                : '--:--',
             'scheduled_at' => !empty($delivery['scheduled_at']) ? date('H:i', strtotime($delivery['scheduled_at'])) : null,
             'delivery_status' => $delivery['status'] ?? null,
             'items' => $formattedItems,
             'meal_summary' => implode(', ', $mealNames) ?: __('Multiple items'),
             'meal_count' => is_array($items) ? count($items) : 0,
+            'total_quantity' => array_sum(
+                array_map(
+                    static fn (array $item): int =>
+                        max((int) ($item['quantity'] ?? 1), 1),
+                    $formattedItems
+                )
+            ),
             'total_calories' => round($totalCalories),
             'total_protein_g' => round($totalProtein),
             'total_carbs_g' => round($totalCarbs),
             'total_fat_g' => round($totalFat),
             'amount' => $order['total_amount'] ?? 0,
-            'driver' => $delivery['driver_name'] ?? 'Unassigned',
-            'driver_id' => $delivery['driver_id'] ?? null,
+            'driver' => trim(
+                (string) (
+                    $order['driver']['full_name']
+                    ?? (
+                        ($order['driver']['first_name'] ?? '')
+                        . ' '
+                        . ($order['driver']['last_name'] ?? '')
+                    )
+                )
+            ) ?: ($delivery['driver_name'] ?? 'Unassigned'),
+            'driver_id' => $order['driver_id']
+                ?? $order['driver']['id']
+                ?? $delivery['driver_id']
+                ?? null,
             'delivery_id' => $delivery['id'] ?? null,
             'delivery_info' => $delivery,
+            'primary_category_id' => (int) (
+                $order['meal_category_id'] ?? 0
+            ),
+            'primary_category_name' => (
+                $order['meal_category']['name_en']
+                ?? $order['category']['name_en']
+                ?? null
+            ),
+            'category_amount' => $order['total_amount'] ?? 0,
         ];
     }
 
