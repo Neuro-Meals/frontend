@@ -637,7 +637,7 @@
 
   {{-- Assign Menu Schedule Modal --}}
   <div x-show="showAssignMeal" x-cloak class="assignment-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4">
-    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="showAssignMeal = false"></div>
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="closeAssignMealModal()"></div>
 
     <div class="assignment-modal-shell relative bg-white rounded-2xl shadow-2xl" @click.outside="closeAssignMealModal()">
       <div class="assignment-modal-header sticky top-0 z-20 flex items-start justify-between gap-4 border-b border-gray-100 bg-white px-4 py-4 sm:px-6">
@@ -653,8 +653,6 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </button>
-      </div>
-
       </div>
 
       <div class="assignment-modal-body flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
