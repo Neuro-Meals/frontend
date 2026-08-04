@@ -4,6 +4,80 @@
 @section('page_title', __('Customers'))
 
 @section('content')
+<style>
+[x-cloak] { display: none !important; }
+
+.assignment-modal-shell {
+  width: min(100%, 92rem);
+  height: min(94dvh, 980px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.assignment-modal-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.assignment-day-tabs {
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.assignment-day-tabs::-webkit-scrollbar {
+  height: 5px;
+}
+
+.assignment-day-tabs::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #d1d5db;
+}
+
+.assignment-meal-list {
+  max-height: 18rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.assignment-history-shell {
+  width: min(100%, 74rem);
+  height: min(92dvh, 900px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@media (max-width: 767px) {
+  .assignment-modal-overlay {
+    align-items: stretch !important;
+    padding: 0 !important;
+  }
+
+  .assignment-modal-shell,
+  .assignment-history-shell {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0 !important;
+  }
+
+  .assignment-modal-header,
+  .assignment-modal-footer {
+    flex: 0 0 auto;
+  }
+
+  .assignment-modal-body {
+    padding: 1rem !important;
+  }
+
+  .assignment-meal-list {
+    max-height: 15rem;
+  }
+}
+</style>
+
 <div x-data="customersApp()" x-init="init()" class="space-y-4">
 
   {{-- Overview KPI Cards --}}
@@ -235,11 +309,40 @@
               {{ __('Edit') }}
             </button>
           </div>
-          <div x-show="selected?.customerStats?.successful_payments > 0" class="flex gap-2">
-            <button @click="openAssignMeal(selected)" class="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-[#033133] to-[#025C5F] text-white hover:shadow-md transition-all">
-              <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17"/></svg>
-              {{ __('Assign Meal & Driver') }}
+          <div x-show="selected?.customerStats?.successful_payments > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button
+              x-show="customerHasAssignments(selected)"
+              @click="openAssignedMeals(selected)"
+              class="w-full px-3 py-2.5 text-xs font-bold rounded-lg border border-[#6E7A25]/25 bg-[#6E7A25]/10 text-[#59651f] hover:bg-[#6E7A25]/20 transition-all">
+              <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+              </svg>
+              {{ __('View Assigned Meals') }}
             </button>
+
+            <button
+              @click="openAssignMeal(selected)"
+              class="w-full px-3 py-2.5 text-xs font-bold rounded-lg bg-gradient-to-r from-[#033133] to-[#025C5F] text-white hover:shadow-md transition-all"
+              :class="customerHasAssignments(selected) ? '' : 'sm:col-span-2'">
+              <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 4v16m8-8H4"/>
+              </svg>
+              <span x-text="customerHasAssignments(selected)
+                ? '{{ __('Assign More Meals') }}'
+                : '{{ __('Assign Meal & Driver') }}'"></span>
+            </button>
+          </div>
+
+          <div
+            x-show="selected?.assignment_summary?.has_assignments"
+            class="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
+            <span class="font-bold" x-text="selected?.assignment_summary?.total_assignments || 0"></span>
+            {{ __('meal-category assignments') }}
+            <span class="mx-1">·</span>
+            <span class="font-bold" x-text="selected?.assignment_summary?.assigned_week_count || 0"></span>
+            {{ __('weeks assigned') }}
           </div>
           <div x-show="!(selected?.customerStats?.successful_payments > 0)" class="flex gap-2">
             <div class="flex-1 px-3 py-2 text-xs font-medium rounded-lg bg-amber-50 border border-amber-100 text-amber-700 text-center">
@@ -389,12 +492,155 @@
     </div>
   </div>
 
+
+  {{-- Assigned Meals History Modal --}}
+  <div
+    x-show="showAssignedMeals"
+    x-cloak
+    class="assignment-modal-overlay fixed inset-0 z-[60] flex items-center justify-center p-3 md:p-5">
+
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeAssignedMeals()"></div>
+
+    <div class="assignment-history-shell relative bg-white rounded-2xl shadow-2xl">
+      <div class="assignment-modal-header flex items-start justify-between gap-4 border-b border-gray-100 bg-gradient-to-r from-[#173327] to-[#025C5F] px-4 py-4 sm:px-6 text-white">
+        <div class="min-w-0">
+          <p class="text-[10px] uppercase tracking-wider text-white/60">{{ __('Assigned Meal Schedule') }}</p>
+          <h3 class="mt-1 truncate text-base sm:text-lg font-bold" x-text="historyTarget?.name || '{{ __('Customer') }}'"></h3>
+          <p class="mt-1 text-xs text-white/70" x-text="assignedHistoryPeriodLabel()"></p>
+        </div>
+
+        <button type="button" @click="closeAssignedMeals()" class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-white/10 hover:bg-white/20">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="assignment-modal-body flex-1 overflow-y-auto p-4 sm:p-6">
+        <div x-show="historyLoading" class="flex items-center justify-center py-20">
+          <svg class="h-8 w-8 animate-spin text-[#6E7A25]" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.37 0 0 5.37 0 12h4Z"></path>
+          </svg>
+        </div>
+
+        <div x-show="historyError" class="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-700" x-text="historyError"></div>
+
+        <div x-show="!historyLoading && !historyError && assignedWeeks.length === 0" class="flex flex-col items-center justify-center py-16 text-center">
+          <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-50">
+            <svg class="h-8 w-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h10"/>
+            </svg>
+          </div>
+          <p class="mt-4 text-sm font-bold text-gray-700">{{ __('No meals have been assigned yet.') }}</p>
+        </div>
+
+        <div x-show="!historyLoading && !historyError && assignedWeeks.length > 0" class="space-y-4">
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="rounded-xl border border-gray-100 bg-gray-50 p-3">
+              <p class="text-[10px] font-bold uppercase text-gray-400">{{ __('Assigned Weeks') }}</p>
+              <p class="mt-1 text-xl font-black text-gray-900" x-text="assignmentSummary.assigned_week_count || assignedWeeks.length"></p>
+            </div>
+            <div class="rounded-xl border border-gray-100 bg-gray-50 p-3">
+              <p class="text-[10px] font-bold uppercase text-gray-400">{{ __('Assignments') }}</p>
+              <p class="mt-1 text-xl font-black text-gray-900" x-text="assignmentSummary.total_assignments || 0"></p>
+            </div>
+            <div class="rounded-xl border border-gray-100 bg-gray-50 p-3">
+              <p class="text-[10px] font-bold uppercase text-gray-400">{{ __('Meals') }}</p>
+              <p class="mt-1 text-xl font-black text-gray-900" x-text="assignmentSummary.total_meals || 0"></p>
+            </div>
+            <div class="rounded-xl border border-gray-100 bg-gray-50 p-3">
+              <p class="text-[10px] font-bold uppercase text-gray-400">{{ __('Next Week') }}</p>
+              <p class="mt-1 text-xl font-black text-[#6E7A25]" x-text="assignmentSummary.next_available_week || '—'"></p>
+            </div>
+          </div>
+
+          <template x-for="week in assignedWeeks" :key="'history-week-' + week.week_number">
+            <section class="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+              <div class="flex flex-col gap-3 border-b border-gray-100 bg-gray-50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4 class="font-black text-gray-900" x-text="'{{ __('Week') }} ' + week.week_number"></h4>
+                    <span
+                      class="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                      :class="week.is_complete ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'"
+                      x-text="week.is_complete ? '{{ __('Complete') }}' : '{{ __('Partial') }}'"></span>
+                  </div>
+                  <p class="mt-1 text-xs text-gray-500" x-text="formatDateRange(week.start_date, week.end_date)"></p>
+                </div>
+
+                <button
+                  type="button"
+                  @click="editAssignedWeek(week.week_number)"
+                  class="w-full sm:w-auto rounded-xl bg-[#173327] px-4 py-2 text-xs font-bold text-white hover:bg-[#6E7A25]">
+                  {{ __('Edit This Week') }}
+                </button>
+              </div>
+
+              <div class="divide-y divide-gray-100">
+                <template x-for="day in (week.days || [])" :key="'history-day-' + week.week_number + '-' + (day.date || day.day_number)">
+                  <div class="p-4">
+                    <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                      <p class="text-sm font-bold text-gray-800" x-text="historyDayTitle(day)"></p>
+                      <p class="text-xs text-gray-400" x-text="formatDate(day.date || day.delivery_date)"></p>
+                    </div>
+
+                    <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <template x-for="assignment in (day.assignments || [])" :key="'history-assignment-' + (assignment.id || assignment.assignment_id)">
+                        <article class="rounded-xl border border-gray-100 bg-gray-50/70 p-3">
+                          <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                              <p class="text-xs font-black text-[#173327]" x-text="assignment.category_name || assignment.meal_category_name || '{{ __('Meal Category') }}'"></p>
+                              <p class="mt-1 text-[10px] text-gray-400" x-text="historyAssignmentTime(assignment)"></p>
+                            </div>
+                            <span class="rounded-full bg-white px-2 py-0.5 text-[9px] font-bold text-gray-500" x-text="assignment.is_active === false ? '{{ __('Inactive') }}' : '{{ __('Active') }}'"></span>
+                          </div>
+
+                          <ul class="mt-2 space-y-1">
+                            <template x-for="meal in (assignment.meals || [])" :key="'history-meal-' + (meal.id || meal.meal_id)">
+                              <li class="flex items-center justify-between gap-2 text-xs text-gray-700">
+                                <span class="truncate" x-text="meal.name || meal.name_en || meal.name_ar || ('{{ __('Meal') }} #' + (meal.id || meal.meal_id))"></span>
+                                <span class="flex-shrink-0 text-[10px] font-bold text-gray-400" x-text="'×' + Number(meal.quantity || 1)"></span>
+                              </li>
+                            </template>
+                          </ul>
+
+                          <div class="mt-3 space-y-1 border-t border-gray-200 pt-2 text-[10px] text-gray-500">
+                            <p x-show="assignment.driver_name"><span class="font-bold">{{ __('Driver') }}:</span> <span x-text="assignment.driver_name"></span></p>
+                            <p x-show="assignment.delivery_location"><span class="font-bold">{{ __('Delivery') }}:</span> <span x-text="assignment.delivery_location"></span></p>
+                          </div>
+                        </article>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </section>
+          </template>
+        </div>
+      </div>
+
+      <div class="assignment-modal-footer flex flex-col-reverse gap-2 border-t border-gray-100 bg-white px-4 py-3 sm:flex-row sm:justify-end sm:px-6">
+        <button type="button" @click="closeAssignedMeals()" class="rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-200">
+          {{ __('Close') }}
+        </button>
+        <button
+          type="button"
+          x-show="historyTarget?.customerStats?.successful_payments > 0"
+          @click="closeAssignedMeals(); openAssignMeal(historyTarget)"
+          class="rounded-xl bg-gradient-to-r from-[#033133] to-[#025C5F] px-5 py-2.5 text-sm font-bold text-white">
+          {{ __('Assign More Meals') }}
+        </button>
+      </div>
+    </div>
+  </div>
+
   {{-- Assign Menu Schedule Modal --}}
-  <div x-show="showAssignMeal" class="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4" style="display: none">
+  <div x-show="showAssignMeal" x-cloak class="assignment-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="showAssignMeal = false"></div>
 
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-[95vh] overflow-y-auto p-5 md:p-7" @click.outside="showAssignMeal = false">
-      <div class="flex items-start justify-between gap-4 mb-5">
+    <div class="assignment-modal-shell relative bg-white rounded-2xl shadow-2xl" @click.outside="closeAssignMealModal()">
+      <div class="assignment-modal-header sticky top-0 z-20 flex items-start justify-between gap-4 border-b border-gray-100 bg-white px-4 py-4 sm:px-6">
         <div>
           <h3 class="text-lg font-bold text-gray-900">{{ __('Assign Customer Menu') }}</h3>
           <p class="text-sm text-gray-400 mt-1">
@@ -402,13 +648,16 @@
           </p>
         </div>
 
-        <button type="button" @click="showAssignMeal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
+        <button type="button" @click="closeAssignMealModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </button>
       </div>
 
+      </div>
+
+      <div class="assignment-modal-body flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
       <div x-show="mealLoading" class="flex items-center justify-center py-14">
         <svg class="w-7 h-7 text-gray-300 animate-spin" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -416,7 +665,7 @@
         </svg>
       </div>
 
-      <form x-show="!mealLoading" @submit.prevent="submitAssignMeal()" class="space-y-5">
+      <form id="assign-menu-form" x-show="!mealLoading" @submit.prevent="submitAssignMeal()" class="space-y-5">
         <div x-show="!assignMealForm.subscription_id" class="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-xl p-4">
           {{ __('This customer has no active subscription.') }}
         </div>
@@ -454,7 +703,7 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <label class="cursor-pointer rounded-2xl border p-4 transition-all"
                        :class="assignMealForm.mode === 'daily' ? 'border-[#6E7A25] bg-[#6E7A25]/5 ring-2 ring-[#6E7A25]/10' : 'border-gray-200 hover:border-gray-300'">
                   <div class="flex items-start gap-3">
@@ -532,6 +781,46 @@
               </div>
             </div>
 
+            {{-- Progressive weekly assignment overview --}}
+            <div x-show="assignMealForm.mode === 'weekly_rotation'" class="rounded-2xl border border-gray-200 bg-white p-4">
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h4 class="font-bold text-gray-900">{{ __('Subscription Weeks') }}</h4>
+                  <p class="mt-1 text-xs text-gray-500">
+                    {{ __('Review completed weeks and continue assigning the next incomplete week.') }}
+                  </p>
+                </div>
+
+                <div class="rounded-full bg-[#6E7A25]/10 px-3 py-1.5 text-xs font-bold text-[#59651f]">
+                  <span x-text="assignedWeekNumbers().length"></span>
+                  /
+                  <span x-text="subscriptionTotalWeeks() || '—'"></span>
+                  {{ __('weeks assigned') }}
+                </div>
+              </div>
+
+              <div class="assignment-day-tabs mt-4 flex gap-2 overflow-x-auto pb-2">
+                <template x-for="weekNumber in availableSubscriptionWeeks()" :key="'subscription-week-' + weekNumber">
+                  <button
+                    type="button"
+                    @click="selectWeekForEditing(weekNumber)"
+                    class="min-w-[10.5rem] rounded-xl border p-3 text-left transition-all"
+                    :class="weekCardClass(weekNumber)">
+                    <div class="flex items-center justify-between gap-2">
+                      <p class="text-xs font-black" x-text="'{{ __('Week') }} ' + weekNumber"></p>
+                      <span class="rounded-full px-2 py-0.5 text-[9px] font-bold" :class="weekStatusBadgeClass(weekNumber)" x-text="weekStatusLabel(weekNumber)"></span>
+                    </div>
+                    <p class="mt-1 text-[10px] opacity-70" x-text="weekDateRangeLabel(weekNumber)"></p>
+                    <p class="mt-2 text-[10px] font-bold" x-text="weekAssignmentCountLabel(weekNumber)"></p>
+                  </button>
+                </template>
+              </div>
+
+              <div x-show="isCurrentWeekAlreadyAssigned()" class="mt-3 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2.5 text-xs text-amber-800">
+                {{ __('This week already contains assigned meals. Saving will update the selected week rather than creating a duplicate week.') }}
+              </div>
+            </div>
+
             {{-- Seven-day navigation --}}
             <div x-show="assignMealForm.mode !== 'daily'" class="space-y-3">
               <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -556,10 +845,10 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+              <div class="assignment-day-tabs flex gap-2 overflow-x-auto pb-2 lg:grid lg:grid-cols-7 lg:overflow-visible">
                 <template x-for="day in visiblePlannerDays()" :key="'planner-day-' + day">
                   <button type="button" @click="assignMealForm.active_day = day"
-                          class="rounded-xl border px-3 py-3 text-left transition-all"
+                          class="min-w-[9rem] lg:min-w-0 rounded-xl border px-3 py-3 text-left transition-all"
                           :class="assignMealForm.active_day === day ? 'border-[#6E7A25] bg-[#6E7A25] text-white shadow-md' : 'border-gray-200 bg-white text-gray-700 hover:border-[#6E7A25]/40'">
                     <p class="text-xs font-bold" x-text="plannerDayTitle(day)"></p>
                     <p class="text-[10px] mt-1 opacity-70" x-text="plannerDayDateLabel(day)"></p>
@@ -594,7 +883,7 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 <template x-for="slot in mealSlots" :key="'slot-' + slot.key + '-' + activePlannerDay()">
                   <section class="border border-gray-200 rounded-2xl overflow-hidden bg-white">
                     <div class="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
@@ -610,7 +899,7 @@
                       </button>
                     </div>
 
-                    <div class="max-h-64 overflow-y-auto divide-y divide-gray-100">
+                    <div class="assignment-meal-list divide-y divide-gray-100">
                       <template x-for="meal in filteredMealsForSlot(slot.key)" :key="slot.key + '-' + activePlannerDay() + '-' + meal.id">
                         <label class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors">
                           <input type="checkbox"
@@ -682,19 +971,23 @@
         <div x-show="assignMealError" class="text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-4 py-3" x-text="assignMealError"></div>
         <div x-show="assignMealSuccess" class="text-sm text-green-700 bg-green-50 border border-green-100 rounded-xl px-4 py-3" x-text="assignMealSuccess"></div>
 
-        <div class="flex flex-col-reverse sm:flex-row gap-3 pt-2">
-          <button type="button" @click="showAssignMeal = false"
+      </form>
+      </div>
+
+      <div class="assignment-modal-footer sticky bottom-0 z-20 border-t border-gray-100 bg-white px-4 py-3 sm:px-6">
+        <div class="flex flex-col-reverse sm:flex-row gap-3">
+          <button type="button" @click="closeAssignMealModal()"
                   class="flex-1 px-4 py-3 text-sm font-bold rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
             {{ __('Cancel') }}
           </button>
 
-          <button type="submit"
+          <button type="submit" form="assign-menu-form"
                   :disabled="assigningMeal || !canSubmitMealAssignment()"
                   class="flex-1 px-4 py-3 text-sm font-bold rounded-xl bg-gradient-to-r from-[#033133] to-[#025C5F] text-white hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   x-text="assigningMeal ? '{{ __('Saving Menu...') }}' : saveMenuButtonLabel()">
           </button>
         </div>
-      </form>
+      </div>
     </div>
   </div>
 
@@ -920,6 +1213,14 @@ function customersApp() {
     assigningMeal: false,
     assignMealError: '',
     assignMealSuccess: '',
+    showAssignedMeals: false,
+    historyTarget: null,
+    historyLoading: false,
+    historyError: '',
+    assignmentHistory: [],
+    assignedWeeks: [],
+    assignmentSummary: {},
+    existingAssignments: [],
     locale: '{{ app()->getLocale() }}',
     mealSlots: [],
     assignMealForm: {
@@ -942,6 +1243,248 @@ function customersApp() {
     assignDriverSuccess: '',
     assignDriverForm: { driver_id: '', assignment_reason: '', notes: '' },
     driversList: [],
+
+    customerHasAssignments(customer) {
+      return Boolean(
+        customer?.assignment_summary?.has_assignments ||
+        Number(customer?.assignment_summary?.total_assignments || 0) > 0 ||
+        Number(customer?.assigned_meals_count || 0) > 0
+      );
+    },
+
+    applyAssignmentData(data, customer = null) {
+      this.assignmentHistory = Array.isArray(data?.assignment_history)
+        ? data.assignment_history
+        : [];
+
+      this.assignedWeeks = Array.isArray(data?.assigned_weeks)
+        ? data.assigned_weeks
+        : [];
+
+      this.assignmentSummary = data?.assignment_summary || {
+        has_assignments: this.assignmentHistory.length > 0,
+        total_assignments: this.assignmentHistory.length,
+        assigned_week_count: this.assignedWeeks.length,
+        next_available_week: 1
+      };
+
+      this.existingAssignments = Array.isArray(data?.assignments)
+        ? data.assignments
+        : this.assignmentHistory;
+
+      if (customer) {
+        customer.assignment_summary = this.assignmentSummary;
+        customer.assigned_weeks = this.assignedWeeks;
+      }
+
+      if (this.selected && customer && Number(this.selected.id) === Number(customer.id)) {
+        this.selected.assignment_summary = this.assignmentSummary;
+        this.selected.assigned_weeks = this.assignedWeeks;
+      }
+    },
+
+    async fetchAssignmentData(customer, options = {}) {
+      const target = customer || this.selected;
+      const subscriptionId = Number(
+        options.subscriptionId ||
+        target?.subscription?.id ||
+        target?.current_subscription?.id ||
+        0
+      );
+
+      if (!target?.id || !subscriptionId) {
+        this.applyAssignmentData({}, target);
+        return {};
+      }
+
+      const response = await fetch(
+        `{{ url('admin/customers') }}/${target.id}/meal-selections?subscription_id=${subscriptionId}`,
+        {
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+          }
+        }
+      );
+
+      const data = await this.readJsonResponse(response);
+      this.applyAssignmentData(data, target);
+      return data;
+    },
+
+    async openAssignedMeals(customer) {
+      this.historyTarget = customer;
+      this.showAssignedMeals = true;
+      this.historyLoading = true;
+      this.historyError = '';
+      document.body.classList.add('overflow-hidden');
+
+      try {
+        await this.fetchAssignmentData(customer);
+      } catch (error) {
+        console.error('Failed to load assigned meals', error);
+        this.historyError =
+          error.message ||
+          '{{ __('Failed to load assigned meals.') }}';
+      } finally {
+        this.historyLoading = false;
+      }
+    },
+
+    closeAssignedMeals() {
+      this.showAssignedMeals = false;
+      this.historyTarget = null;
+
+      if (!this.showAssignMeal) {
+        document.body.classList.remove('overflow-hidden');
+      }
+    },
+
+    closeAssignMealModal() {
+      if (this.assigningMeal) return;
+      this.showAssignMeal = false;
+
+      if (!this.showAssignedMeals) {
+        document.body.classList.remove('overflow-hidden');
+      }
+    },
+
+    editAssignedWeek(weekNumber) {
+      const target = this.historyTarget || this.selected;
+      this.closeAssignedMeals();
+      this.openAssignMeal(target, {
+        mode: 'weekly_rotation',
+        weekNumber: Number(weekNumber || 1)
+      });
+    },
+
+    assignedHistoryPeriodLabel() {
+      const first = this.assignmentSummary?.first_assigned_date;
+      const last = this.assignmentSummary?.last_assigned_date;
+
+      if (!first && !last) return '{{ __('No assigned dates') }}';
+      return this.formatDateRange(first, last);
+    },
+
+    formatDate(value) {
+      if (!value) return '—';
+
+      const date = new Date(`${String(value).slice(0, 10)}T00:00:00`);
+      if (Number.isNaN(date.getTime())) return String(value);
+
+      return date.toLocaleDateString(
+        this.locale === 'ar' ? 'ar-SA' : 'en-US',
+        { year: 'numeric', month: 'short', day: 'numeric' }
+      );
+    },
+
+    formatDateRange(start, end) {
+      if (!start && !end) return '—';
+      if (!end || start === end) return this.formatDate(start || end);
+      return `${this.formatDate(start)} → ${this.formatDate(end)}`;
+    },
+
+    historyDayTitle(day) {
+      const number = day?.day_number || day?.week_day || '';
+      return number
+        ? `{{ __('Subscription Day') }} ${number}`
+        : '{{ __('Assigned Day') }}';
+    },
+
+    historyAssignmentTime(assignment) {
+      return [
+        assignment?.delivery_date,
+        assignment?.delivery_time
+      ].filter(Boolean).join(' · ');
+    },
+
+    availableSubscriptionWeeks() {
+      const count = this.subscriptionTotalWeeks();
+      return Array.from({ length: Math.max(count, 1) }, (_, index) => index + 1);
+    },
+
+    assignedWeekNumbers() {
+      return this.assignedWeeks
+        .map(week => Number(week?.week_number || 0))
+        .filter(Boolean);
+    },
+
+    assignedWeek(weekNumber) {
+      return this.assignedWeeks.find(
+        week => Number(week?.week_number || 0) === Number(weekNumber)
+      ) || null;
+    },
+
+    weekStatusLabel(weekNumber) {
+      const week = this.assignedWeek(weekNumber);
+      if (!week) return '{{ __('Not Assigned') }}';
+      return week.is_complete ? '{{ __('Complete') }}' : '{{ __('Partial') }}';
+    },
+
+    weekStatusBadgeClass(weekNumber) {
+      const week = this.assignedWeek(weekNumber);
+      if (!week) return 'bg-gray-100 text-gray-500';
+      return week.is_complete
+        ? 'bg-green-100 text-green-700'
+        : 'bg-amber-100 text-amber-700';
+    },
+
+    weekCardClass(weekNumber) {
+      if (Number(this.assignMealForm.week_number) === Number(weekNumber)) {
+        return 'border-[#6E7A25] bg-[#6E7A25] text-white shadow-md';
+      }
+
+      if (this.assignedWeek(weekNumber)) {
+        return 'border-green-200 bg-green-50 text-green-800 hover:border-green-300';
+      }
+
+      return 'border-gray-200 bg-white text-gray-700 hover:border-[#6E7A25]/50';
+    },
+
+    weekDateRangeLabel(weekNumber) {
+      const startDay = ((Number(weekNumber) - 1) * 7) + 1;
+      const lastDay = Math.min(
+        startDay + 6,
+        this.subscriptionDurationDays() || startDay + 6
+      );
+
+      const start = this.scheduledDateForAbsoluteDay(startDay);
+      const end = this.scheduledDateForAbsoluteDay(lastDay);
+
+      if (!start) return '—';
+
+      const formatter = date => date.toLocaleDateString(
+        this.locale === 'ar' ? 'ar-SA' : 'en-US',
+        { month: 'short', day: 'numeric' }
+      );
+
+      return `${formatter(start)} → ${formatter(end || start)}`;
+    },
+
+    weekAssignmentCountLabel(weekNumber) {
+      const week = this.assignedWeek(weekNumber);
+
+      if (!week) {
+        return '{{ __('Ready to assign') }}';
+      }
+
+      return `${Number(week.assignment_count || 0)} {{ __('assignments') }} · ${Number(week.meal_count || 0)} {{ __('meals') }}`;
+    },
+
+    isCurrentWeekAlreadyAssigned() {
+      return Boolean(this.assignedWeek(this.assignMealForm.week_number));
+    },
+
+    selectWeekForEditing(weekNumber) {
+      this.assignMealForm.mode = 'weekly_rotation';
+      this.assignMealForm.week_number = Number(weekNumber || 1);
+      this.assignMealForm.active_day = 1;
+      this.resetPlannerDays();
+      this.loadExistingAssignments(this.existingAssignments);
+      this.sanitizeAllMealSelections();
+      this.assignMealError = '';
+      this.assignMealSuccess = '';
+    },
 
     statusClass(s) {
       const m = { active:'bg-green-50 text-green-700 border-green-200', paused:'bg-amber-50 text-amber-700 border-amber-200', cancelled:'bg-red-50 text-red-600 border-red-200', inactive:'bg-gray-50 text-gray-600 border-gray-200' };
@@ -1304,9 +1847,10 @@ function customersApp() {
       }
     },
 
-    async openAssignMeal(c) {
+    async openAssignMeal(c, options = {}) {
       this.assignMealTarget = c;
       this.showAssignMeal = true;
+      document.body.classList.add('overflow-hidden');
       this.mealLoading = true;
       this.assignMealError = '';
       this.assignMealSuccess = '';
@@ -1327,6 +1871,14 @@ function customersApp() {
         assignment_reason: c?.location ? '{{ __('Same delivery zone: ') }}' + c.location : '',
         notes: ''
       };
+
+      if (options.mode) {
+        this.assignMealForm.mode = options.mode;
+      }
+
+      if (options.weekNumber) {
+        this.assignMealForm.week_number = Number(options.weekNumber);
+      }
 
       if (!['daily', 'repeat_weekly', 'weekly_rotation'].includes(this.assignMealForm.mode)) {
         this.assignMealForm.mode = 'daily';
@@ -1385,6 +1937,7 @@ function customersApp() {
         });
 
         const data = await this.readJsonResponse(response);
+        this.applyAssignmentData(data, this.assignMealTarget);
 
         /*
          * Prefer any fresh delivery preferences returned by this endpoint.
@@ -1408,7 +1961,7 @@ function customersApp() {
 
         this.assignMealForm.subscription_id = Number(data.subscription_id || subId);
 
-        if (data.assignment_mode || data.menu_assignment_mode || data.meal_assignment_mode) {
+        if (!options.mode && (data.assignment_mode || data.menu_assignment_mode || data.meal_assignment_mode)) {
           const receivedMode = String(
             data.assignment_mode ||
             data.menu_assignment_mode ||
@@ -1417,9 +1970,19 @@ function customersApp() {
 
           if (['daily', 'repeat_weekly', 'weekly_rotation'].includes(receivedMode)) {
             this.assignMealForm.mode = receivedMode;
-            this.resetPlannerDays();
           }
         }
+
+        if (this.assignMealForm.mode === 'weekly_rotation') {
+          this.assignMealForm.week_number = Number(
+            options.weekNumber ||
+            this.assignmentSummary?.next_available_week ||
+            this.assignMealForm.week_number ||
+            1
+          );
+        }
+
+        this.resetPlannerDays();
 
         this.buildMealSlots(data);
 
@@ -1488,13 +2051,16 @@ function customersApp() {
 
         const existing = Array.isArray(data.assignments)
           ? data.assignments
-          : Array.isArray(data.selections)
-            ? data.selections
-            : Array.isArray(data.items)
-              ? data.items
-              : [];
+          : Array.isArray(data.assignment_history)
+            ? data.assignment_history
+            : Array.isArray(data.selections)
+              ? data.selections
+              : Array.isArray(data.items)
+                ? data.items
+                : [];
 
-        this.loadExistingAssignments(existing);
+        this.existingAssignments = existing;
+        this.loadExistingAssignments(this.existingAssignments);
         this.sanitizeAllMealSelections();
       } catch (error) {
         console.error('Failed to load menu assignments', error);
@@ -1635,11 +2201,23 @@ function customersApp() {
 
     changeMealMode() {
       this.assignMealForm.day_number = Math.max(Number(this.assignMealForm.day_number || 1), 1);
-      this.assignMealForm.week_number = Math.max(Number(this.assignMealForm.week_number || 1), 1);
+
+      if (this.assignMealForm.mode === 'weekly_rotation') {
+        this.assignMealForm.week_number = Number(
+          this.assignmentSummary?.next_available_week ||
+          this.assignMealForm.week_number ||
+          1
+        );
+      } else {
+        this.assignMealForm.week_number = Math.max(Number(this.assignMealForm.week_number || 1), 1);
+      }
+
       this.assignMealForm.active_day = 1;
       this.assignMealError = '';
       this.assignMealSuccess = '';
       this.resetPlannerDays();
+      this.loadExistingAssignments(this.existingAssignments);
+      this.sanitizeAllMealSelections();
     },
 
     activateDailyDay() {
@@ -1649,19 +2227,56 @@ function customersApp() {
     },
 
     changeWeekNumber() {
-      this.assignMealForm.week_number = Math.max(Number(this.assignMealForm.week_number || 1), 1);
+      const totalWeeks = this.subscriptionTotalWeeks();
+      this.assignMealForm.week_number = Math.max(
+        1,
+        Math.min(
+          Number(this.assignMealForm.week_number || 1),
+          totalWeeks || Number(this.assignMealForm.week_number || 1)
+        )
+      );
       this.assignMealForm.active_day = 1;
       this.resetPlannerDays();
+      this.loadExistingAssignments(this.existingAssignments);
+      this.sanitizeAllMealSelections();
     },
 
     visiblePlannerDays() {
-      return this.assignMealForm.mode === 'daily' ? [1] : [1, 2, 3, 4, 5, 6, 7];
+      if (this.assignMealForm.mode === 'daily') {
+        return [1];
+      }
+
+      if (this.assignMealForm.mode !== 'weekly_rotation') {
+        return [1, 2, 3, 4, 5, 6, 7];
+      }
+
+      const duration = this.subscriptionDurationDays();
+
+      if (!duration) {
+        return [1, 2, 3, 4, 5, 6, 7];
+      }
+
+      const firstAbsoluteDay =
+        ((Math.max(Number(this.assignMealForm.week_number || 1), 1) - 1) * 7) + 1;
+
+      const remainingDays = Math.max(duration - firstAbsoluteDay + 1, 0);
+      const count = Math.min(7, remainingDays);
+
+      return Array.from({ length: Math.max(count, 1) }, (_, index) => index + 1);
     },
 
     activePlannerDay() {
-      return this.assignMealForm.mode === 'daily'
-        ? 1
-        : Math.min(Math.max(Number(this.assignMealForm.active_day || 1), 1), 7);
+      if (this.assignMealForm.mode === 'daily') {
+        return 1;
+      }
+
+      const visible = this.visiblePlannerDays();
+      const maximum = Math.max(...visible, 1);
+
+      return Math.min(
+        Math.max(Number(this.assignMealForm.active_day || 1), 1),
+        maximum
+      );
     },
 
     activeDayAssignments() {
@@ -2467,18 +3082,43 @@ function customersApp() {
 
         await this.fetchCustomers();
 
+        const refreshedData = await this.fetchAssignmentData(
+          this.assignMealTarget,
+          { subscriptionId: this.assignMealForm.subscription_id }
+        );
+
         if (
           this.selected?.id ===
           this.assignMealTarget?.id
         ) {
-          await this.showDetail(
-            this.assignMealTarget
-          );
+          this.selected.assignment_summary = this.assignmentSummary;
+          this.selected.assigned_weeks = this.assignedWeeks;
         }
 
-        setTimeout(() => {
-          this.showAssignMeal = false;
-        }, 1500);
+        if (this.assignMealForm.mode === 'weekly_rotation') {
+          const nextWeek = Number(
+            refreshedData?.assignment_summary?.next_available_week ||
+            this.assignmentSummary?.next_available_week ||
+            0
+          );
+
+          if (
+            nextWeek > 0 &&
+            nextWeek <= (this.subscriptionTotalWeeks() || nextWeek) &&
+            nextWeek !== Number(this.assignMealForm.week_number)
+          ) {
+            this.assignMealForm.week_number = nextWeek;
+            this.assignMealForm.active_day = 1;
+            this.resetPlannerDays();
+            this.loadExistingAssignments(this.existingAssignments);
+            this.assignMealSuccess +=
+              ' {{ __('You can now continue with the next available week.') }}';
+          }
+        } else {
+          setTimeout(() => {
+            this.closeAssignMealModal();
+          }, 1500);
+        }
       } catch (error) {
         console.error(
           'Failed to assign menu',
@@ -2557,12 +3197,41 @@ function customersApp() {
     async showDetail(c) {
       this.selected = c;
       this.detailLoading = true;
+
       try {
-        const r = await fetch(`{{ url('admin/customers') }}/${c.id}/details`, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
-        const d = await r.json();
-        if (d.customer) Object.assign(this.selected, d.customer);
-      } catch(e) { console.error('Failed to fetch customer details', e); }
-      finally { this.detailLoading = false; }
+        const r = await fetch(
+          `{{ url('admin/customers') }}/${c.id}/details`,
+          {
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json'
+            }
+          }
+        );
+
+        const d = await this.readJsonResponse(r);
+
+        if (d.customer) {
+          Object.assign(this.selected, d.customer);
+        }
+
+        const subscriptionId = Number(
+          this.selected?.subscription?.id ||
+          this.selected?.current_subscription?.id ||
+          0
+        );
+
+        if (subscriptionId) {
+          await this.fetchAssignmentData(
+            this.selected,
+            { subscriptionId }
+          );
+        }
+      } catch(e) {
+        console.error('Failed to fetch customer details', e);
+      } finally {
+        this.detailLoading = false;
+      }
     },
 
     assignPlan(c) {
