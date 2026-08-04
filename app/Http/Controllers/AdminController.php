@@ -3473,6 +3473,509 @@ class AdminController extends Controller
 }
 
 
+
+    /**
+     * Build a stable, frontend-friendly history structure from FastAPI
+     * meal assignments. The raw assignments are preserved separately.
+     */
+    private function buildCustomerAssignmentHistory(
+        array $assignments,
+        array $meals,
+        array $customerData,
+        int $subscriptionId
+    ): array {
+        $mealLookup = [];
+
+        foreach ($meals as $meal) {
+            if (!is_array($meal)) {
+                continue;
+            }
+
+            $mealId = (int) ($meal['id'] ?? 0);
+
+            if ($mealId > 0) {
+                $mealLookup[$mealId] = $meal;
+            }
+        }
+
+        $subscription = [];
+
+        foreach ([
+            $customerData['subscription'] ?? null,
+            $customerData['current_subscription'] ?? null,
+        ] as $candidate) {
+            if (
+                is_array($candidate)
+                && (int) ($candidate['id'] ?? 0) === $subscriptionId
+            ) {
+                $subscription = $candidate;
+                break;
+            }
+        }
+
+        if (
+            empty($subscription)
+            && is_array($customerData['subscriptions'] ?? null)
+        ) {
+            foreach ($customerData['subscriptions'] as $candidate) {
+                if (
+                    is_array($candidate)
+                    && (int) ($candidate['id'] ?? 0) === $subscriptionId
+                ) {
+                    $subscription = $candidate;
+                    break;
+                }
+            }
+        }
+
+        $subscriptionStart = $subscription['start_date']
+            ?? $subscription['starts_at']
+            ?? null;
+
+        $subscriptionEnd = $subscription['end_date']
+            ?? $subscription['ends_at']
+            ?? null;
+
+        $startDate = null;
+        $endDate = null;
+
+        try {
+            if ($subscriptionStart) {
+                $startDate = new \DateTimeImmutable(
+                    substr((string) $subscriptionStart, 0, 10)
+                );
+            }
+
+            if ($subscriptionEnd) {
+                $endDate = new \DateTimeImmutable(
+                    substr((string) $subscriptionEnd, 0, 10)
+                );
+            }
+        } catch (\Throwable) {
+            $startDate = null;
+            $endDate = null;
+        }
+
+        $normalized = [];
+
+        foreach ($assignments as $assignment) {
+            if (!is_array($assignment)) {
+                continue;
+            }
+
+            $assignmentId = (int) ($assignment['id'] ?? 0);
+
+            $deliveryDate = $assignment['delivery_date']
+                ?? $assignment['scheduled_date']
+                ?? null;
+
+            $absoluteDay = (int) (
+                $assignment['day_number']
+                ?? 0
+            );
+
+            if (
+                $absoluteDay <= 0
+                && $startDate
+                && $deliveryDate
+            ) {
+                try {
+                    $date = new \DateTimeImmutable(
+                        substr((string) $deliveryDate, 0, 10)
+                    );
+
+                    $absoluteDay = (int) $startDate
+                        ->diff($date)
+                        ->format('%r%a') + 1;
+                } catch (\Throwable) {
+                    $absoluteDay = 0;
+                }
+            }
+
+            $weekNumber = (int) (
+                $assignment['week_number']
+                ?? (
+                    $absoluteDay > 0
+                        ? (int) ceil($absoluteDay / 7)
+                        : 1
+                )
+            );
+
+            $weekDay = (int) (
+                $assignment['week_day']
+                ?? $assignment['day_of_week']
+                ?? (
+                    $absoluteDay > 0
+                        ? (($absoluteDay - 1) % 7) + 1
+                        : 1
+                )
+            );
+
+            $category = is_array(
+                $assignment['meal_category'] ?? null
+            )
+                ? $assignment['meal_category']
+                : (
+                    is_array($assignment['category'] ?? null)
+                        ? $assignment['category']
+                        : []
+                );
+
+            $categoryId = (int) (
+                $assignment['meal_category_id']
+                ?? $assignment['category_id']
+                ?? $category['id']
+                ?? 0
+            );
+
+            $categoryName = $category['name_en']
+                ?? $category['name']
+                ?? $assignment['category_name']
+                ?? (
+                    $categoryId > 0
+                        ? __('Category #:id', ['id' => $categoryId])
+                        : __('Meal Category')
+                );
+
+            $assignmentItems = $assignment['items']
+                ?? $assignment['meals']
+                ?? $assignment['meal_items']
+                ?? [];
+
+            if (
+                !is_array($assignmentItems)
+                || array_is_list($assignmentItems) === false
+            ) {
+                $assignmentItems = [];
+            }
+
+            if (
+                empty($assignmentItems)
+                && !empty($assignment['meal_id'])
+            ) {
+                $assignmentItems = [[
+                    'meal_id' => $assignment['meal_id'],
+                    'quantity' => $assignment['quantity'] ?? 1,
+                ]];
+            }
+
+            $normalizedMeals = [];
+
+            foreach ($assignmentItems as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+
+                $mealObject = is_array($item['meal'] ?? null)
+                    ? $item['meal']
+                    : [];
+
+                $mealId = (int) (
+                    $item['meal_id']
+                    ?? $mealObject['id']
+                    ?? $item['id']
+                    ?? 0
+                );
+
+                $mealRecord = $mealLookup[$mealId] ?? [];
+
+                $normalizedMeals[] = [
+                    'id' => $mealId,
+                    'name' => $mealObject['name_en']
+                        ?? $mealObject['name']
+                        ?? $mealRecord['name']
+                        ?? $mealRecord['name_en']
+                        ?? __('Meal #:id', ['id' => $mealId]),
+                    'name_en' => $mealObject['name_en']
+                        ?? $mealRecord['name_en']
+                        ?? null,
+                    'name_ar' => $mealObject['name_ar']
+                        ?? $mealRecord['name_ar']
+                        ?? null,
+                    'quantity' => (int) (
+                        $item['quantity']
+                        ?? 1
+                    ),
+                    'notes' => $item['notes'] ?? null,
+                    'calories' => $mealObject['calories']
+                        ?? $mealRecord['calories']
+                        ?? null,
+                ];
+            }
+
+            $driver = is_array($assignment['driver'] ?? null)
+                ? $assignment['driver']
+                : [];
+
+            $preference = is_array(
+                $assignment['delivery_preference'] ?? null
+            )
+                ? $assignment['delivery_preference']
+                : [];
+
+            $normalized[] = [
+                'id' => $assignmentId,
+                'user_id' => (int) (
+                    $assignment['user_id']
+                    ?? $customerData['id']
+                    ?? 0
+                ),
+                'subscription_id' => (int) (
+                    $assignment['subscription_id']
+                    ?? $subscriptionId
+                ),
+                'delivery_date' => $deliveryDate,
+                'delivery_time' => $assignment['delivery_time']
+                    ?? $preference['preferred_delivery_time']
+                    ?? null,
+                'day_number' => $absoluteDay,
+                'week_number' => max($weekNumber, 1),
+                'week_day' => min(max($weekDay, 1), 7),
+                'meal_category_id' => $categoryId,
+                'category_name' => $categoryName,
+                'category_name_en' => $category['name_en']
+                    ?? $categoryName,
+                'category_name_ar' => $category['name_ar']
+                    ?? null,
+                'driver_id' => (int) (
+                    $assignment['driver_id']
+                    ?? $driver['id']
+                    ?? 0
+                ),
+                'driver_name' => $driver['name']
+                    ?? trim(
+                        (string) ($driver['first_name'] ?? '')
+                        . ' '
+                        . (string) ($driver['last_name'] ?? '')
+                    )
+                    ?: null,
+                'delivery_preference_id' => (int) (
+                    $assignment['delivery_preference_id']
+                    ?? $preference['id']
+                    ?? 0
+                ),
+                'delivery_location' => [
+                    'place_type' => $preference['place_type']
+                        ?? null,
+                    'place_name' => $preference['place_name']
+                        ?? null,
+                    'city' => $preference['city']
+                        ?? null,
+                    'delivery_area' => $preference['delivery_area']
+                        ?? null,
+                    'delivery_address' => $preference['delivery_address']
+                        ?? null,
+                ],
+                'notes' => $assignment['notes'] ?? null,
+                'is_active' => (bool) (
+                    $assignment['is_active']
+                    ?? true
+                ),
+                'meals' => $normalizedMeals,
+            ];
+        }
+
+        usort($normalized, static function (
+            array $left,
+            array $right
+        ): int {
+            return [
+                $left['delivery_date'] ?? '',
+                $left['delivery_time'] ?? '',
+                $left['meal_category_id'] ?? 0,
+                $left['id'] ?? 0,
+            ] <=> [
+                $right['delivery_date'] ?? '',
+                $right['delivery_time'] ?? '',
+                $right['meal_category_id'] ?? 0,
+                $right['id'] ?? 0,
+            ];
+        });
+
+        $weeks = [];
+
+        foreach ($normalized as $assignment) {
+            $weekNumber = (int) $assignment['week_number'];
+            $dateKey = (string) (
+                $assignment['delivery_date']
+                ?? 'undated'
+            );
+
+            if (!isset($weeks[$weekNumber])) {
+                $weeks[$weekNumber] = [
+                    'week_number' => $weekNumber,
+                    'start_date' => null,
+                    'end_date' => null,
+                    'assigned_dates' => [],
+                    'days' => [],
+                    'assignment_count' => 0,
+                    'meal_count' => 0,
+                ];
+            }
+
+            if (!isset($weeks[$weekNumber]['days'][$dateKey])) {
+                $weeks[$weekNumber]['days'][$dateKey] = [
+                    'date' => $assignment['delivery_date'],
+                    'day_number' => $assignment['day_number'],
+                    'week_day' => $assignment['week_day'],
+                    'assignments' => [],
+                    'meal_count' => 0,
+                ];
+            }
+
+            $weeks[$weekNumber]['days'][$dateKey]['assignments'][]
+                = $assignment;
+
+            $mealCount = array_sum(
+                array_map(
+                    static fn (array $meal): int =>
+                        max((int) ($meal['quantity'] ?? 1), 1),
+                    $assignment['meals']
+                )
+            );
+
+            $weeks[$weekNumber]['days'][$dateKey]['meal_count']
+                += $mealCount;
+
+            $weeks[$weekNumber]['assignment_count']++;
+            $weeks[$weekNumber]['meal_count'] += $mealCount;
+
+            if ($assignment['delivery_date']) {
+                $weeks[$weekNumber]['assigned_dates'][]
+                    = $assignment['delivery_date'];
+            }
+        }
+
+        foreach ($weeks as &$week) {
+            $week['assigned_dates'] = array_values(
+                array_unique($week['assigned_dates'])
+            );
+
+            sort($week['assigned_dates']);
+
+            $week['start_date'] = $week['assigned_dates'][0]
+                ?? null;
+
+            $week['end_date'] = !empty($week['assigned_dates'])
+                ? $week['assigned_dates'][
+                    count($week['assigned_dates']) - 1
+                ]
+                : null;
+
+            $week['days'] = array_values($week['days']);
+
+            usort(
+                $week['days'],
+                static fn (array $left, array $right): int =>
+                    [
+                        $left['date'] ?? '',
+                        $left['day_number'] ?? 0,
+                    ] <=> [
+                        $right['date'] ?? '',
+                        $right['day_number'] ?? 0,
+                    ]
+            );
+
+            $week['assigned_day_count'] = count(
+                $week['assigned_dates']
+            );
+
+            $week['is_complete'] =
+                $week['assigned_day_count'] >= 7;
+        }
+
+        unset($week);
+
+        ksort($weeks);
+
+        $durationDays = 0;
+
+        if ($startDate && $endDate) {
+            $durationDays = (int) $startDate
+                ->diff($endDate)
+                ->format('%a') + 1;
+        }
+
+        if ($durationDays <= 0) {
+            $durationDays = (int) (
+                $subscription['duration_days']
+                ?? 0
+            );
+        }
+
+        $totalWeeks = $durationDays > 0
+            ? (int) ceil($durationDays / 7)
+            : (
+                !empty($weeks)
+                    ? max(array_keys($weeks))
+                    : 0
+            );
+
+        $assignedWeekNumbers = array_map(
+            'intval',
+            array_keys($weeks)
+        );
+
+        $nextAvailableWeek = null;
+
+        if ($totalWeeks > 0) {
+            for ($weekNumber = 1; $weekNumber <= $totalWeeks; $weekNumber++) {
+                $week = $weeks[$weekNumber] ?? null;
+
+                if (
+                    !$week
+                    || !($week['is_complete'] ?? false)
+                ) {
+                    $nextAvailableWeek = $weekNumber;
+                    break;
+                }
+            }
+        }
+
+        return [
+            'assignments' => $normalized,
+            'weeks' => array_values($weeks),
+            'summary' => [
+                'has_assignments' => !empty($normalized),
+                'total_assignments' => count($normalized),
+                'total_meals' => array_sum(
+                    array_column(
+                        array_values($weeks),
+                        'meal_count'
+                    )
+                ),
+                'assigned_dates' => array_values(
+                    array_unique(
+                        array_filter(
+                            array_column(
+                                $normalized,
+                                'delivery_date'
+                            )
+                        )
+                    )
+                ),
+                'first_assigned_date' => !empty($normalized)
+                    ? ($normalized[0]['delivery_date'] ?? null)
+                    : null,
+                'last_assigned_date' => !empty($normalized)
+                    ? (
+                        $normalized[
+                            count($normalized) - 1
+                        ]['delivery_date'] ?? null
+                    )
+                    : null,
+                'assigned_week_numbers' => $assignedWeekNumbers,
+                'assigned_week_count' => count(
+                    $assignedWeekNumbers
+                ),
+                'total_weeks' => $totalWeeks,
+                'next_available_week' => $nextAvailableWeek,
+                'subscription_start_date' => $subscriptionStart,
+                'subscription_end_date' => $subscriptionEnd,
+            ],
+        ];
+    }
+
     public function customerMealSelections(
     int $id,
     Request $request,
@@ -3521,7 +4024,7 @@ if (
 $customerData = is_array($customerData)
     ? $customerData
     : [];
-    
+
     \Log::info('CUSTOMER MEAL PREFERENCE DEBUG', [
     'customer_id' => $id,
     'customer_data' => $customerData,
@@ -3721,6 +4224,22 @@ foreach ($deliveryPreferencesRaw as $preference) {
         'selections' => [],
         'meals' => [],
         'subscription_id' => 0,
+        'assignment_history' => [],
+        'assigned_weeks' => [],
+        'assignment_summary' => [
+            'has_assignments' => false,
+            'total_assignments' => 0,
+            'total_meals' => 0,
+            'assigned_dates' => [],
+            'first_assigned_date' => null,
+            'last_assigned_date' => null,
+            'assigned_week_numbers' => [],
+            'assigned_week_count' => 0,
+            'total_weeks' => 0,
+            'next_available_week' => null,
+            'subscription_start_date' => null,
+            'subscription_end_date' => null,
+        ],
 
         'delivery_preferences' =>
             $deliveryByCategory,
@@ -3824,11 +4343,34 @@ foreach ($deliveryPreferencesRaw as $preference) {
             ->values()
             ->all();
 
+        $history = $this->buildCustomerAssignmentHistory(
+            $assignments,
+            $meals,
+            $customerData,
+            $subscriptionId
+        );
+
         return response()->json([
     'success' => true,
 
+    /*
+     * Raw FastAPI records are kept for the existing assignment editor.
+     */
     'assignments' =>
         $assignments,
+
+    /*
+     * Stable normalized records are used by the assigned-meals history
+     * viewer and progressive week workflow.
+     */
+    'assignment_history' =>
+        $history['assignments'],
+
+    'assigned_weeks' =>
+        $history['weeks'],
+
+    'assignment_summary' =>
+        $history['summary'],
 
     'selections' =>
         $assignments,

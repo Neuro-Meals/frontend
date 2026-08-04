@@ -644,19 +644,38 @@
                 </div>
 
                 <div class="health-field">
-                    <label for="fitness_goal">{{ __('GOAL') }}</label>
-                    <div class="health-input-wrap">
-                        <select id="fitness_goal" x-model="profile.fitness_goal" required>
-                            <option value="">{{ __('Select a goal') }}</option>
-                            <option value="weight_loss">{{ __('Weight Loss') }}</option>
-                            <option value="weight_maintenance">{{ __('Maintain Weight') }}</option>
-                            <option value="muscle_gain">{{ __('Muscle Gain') }}</option>
-                            <option value="healthy_eating">{{ __('Healthy Eating') }}</option>
-                            <option value="improve_fitness">{{ __('Improve Fitness') }}</option>
-                            <option value="sports_performance">{{ __('Sports Performance') }}</option>
-                        </select>
-                    </div>
-                </div>
+    <label for="fitness_goal">
+        {{ __('GOAL') }}
+    </label>
+
+    <div class="health-input-wrap">
+        <select
+            id="fitness_goal"
+            x-model="profile.fitness_goal"
+            required
+        >
+            <option value="">
+                {{ __('Select a goal') }}
+            </option>
+
+            <option value="weight_loss">
+                {{ __('Weight Loss') }}
+            </option>
+
+            <option value="maintenance">
+                {{ __('Maintain Weight') }}
+            </option>
+
+            <option value="muscle_gain">
+                {{ __('Muscle Gain') }}
+            </option>
+
+            <option value="healthy_lifestyle">
+                {{ __('Healthy Lifestyle') }}
+            </option>
+        </select>
+    </div>
+</div>
 
                 <div class="health-field">
                     <label for="activity_level">{{ __('ACTIVITY LEVEL') }}</label>

@@ -51,31 +51,88 @@ public function createMealAssignments(array $payload): array
 }
 
     /**
-     * Get meal assignments for one customer.
+     * Get every active meal assignment for one customer/subscription.
+     *
+     * The FastAPI endpoint is paginated. This method follows all pages so
+     * a long subscription is not silently truncated after the first 100
+     * assignment records.
      */
     public function subscriptionMealAssignments(
         int $userId,
-        ?int $subscriptionId = null
+        ?int $subscriptionId = null,
+        ?string $dateFrom = null,
+        ?string $dateTo = null
     ): array {
-        $params = [
-            'user_id' => $userId,
-            'active_only' => true,
-            'page' => 1,
-            'page_size' => 100,
-        ];
+        $pageSize = 100;
+        $page = 1;
+        $maxPages = 50;
+        $items = [];
+        $lastResponse = [];
 
-        if (
-            $subscriptionId !== null
-            && $subscriptionId > 0
-        ) {
-            $params['subscription_id'] =
-                $subscriptionId;
-        }
+        do {
+            $query = [
+                'active_only' => true,
+                'page' => $page,
+                'page_size' => $pageSize,
+            ];
 
-        return $this->get(
-            'meal_assignments.customer',
-            $params
+            if ($subscriptionId !== null && $subscriptionId > 0) {
+                $query['subscription_id'] = $subscriptionId;
+            }
+
+            if ($dateFrom) {
+                $query['date_from'] = $dateFrom;
+            }
+
+            if ($dateTo) {
+                $query['date_to'] = $dateTo;
+            }
+
+            $response = $this->get(
+                'meal_assignments.customer',
+                ['user_id' => $userId],
+                $query
+            );
+
+            $lastResponse = is_array($response) ? $response : [];
+
+            if (($lastResponse['success'] ?? true) === false) {
+                return $lastResponse;
+            }
+
+            $pageItems = $lastResponse['items']
+                ?? $lastResponse['data']
+                ?? [];
+
+            if (!is_array($pageItems)) {
+                $pageItems = [];
+            }
+
+            $items = array_merge($items, array_values($pageItems));
+
+            $reportedTotal = (int) (
+                $lastResponse['total']
+                ?? $lastResponse['total_count']
+                ?? 0
+            );
+
+            $hasMoreFromTotal = $reportedTotal > count($items);
+            $hasMoreFromPageSize = count($pageItems) === $pageSize;
+
+            $page++;
+        } while (
+            $page <= $maxPages
+            && ($hasMoreFromTotal || $hasMoreFromPageSize)
+            && count($pageItems) > 0
         );
+
+        return [
+            'items' => $items,
+            'total' => count($items),
+            'page' => 1,
+            'page_size' => count($items),
+            'source' => $lastResponse,
+        ];
     }
 
     /**
