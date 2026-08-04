@@ -917,9 +917,65 @@
                       </div>
                     </div>
 
-                    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100" x-show="deliveryPreferenceFor(slot.key)">
-                      <p class="text-xs font-bold text-gray-600 mb-1">{{ __('Delivery preference') }}</p>
-                      <p class="text-xs text-gray-500" x-text="deliveryPreferenceSummary(slot.key)"></p>
+                    <div class="border-t border-gray-100 bg-gray-50 px-4 py-4">
+                      <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                          <p class="text-xs font-black text-gray-700">{{ __('Delivery Location, Time & Driver') }}</p>
+                          <p class="mt-1 text-[10px] leading-4 text-gray-400">{{ __('This meal category can use its own saved location, delivery time and driver.') }}</p>
+                        </div>
+                        <span class="flex-shrink-0 rounded-full px-2 py-1 text-[9px] font-bold"
+                          :class="categorySettingIsComplete(slot.key) ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'"
+                          x-text="categorySettingIsComplete(slot.key) ? '{{ __('Ready') }}' : '{{ __('Incomplete') }}'"></span>
+                      </div>
+
+                      <div class="mt-3 rounded-xl border border-blue-100 bg-blue-50 p-3">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-blue-500">{{ __('Customer Saved Location') }}</p>
+                        <template x-if="deliveryPreferenceFor(slot.key)">
+                          <div class="mt-1">
+                            <p class="text-xs font-semibold leading-5 text-blue-800" x-text="deliveryPreferenceLocationSummary(slot.key)"></p>
+                            <p x-show="deliveryPreferenceFor(slot.key)?.delivery_note" class="mt-1 text-[10px] text-blue-600">
+                              <span class="font-bold">{{ __('Note') }}:</span>
+                              <span x-text="deliveryPreferenceFor(slot.key)?.delivery_note"></span>
+                            </p>
+                          </div>
+                        </template>
+                        <p x-show="!deliveryPreferenceFor(slot.key)" class="mt-1 text-xs font-semibold text-red-600">
+                          {{ __('This customer has no saved delivery preference for this meal category.') }}
+                        </p>
+                      </div>
+
+                      <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                            {{ __('Delivery Time') }} <span class="text-red-500">*</span>
+                          </label>
+                          <input type="time" x-model="categorySetting(slot.key).delivery_time" required
+                            class="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+                        </div>
+                        <div>
+                          <label class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                            {{ __('Driver') }} <span class="text-red-500">*</span>
+                          </label>
+                          <select x-model="categorySetting(slot.key).driver_id" required
+                            class="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+                            <option value="">{{ __('Select driver') }}</option>
+                            <template x-for="driver in driversList" :key="'category-driver-' + slot.key + '-' + driver.id">
+                              <option :value="driver.id" x-text="driver.name + (driver.phone ? ' · ' + driver.phone : '')"></option>
+                            </template>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div class="mt-3 flex flex-col gap-2 sm:flex-row">
+                        <button type="button" @click="useDefaultDriverForCategory(slot.key)"
+                          class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-[10px] font-bold text-gray-600 hover:border-[#6E7A25]/40 hover:text-[#59651f]">
+                          {{ __('Use Default Driver') }}
+                        </button>
+                        <button type="button" @click="copyCategoryOperationsToAll(slot.key)"
+                          class="rounded-lg border border-[#6E7A25]/20 bg-[#6E7A25]/10 px-3 py-2 text-[10px] font-bold text-[#59651f] hover:bg-[#6E7A25]/20">
+                          {{ __('Copy Time & Driver to All Categories') }}
+                        </button>
+                      </div>
                     </div>
                   </section>
                 </template>
@@ -942,13 +998,13 @@
             {{-- Driver --}}
             <div class="border-t border-gray-100 pt-5">
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">
-                {{ __('Dedicated Driver') }}
+                {{ __('Default Driver for All Categories') }}
                 <span class="text-gray-400 normal-case font-normal">({{ __('optional') }})</span>
               </label>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <select x-model="assignMealForm.driver_id" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
-                  <option value="">{{ __('Do not change driver') }}</option>
+                <select x-model="assignMealForm.driver_id" @change="applyDefaultDriverToEmptyCategories()" class="w-full text-sm border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 outline-none focus:ring-2 focus:ring-[#6E7A25]/20">
+                  <option value="">{{ __('Select a default driver') }}</option>
                   <template x-for="driver in driversList" :key="driver.id">
                     <option :value="driver.id" x-text="driver.name + (driver.phone ? ' · ' + driver.phone : '')"></option>
                   </template>
@@ -1228,6 +1284,7 @@ function customersApp() {
       week_number: 1,
       active_day: 1,
       days: {},
+      category_settings: {},
       driver_id: '',
       assignment_reason: '',
       notes: ''
@@ -1865,6 +1922,7 @@ function customersApp() {
         week_number: 1,
         active_day: 1,
         days: {},
+        category_settings: {},
         driver_id: '',
         assignment_reason: c?.location ? '{{ __('Same delivery zone: ') }}' + c.location : '',
         notes: ''
@@ -1983,6 +2041,7 @@ function customersApp() {
         this.resetPlannerDays();
 
         this.buildMealSlots(data);
+        this.initializeCategorySettings();
 
         if (this.mealSlots.length === 0) {
           throw new Error('{{ __('No meal categories were returned by the server.') }}');
@@ -2115,6 +2174,11 @@ function customersApp() {
 
         const ids = this.assignmentMealIds(item);
         slots[slot] = [...new Set([...slots[slot], ...ids])];
+
+        const setting = this.categorySetting(slot);
+        setting.delivery_preference_id = Number(item?.delivery_preference_id || item?.delivery_preference?.id || setting.delivery_preference_id || 0);
+        setting.driver_id = String(item?.driver_id || item?.driver?.id || setting.driver_id || '');
+        setting.delivery_time = String(item?.delivery_time || setting.delivery_time || '').slice(0, 5);
       });
     },
 
@@ -2559,6 +2623,75 @@ function customersApp() {
       return null;
     },
 
+    initializeCategorySettings() {
+      if (!this.assignMealForm.category_settings) this.assignMealForm.category_settings = {};
+      this.mealSlots.forEach(slot => {
+        const preference = this.deliveryPreferenceFor(slot.key);
+        const existing = this.assignMealForm.category_settings[slot.key] || {};
+        this.assignMealForm.category_settings[slot.key] = {
+          delivery_preference_id: Number(existing.delivery_preference_id || preference?.id || preference?.delivery_preference_id || 0),
+          delivery_time: String(existing.delivery_time || preference?.preferred_delivery_time || preference?.delivery_time || this.defaultDeliveryTimeForSlot(slot) || '').slice(0, 5),
+          driver_id: String(existing.driver_id || this.assignMealForm.driver_id || this.assignMealTarget?.current_driver?.id || preference?.driver_id || '')
+        };
+      });
+    },
+
+    categorySetting(slotKey) {
+      if (!this.assignMealForm.category_settings) this.assignMealForm.category_settings = {};
+      if (!this.assignMealForm.category_settings[slotKey]) {
+        const slot = this.mealSlots.find(item => item.key === slotKey);
+        const preference = this.deliveryPreferenceFor(slotKey);
+        this.assignMealForm.category_settings[slotKey] = {
+          delivery_preference_id: Number(preference?.id || preference?.delivery_preference_id || 0),
+          delivery_time: slot ? this.defaultDeliveryTimeForSlot(slot) : '',
+          driver_id: String(this.assignMealForm.driver_id || this.assignMealTarget?.current_driver?.id || preference?.driver_id || '')
+        };
+      }
+      return this.assignMealForm.category_settings[slotKey];
+    },
+
+    categorySettingIsComplete(slotKey) {
+      const setting = this.categorySetting(slotKey);
+      return Boolean(Number(setting?.delivery_preference_id || 0) > 0 &&
+        Number(setting?.driver_id || 0) > 0 &&
+        /^\d{2}:\d{2}$/.test(String(setting?.delivery_time || '').slice(0, 5)));
+    },
+
+    applyDefaultDriverToEmptyCategories() {
+      const id = String(this.assignMealForm.driver_id || '');
+      if (!id) return;
+      this.mealSlots.forEach(slot => {
+        const setting = this.categorySetting(slot.key);
+        if (!setting.driver_id) setting.driver_id = id;
+      });
+    },
+
+    useDefaultDriverForCategory(slotKey) {
+      const id = String(this.assignMealForm.driver_id || this.assignMealTarget?.current_driver?.id || '');
+      if (!id) {
+        this.assignMealError = '{{ __('Select a default driver first.') }}';
+        return;
+      }
+      this.categorySetting(slotKey).driver_id = id;
+      this.assignMealError = '';
+    },
+
+    copyCategoryOperationsToAll(sourceSlotKey) {
+      const source = this.categorySetting(sourceSlotKey);
+      this.mealSlots.forEach(slot => {
+        const target = this.categorySetting(slot.key);
+        target.delivery_time = source.delivery_time;
+        target.driver_id = source.driver_id;
+      });
+      this.assignMealSuccess = '{{ __('The delivery time and driver were copied to all meal categories. Each category kept its own saved location.') }}';
+    },
+
+    deliveryPreferenceLocationSummary(slotKey) {
+      const pref = this.deliveryPreferenceFor(slotKey);
+      if (!pref) return '{{ __('No saved location') }}';
+      return [pref.place_type, pref.place_name, pref.city, pref.delivery_area, pref.delivery_address].filter(Boolean).join(' · ');
+    },
+
     defaultDeliveryTimeForSlot(slot) {
       const preference = this.deliveryPreferenceFor(slot.key);
 
@@ -2782,16 +2915,22 @@ function customersApp() {
     canSubmitMealAssignment() {
       if (!this.assignMealForm.subscription_id) return false;
 
+      const selectedKeys = new Set();
+      this.visiblePlannerDays().forEach(day => {
+        const slots = this.ensurePlannerDay(day);
+        this.mealSlots.forEach(slot => {
+          if (this.validMealIdsForSlot(slot.key, slots[slot.key] || []).length > 0) selectedKeys.add(slot.key);
+        });
+      });
+
+      if (selectedKeys.size === 0) return false;
+      if (![...selectedKeys].every(key => this.categorySettingIsComplete(key))) return false;
+
       if (this.assignMealForm.mode === 'daily') {
-        return (
-          Number(this.assignMealForm.day_number) >= 1 &&
-          this.daySelectedMealsCount(1) > 0
-        );
+        return Number(this.assignMealForm.day_number) >= 1 && this.daySelectedMealsCount(1) > 0;
       }
 
-      if (this.assignMealForm.mode === 'weekly_rotation' && Number(this.assignMealForm.week_number) < 1) {
-        return false;
-      }
+      if (this.assignMealForm.mode === 'weekly_rotation' && Number(this.assignMealForm.week_number) < 1) return false;
 
       return this.visiblePlannerDays().every(day => this.daySelectedMealsCount(day) > 0);
     },
@@ -2799,57 +2938,22 @@ function customersApp() {
     buildDayAssignments(plannerDay) {
       const slots = this.ensurePlannerDay(plannerDay);
 
-      return this.mealSlots
-        .map(slot => {
-          const mealIds = this.validMealIdsForSlot(
-            slot.key,
-            slots[slot.key] || []
-          );
+      return this.mealSlots.map(slot => {
+        const mealIds = this.validMealIdsForSlot(slot.key, slots[slot.key] || []);
+        if (mealIds.length === 0) return null;
 
-          /*
-           * Do not submit categories where no meal was selected.
-           */
-          if (mealIds.length === 0) {
-            return null;
-          }
+        const setting = this.categorySetting(slot.key);
+        const preference = this.deliveryPreferenceFor(slot.key);
 
-          const preference = this.deliveryPreferenceFor(slot.key);
-
-          const deliveryPreferenceId = Number(
-            preference?.id ||
-            preference?.delivery_preference_id ||
-            0
-          );
-
-          const selectedDriverId = Number(
-            this.assignMealForm.driver_id ||
-            this.assignMealTarget?.current_driver?.id ||
-            preference?.driver_id ||
-            0
-          );
-
-          return {
-            meal_time: this.mealTimeForCategory(
-              slot.category_id,
-              slot.code
-            ),
-
-            meal_category_id: Number(
-              slot.category_id || 0
-            ),
-
-            delivery_preference_id:
-              deliveryPreferenceId,
-
-            driver_id: selectedDriverId,
-
-            delivery_time:
-              this.defaultDeliveryTimeForSlot(slot),
-
-            meal_ids: mealIds
-          };
-        })
-        .filter(Boolean);
+        return {
+          meal_time: this.mealTimeForCategory(slot.category_id, slot.code),
+          meal_category_id: Number(slot.category_id || 0),
+          delivery_preference_id: Number(setting.delivery_preference_id || preference?.id || preference?.delivery_preference_id || 0),
+          driver_id: Number(setting.driver_id || 0),
+          delivery_time: String(setting.delivery_time || '').slice(0, 5),
+          meal_ids: mealIds
+        };
+      }).filter(Boolean);
     },
 
     buildMenuAssignmentPayload() {
