@@ -76,9 +76,283 @@
     max-height: 15rem;
   }
 }
+
+/* ============================================================
+   CUSTOMER PAGE RESPONSIVE LAYOUT
+   ============================================================ */
+.customers-page,
+.customers-page * {
+  box-sizing: border-box;
+}
+
+.customers-page {
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.customers-tab-navigation {
+  display: flex;
+  gap: .5rem;
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: .25rem;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.customers-tab-navigation > button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.customers-filter-bar {
+  display: grid;
+  grid-template-columns: minmax(14rem, 1fr) repeat(2, minmax(9rem, auto)) auto;
+  gap: .5rem;
+  align-items: center;
+}
+
+.customers-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.customers-table {
+  width: 100%;
+  min-width: 880px;
+}
+
+.customer-detail-panel {
+  width: min(100%, 32rem);
+  max-width: 100vw;
+}
+
+/*
+ * The modal is inside the admin content layout. Keeping its shell at 100%
+ * of the available parent width prevents it from extending underneath or
+ * beyond the sidebar at normal browser zoom.
+ */
+.assignment-modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  overflow: hidden;
+  padding: clamp(.65rem, 1.5vw, 1.25rem) !important;
+}
+
+.assignment-modal-shell {
+  width: min(100%, 86rem);
+  max-width: 100%;
+  height: min(92dvh, 900px);
+  max-height: calc(100dvh - 1.3rem);
+  min-width: 0;
+  margin: 0 auto;
+  border-radius: 1.25rem;
+}
+
+.assignment-history-shell {
+  width: min(100%, 74rem);
+  max-width: 100%;
+  height: min(92dvh, 900px);
+  max-height: calc(100dvh - 1.3rem);
+  min-width: 0;
+  margin: 0 auto;
+}
+
+.assignment-modal-header {
+  min-width: 0;
+}
+
+.assignment-modal-header > div:first-child {
+  min-width: 0;
+}
+
+.assignment-modal-body {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-bottom: 1.25rem;
+}
+
+.assignment-modal-body form,
+.assignment-modal-body section,
+.assignment-modal-body article,
+.assignment-modal-body .grid,
+.assignment-modal-body .flex {
+  min-width: 0;
+}
+
+.assignment-modal-footer {
+  width: 100%;
+  flex: 0 0 auto;
+  box-shadow: 0 -8px 24px rgba(15, 23, 42, .05);
+}
+
+.assignment-modal-footer button {
+  min-height: 2.75rem;
+}
+
+.assignment-meal-list {
+  max-height: min(18rem, 36dvh);
+}
+
+/* Prevent long values from forcing modal sections beyond their columns. */
+.assignment-modal-body p,
+.assignment-modal-body span,
+.assignment-modal-body div {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1279px) {
+  .customers-filter-bar {
+    grid-template-columns: minmax(12rem, 1fr) repeat(2, minmax(8rem, 11rem)) auto;
+  }
+
+  .assignment-modal-shell {
+    width: 100%;
+    height: 94dvh;
+  }
+
+  .assignment-modal-body {
+    padding-inline: 1rem !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .customers-filter-bar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .customers-filter-bar > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  .customers-filter-bar > button {
+    width: 100%;
+  }
+
+  .assignment-modal-overlay {
+    align-items: stretch !important;
+    padding: .5rem !important;
+  }
+
+  .assignment-modal-shell,
+  .assignment-history-shell {
+    height: calc(100dvh - 1rem);
+    max-height: calc(100dvh - 1rem);
+    border-radius: 1rem !important;
+  }
+
+  .assignment-meal-list {
+    max-height: 15rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .customers-page {
+    margin-inline: -.25rem;
+  }
+
+  .customers-tab-navigation {
+    margin-inline: -.25rem;
+    padding-inline: .25rem;
+  }
+
+  .customers-filter-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .customers-filter-bar > :first-child {
+    grid-column: auto;
+  }
+
+  .customers-filter-bar select,
+  .customers-filter-bar button,
+  .customers-filter-bar > div {
+    width: 100%;
+    min-width: 0 !important;
+  }
+
+  .customers-table {
+    min-width: 760px;
+  }
+
+  .customer-detail-panel {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .assignment-modal-overlay {
+    padding: 0 !important;
+  }
+
+  .assignment-modal-shell,
+  .assignment-history-shell {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0 !important;
+  }
+
+  .assignment-modal-header {
+    padding: .9rem 1rem !important;
+  }
+
+  .assignment-modal-header h3 {
+    font-size: 1rem !important;
+  }
+
+  .assignment-modal-header p {
+    font-size: .72rem !important;
+  }
+
+  .assignment-modal-body {
+    padding: 1rem !important;
+  }
+
+  .assignment-modal-footer {
+    padding: .75rem 1rem !important;
+  }
+
+  .assignment-modal-footer > div,
+  .assignment-modal-footer {
+    gap: .5rem !important;
+  }
+
+  .assignment-modal-footer button {
+    width: 100%;
+  }
+
+  .assignment-meal-list {
+    max-height: none;
+  }
+}
+
+@media (max-width: 479px) {
+  .customers-table {
+    min-width: 700px;
+  }
+
+  .assignment-modal-body {
+    padding-inline: .75rem !important;
+  }
+
+  .assignment-modal-footer {
+    padding-inline: .75rem !important;
+  }
+}
+
 </style>
 
-<div x-data="customersApp()" x-init="init()" class="space-y-4">
+<div x-data="customersApp()" x-init="init()" class="customers-page space-y-4">
 
   {{-- Overview KPI Cards --}}
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" x-show="!loading">
@@ -106,23 +380,23 @@
   </div>
 
   {{-- Tab Navigation --}}
-  <div class="flex items-center gap-2">
-    <button @click="switchTab('all')" :class="activeTab === 'all' ? 'bg-[#6E7A25] text-white shadow-md' : 'bg-white text-gray-500 border border-gray-100'" class="px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
+  <div class="customers-tab-navigation">
+    <button type="button" @click="switchTab('all')" :class="activeTab === 'all' ? 'bg-[#6E7A25] text-white shadow-md' : 'bg-white text-gray-500 border border-gray-100'" class="px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
       {{ __('All Customers') }}
     </button>
-    <button @click="switchTab('paid')" :class="activeTab === 'paid' ? 'bg-green-600 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-100'" class="px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
+    <button type="button" @click="switchTab('paid')" :class="activeTab === 'paid' ? 'bg-green-600 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-100'" class="px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.062-.18-2.087-.514-3.044z"/></svg>
       {{ __('Waiting for Meals') }}
     </button>
-    <button @click="switchTab('served')" :class="activeTab === 'served' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-100'" class="px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
+    <button type="button" @click="switchTab('served')" :class="activeTab === 'served' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-100'" class="px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
       {{ __('Meals Served') }}
     </button>
   </div>
 
   {{-- Filter Bar --}}
-  <div class="bg-white rounded-xl border border-gray-100 p-3 shadow-sm flex flex-wrap items-center gap-2">
+  <div class="customers-filter-bar bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
     <div class="flex items-center bg-gray-50 rounded-lg px-2.5 py-1.5 border border-gray-100 flex-1 min-w-[160px]">
       <svg class="w-3.5 h-3.5 text-gray-400 mr-1.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
       <input type="text" x-model="search" @input.debounce.300ms="page = 1; fetchCustomers()" placeholder="{{ __('Search customers...') }}" class="bg-transparent text-xs outline-none flex-1 text-gray-600 placeholder-gray-400 w-20">
@@ -148,8 +422,8 @@
 
   {{-- Customers Table --}}
   <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate__animated animate__fadeInUp" style="animation-delay: 0.5s">
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm">
+    <div class="customers-table-scroll">
+      <table class="customers-table text-sm">
         <thead>
           <tr class="text-left text-[10px] text-gray-400 bg-gray-50/50 border-b border-gray-100">
             <th class="px-4 py-3 font-medium">{{ __('Customer') }}</th>
@@ -260,7 +534,7 @@
   {{-- Customer Detail Slide-Out Panel --}}
   <div x-show="selected" class="fixed inset-0 z-50 flex justify-end" style="display: none">
     <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" @click="selected = null"></div>
-    <div class="relative w-full max-w-lg bg-white shadow-2xl h-full overflow-y-auto" @click.outside="selected = null">
+    <div class="customer-detail-panel relative bg-white shadow-2xl h-full overflow-y-auto" @click.outside="selected = null">
 
       {{-- Header --}}
       <div class="bg-gradient-to-br from-[#173327] to-[#6E7A25] p-6 text-white sticky top-0 z-10">
@@ -663,7 +937,7 @@
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="closeAssignMealModal()"></div>
 
     <div class="assignment-modal-shell relative bg-white rounded-2xl shadow-2xl" @click.outside="closeAssignMealModal()">
-      <div class="assignment-modal-header sticky top-0 z-20 flex items-start justify-between gap-4 border-b border-gray-100 bg-white px-4 py-4 sm:px-6">
+      <div class="assignment-modal-header sticky top-0 z-20 flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 border-b border-gray-100 bg-white px-4 py-4 sm:px-6">
         <div>
           <h3 class="text-lg font-bold text-gray-900">{{ __('Assign Customer Menu') }}</h3>
           <p class="text-sm text-gray-400 mt-1">
