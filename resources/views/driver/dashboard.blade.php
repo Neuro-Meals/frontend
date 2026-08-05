@@ -6,6 +6,49 @@
 @php
 $user = app(\App\Services\Api\AuthApiService::class)->user() ?? [];
 $driverName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: ($user['email'] ?? 'Driver');
+
+$currentDeliveries = is_array($currentDeliveries ?? null) ? $currentDeliveries : [];
+$notifications = is_array($notifications ?? null) ? $notifications : [];
+$history = is_array($history ?? null) ? $history : [];
+$stats = is_array($stats ?? null) ? $stats : [];
+
+$readyPickupDeliveries = array_values(array_filter(
+    $currentDeliveries,
+    fn ($delivery) => in_array(
+        strtolower((string) ($delivery['status'] ?? '')),
+        ['assigned', 'pending', 'ready_for_pickup'],
+        true
+    )
+));
+
+$pickedUpDeliveries = array_values(array_filter(
+    $currentDeliveries,
+    fn ($delivery) => strtolower((string) ($delivery['status'] ?? '')) === 'picked_up'
+));
+
+$outForDeliveryDeliveries = array_values(array_filter(
+    $currentDeliveries,
+    fn ($delivery) => strtolower((string) ($delivery['status'] ?? '')) === 'out_for_delivery'
+));
+
+$activeLoadCount = count($currentDeliveries);
+$readyPickupCount = count($readyPickupDeliveries);
+$pickedUpCount = count($pickedUpDeliveries);
+$outForDeliveryCount = count($outForDeliveryDeliveries);
+
+$totalPackages = array_sum(array_map(
+    fn ($delivery) => (int) (
+        $delivery['total_quantity']
+        ?? $delivery['meal_count']
+        ?? 0
+    ),
+    $currentDeliveries
+));
+
+$nextDelivery = $outForDeliveryDeliveries[0]
+    ?? $pickedUpDeliveries[0]
+    ?? $readyPickupDeliveries[0]
+    ?? null;
 @endphp
 
 <div x-data="driverDashboard()" x-init="init()" class="pb-4">
@@ -42,37 +85,111 @@ $driverName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''
         @endphp
 
         @unless($shiftComplete)
-        {{-- Today's Meals + Status cards --}}
+        {{-- Driver load summary --}}
         <div class="grid grid-cols-2 gap-3 animate-slide-up animate-delay-2">
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
                 <div class="w-10 h-10 rounded-full bg-brand-50 flex items-center justify-center mb-2">
-                    <svg class="w-5 h-5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    <svg class="w-5 h-5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
                 </div>
-                <p class="text-2xl font-extrabold text-gray-900">{{ $stats['today'] }}</p>
-                <p class="text-xs text-gray-400 font-semibold">{{ __('Today\'s Meals') }}</p>
+                <p class="text-2xl font-extrabold text-gray-900">{{ $activeLoadCount }}</p>
+                <p class="text-xs text-gray-400 font-semibold">{{ __('Customers in My Load') }}</p>
+                <p class="text-[10px] text-gray-400 mt-1">{{ $totalPackages }} {{ __('packages') }}</p>
             </div>
+
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                <div class="w-10 h-10 rounded-full {{ $onDelivery ? 'bg-purple-50' : ($readyForPickup ? 'bg-green-50' : 'bg-gray-50') }} flex items-center justify-center mb-2">
+                <div class="w-10 h-10 rounded-full {{ $outForDeliveryCount > 0 ? 'bg-purple-50' : ($pickedUpCount > 0 ? 'bg-amber-50' : ($readyPickupCount > 0 ? 'bg-green-50' : 'bg-gray-50')) }} flex items-center justify-center mb-2">
                     <span class="relative flex h-2.5 w-2.5">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $onDelivery ? 'bg-purple-400' : ($readyForPickup ? 'bg-green-400' : 'bg-gray-400') }} opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 {{ $onDelivery ? 'bg-purple-500' : ($readyForPickup ? 'bg-green-500' : 'bg-gray-400') }}"></span>
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $outForDeliveryCount > 0 ? 'bg-purple-400' : ($pickedUpCount > 0 ? 'bg-amber-400' : ($readyPickupCount > 0 ? 'bg-green-400' : 'bg-gray-400')) }} opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 {{ $outForDeliveryCount > 0 ? 'bg-purple-500' : ($pickedUpCount > 0 ? 'bg-amber-500' : ($readyPickupCount > 0 ? 'bg-green-500' : 'bg-gray-400')) }}"></span>
                     </span>
                 </div>
-                <p class="text-sm font-extrabold {{ $onDelivery ? 'text-purple-600' : ($readyForPickup ? 'text-green-600' : 'text-gray-500') }}">
-                    {{ $onDelivery ? __('On Delivery') : ($readyForPickup ? __('Ready for Pickup') : __('No Deliveries Yet')) }}
+
+                <p class="text-sm font-extrabold {{ $outForDeliveryCount > 0 ? 'text-purple-600' : ($pickedUpCount > 0 ? 'text-amber-600' : ($readyPickupCount > 0 ? 'text-green-600' : 'text-gray-500')) }}">
+                    @if($outForDeliveryCount > 0)
+                        {{ __('On Delivery') }}
+                    @elseif($pickedUpCount > 0)
+                        {{ __('Load Picked Up') }}
+                    @elseif($readyPickupCount > 0)
+                        {{ __('Ready for Pickup') }}
+                    @else
+                        {{ __('Waiting for Kitchen') }}
+                    @endif
                 </p>
-                <p class="text-[10px] text-gray-400 font-semibold">{{ __('Status') }}</p>
+                <p class="text-[10px] text-gray-400 font-semibold">{{ __('Current Load Status') }}</p>
             </div>
         </div>
 
-        {{-- Start Delivery CTA --}}
-        @if(count($currentDeliveries) > 0)
-        <a href="{{ route('driver.deliveries') }}" class="btn-action w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-to-r from-brand-700 to-brand-600 text-white text-sm font-bold shadow-md shadow-brand-700/20 animate-slide-up animate-delay-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
-            {{ __('Start Delivery') }}
+        {{-- Grouped load progress --}}
+        @if($activeLoadCount > 0)
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up animate-delay-2">
+            <div class="flex items-center justify-between gap-3 mb-3">
+                <div>
+                    <p class="text-sm font-extrabold text-gray-900">{{ __('Today’s Driver Load') }}</p>
+                    <p class="text-[10px] text-gray-400">{{ __('All customer orders assigned to you') }}</p>
+                </div>
+                <span class="px-2.5 py-1 rounded-full bg-brand-50 text-brand-700 text-[10px] font-extrabold">
+                    {{ $activeLoadCount }} {{ __('stops') }}
+                </span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+                <div class="rounded-xl bg-green-50 border border-green-100 px-2.5 py-3 text-center">
+                    <p class="text-lg font-black text-green-700">{{ $readyPickupCount }}</p>
+                    <p class="text-[9px] font-bold text-green-600">{{ __('Ready') }}</p>
+                </div>
+                <div class="rounded-xl bg-amber-50 border border-amber-100 px-2.5 py-3 text-center">
+                    <p class="text-lg font-black text-amber-700">{{ $pickedUpCount }}</p>
+                    <p class="text-[9px] font-bold text-amber-600">{{ __('Picked Up') }}</p>
+                </div>
+                <div class="rounded-xl bg-purple-50 border border-purple-100 px-2.5 py-3 text-center">
+                    <p class="text-lg font-black text-purple-700">{{ $outForDeliveryCount }}</p>
+                    <p class="text-[9px] font-bold text-purple-600">{{ __('On Route') }}</p>
+                </div>
+            </div>
+
+            @if($readyPickupCount > 0)
+            <div class="mt-3 rounded-xl bg-green-50 border border-green-100 px-3 py-2.5">
+                <p class="text-xs font-extrabold text-green-800">
+                    {{ __('Kitchen load is ready for pickup') }}
+                </p>
+                <p class="text-[10px] text-green-700 mt-0.5">
+                    {{ __('Confirm each package during collection before starting your route.') }}
+                </p>
+            </div>
+            @elseif($pickedUpCount > 0)
+            <div class="mt-3 rounded-xl bg-amber-50 border border-amber-100 px-3 py-2.5">
+                <p class="text-xs font-extrabold text-amber-800">
+                    {{ __('Your load has been picked up') }}
+                </p>
+                <p class="text-[10px] text-amber-700 mt-0.5">
+                    {{ __('Review the first customer and begin the delivery route.') }}
+                </p>
+            </div>
+            @endif
+        </div>
+        @endif
+
+        {{-- Primary action --}}
+        @if($nextDelivery)
+        <a href="{{ route('driver.deliveries') }}"
+            class="btn-action w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-to-r from-brand-700 to-brand-600 text-white text-sm font-bold shadow-md shadow-brand-700/20 animate-slide-up animate-delay-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+            </svg>
+
+            @if($outForDeliveryCount > 0)
+                {{ __('Continue Delivery Route') }}
+            @elseif($pickedUpCount > 0)
+                {{ __('Start Delivery Route') }}
+            @else
+                {{ __('Review & Pick Up Load') }}
+            @endif
         </a>
         @endif
         @endunless
+
 
         {{-- Browse & claim available loads --}}
         <a href="{{ route('driver.available-loads') }}" class="btn-action w-full flex items-center justify-between gap-3 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up animate-delay-2">
@@ -82,7 +199,7 @@ $driverName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''
                 </div>
                 <div class="text-right">
                     <p class="text-sm font-bold text-gray-900">{{ __('Available Loads') }}</p>
-                    <p class="text-[10px] text-gray-400">{{ __('Browse and claim ready orders near you') }}</p>
+                    <p class="text-[10px] text-gray-400">{{ __('Use only for unassigned emergency or overflow orders') }}</p>
                 </div>
             </div>
             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" transform="rotate(180 12 12)"/></svg>
@@ -152,7 +269,7 @@ $driverName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''
         {{-- Current Deliveries --}}
         <div>
             <div class="flex items-center justify-between mb-3">
-                <h2 class="text-sm font-bold text-gray-900">{{ __('Current Deliveries') }}</h2>
+                <h2 class="text-sm font-bold text-gray-900">{{ __('My Assigned Customer Stops') }}</h2>
                 <a href="{{ route('driver.deliveries') }}" class="text-xs font-bold text-brand-600">{{ __('See all') }}</a>
             </div>
 
@@ -177,6 +294,15 @@ $driverName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''
                     $initials = strtoupper(substr($delivery['customer'], 0, 1));
                 @endphp
                 <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-slide-up">
+                    <div class="flex items-center justify-between gap-2 mb-3 pb-3 border-b border-gray-50">
+                        <span class="px-2 py-1 rounded-full bg-gray-100 text-gray-600 text-[9px] font-extrabold">
+                            {{ __('Stop') }} {{ $loop->iteration }} / {{ count($currentDeliveries) }}
+                        </span>
+                        <span class="text-[9px] text-gray-400 font-semibold">
+                            {{ $delivery['meal_count'] }} {{ __('meal item(s)') }}
+                        </span>
+                    </div>
+
                     {{-- Header: customer + status --}}
                     <div class="flex items-start justify-between mb-3">
                         <div class="flex items-start gap-2.5">
@@ -223,6 +349,12 @@ $driverName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''
                     </div>
                     @endif
 
+                    <div class="mb-3 rounded-lg bg-blue-50 border border-blue-100 px-2.5 py-2">
+                        <p class="text-[9px] text-blue-700 leading-relaxed">
+                            {{ __('Customer details are shown only for your assigned delivery and should be used only to complete this route.') }}
+                        </p>
+                    </div>
+
                     {{-- Contact buttons --}}
                     @if($delivery['customer_phone'])
                     <div class="flex items-center gap-2 mb-3">
@@ -253,15 +385,15 @@ $driverName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''
                         @if(in_array($delivery['status'], ['assigned', 'pending']))
                         <button type="button"
                             onclick="confirmDeliveryAction('{{ route('driver.deliveries.status', $delivery['id']) }}', 'picked_up', {
-                                title: '{{ __('Pick up this order?') }}',
-                                text: '{{ __('Confirm that you have picked up the order from the kitchen.') }}',
-                                confirmText: '{{ __('Yes, Pick Up') }}',
+                                title: '{{ __('Confirm this customer package?') }}',
+                                text: '{{ __('Confirm that this customer package has been checked and collected from the kitchen.') }}',
+                                confirmText: '{{ __('Yes, Package Collected') }}',
                                 icon: 'question',
                                 confirmColor: '#173327'
                             })"
                             class="btn-action col-span-2 w-full py-2.5 rounded-xl bg-brand-700 text-white text-xs font-bold shadow-md shadow-brand-700/20 flex items-center justify-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            {{ __('Pick Up') }}
+                            {{ __('Confirm Package Pickup') }}
                         </button>
                         @elseif($delivery['status'] === 'picked_up')
                         <button type="button"
@@ -370,18 +502,40 @@ function driverDashboard() {
 
         async sendLocation(lat, lng) {
             const deliveries = @json($currentDeliveries);
-            const active = deliveries.find(d => ['picked_up', 'out_for_delivery'].includes(d.status));
-            if (!active) return;
-            try {
-                await fetch(`{{ url('driver/deliveries') }}/${active.id}/location`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ latitude: lat, longitude: lng }),
-                });
-            } catch (e) {}
+
+            const activeDeliveries = deliveries.filter(
+                delivery => [
+                    'picked_up',
+                    'out_for_delivery'
+                ].includes(
+                    String(delivery.status || '').toLowerCase()
+                )
+            );
+
+            if (activeDeliveries.length === 0) {
+                return;
+            }
+
+            await Promise.allSettled(
+                activeDeliveries.map(delivery =>
+                    fetch(
+                        `{{ url('driver/deliveries') }}/${delivery.id}/location`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            body: JSON.stringify({
+                                latitude: lat,
+                                longitude: lng,
+                            }),
+                        }
+                    )
+                )
+            );
         },
     };
 }
