@@ -44,6 +44,15 @@ class ChefApiService extends BaseApiService
         return $this->patch('chef.mark_ready', ['order_id' => $orderId]);
     }
 
+    public function bulkMarkReady(array $orderIds): array
+    {
+        return $this->patch(
+            'chef.bulk_ready',
+            [],
+            ['order_ids' => array_values($orderIds)]
+        );
+    }
+
     public function drivers(bool $availableOnly = false): array
     {
         return $this->get('chef.drivers', [], $availableOnly ? ['available_only' => 'true'] : []);

@@ -286,6 +286,7 @@ Route::prefix('chef')->name('chef.')->middleware(['api.auth', 'api.chef'])->grou
     Route::get('/drivers', [\App\Http\Controllers\ChefController::class, 'drivers'])->name('drivers');
     Route::post('/orders/{id}/assign-driver', [\App\Http\Controllers\ChefController::class, 'assignDriver'])->name('orders.assign-driver');
     Route::post('/orders/bulk-assign-driver', [\App\Http\Controllers\ChefController::class, 'bulkAssignDriver'])->name('orders.bulk-assign-driver');
+    Route::post('/orders/bulk-ready-driver', [\App\Http\Controllers\ChefController::class, 'bulkReadyForDriver'])->name('orders.bulk-ready-driver');
 
 });
 

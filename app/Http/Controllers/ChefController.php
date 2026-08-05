@@ -622,6 +622,56 @@ class ChefController extends Controller
      * Transfer all pending items in a schedule (category) to the kitchen
      * by marking all pending orders in that category as "preparing".
      */
+    public function bulkReadyForDriver(
+        Request $request,
+        ChefApiService $chefApi
+    ) {
+        $validated = $request->validate([
+            'order_ids' => [
+                'required',
+                'array',
+                'min:1',
+                'max:200',
+            ],
+            'order_ids.*' => [
+                'required',
+                'integer',
+                'min:1',
+                'distinct',
+            ],
+        ]);
+
+        try {
+            $response = $chefApi->bulkMarkReady(
+                array_map(
+                    'intval',
+                    $validated['order_ids']
+                )
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => $response['message']
+                    ?? __(
+                        'Orders are ready for pickup and the driver was notified.'
+                    ),
+                'data' => $response,
+            ]);
+
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'success' => false,
+                'message' => $exception->getMessage()
+                    ?: __(
+                        'Unable to mark the driver group ready for pickup.'
+                    ),
+            ], 422);
+        }
+    }
+
+
     public function transferSchedule(
         Request $request,
         ChefApiService $chefApi
@@ -975,6 +1025,17 @@ class ChefController extends Controller
         }
 
         $customerName = trim($customer['full_name'] ?? (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) ?: __('Customer');
+        $driver = is_array($order['driver'] ?? null)
+            ? $order['driver']
+            : [];
+        $driverName = trim(
+            $driver['full_name']
+            ?? (
+                ($driver['first_name'] ?? '')
+                . ' '
+                . ($driver['last_name'] ?? '')
+            )
+        );
 
         return [
             'id' => $order['id'] ?? 0,
@@ -985,6 +1046,14 @@ class ChefController extends Controller
             'primary_category_name' => $primaryCategoryName,
             'customer' => $customerName,
             'customer_phone' => $customer['phone'] ?? '',
+            'driver_id' => (int) (
+                $order['driver_id']
+                ?? $driver['id']
+                ?? 0
+            ),
+            'driver_name' => $driverName ?: __('Unassigned Driver'),
+            'driver_email' => $driver['email'] ?? '',
+            'driver_phone' => $driver['phone'] ?? '',
             'delivery_address' => $order['delivery_address'] ?? '',
             'delivery_notes' => $order['delivery_notes'] ?? '',
             'delivery_date' => $deliveryDate,

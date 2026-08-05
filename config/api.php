@@ -264,6 +264,7 @@ return [
             'show_order'            => '/chef/orders/{order_id}',
             'start_preparing'       => '/chef/orders/{order_id}/start-preparing',
             'mark_ready'            => '/chef/orders/{order_id}/ready',
+            'bulk_ready'            => '/chef/orders/bulk/ready',
             'drivers'               => '/chef/drivers',
             'assign_driver'         => '/chef/orders/{order_id}/assign-driver',
             'bulk_assign_driver'    => '/chef/orders/bulk-assign-driver',

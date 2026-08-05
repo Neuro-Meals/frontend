@@ -708,9 +708,70 @@
                     </div>
                 </template>
 
-                {{-- All customer packaging cards --}}
-                <template x-for="(order, orderIndex) in filteredPrepOrders" :key="order.id || order.order_id || orderIndex">
-                    <article class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                {{-- Orders grouped by assigned driver --}}
+                <template x-for="group in driverPrepGroups" :key="group.key">
+                    <section class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                        <div class="p-4 bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white">
+                            <div class="flex items-start gap-3">
+                                <div class="w-12 h-12 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-lg font-black flex-shrink-0"
+                                    x-text="String(group.driver_name || '?').charAt(0).toUpperCase()">
+                                </div>
+
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-start justify-between gap-2">
+                                        <div>
+                                            <p class="text-[9px] uppercase tracking-[0.18em] text-white/60 font-bold">
+                                                {{ __('Assigned Driver') }}
+                                            </p>
+                                            <h3 class="text-base font-extrabold" x-text="group.driver_name"></h3>
+                                            <p class="text-[10px] text-white/65 mt-0.5"
+                                                x-text="group.driver_phone || group.driver_email || '{{ __('No contact details') }}'">
+                                            </p>
+                                        </div>
+
+                                        <div class="text-right">
+                                            <p class="text-xl font-black" x-text="group.orders.length"></p>
+                                            <p class="text-[9px] text-white/60 uppercase">{{ __('Customers') }}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-2 mt-3">
+                                        <span class="px-2.5 py-1 rounded-full bg-white/10 border border-white/15 text-[10px] font-bold"
+                                            x-text="group.package_count + ' {{ __('packages') }}'">
+                                        </span>
+                                        <span class="px-2.5 py-1 rounded-full bg-white/10 border border-white/15 text-[10px] font-bold"
+                                            x-text="eligibleReadyOrders(group).length + ' {{ __('cooking') }}'">
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                @click.stop="markDriverGroupReady(group)"
+                                :disabled="
+                                    !group.driver_id
+                                    || eligibleReadyOrders(group).length === 0
+                                    || driverGroupProcessing === group.key
+                                "
+                                class="mt-4 w-full py-3 rounded-xl bg-white text-[#173327] text-xs font-extrabold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <svg x-show="driverGroupProcessing !== group.key" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                <svg x-show="driverGroupProcessing === group.key" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                                <span>
+                                    {{ __('All Packed — Ready for Pickup & Notify Driver') }}
+                                </span>
+                            </button>
+                        </div>
+
+                        <div class="p-3 space-y-3 bg-gray-50/60">
+                            <template x-for="(order, orderIndex) in group.orders" :key="order.id || order.order_id || orderIndex">
+                                <article class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
 
                         {{-- Customer header --}}
                         <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-white to-[#6E7A25]/5">
@@ -883,7 +944,10 @@
                                 </div>
                             </div>
                         </div>
-                    </article>
+                                </article>
+                            </template>
+                        </div>
+                    </section>
                 </template>
             </div>
         </div>
@@ -942,6 +1006,7 @@ function chefShift() {
         openMeals: [],
         walkthrough: { open: false, index: 0 },
         prepSearch: '',
+        driverGroupProcessing: null,
         assignDriverModal: false,
         assignDriverOrder: null,
         drivers: [],
@@ -1440,6 +1505,168 @@ function chefShift() {
 
                 return searchable.includes(query);
             });
+        },
+
+
+        get driverPrepGroups() {
+            const groups = new Map();
+
+            this.filteredPrepOrders.forEach(order => {
+                const driverId = Number(order.driver_id || 0);
+                const key = driverId > 0
+                    ? `driver:${driverId}`
+                    : 'driver:unassigned';
+
+                if (!groups.has(key)) {
+                    groups.set(key, {
+                        key,
+                        driver_id: driverId,
+                        driver_name:
+                            order.driver_name
+                            || '{{ __('Unassigned Driver') }}',
+                        driver_email: order.driver_email || '',
+                        driver_phone: order.driver_phone || '',
+                        orders: [],
+                        package_count: 0,
+                    });
+                }
+
+                const group = groups.get(key);
+                group.orders.push(order);
+                group.package_count += (order.items || [])
+                    .reduce(
+                        (sum, item) =>
+                            sum + Number(item.quantity || 1),
+                        0
+                    );
+            });
+
+            return Array.from(groups.values())
+                .sort((first, second) =>
+                    String(first.driver_name).localeCompare(
+                        String(second.driver_name)
+                    )
+                );
+        },
+
+        eligibleReadyOrders(group) {
+            return (group?.orders || []).filter(
+                order =>
+                    String(order.status || '').toLowerCase()
+                    === 'preparing'
+            );
+        },
+
+        async markDriverGroupReady(group) {
+            const eligible = this.eligibleReadyOrders(group);
+
+            if (!group?.driver_id) {
+                await Swal.fire({
+                    icon: 'warning',
+                    title: '{{ __('Driver Required') }}',
+                    text: '{{ __('Assign a driver before marking this group ready for pickup.') }}',
+                    confirmButtonColor: '#173327',
+                    customClass: {
+                        popup: 'rounded-2xl'
+                    },
+                });
+                return;
+            }
+
+            if (eligible.length === 0) {
+                await Swal.fire({
+                    icon: 'info',
+                    title: '{{ __('Nothing to Update') }}',
+                    text: '{{ __('This driver has no preparing orders in the selected category.') }}',
+                    confirmButtonColor: '#173327',
+                    customClass: {
+                        popup: 'rounded-2xl'
+                    },
+                });
+                return;
+            }
+
+            const confirmation = await Swal.fire({
+                icon: 'question',
+                title: '{{ __('Ready for Pickup?') }}',
+                text:
+                    `${eligible.length} {{ __('order(s) will be handed to') }} `
+                    + group.driver_name
+                    + '. {{ __('The driver will receive one summary notification and one email.') }}',
+                showCancelButton: true,
+                confirmButtonText: '{{ __('Yes, notify driver') }}',
+                cancelButtonText: '{{ __('Cancel') }}',
+                confirmButtonColor: '#16a34a',
+                cancelButtonColor: '#9ca3af',
+                reverseButtons: true,
+                customClass: {
+                    popup: 'rounded-2xl'
+                },
+            });
+
+            if (!confirmation.isConfirmed) {
+                return;
+            }
+
+            this.driverGroupProcessing = group.key;
+
+            try {
+                const response = await this.postJson(
+                    `{{ route('chef.orders.bulk-ready-driver') }}`,
+                    {
+                        order_ids: eligible.map(
+                            order => Number(
+                                order.id || order.order_id
+                            )
+                        ),
+                    }
+                );
+
+                if (response.success === false) {
+                    throw new Error(
+                        response.message
+                        || '{{ __('Unable to notify the driver.') }}'
+                    );
+                }
+
+                eligible.forEach(order => {
+                    order.status = 'ready_for_delivery';
+                    order.status_label =
+                        '{{ __('Ready for Delivery') }}';
+                });
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: '{{ __('Driver Notified') }}',
+                    text:
+                        response.message
+                        || '{{ __('The orders are ready for pickup and the driver received one grouped alert.') }}',
+                    confirmButtonColor: '#173327',
+                    customClass: {
+                        popup: 'rounded-2xl'
+                    },
+                });
+
+            } catch (error) {
+                console.error(
+                    'Grouped driver ready action failed',
+                    error
+                );
+
+                await Swal.fire({
+                    icon: 'error',
+                    title: '{{ __('Unable to Notify Driver') }}',
+                    text:
+                        error?.message
+                        || '{{ __('Please try again.') }}',
+                    confirmButtonColor: '#173327',
+                    customClass: {
+                        popup: 'rounded-2xl'
+                    },
+                });
+            } finally {
+                this.driverGroupProcessing = null;
+            }
         },
 
         get walkthroughDone() {
