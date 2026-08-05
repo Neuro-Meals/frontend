@@ -88,7 +88,7 @@ class ChefController extends Controller
          * Build a meal lookup so order snapshots can be enriched with current
          * ingredients and allergens when those fields are missing.
          */
-        $mealsResponse = $mealApi->list(['limit' => 100]);
+        $mealsResponse = $mealApi->list(['limit' => 500]);
         $mealsData = $this->extractApiList(
             is_array($mealsResponse) ? $mealsResponse : [],
             ['meals', 'items', 'results', 'data']
@@ -622,152 +622,312 @@ class ChefController extends Controller
      * Transfer all pending items in a schedule (category) to the kitchen
      * by marking all pending orders in that category as "preparing".
      */
-    public function transferSchedule(Request $request, ChefApiService $chefApi)
-    {
+    public function transferSchedule(
+        Request $request,
+        ChefApiService $chefApi
+    ) {
         $validated = $request->validate([
             'category_id' => ['required', 'integer', 'min:1'],
             'date' => ['nullable', 'date'],
         ]);
 
-        $date = $validated['date'] ?? date('Y-m-d');
+        $targetCategoryId = (int) $validated['category_id'];
 
-        // Re-fetch grouped orders to find pending orders in this category
-        $groupedResponse = $chefApi->ordersTodayGrouped();
-        $groups = $groupedResponse['groups'] ?? [];
-        $targetCatId = (int) $validated['category_id'];
-        $transferred = 0;
-        $failures = 0;
+        /*
+         * Use the same flat today endpoint that powers the dashboard.
+         *
+         * The old code expected groups[].categories[].orders[], while the
+         * current backend grouped response is groups[].meal_category_id with
+         * groups[].orders[]. That mismatch made Laravel skip every order.
+         */
+        $response = $chefApi->ordersToday();
 
-        foreach ($groups as $group) {
-            if (!isset($group['categories'])) {
+        $orders = $this->apiData(
+            $response,
+            fn () => []
+        );
+
+        if (isset($orders['data']) && is_array($orders['data'])) {
+            $orders = $orders['data'];
+        } elseif (isset($orders['items']) && is_array($orders['items'])) {
+            $orders = $orders['items'];
+        } elseif (isset($orders['orders']) && is_array($orders['orders'])) {
+            $orders = $orders['orders'];
+        }
+
+        $orders = is_array($orders) ? array_values($orders) : [];
+        $orderIds = [];
+
+        foreach ($orders as $order) {
+            if (!is_array($order)) {
                 continue;
             }
-            foreach ($group['categories'] as $catGroup) {
-                $catId = $catGroup['category_id'] ?? 0;
-                if ($catId !== $targetCatId) {
-                    continue;
+
+            $categoryId = (int) (
+                $order['meal_category_id']
+                ?? $order['category_id']
+                ?? $order['category']['id']
+                ?? 0
+            );
+
+            $items = is_array($order['items'] ?? null)
+                ? $order['items']
+                : [];
+
+            if ($categoryId <= 0) {
+                foreach ($items as $item) {
+                    $candidate = (int) (
+                        $item['meal_category_id']
+                        ?? $item['category_id']
+                        ?? 0
+                    );
+
+                    if ($candidate > 0) {
+                        $categoryId = $candidate;
+                        break;
+                    }
                 }
-                foreach ($catGroup['orders'] as $order) {
-                    $status = $order['status'] ?? 'pending';
-                    if (!in_array($status, ['pending', 'confirmed', 'scheduled'])) {
-                        continue;
-                    }
-                    $orderId = $order['id'] ?? 0;
-                    if (!$orderId) {
-                        continue;
-                    }
-                    try {
-                        $chefApi->startPreparing($orderId);
-                        $transferred++;
-                    } catch (\Throwable $e) {
-                        $failures++;
-                    }
-                }
+            }
+
+            if ($categoryId !== $targetCategoryId) {
+                continue;
+            }
+
+            $status = strtolower(
+                (string) ($order['status'] ?? 'pending')
+            );
+
+            if (
+                !in_array(
+                    $status,
+                    ['pending', 'confirmed', 'scheduled'],
+                    true
+                )
+            ) {
+                continue;
+            }
+
+            $orderId = (int) (
+                $order['id']
+                ?? $order['order_id']
+                ?? 0
+            );
+
+            if ($orderId > 0) {
+                $orderIds[] = $orderId;
+            }
+        }
+
+        $orderIds = array_values(array_unique($orderIds));
+
+        if (empty($orderIds)) {
+            return response()->json([
+                'success' => false,
+                'message' => __(
+                    'No pending or confirmed orders were found in this meal category.'
+                ),
+                'transferred' => 0,
+                'failures' => [],
+            ], 422);
+        }
+
+        $transferred = 0;
+        $failures = [];
+
+        foreach ($orderIds as $orderId) {
+            try {
+                $chefApi->startPreparing($orderId);
+                $transferred++;
+            } catch (\Throwable $exception) {
+                $failures[] = [
+                    'order_id' => $orderId,
+                    'message' => $exception->getMessage(),
+                ];
             }
         }
 
         $success = $transferred > 0;
-        $message = $success
-            ? __(':count items transferred to the kitchen.', ['count' => $transferred])
-            : __('No pending items to transfer.');
 
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => $success,
-                'message' => $message,
-                'transferred' => $transferred,
-                'failures' => $failures,
-            ], $success ? 200 : 422);
-        }
-
-        return redirect()->route('chef.dashboard')->with($success ? 'status' : 'error', $message);
+        return response()->json([
+            'success' => $success,
+            'message' => $success
+                ? __(
+                    ':count order(s) are now cooking.',
+                    ['count' => $transferred]
+                )
+                : __('No orders could be moved to cooking.'),
+            'transferred' => $transferred,
+            'failures' => $failures,
+        ], $success ? 200 : 422);
     }
 
     /**
      * Advance item status one step for every item in a schedule.
      * Uses existing order-level APIs to update order statuses.
      */
-    public function advanceSchedule(Request $request, ChefApiService $chefApi)
-    {
+    public function advanceSchedule(
+        Request $request,
+        ChefApiService $chefApi
+    ) {
         $validated = $request->validate([
             'category_id' => ['required', 'integer', 'min:1'],
-            'action' => ['required', 'string', 'in:start_preparing,mark_ready,mark_served'],
+            'action' => [
+                'required',
+                'string',
+                'in:start_preparing,mark_ready',
+            ],
             'meal_id' => ['nullable', 'integer', 'min:1'],
             'date' => ['nullable', 'date'],
         ]);
 
-        $date = $validated['date'] ?? date('Y-m-d');
+        $targetCategoryId = (int) $validated['category_id'];
+        $targetMealId = isset($validated['meal_id'])
+            ? (int) $validated['meal_id']
+            : null;
         $action = $validated['action'];
-        $targetCatId = (int) $validated['category_id'];
 
-        // Re-fetch grouped orders to find orders in this category
-        $groupedResponse = $chefApi->ordersTodayGrouped();
-        $groups = $groupedResponse['groups'] ?? [];
-        $updated = 0;
-        $failures = 0;
+        $response = $chefApi->ordersToday();
 
-        // Map action to the order statuses we need to find and the API call to make
-        $fromStatuses = match ($action) {
-            'start_preparing' => ['pending', 'confirmed', 'scheduled'],
-            'mark_ready' => ['preparing'],
-            'mark_served' => ['ready_for_delivery'],
-            default => [],
-        };
+        $orders = $this->apiData(
+            $response,
+            fn () => []
+        );
 
-        foreach ($groups as $group) {
-            if (!isset($group['categories'])) {
+        if (isset($orders['data']) && is_array($orders['data'])) {
+            $orders = $orders['data'];
+        } elseif (isset($orders['items']) && is_array($orders['items'])) {
+            $orders = $orders['items'];
+        } elseif (isset($orders['orders']) && is_array($orders['orders'])) {
+            $orders = $orders['orders'];
+        }
+
+        $orders = is_array($orders) ? array_values($orders) : [];
+
+        $fromStatuses = $action === 'start_preparing'
+            ? ['pending', 'confirmed', 'scheduled']
+            : ['preparing'];
+
+        $orderIds = [];
+
+        foreach ($orders as $order) {
+            if (!is_array($order)) {
                 continue;
             }
-            foreach ($group['categories'] as $catGroup) {
-                $catId = $catGroup['category_id'] ?? 0;
-                if ($catId !== $targetCatId) {
-                    continue;
-                }
-                foreach ($catGroup['orders'] as $order) {
-                    $status = $order['status'] ?? 'pending';
-                    if (!in_array($status, $fromStatuses)) {
-                        continue;
-                    }
-                    $orderId = $order['id'] ?? 0;
-                    if (!$orderId) {
-                        continue;
-                    }
-                    try {
-                        if ($action === 'start_preparing') {
-                            $chefApi->startPreparing($orderId);
-                        } elseif ($action === 'mark_ready') {
-                            $chefApi->markReady($orderId);
-                        }
-                        // mark_served has no backend endpoint yet — skip
-                        $updated++;
-                    } catch (\Throwable $e) {
-                        $failures++;
+
+            $categoryId = (int) (
+                $order['meal_category_id']
+                ?? $order['category_id']
+                ?? $order['category']['id']
+                ?? 0
+            );
+
+            $items = is_array($order['items'] ?? null)
+                ? $order['items']
+                : [];
+
+            if ($categoryId <= 0) {
+                foreach ($items as $item) {
+                    $candidate = (int) (
+                        $item['meal_category_id']
+                        ?? $item['category_id']
+                        ?? 0
+                    );
+
+                    if ($candidate > 0) {
+                        $categoryId = $candidate;
+                        break;
                     }
                 }
             }
+
+            if ($categoryId !== $targetCategoryId) {
+                continue;
+            }
+
+            if ($targetMealId !== null) {
+                $containsMeal = false;
+
+                foreach ($items as $item) {
+                    if (
+                        (int) (
+                            $item['meal_id']
+                            ?? $item['id']
+                            ?? 0
+                        ) === $targetMealId
+                    ) {
+                        $containsMeal = true;
+                        break;
+                    }
+                }
+
+                if (!$containsMeal) {
+                    continue;
+                }
+            }
+
+            $status = strtolower(
+                (string) ($order['status'] ?? 'pending')
+            );
+
+            if (!in_array($status, $fromStatuses, true)) {
+                continue;
+            }
+
+            $orderId = (int) (
+                $order['id']
+                ?? $order['order_id']
+                ?? 0
+            );
+
+            if ($orderId > 0) {
+                $orderIds[] = $orderId;
+            }
         }
 
-        $labels = [
-            'start_preparing' => __('Started preparing.'),
-            'mark_ready' => __('Marked as ready.'),
-            'mark_served' => __('Marked as served.'),
-        ];
+        $orderIds = array_values(array_unique($orderIds));
+        $updated = 0;
+        $failures = [];
+
+        foreach ($orderIds as $orderId) {
+            try {
+                if ($action === 'start_preparing') {
+                    $chefApi->startPreparing($orderId);
+                } else {
+                    $chefApi->markReady($orderId);
+                }
+
+                $updated++;
+            } catch (\Throwable $exception) {
+                $failures[] = [
+                    'order_id' => $orderId,
+                    'message' => $exception->getMessage(),
+                ];
+            }
+        }
 
         $success = $updated > 0;
-        $message = $success
-            ? ($labels[$action] ?? __('Updated.'))
-            : __('No items to update.');
 
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => $success,
-                'message' => $message,
-                'updated' => $updated,
-                'failures' => $failures,
-            ], $success ? 200 : 422);
-        }
+        $message = match ($action) {
+            'start_preparing' => $success
+                ? __(
+                    ':count order(s) are now cooking.',
+                    ['count' => $updated]
+                )
+                : __('No eligible orders could start cooking.'),
+            'mark_ready' => $success
+                ? __(
+                    ':count order(s) are ready and waiting for the driver.',
+                    ['count' => $updated]
+                )
+                : __('No cooking orders were available to mark ready.'),
+        };
 
-        return redirect()->route('chef.dashboard')->with($success ? 'status' : 'error', $message);
+        return response()->json([
+            'success' => $success,
+            'message' => $message,
+            'updated' => $updated,
+            'failures' => $failures,
+        ], $success ? 200 : 422);
     }
 
     private function formatOrder(array $order): array
@@ -1020,9 +1180,3 @@ class ChefController extends Controller
         ];
     }
 }
-
-
-// 1	3
-// 12	3
-// 16	4
-// 26

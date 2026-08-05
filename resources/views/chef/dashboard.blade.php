@@ -386,11 +386,7 @@
                                     </button>
                                     <button x-show="meal.preparing > 0" @click="advanceMeal(meal, 'mark_ready')"
                                         class="btn-action flex-1 py-2.5 rounded-xl bg-green-600 text-white text-[11px] font-bold">
-                                        {{ __('Mark Ready') }}
-                                    </button>
-                                    <button x-show="meal.ready > 0" @click="advanceMeal(meal, 'mark_served')"
-                                        class="btn-action flex-1 py-2.5 rounded-xl bg-emerald-700 text-white text-[11px] font-bold">
-                                        {{ __('Mark Served') }}
+                                        {{ __('Ready for Driver') }}
                                     </button>
                                 </div>
                             </div>
@@ -862,10 +858,10 @@ function chefShift() {
             readyTitle: @json(__('Meal ready?')),
             readyText: @json(__('Make sure all items are weighed and packed before continuing.')),
             yesReady: @json(__('Yes, Ready')),
-            transferLabel: @json(__('Transfer to Kitchen')),
-            transferTitle: @json(__('Transfer to Kitchen?')),
-            transferText: @json(__('This sends only the items in this schedule to the kitchen. The order stays active until every schedule is completed.')),
-            yesTransfer: @json(__('Yes, transfer')),
+            transferLabel: @json(__('Start Cooking')),
+            transferTitle: @json(__('Start cooking these orders?')),
+            transferText: @json(__('This changes all pending or confirmed orders in this meal category to Cooking.')),
+            yesTransfer: @json(__('Yes, start cooking')),
             cancel: @json(__('Cancel')),
             errorTitle: @json(__('Error')),
             updated: @json(__('Updated')),
@@ -1412,10 +1408,10 @@ function chefShift() {
 
         await Swal.fire({
             icon: 'success',
-            title: '{{ __('Transferred') }}',
+            title: '{{ __('Cooking Started') }}',
             text:
                 data.message ||
-                '{{ __('Items were transferred to the kitchen successfully.') }}',
+                '{{ __('The selected orders are now being prepared.') }}',
             confirmButtonColor: '#173327',
             customClass: {
                 popup: 'rounded-2xl'
