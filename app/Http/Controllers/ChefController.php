@@ -88,7 +88,7 @@ class ChefController extends Controller
          * Build a meal lookup so order snapshots can be enriched with current
          * ingredients and allergens when those fields are missing.
          */
-        $mealsResponse = $mealApi->list(['limit' => 500]);
+        $mealsResponse = $mealApi->list(['limit' => 100]);
         $mealsData = $this->extractApiList(
             is_array($mealsResponse) ? $mealsResponse : [],
             ['meals', 'items', 'results', 'data']

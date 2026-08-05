@@ -1328,60 +1328,157 @@ function chefShift() {
         },
 
         async postJson(url, body) {
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify(body),
-            });
-            return res.json();
+    const csrfToken = document
+        .querySelector('meta[name="csrf-token"]')
+        ?.getAttribute('content') || '';
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
         },
+        body: JSON.stringify(body),
+    });
+
+    const contentType =
+        response.headers.get('content-type') || '';
+
+    let data;
+
+    if (contentType.includes('application/json')) {
+        data = await response.json();
+    } else {
+        const text = await response.text();
+
+        data = {
+            success: false,
+            message: text
+                ? text.substring(0, 500)
+                : `HTTP ${response.status}`,
+        };
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            data.message ||
+            data.detail ||
+            `Request failed with HTTP ${response.status}`
+        );
+    }
+
+    return data;
+},
 
         async transferActiveSchedule() {
-            const confirmed = await Swal.fire({
-                title: this.strings.transferTitle,
-                text: this.strings.transferText,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#173327',
-                cancelButtonColor: '#d1d5db',
-                confirmButtonText: this.strings.yesTransfer,
-                cancelButtonText: this.strings.cancel,
-                reverseButtons: true,
-                customClass: { popup: 'rounded-2xl' },
-            });
-            if (!confirmed.isConfirmed) return;
-
-            this.transferring = true;
-            try {
-                const data = await this.postJson(`{{ url('chef/schedule/transfer') }}`, {
-                    category_id: this.activeTab,
-                    date: this.scheduleDate,
-                });
-                if (data.success) {
-                    await this.reloadSchedule();
-                } else {
-                    Swal.fire({ title: this.strings.errorTitle, text: data.message, icon: 'error', customClass: { popup: 'rounded-2xl' } });
-                }
-            } finally {
-                this.transferring = false;
-            }
+    const confirmed = await Swal.fire({
+        title: this.strings.transferTitle,
+        text: this.strings.transferText,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#173327',
+        cancelButtonColor: '#d1d5db',
+        confirmButtonText: this.strings.yesTransfer,
+        cancelButtonText: this.strings.cancel,
+        reverseButtons: true,
+        customClass: {
+            popup: 'rounded-2xl'
         },
+    });
+
+    if (!confirmed.isConfirmed) {
+        return;
+    }
+
+    this.transferring = true;
+
+    try {
+        const data = await this.postJson(
+            `{{ url('chef/schedule/transfer') }}`,
+            {
+                category_id: Number(this.activeTab),
+                date: this.scheduleDate,
+            }
+        );
+
+        if (data.success === false) {
+            throw new Error(
+                data.message ||
+                '{{ __('Unable to transfer items to the kitchen.') }}'
+            );
+        }
+
+        await Swal.fire({
+            icon: 'success',
+            title: '{{ __('Transferred') }}',
+            text:
+                data.message ||
+                '{{ __('Items were transferred to the kitchen successfully.') }}',
+            confirmButtonColor: '#173327',
+            customClass: {
+                popup: 'rounded-2xl'
+            },
+        });
+
+        window.location.reload();
+    } catch (error) {
+        console.error(
+            'Transfer to kitchen failed',
+            error
+        );
+
+        await Swal.fire({
+            icon: 'error',
+            title: this.strings.errorTitle,
+            text:
+                error?.message ||
+                '{{ __('Unable to transfer items to the kitchen.') }}',
+            confirmButtonColor: '#173327',
+            customClass: {
+                popup: 'rounded-2xl'
+            },
+        });
+    } finally {
+        this.transferring = false;
+    }
+},
 
         async advanceMeal(meal, action) {
-            const data = await this.postJson(`{{ url('chef/schedule/advance') }}`, {
-                category_id: this.activeTab,
-                action: action,
-                meal_id: meal.meal_id || null,
-                date: this.scheduleDate,
-            });
-            if (data.success) {
+            try {
+                const data = await this.postJson(
+                    `{{ url('chef/schedule/advance') }}`,
+                    {
+                        category_id: Number(this.activeTab),
+                        action,
+                        meal_id: meal.meal_id || null,
+                        date: this.scheduleDate,
+                    }
+                );
+
+                if (data.success === false) {
+                    throw new Error(
+                        data.message ||
+                        '{{ __('Unable to update the kitchen item.') }}'
+                    );
+                }
+
                 await this.reloadSchedule();
-            } else {
-                Swal.fire({ title: this.strings.errorTitle, text: data.message, icon: 'error', customClass: { popup: 'rounded-2xl' } });
+            } catch (error) {
+                console.error('Kitchen item update failed', error);
+
+                await Swal.fire({
+                    title: this.strings.errorTitle,
+                    text:
+                        error?.message ||
+                        '{{ __('Unable to update the kitchen item.') }}',
+                    icon: 'error',
+                    confirmButtonColor: '#173327',
+                    customClass: {
+                        popup: 'rounded-2xl'
+                    },
+                });
             }
         },
 
