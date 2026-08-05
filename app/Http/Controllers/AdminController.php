@@ -891,6 +891,16 @@ class AdminController extends Controller
             ?? 0
         );
 
+        $deliveredOrdersCount = (int) (
+            $user['delivered_orders_count']
+            ?? 0
+        );
+
+        $hasServedMeals = (bool) (
+            $user['has_served_meals']
+            ?? ($deliveredOrdersCount > 0)
+        );
+
         $deliveriesCount = (int) (
             $user['deliveries_count']
             ?? 0
@@ -898,7 +908,9 @@ class AdminController extends Controller
 
         $currentWorkflow = 'awaiting_payment';
 
-        if ($hasPaid && !$hasMealAssignments) {
+        if ($hasServedMeals) {
+            $currentWorkflow = 'meals_served';
+        } elseif ($hasPaid && !$hasMealAssignments) {
             $currentWorkflow = 'paid_without_meals';
         } elseif ($hasPaid && $hasMealAssignments && $ordersCount === 0) {
             $currentWorkflow = 'paid_with_meals';
@@ -1047,6 +1059,8 @@ class AdminController extends Controller
 
             'orders' => $ordersCount,
             'orders_count' => $ordersCount,
+            'delivered_orders_count' => $deliveredOrdersCount,
+            'has_served_meals' => $hasServedMeals,
 
             'deliveries' => $deliveriesCount,
             'deliveries_count' => $deliveriesCount,

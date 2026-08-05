@@ -172,8 +172,22 @@
                 <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mb-3">
                   <svg class="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 </div>
-                <p class="text-xs font-medium text-gray-400">{{ __('No customers found') }}</p>
-                <p class="text-[10px] text-gray-300 mt-0.5">{{ __('Customers will appear here once registered') }}</p>
+                <p
+                  class="text-xs font-medium text-gray-400"
+                  x-text="
+                    activeTab === 'served'
+                      ? '{{ __('No customers with delivered meals found') }}'
+                      : '{{ __('No customers found') }}'
+                  ">
+                </p>
+                <p
+                  class="text-[10px] text-gray-300 mt-0.5"
+                  x-text="
+                    activeTab === 'served'
+                      ? '{{ __('Customers appear here after at least one order is marked Delivered.') }}'
+                      : '{{ __('Customers will appear here once registered') }}'
+                  ">
+                </p>
               </div>
             </td></tr>
           </template>
@@ -199,7 +213,16 @@
                   <span x-text="c.plan"></span>
                 </span>
               </td>
-              <td class="px-4 py-3"><span class="text-xs font-bold text-gray-900" x-text="c.orders"></span></td>
+              <td class="px-4 py-3">
+                <div>
+                  <span class="text-xs font-bold text-gray-900" x-text="c.orders"></span>
+                  <p
+                    x-show="Number(c.delivered_orders_count || 0) > 0"
+                    class="mt-0.5 text-[9px] font-bold text-blue-600"
+                    x-text="Number(c.delivered_orders_count || 0) + ' {{ __('served') }}'">
+                  </p>
+                </div>
+              </td>
               <td class="px-4 py-3"><span class="text-xs font-bold text-[#173327]" x-text="'SAR ' + Number(c.spent || 0).toLocaleString(undefined, {minimumFractionDigits: 2})"></span></td>
               <td class="px-4 py-3">
                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border whitespace-nowrap" :class="statusClass(c.status)">
@@ -3539,7 +3562,7 @@ function customersApp() {
       if (tab === 'paid') {
         this.workflow = 'paid_without_meals';
       } else if (tab === 'served') {
-        this.workflow = 'paid_with_meals';
+        this.workflow = 'meals_served';
       } else {
         this.workflow = '';
       }
