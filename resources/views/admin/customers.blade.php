@@ -624,13 +624,13 @@
         <button type="button" @click="closeAssignedMeals()" class="rounded-xl bg-gray-100 px-5 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-200">
           {{ __('Close') }}
         </button>
-        <button
+        {{-- <button
           type="button"
           x-show="historyTarget?.customerStats?.successful_payments > 0"
           @click="closeAssignedMeals(); openAssignMeal(historyTarget)"
           class="rounded-xl bg-gradient-to-r from-[#033133] to-[#025C5F] px-5 py-2.5 text-sm font-bold text-white">
           {{ __('Assign More Meals') }}
-        </button>
+        </button> --}}
       </div>
     </div>
   </div>

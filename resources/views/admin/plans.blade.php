@@ -392,6 +392,41 @@
                     </div>
                 </div>
 
+                <div class="grid gap-5 md:grid-cols-2">
+                    <div>
+                        <label class="mb-1.5 block text-sm font-semibold text-gray-700">
+                            {{ __('Plan type') }} *
+                        </label>
+                        <select
+                            x-model="form.plan_type"
+                            required
+                            class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#6E7A25]"
+                        >
+                            <option value="weekly">{{ __('Weekly') }}</option>
+                            <option value="monthly">{{ __('Monthly') }}</option>
+                            <option value="custom">{{ __('Custom') }}</option>
+                            <option value="corporate">{{ __('Corporate') }}</option>
+                        </select>
+                        <p x-show="errors.plan_type" x-text="firstError('plan_type')" class="mt-1 text-xs text-red-600"></p>
+                    </div>
+
+                    <div>
+                        <label class="mb-1.5 block text-sm font-semibold text-gray-700">
+                            {{ __('Plan goal') }}
+                        </label>
+                        <select
+                            x-model="form.goal"
+                            class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#6E7A25]"
+                        >
+                            <option value="">{{ __('No specific goal') }}</option>
+                            <option value="weight_loss">{{ __('Weight loss') }}</option>
+                            <option value="muscle_gain">{{ __('Muscle gain') }}</option>
+                            <option value="maintenance">{{ __('Maintenance') }}</option>
+                        </select>
+                        <p x-show="errors.goal" x-text="firstError('goal')" class="mt-1 text-xs text-red-600"></p>
+                    </div>
+                </div>
+
                 <div class="grid gap-5 md:grid-cols-3">
                     <div>
                         <label class="mb-1.5 block text-sm font-semibold text-gray-700">
@@ -623,6 +658,8 @@ function plansPage() {
             name_ar: '',
             description_en: '',
             description_ar: '',
+            plan_type: 'monthly',
+            goal: '',
             price: '',
             duration_days: 30,
             meals_per_day: 3,
@@ -748,6 +785,8 @@ function plansPage() {
                 name_ar: '',
                 description_en: '',
                 description_ar: '',
+                plan_type: 'monthly',
+                goal: '',
                 price: '',
                 duration_days: 30,
                 meals_per_day: 3,
@@ -782,7 +821,9 @@ function plansPage() {
                 name_ar: plan.name_ar ?? '',
                 description_en: plan.description_en ?? plan.description ?? '',
                 description_ar: plan.description_ar ?? '',
-                price: plan.price ?? '',
+                plan_type: plan.plan_type ?? 'monthly',
+                goal: plan.goal ?? '',
+                price: Number(plan.price ?? 0),
                 duration_days: Number(plan.duration_days ?? 30),
                 meals_per_day: Number(plan.meals_per_day ?? 3),
                 total_meals: Number(plan.total_meals ?? 0),
@@ -803,13 +844,32 @@ function plansPage() {
         },
 
         async submitPlan() {
+            if (this.submitting) {
+                return;
+            }
+
             this.submitting = true;
             this.errors = {};
 
-            this.form.total_meals = this.calculatedTotalMeals;
+            const payload = {
+                name_en: String(this.form.name_en || '').trim(),
+                name_ar: String(this.form.name_ar || '').trim() || null,
+                description_en: String(this.form.description_en || '').trim() || null,
+                description_ar: String(this.form.description_ar || '').trim() || null,
+                plan_type: String(this.form.plan_type || 'monthly'),
+                goal: String(this.form.goal || '').trim() || null,
+                price: Number(this.form.price || 0),
+                duration_days: Number(this.form.duration_days || 0),
+                meals_per_day: Number(this.form.meals_per_day || 0),
+                total_meals: Number(this.calculatedTotalMeals),
+                is_active: Boolean(this.form.is_active),
+            };
 
             const url = this.editing
-                ? @json(route('admin.plans.update', '__ID__')).replace('__ID__', this.editId)
+                ? @json(route('admin.plans.update', '__ID__')).replace(
+                    '__ID__',
+                    String(this.editId)
+                )
                 : @json(route('admin.plans.store'));
 
             try {
@@ -823,23 +883,56 @@ function plansPage() {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(this.form),
+                    body: JSON.stringify(payload),
                 });
 
-                const data = await response.json();
+                const contentType =
+                    response.headers.get('content-type') || '';
 
-                if (!response.ok || !data.success) {
-                    this.errors = data.errors ?? {
-                        general: data.message ?? '{{ __('Unable to save the plan.') }}',
+                let data = {};
+
+                if (contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    const body = await response.text();
+
+                    data = {
+                        success: false,
+                        message: body
+                            ? body.substring(0, 500)
+                            : `HTTP ${response.status}`,
                     };
+                }
+
+                if (!response.ok || data.success === false) {
+                    this.errors = data.errors ?? {
+                        general:
+                            data.message
+                            ?? '{{ __('Unable to save the plan.') }}',
+                    };
+
+                    console.error('Plan save failed', {
+                        status: response.status,
+                        url,
+                        payload,
+                        response: data,
+                    });
+
                     return;
                 }
 
                 this.modalOpen = false;
-                window.location.href = data.redirect ?? @json(route('admin.plans'));
+
+                window.location.href =
+                    data.redirect
+                    ?? @json(route('admin.plans'));
             } catch (error) {
+                console.error('Plan request failed', error);
+
                 this.errors = {
-                    general: error.message ?? '{{ __('Something went wrong.') }}',
+                    general:
+                        error?.message
+                        ?? '{{ __('Something went wrong.') }}',
                 };
             } finally {
                 this.submitting = false;

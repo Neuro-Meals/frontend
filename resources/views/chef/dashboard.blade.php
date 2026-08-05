@@ -3,6 +3,44 @@
 @section('title', __('Kitchen Shift') . ' - ' . __('Nutrio Meals'))
 
 @section('content')
+<style>
+[x-cloak] { display: none !important; }
+
+.quantity-scroll {
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+}
+
+.quantity-scroll::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+.quantity-scroll::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 999px;
+}
+
+.quantity-total-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    border-radius: 999px;
+    padding: .3rem .65rem;
+    font-size: .68rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+@media (min-width: 768px) {
+    .chef-queue-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .75rem;
+    }
+}
+</style>
+
 @php
     /*
      * Safe defaults for optional dashboard data.
@@ -181,8 +219,8 @@
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                     </div>
                     <div>
-                        <h2 class="text-sm font-bold text-white">{{ __('Kitchen Queue') }}</h2>
-                        <p class="text-[10px] text-white/60">{{ __('Only items for this schedule are transferred') }}</p>
+                        <h2 class="text-sm font-bold text-white">{{ __('Kitchen Queue & Packaging Quantities') }}</h2>
+                        <p class="text-[10px] text-white/60">{{ __('See each customer amount and the combined cooking total for every meal') }}</p>
                     </div>
                 </div>
                 <button x-show="activeScheduleStats.pending > 0" @click="transferActiveSchedule()" :disabled="transferring"
@@ -204,29 +242,68 @@
                     </div>
                 </template>
 
-                <div class="space-y-2.5">
-                    <template x-for="meal in activeProductionMeals" :key="meal.meal_id ?? meal.meal_name">
-                        <div class="rounded-xl border border-gray-100 bg-gradient-to-br from-gray-50/60 to-white overflow-hidden hover:shadow-md transition-all">
-                            <button @click="toggleMeal(meal)" type="button" class="w-full p-3 text-left">
-                                <div class="flex items-center gap-2.5 mb-2">
-                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6E7A25] to-[#173327] flex-shrink-0 flex items-center justify-center shadow-sm">
-                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <div class="chef-queue-grid space-y-2.5 md:space-y-0">
+                    <template x-for="meal in activeProductionMeals" :key="meal.meal_key || meal.meal_id || meal.meal_name">
+                        <div class="rounded-2xl border border-gray-100 bg-gradient-to-br from-white to-gray-50/60 overflow-hidden hover:shadow-lg transition-all">
+                            <button @click="toggleMeal(meal)" type="button" class="w-full p-4 text-left">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-[#6E7A25] to-[#173327] flex-shrink-0 flex items-center justify-center shadow-sm">
+                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17"/>
+                                        </svg>
                                     </div>
+
                                     <div class="min-w-0 flex-1">
-                                        <span class="text-sm font-bold text-gray-800 truncate block" x-text="meal.meal_name"></span>
-                                        <span class="text-[10px] text-gray-400" x-text="(meal.customers?.length ?? 0) + ' {{ __('customers') }}'"></span>
+                                        <div class="flex items-start justify-between gap-2">
+                                            <div class="min-w-0">
+                                                <span class="text-sm font-extrabold text-gray-900 truncate block" x-text="meal.meal_name"></span>
+                                                <span class="text-[10px] text-gray-400"
+                                                    x-text="(meal.customers?.length || 0) + ' {{ __('customers') }} · ' + (meal.total_packages || 0) + ' {{ __('packages') }}'">
+                                                </span>
+                                            </div>
+
+                                            <svg class="w-4 h-4 text-gray-400 transition-transform flex-shrink-0 mt-1"
+                                                :class="isMealOpen(meal) ? 'rotate-180' : ''"
+                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                            </svg>
+                                        </div>
+
+                                        <div class="mt-3 rounded-xl border border-[#6E7A25]/15 bg-[#6E7A25]/5 p-3">
+                                            <div class="flex items-center justify-between gap-2 mb-2">
+                                                <p class="text-[9px] font-black uppercase tracking-wider text-[#59651f]">
+                                                    {{ __('Total Cooking Quantity') }}
+                                                </p>
+                                                <span class="text-[9px] font-bold text-gray-400">
+                                                    {{ __('All customers') }}
+                                                </span>
+                                            </div>
+
+                                            <div class="flex flex-wrap gap-1.5">
+                                                <template x-for="total in meal.quantity_totals" :key="meal.meal_key + '-' + total.unit">
+                                                    <span class="quantity-total-chip bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white shadow-sm"
+                                                        x-text="formatAmount(total.quantity, total.unit)">
+                                                    </span>
+                                                </template>
+
+                                                <span x-show="!meal.quantity_totals?.length"
+                                                    class="quantity-total-chip bg-gray-100 text-gray-500"
+                                                    x-text="'×' + (meal.total_required || meal.total_packages || 0)">
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <span class="px-2.5 py-1 rounded-full bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-[11px] font-bold flex-shrink-0 shadow-sm" x-text="'×' + meal.total_required"></span>
-                                    <svg class="w-4 h-4 text-gray-400 transition-transform flex-shrink-0" :class="isMealOpen(meal) ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                 </div>
-                                {{-- Ingredients shown directly --}}
-                                <div x-show="meal.ingredients?.length" class="flex flex-wrap items-center gap-1 mb-2">
+
+                                <div x-show="meal.ingredients?.length" class="flex flex-wrap items-center gap-1 mt-3">
                                     <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wide">{{ __('Ingredients') }}:</span>
                                     <template x-for="(ing, idx) in meal.ingredients" :key="idx">
                                         <span class="px-1.5 py-0.5 rounded-full bg-white border border-gray-200 text-[10px] text-gray-600" x-text="ing"></span>
                                     </template>
                                 </div>
-                                <div class="flex flex-wrap items-center gap-1.5">
+
+                                <div class="flex flex-wrap items-center gap-1.5 mt-3">
                                     <span x-show="meal.pending" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-gray-200 text-gray-600" x-text="meal.pending + ' {{ __('pending') }}'"></span>
                                     <span x-show="meal.sent_to_kitchen" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-amber-100 text-amber-700" x-text="meal.sent_to_kitchen + ' {{ __('sent') }}'"></span>
                                     <span x-show="meal.preparing" class="text-[10px] font-bold rounded-full px-2 py-0.5 bg-blue-100 text-blue-700" x-text="meal.preparing + ' {{ __('preparing') }}'"></span>
@@ -239,42 +316,119 @@
                                 x-transition:enter="transition ease-out duration-150"
                                 x-transition:enter-start="opacity-0 -translate-y-1"
                                 x-transition:enter-end="opacity-100 translate-y-0"
-                                class="px-3 pb-3" style="display: none;">
-                                <div x-show="meal.allergens?.length" class="flex flex-wrap items-center gap-1 mb-2">
+                                class="px-4 pb-4"
+                                style="display: none;">
+
+                                <div x-show="meal.allergens?.length" class="flex flex-wrap items-center gap-1 mb-3">
                                     <span class="text-[9px] font-bold text-red-400 uppercase tracking-wide">{{ __('Allergens') }}:</span>
-                                    <template x-for="(a, idx) in meal.allergens" :key="idx">
-                                        <span class="px-1.5 py-0.5 rounded-full bg-red-50 border border-red-100 text-[10px] text-red-600" x-text="a"></span>
+                                    <template x-for="(allergen, idx) in meal.allergens" :key="idx">
+                                        <span class="px-1.5 py-0.5 rounded-full bg-red-50 border border-red-100 text-[10px] text-red-600" x-text="allergen"></span>
                                     </template>
                                 </div>
 
-                                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">
-                                    {{ __('Customers') }} (<span x-text="meal.customers?.length ?? 0"></span>)
-                                </p>
-                                <div class="space-y-1.5 max-h-56 overflow-y-auto pr-1 mb-3">
-                                    <template x-for="c in meal.customers" :key="c.order_id">
-                                        <div class="flex items-center justify-between gap-2 bg-white rounded-lg px-2.5 py-1.5 border border-gray-100">
-                                            <div class="min-w-0">
-                                                <p class="text-[11px] font-bold text-gray-800 truncate" x-text="c.customer_name"></p>
-                                                <p class="text-[9px] text-gray-400 truncate" x-text="(c.order_number || ('#' + c.order_id)) + (c.address ? (' · ' + c.address) : '')"></p>
+                                <div class="flex items-center justify-between gap-2 mb-2">
+                                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-wider">
+                                        {{ __('Customer Packaging Queue') }}
+                                    </p>
+                                    <span class="text-[9px] font-bold text-gray-400"
+                                        x-text="(meal.customers?.length || 0) + ' {{ __('rows') }}'">
+                                    </span>
+                                </div>
+
+                                <div class="space-y-2 max-h-72 overflow-y-auto quantity-scroll pr-1 mb-3">
+                                    <template x-for="customer in meal.customers" :key="meal.meal_key + '-' + customer.order_id + '-' + customer.item_index">
+                                        <div class="rounded-xl border border-gray-100 bg-white p-3">
+                                            <div class="flex items-start justify-between gap-3">
+                                                <div class="min-w-0 flex-1">
+                                                    <p class="text-xs font-extrabold text-gray-900 truncate" x-text="customer.customer_name"></p>
+                                                    <p class="mt-0.5 text-[9px] text-gray-400 truncate"
+                                                        x-text="(customer.order_number || ('#' + customer.order_id)) + (customer.address ? (' · ' + customer.address) : '')">
+                                                    </p>
+                                                </div>
+
+                                                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full capitalize flex-shrink-0"
+                                                    :class="itemStatusClass(customer.item_status)"
+                                                    x-text="String(customer.item_status || 'pending').replaceAll('_',' ')">
+                                                </span>
                                             </div>
-                                            <div class="flex items-center gap-1.5 flex-shrink-0">
-                                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full capitalize" :class="itemStatusClass(c.item_status)" x-text="c.item_status?.replaceAll('_',' ')"></span>
-                                                <span class="text-[11px] font-bold text-gray-700" x-text="'×' + c.quantity"></span>
+
+                                            <div class="mt-2 grid grid-cols-2 gap-2">
+                                                <div class="rounded-lg bg-gray-50 px-2.5 py-2">
+                                                    <p class="text-[8px] font-bold uppercase tracking-wide text-gray-400">{{ __('Packages') }}</p>
+                                                    <p class="mt-0.5 text-sm font-black text-gray-800" x-text="'×' + customer.quantity"></p>
+                                                </div>
+
+                                                <div class="rounded-lg bg-[#6E7A25]/10 px-2.5 py-2">
+                                                    <p class="text-[8px] font-bold uppercase tracking-wide text-[#59651f]">{{ __('Pack This Amount') }}</p>
+                                                    <p class="mt-0.5 text-sm font-black text-[#173327]"
+                                                        x-text="formatAmount(customer.preparation_quantity, customer.preparation_unit)">
+                                                    </p>
+                                                </div>
                                             </div>
+
+                                            <p x-show="customer.notes"
+                                                class="mt-2 rounded-lg border border-amber-100 bg-amber-50 px-2.5 py-2 text-[10px] text-amber-800">
+                                                <span class="font-bold">{{ __('Note') }}:</span>
+                                                <span x-text="customer.notes"></span>
+                                            </p>
                                         </div>
                                     </template>
-                                    <div x-show="!meal.customers?.length" class="text-[11px] text-gray-400 text-center py-2">{{ __('No customers found.') }}</div>
+
+                                    <div x-show="!meal.customers?.length" class="text-[11px] text-gray-400 text-center py-3">
+                                        {{ __('No customers found.') }}
+                                    </div>
                                 </div>
 
                                 <div class="flex gap-2">
-                                    <button x-show="meal.sent_to_kitchen > 0" @click="advanceMeal(meal, 'start_preparing')" class="btn-action flex-1 py-2 rounded-lg bg-blue-600 text-white text-[11px] font-bold">{{ __('Start Preparing') }}</button>
-                                    <button x-show="meal.preparing > 0" @click="advanceMeal(meal, 'mark_ready')" class="btn-action flex-1 py-2 rounded-lg bg-green-600 text-white text-[11px] font-bold">{{ __('Mark Ready') }}</button>
-                                    <button x-show="meal.ready > 0" @click="advanceMeal(meal, 'mark_served')" class="btn-action flex-1 py-2 rounded-lg bg-emerald-700 text-white text-[11px] font-bold">{{ __('Mark Served') }}</button>
+                                    <button x-show="meal.sent_to_kitchen > 0" @click="advanceMeal(meal, 'start_preparing')"
+                                        class="btn-action flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-[11px] font-bold">
+                                        {{ __('Start Preparing') }}
+                                    </button>
+                                    <button x-show="meal.preparing > 0" @click="advanceMeal(meal, 'mark_ready')"
+                                        class="btn-action flex-1 py-2.5 rounded-xl bg-green-600 text-white text-[11px] font-bold">
+                                        {{ __('Mark Ready') }}
+                                    </button>
+                                    <button x-show="meal.ready > 0" @click="advanceMeal(meal, 'mark_served')"
+                                        class="btn-action flex-1 py-2.5 rounded-xl bg-emerald-700 text-white text-[11px] font-bold">
+                                        {{ __('Mark Served') }}
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </template>
                 </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ============ CATEGORY COOKING TOTALS ============ --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-slide-up animate-delay-3"
+            x-show="activeCookingTotals.length > 0">
+            <div class="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-[#6E7A25] to-[#173327] flex items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-white">{{ __('Cooking Totals for This Shift') }}</h2>
+                    <p class="text-[10px] text-white/60">{{ __('Combined quantities grouped by meal and unit') }}</p>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/15 text-white border border-white/20"
+                    x-text="activeCookingTotals.length + ' {{ __('totals') }}'">
+                </span>
+            </div>
+
+            <div class="divide-y divide-gray-50">
+                <template x-for="total in activeCookingTotals" :key="total.key">
+                    <div class="flex items-center justify-between gap-3 px-4 py-3.5">
+                        <div class="min-w-0">
+                            <p class="text-sm font-extrabold text-gray-900 truncate" x-text="total.meal_name"></p>
+                            <p class="mt-0.5 text-[10px] text-gray-400"
+                                x-text="total.customer_count + ' {{ __('customers') }} · ' + total.package_count + ' {{ __('packages') }}'">
+                            </p>
+                        </div>
+
+                        <span class="quantity-total-chip bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white shadow-sm flex-shrink-0"
+                            x-text="formatAmount(total.quantity, total.unit)">
+                        </span>
+                    </div>
+                </template>
             </div>
         </div>
 
@@ -555,7 +709,14 @@
                                         </div>
                                         <div class="flex-1 min-w-0">
                                             <p class="text-xs font-bold text-gray-800 leading-tight" x-text="item.meal_name || item.name || strings.item"></p>
-                                            <p class="text-[11px] text-[#173327] font-semibold mt-0.5" x-text="'× ' + (item.quantity || 1)"></p>
+                                            <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                                                <span class="text-[10px] text-gray-600 font-bold bg-white px-2 py-0.5 rounded-full border border-gray-100"
+                                                    x-text="'×' + (item.quantity || 1) + ' {{ __('packages') }}'">
+                                                </span>
+                                                <span class="text-[10px] text-white font-black bg-gradient-to-r from-[#173327] to-[#6E7A25] px-2 py-0.5 rounded-full"
+                                                    x-text="formatAmount(item.preparation_quantity, item.preparation_unit)">
+                                                </span>
+                                            </div>
                                         </div>
                                         <span x-show="item.calories" class="text-[9px] font-bold text-[#6E7A25] bg-[#6E7A25]/10 px-1.5 py-0.5 rounded-full" x-text="item.calories + ' kcal'"></span>
                                     </div>
@@ -711,9 +872,74 @@ function chefShift() {
         },
 
         init() {
+            this.normalizeQuantityData();
+
             if (this.categories.length > 0) {
                 this.activeTab = this.autoSelectCategory();
             }
+        },
+
+        normalizeQuantityData() {
+            const normalizedOrders = {};
+
+            Object.entries(this.ordersByTab || {}).forEach(([tabId, orders]) => {
+                normalizedOrders[tabId] = Array.isArray(orders)
+                    ? orders.map(order => ({
+                        ...order,
+                        items: Array.isArray(order?.items)
+                            ? order.items.map(item => ({
+                                ...item,
+                                quantity: Math.max(Number(item?.quantity || 1), 1),
+                                preparation_quantity: this.validPreparationQuantity(
+                                    item?.preparation_quantity,
+                                    item?.quantity
+                                ),
+                                preparation_unit: this.normalizeUnit(
+                                    item?.preparation_unit
+                                )
+                            }))
+                            : []
+                    }))
+                    : [];
+            });
+
+            this.ordersByTab = normalizedOrders;
+        },
+
+        normalizeUnit(unit) {
+            const normalized = String(unit || 'portion').trim().toLowerCase();
+            return normalized || 'portion';
+        },
+
+        validPreparationQuantity(value, fallback = 1) {
+            const number = Number(value);
+
+            if (Number.isFinite(number) && number > 0) {
+                return number;
+            }
+
+            const fallbackNumber = Number(fallback);
+
+            return Number.isFinite(fallbackNumber) && fallbackNumber > 0
+                ? fallbackNumber
+                : 1;
+        },
+
+        formatNumber(value) {
+            const number = Number(value || 0);
+
+            if (!Number.isFinite(number)) {
+                return '0';
+            }
+
+            return Number.isInteger(number)
+                ? String(number)
+                : number.toFixed(3).replace(/\.?0+$/, '');
+        },
+
+        formatAmount(quantity, unit) {
+            const amount = this.validPreparationQuantity(quantity, 1);
+            return `${this.formatNumber(amount)} ${this.normalizeUnit(unit)}`;
         },
 
         autoSelectCategory() {
@@ -770,7 +996,230 @@ function chefShift() {
         },
 
         get activeProductionMeals() {
-            return this.activeSchedule.production?.meals || [];
+            const orderMeals = this.buildQuantityAwareProductionMeals();
+            const scheduleMeals = this.activeSchedule.production?.meals || [];
+
+            if (orderMeals.length === 0) {
+                return (Array.isArray(scheduleMeals) ? scheduleMeals : []).map(
+                    meal => this.normalizeScheduleMeal(meal)
+                );
+            }
+
+            const scheduleMap = new Map(
+                (Array.isArray(scheduleMeals) ? scheduleMeals : []).map(meal => [
+                    String(meal.meal_id ?? meal.meal_name ?? '').toLowerCase(),
+                    meal
+                ])
+            );
+
+            return orderMeals.map(meal => {
+                const schedule = scheduleMap.get(
+                    String(meal.meal_id ?? meal.meal_name ?? '').toLowerCase()
+                ) || {};
+
+                return {
+                    ...schedule,
+                    ...meal,
+                    pending: Number(schedule.pending ?? meal.pending ?? 0),
+                    sent_to_kitchen: Number(schedule.sent_to_kitchen ?? meal.sent_to_kitchen ?? 0),
+                    preparing: Number(schedule.preparing ?? meal.preparing ?? 0),
+                    ready: Number(schedule.ready ?? meal.ready ?? 0),
+                    served: Number(schedule.served ?? meal.served ?? 0),
+                    ingredients: meal.ingredients?.length
+                        ? meal.ingredients
+                        : (schedule.ingredients || []),
+                    allergens: meal.allergens?.length
+                        ? meal.allergens
+                        : (schedule.allergens || [])
+                };
+            });
+        },
+
+        normalizeScheduleMeal(meal) {
+            const customers = Array.isArray(meal?.customers)
+                ? meal.customers.map((customer, index) => ({
+                    ...customer,
+                    item_index: index,
+                    quantity: Math.max(Number(customer?.quantity || 1), 1),
+                    preparation_quantity: this.validPreparationQuantity(
+                        customer?.preparation_quantity,
+                        customer?.quantity
+                    ),
+                    preparation_unit: this.normalizeUnit(
+                        customer?.preparation_unit
+                    ),
+                    notes: customer?.notes || customer?.item_notes || ''
+                }))
+                : [];
+
+            return {
+                ...meal,
+                meal_key: String(meal?.meal_id ?? meal?.meal_name ?? ''),
+                customers,
+                total_packages: customers.reduce(
+                    (sum, customer) => sum + Number(customer.quantity || 1),
+                    0
+                ),
+                quantity_totals: this.quantityTotalsForCustomers(customers)
+            };
+        },
+
+        buildQuantityAwareProductionMeals() {
+            const mealMap = new Map();
+
+            this.activeOrders.forEach(order => {
+                (order.items || []).forEach((item, itemIndex) => {
+                    const mealId = Number(item?.meal_id || item?.id || 0);
+                    const mealName =
+                        item?.meal_name ||
+                        item?.name ||
+                        item?.name_en ||
+                        this.strings.item;
+
+                    const key = mealId > 0
+                        ? `id:${mealId}`
+                        : `name:${String(mealName).trim().toLowerCase()}`;
+
+                    if (!mealMap.has(key)) {
+                        mealMap.set(key, {
+                            meal_key: key,
+                            meal_id: mealId || null,
+                            meal_name: mealName,
+                            ingredients: Array.isArray(item?.ingredients)
+                                ? item.ingredients
+                                : [],
+                            allergens: Array.isArray(item?.allergens)
+                                ? item.allergens
+                                : [],
+                            customers: [],
+                            total_packages: 0,
+                            total_required: 0,
+                            quantity_totals: [],
+                            pending: 0,
+                            sent_to_kitchen: 0,
+                            preparing: 0,
+                            ready: 0,
+                            served: 0
+                        });
+                    }
+
+                    const meal = mealMap.get(key);
+                    const quantity = Math.max(Number(item?.quantity || 1), 1);
+                    const preparationQuantity = this.validPreparationQuantity(
+                        item?.preparation_quantity,
+                        quantity
+                    );
+                    const preparationUnit = this.normalizeUnit(
+                        item?.preparation_unit
+                    );
+
+                    const customer = {
+                        item_index: itemIndex,
+                        order_id: order?.order_id || order?.id,
+                        order_number: order?.order_number || order?.id,
+                        customer_name:
+                            order?.customer ||
+                            order?.customer_name ||
+                            '{{ __('Customer') }}',
+                        address:
+                            order?.delivery_address ||
+                            order?.customer_address ||
+                            '',
+                        quantity,
+                        preparation_quantity: preparationQuantity,
+                        preparation_unit: preparationUnit,
+                        notes:
+                            item?.notes ||
+                            item?.item_notes ||
+                            '',
+                        item_status:
+                            item?.status ||
+                            order?.item_status ||
+                            this.orderStatusToItemStatus(order?.status)
+                    };
+
+                    meal.customers.push(customer);
+                    meal.total_packages += quantity;
+                    meal.total_required += quantity;
+
+                    const statusKey = customer.item_status;
+
+                    if (Object.prototype.hasOwnProperty.call(meal, statusKey)) {
+                        meal[statusKey] += 1;
+                    }
+                });
+            });
+
+            return Array.from(mealMap.values()).map(meal => ({
+                ...meal,
+                quantity_totals: this.quantityTotalsForCustomers(
+                    meal.customers
+                )
+            }));
+        },
+
+        quantityTotalsForCustomers(customers) {
+            const totals = {};
+
+            (customers || []).forEach(customer => {
+                const unit = this.normalizeUnit(
+                    customer?.preparation_unit
+                );
+
+                if (!totals[unit]) {
+                    totals[unit] = 0;
+                }
+
+                totals[unit] += this.validPreparationQuantity(
+                    customer?.preparation_quantity,
+                    customer?.quantity
+                );
+            });
+
+            return Object.entries(totals)
+                .map(([unit, quantity]) => ({
+                    unit,
+                    quantity
+                }))
+                .sort((first, second) =>
+                    second.quantity - first.quantity
+                );
+        },
+
+        orderStatusToItemStatus(status) {
+            const normalized = String(status || '').toLowerCase();
+
+            if (['ready_for_delivery', 'ready_for_pickup'].includes(normalized)) {
+                return 'ready';
+            }
+
+            if (['out_for_delivery', 'delivered'].includes(normalized)) {
+                return 'served';
+            }
+
+            if (normalized === 'preparing') {
+                return 'preparing';
+            }
+
+            if (normalized === 'confirmed') {
+                return 'sent_to_kitchen';
+            }
+
+            return 'pending';
+        },
+
+        get activeCookingTotals() {
+            return this.activeProductionMeals.flatMap(meal =>
+                (meal.quantity_totals || []).map(total => ({
+                    key: `${meal.meal_key}-${total.unit}`,
+                    meal_id: meal.meal_id,
+                    meal_name: meal.meal_name,
+                    unit: total.unit,
+                    quantity: total.quantity,
+                    customer_count: meal.customers?.length || 0,
+                    package_count: meal.total_packages || 0
+                }))
+            );
         },
 
         get activeMeals() {
@@ -804,7 +1253,7 @@ function chefShift() {
         },
 
         mealKey(meal) {
-            return meal.meal_id ?? meal.meal_name;
+            return meal.meal_key ?? meal.meal_id ?? meal.meal_name;
         },
 
         toggleMeal(meal) {

@@ -3015,6 +3015,47 @@ class AdminController extends Controller
                 'min:1',
             ],
 
+            /*
+             * Detailed per-meal quantities. These rules are essential:
+             * Laravel's validated() output removes fields that are not listed.
+             */
+            'days.*.assignments.*.meals' => [
+                'required',
+                'array',
+                'min:1',
+            ],
+
+            'days.*.assignments.*.meals.*.meal_id' => [
+                'required',
+                'integer',
+                'min:1',
+            ],
+
+            'days.*.assignments.*.meals.*.quantity' => [
+                'required',
+                'integer',
+                'min:1',
+                'max:20',
+            ],
+
+            'days.*.assignments.*.meals.*.preparation_quantity' => [
+                'required',
+                'numeric',
+                'gt:0',
+            ],
+
+            'days.*.assignments.*.meals.*.preparation_unit' => [
+                'required',
+                'string',
+                'in:kg,g,litre,ml,whole,half,quarter,piece,portion,tray,pack',
+            ],
+
+            'days.*.assignments.*.meals.*.notes' => [
+                'nullable',
+                'string',
+                'max:500',
+            ],
+
             'days.*.assignments.*.meal_category_id' => [
                 'required',
                 'integer',
@@ -3284,6 +3325,12 @@ class AdminController extends Controller
     $createdDates = 0;
     $failedDates = [];
 
+    \Log::info('VALIDATED MEAL ASSIGNMENT REQUEST', [
+        'customer_id' => $id,
+        'assignment_mode' => $validated['assignment_mode'] ?? null,
+        'days' => $validated['days'] ?? [],
+    ]);
+
     try {
         foreach ($datedDays as $day) {
             $fastApiAssignments = [];
@@ -3302,14 +3349,67 @@ class AdminController extends Controller
                     continue;
                 }
 
-                $meals = array_map(
-                    static fn (int $mealId): array => [
-                        'meal_id' => $mealId,
-                        'quantity' => 1,
-                        'notes' => null,
-                    ],
-                    $mealIds
-                );
+                /*
+                 * Preserve the detailed meal quantities submitted by the UI.
+                 * The old implementation rebuilt meals from meal_ids and
+                 * silently replaced every amount with 1 portion.
+                 */
+                $submittedMeals = collect(
+                    $assignment['meals'] ?? []
+                )
+                    ->mapWithKeys(function (array $meal): array {
+                        $mealId = (int) ($meal['meal_id'] ?? 0);
+
+                        if ($mealId <= 0) {
+                            return [];
+                        }
+
+                        return [
+                            $mealId => [
+                                'meal_id' => $mealId,
+                                'quantity' => max(
+                                    1,
+                                    min(
+                                        (int) ($meal['quantity'] ?? 1),
+                                        20
+                                    )
+                                ),
+                                'preparation_quantity' => (float) (
+                                    $meal['preparation_quantity'] ?? 1
+                                ),
+                                'preparation_unit' => strtolower(
+                                    trim(
+                                        (string) (
+                                            $meal['preparation_unit']
+                                            ?? 'portion'
+                                        )
+                                    )
+                                ),
+                                'notes' => filled($meal['notes'] ?? null)
+                                    ? trim((string) $meal['notes'])
+                                    : null,
+                            ],
+                        ];
+                    });
+
+                $meals = collect($mealIds)
+                    ->map(function (int $mealId) use ($submittedMeals): array {
+                        /*
+                         * Backward-compatible fallback for old clients only.
+                         */
+                        return $submittedMeals->get(
+                            $mealId,
+                            [
+                                'meal_id' => $mealId,
+                                'quantity' => 1,
+                                'preparation_quantity' => 1.0,
+                                'preparation_unit' => 'portion',
+                                'notes' => null,
+                            ]
+                        );
+                    })
+                    ->values()
+                    ->all();
 
                 $fastApiAssignments[] = [
                     'meal_category_id' => (int) $assignment['meal_category_id'],
