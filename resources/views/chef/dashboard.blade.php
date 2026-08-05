@@ -63,7 +63,10 @@
 <div x-data="chefShift()" x-init="init()" x-cloak class="pb-10">
 
     {{-- ============ HEADER ============ --}}
-    <div class="relative bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white px-5 pt-5 pb-9 rounded-b-[2rem] shadow-lg shadow-[#173327]/30 overflow-hidden animate-slide-up">
+    <div
+        x-show="!walkthrough.open"
+        class="relative bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white px-5 pt-5 pb-9 rounded-b-[2rem] shadow-lg shadow-[#173327]/30 overflow-hidden animate-slide-up"
+    >
         <div class="absolute inset-0 bg-diamond opacity-[0.06]"></div>
 
         <div class="relative flex items-center justify-between mb-6">
@@ -107,7 +110,10 @@
         </div>
     </div>
 
-    <div class="px-4 -mt-4 relative z-10 space-y-4">
+    <div
+        x-show="!walkthrough.open"
+        class="px-4 -mt-4 relative z-10 space-y-4"
+    >
 
         {{-- ============ MEAL-TIME DROPDOWN (slide-down panel) ============ --}}
         <div class="relative animate-slide-up animate-delay-1">
@@ -393,7 +399,6 @@
                         </div>
                     </template>
                 </div>
-                </div>
             </div>
         </div>
 
@@ -539,14 +544,19 @@
         </div>
 
         {{-- ============ OPEN PREP LIST BUTTON ============ --}}
-        <button @click="openWalkthrough()" class="btn-action w-full flex items-center justify-between gap-3 bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white rounded-2xl p-4 shadow-lg shadow-[#173327]/20 animate-slide-up animate-delay-4 hover:shadow-xl transition-all">
+        <button
+            type="button"
+            @click.stop="openWalkthrough()"
+            :aria-expanded="walkthrough.open ? 'true' : 'false'"
+            aria-controls="chef-detailed-prep-list"
+            class="btn-action w-full flex items-center justify-between gap-3 bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white rounded-2xl p-4 shadow-lg shadow-[#173327]/20 animate-slide-up animate-delay-4 hover:shadow-xl transition-all">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                 </div>
                 <div class="text-right">
                     <p class="text-sm font-bold">{{ __('Detailed Prep List') }}</p>
-                    <p class="text-[10px] text-white/70">{{ __('Tap to view preparation steps for each item') }}</p>
+                    <p class="text-[10px] text-white/70">{{ __('View every customer, menu item, exact quantity and packing note') }}</p>
                 </div>
             </div>
             <svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" transform="rotate(180 12 12)"/></svg>
@@ -599,194 +609,283 @@
         @endif
     </div>
 
-    {{-- ============ PREP WALKTHROUGH OVERLAY ============ --}}
-    <div x-show="walkthrough.open" x-cloak class="fixed inset-0 z-50 bg-[#f8f9f5] overflow-y-auto" x-transition:enter="animate-fade-in">
-        <div class="max-w-3xl mx-auto px-4 pt-5 pb-10">
+    {{-- ============ DETAILED PACKAGING LIST PAGE ============ --}}
+    <div
+        id="chef-detailed-prep-list"
+        x-show="walkthrough.open"
+        x-cloak
+        @keydown.escape.window="closeWalkthrough()"
+        class="min-h-screen bg-[#f5f7f2]"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 translate-x-3"
+        x-transition:enter-end="opacity-100 translate-x-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 translate-x-0"
+        x-transition:leave-end="opacity-0 translate-x-3"
+        style="display: none;"
+    >
+        <div class="max-w-5xl mx-auto min-h-screen pb-12 touch-pan-y">
 
-            {{-- Overlay top bar --}}
-            <div class="flex items-center gap-3 mb-4 animate-slide-up">
-                <button @click="closeWalkthrough()" class="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center flex-shrink-0">
-                    <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" transform="rotate(180 12 12)"/></svg>
-                </button>
-                <div class="flex-1 bg-white rounded-2xl px-4 py-2.5 shadow-sm border border-gray-100">
-                    <p class="text-xs font-bold text-gray-900"><span x-text="activeLabel"></span> · {{ __('Prep List') }}</p>
-                    <template x-if="!walkthroughDone">
-                        <p class="text-[10px] text-gray-400">{{ __('Order') }} <span x-text="walkthrough.index + 1"></span> {{ __('of') }} <span x-text="activeOrders.length"></span> · {{ __('Remaining') }} <span x-text="activeOrders.length - walkthrough.index - 1"></span></p>
-                    </template>
+            {{-- Sticky header --}}
+            <div class="sticky top-0 z-30 bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white shadow-lg">
+                <div class="px-4 py-4">
+                    <div class="flex items-center gap-3">
+                        <button
+                            type="button"
+                            @click="closeWalkthrough()"
+                            class="w-10 h-10 rounded-full bg-white/15 border border-white/20 flex items-center justify-center flex-shrink-0 hover:bg-white/25 transition-colors"
+                            title="{{ __('Back') }}"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                        </button>
+
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[10px] uppercase tracking-[0.2em] text-white/65 font-bold">
+                                {{ __('Packaging Worklist') }}
+                            </p>
+                            <h2 class="text-lg font-extrabold truncate">
+                                <span x-text="activeLabel"></span>
+                                <span class="text-white/60">·</span>
+                                {{ __('All Customers') }}
+                            </h2>
+                            <p class="text-[10px] text-white/65 mt-0.5">
+                                {{ __('Review every customer, meal, quantity, allergy and packing note before handoff.') }}
+                            </p>
+                        </div>
+
+                        <div class="text-right flex-shrink-0">
+                            <p class="text-2xl font-black" x-text="filteredPrepOrders.length"></p>
+                            <p class="text-[9px] uppercase tracking-wider text-white/60">{{ __('Customers') }}</p>
+                        </div>
+                    </div>
+
+                    {{-- Search --}}
+                    <div class="mt-4 relative">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/55" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m2.35-5.65a8 8 0 11-16 0 8 8 0 0116 0z"/>
+                        </svg>
+                        <input
+                            type="search"
+                            data-prep-search
+                            x-model.debounce.250ms="prepSearch"
+                            placeholder="{{ __('Search customer, order number or meal...') }}"
+                            class="w-full rounded-xl border border-white/15 bg-white/10 pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-white/50 outline-none focus:bg-white/15 focus:border-white/30"
+                        >
+                    </div>
+                </div>
+
+                {{-- Category summary --}}
+                <div class="grid grid-cols-3 border-t border-white/10">
+                    <div class="px-3 py-2.5 text-center border-r border-white/10">
+                        <p class="text-base font-black" x-text="activeSummary.total_meals"></p>
+                        <p class="text-[9px] text-white/60 uppercase">{{ __('Packages') }}</p>
+                    </div>
+                    <div class="px-3 py-2.5 text-center border-r border-white/10">
+                        <p class="text-base font-black" x-text="activeSummary.preparing"></p>
+                        <p class="text-[9px] text-white/60 uppercase">{{ __('Cooking') }}</p>
+                    </div>
+                    <div class="px-3 py-2.5 text-center">
+                        <p class="text-base font-black" x-text="activeSummary.ready"></p>
+                        <p class="text-[9px] text-white/60 uppercase">{{ __('Ready') }}</p>
+                    </div>
                 </div>
             </div>
 
-            {{-- Progress bar --}}
-            <template x-if="!walkthroughDone">
-                <div class="h-2 bg-gray-200 rounded-full overflow-hidden mb-5 animate-slide-up animate-delay-1">
-                    <div class="progress-fill h-full bg-gradient-to-r from-[#6E7A25] to-[#173327] rounded-full" :style="'width:' + walkthroughPercent + '%'"></div>
-                </div>
-            </template>
+            <div class="px-4 py-5 space-y-4">
 
-            {{-- Empty state --}}
-            <template x-if="activeOrders.length === 0">
-                <div class="bg-white rounded-2xl p-8 text-center border border-gray-100 shadow-sm animate-slide-up">
-                    <p class="text-sm text-gray-500">{{ __('No orders in this shift.') }}</p>
-                </div>
-            </template>
-
-            {{-- Completed celebration --}}
-            <template x-if="activeOrders.length > 0 && walkthroughDone">
-                <div class="bg-white rounded-3xl p-8 text-center shadow-lg border border-gray-100 animate-pop-in">
-                    <div class="w-20 h-20 rounded-full bg-gradient-to-br from-[#6E7A25]/10 to-[#173327]/10 flex items-center justify-center mx-auto mb-4">
-                        <div class="w-14 h-14 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center shadow-lg">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                {{-- Empty state --}}
+                <template x-if="filteredPrepOrders.length === 0">
+                    <div class="bg-white rounded-3xl p-10 text-center border border-gray-100 shadow-sm">
+                        <div class="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
                         </div>
+                        <p class="text-sm font-bold text-gray-600">{{ __('No customer orders found in this category.') }}</p>
+                        <p class="text-xs text-gray-400 mt-1">{{ __('Try another category or clear your search.') }}</p>
                     </div>
-                    <h2 class="text-xl font-extrabold text-[#173327] mb-1">{{ __('Well done!') }} 🎉</h2>
-                    <p class="text-sm text-gray-500 mb-6">{{ __('All meals for this shift have been prepared successfully.') }}</p>
-                    <div class="grid grid-cols-3 gap-3 mb-6">
-                        <div class="bg-[#6E7A25]/5 rounded-xl p-3">
-                            <p class="text-lg font-extrabold text-gray-900" x-text="activeSummary.customers"></p>
-                            <p class="text-[10px] text-gray-500">{{ __('Total') }}</p>
-                        </div>
-                        <div class="bg-green-50 rounded-xl p-3">
-                            <p class="text-lg font-extrabold text-green-600" x-text="readyCount"></p>
-                            <p class="text-[10px] text-gray-500">{{ __('Ready') }}</p>
-                        </div>
-                        <div class="bg-gray-50 rounded-xl p-3">
-                            <p class="text-lg font-extrabold text-gray-400">0</p>
-                            <p class="text-[10px] text-gray-500">{{ __('Remaining') }}</p>
-                        </div>
-                    </div>
-                    <button @click="closeWalkthrough()" class="btn-action w-full py-3 rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-sm font-bold shadow-lg">{{ __('Close') }}</button>
-                </div>
-            </template>
+                </template>
 
-            {{-- Current order prep card --}}
-            <template x-if="currentOrder">
-                <div class="space-y-4 animate-pop-in" :key="currentOrder.id">
-                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                        <div class="flex items-start justify-between mb-3">
-                            <div class="min-w-0">
-                                <p class="text-base font-extrabold text-gray-900 truncate" x-text="currentOrder.customer"></p>
-                                <p class="text-[11px] text-gray-400 mt-0.5">#<span x-text="currentOrder.id"></span> &nbsp;|&nbsp; <span x-text="currentOrder.order_number"></span></p>
-                            </div>
-                            <div class="w-12 h-12 rounded-full bg-[#6E7A25]/10 flex items-center justify-center text-[#173327] font-bold flex-shrink-0" x-text="currentOrder.customer.charAt(0)"></div>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500">
-                            <span class="flex items-center gap-1" x-show="currentOrder.delivery_address">
-                                <svg class="w-3.5 h-3.5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                <span x-text="currentOrder.delivery_address"></span>
-                            </span>
-                            <span class="flex items-center gap-1" x-show="currentOrder.customer_phone">
-                                <svg class="w-3.5 h-3.5 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                                <span x-text="currentOrder.customer_phone"></span>
-                            </span>
-                        </div>
-                        <template x-if="currentOrder.delivery_notes">
-                            <div class="flex items-start gap-2 mt-3 bg-amber-50 p-2.5 rounded-xl border border-amber-100">
-                                <svg class="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                <p class="text-xs text-amber-800 italic" x-text="currentOrder.delivery_notes"></p>
-                            </div>
-                        </template>
-                    </div>
+                {{-- All customer packaging cards --}}
+                <template x-for="(order, orderIndex) in filteredPrepOrders" :key="order.id || order.order_id || orderIndex">
+                    <article class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
 
-                    {{-- Items to prepare --}}
-                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">{{ __('Items to Prepare') }}</h3>
-                            <div class="flex items-center gap-2">
-                                <span x-show="currentOrder.total_quantity" class="text-[10px] font-bold text-[#173327] bg-[#6E7A25]/10 px-2 py-0.5 rounded-full" x-text="currentOrder.total_quantity + ' {{ __('qty') }}'"></span>
-                                <span x-show="currentOrder.total_calories" class="text-[10px] font-bold text-[#173327] bg-[#6E7A25]/10 px-2 py-0.5 rounded-full" x-text="currentOrder.total_calories + ' kcal'"></span>
-                            </div>
-                        </div>
-                        <div class="space-y-2.5">
-                            <template x-for="(item, idx) in currentOrder.items" :key="idx">
-                                <div class="bg-[#6E7A25]/5 rounded-xl p-3 border border-[#6E7A25]/15">
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-[#6E7A25] to-[#173327] flex items-center justify-center flex-shrink-0 shadow-sm">
-                                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        {{-- Customer header --}}
+                        <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-white to-[#6E7A25]/5">
+                            <div class="flex items-start gap-3">
+                                <div
+                                    class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#173327] to-[#6E7A25] text-white flex items-center justify-center text-lg font-black flex-shrink-0 shadow-sm"
+                                    x-text="String(order.customer || order.customer_name || '?').charAt(0).toUpperCase()"
+                                ></div>
+
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <h3 class="text-base font-extrabold text-gray-900 truncate" x-text="order.customer || order.customer_name || '{{ __('Customer') }}'"></h3>
+                                            <p class="text-[10px] text-gray-400 mt-0.5">
+                                                <span x-text="order.order_number || ('#' + (order.id || order.order_id))"></span>
+                                                <span x-show="order.delivery_time"> · <span x-text="order.delivery_time"></span></span>
+                                            </p>
                                         </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-xs font-bold text-gray-800 leading-tight" x-text="item.meal_name || item.name || strings.item"></p>
-                                            <div class="flex flex-wrap items-center gap-1.5 mt-1">
-                                                <span class="text-[10px] text-gray-600 font-bold bg-white px-2 py-0.5 rounded-full border border-gray-100"
-                                                    x-text="'×' + (item.quantity || 1) + ' {{ __('packages') }}'">
-                                                </span>
-                                                <span class="text-[10px] text-white font-black bg-gradient-to-r from-[#173327] to-[#6E7A25] px-2 py-0.5 rounded-full"
-                                                    x-text="formatAmount(item.preparation_quantity, item.preparation_unit)">
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <span x-show="item.calories" class="text-[9px] font-bold text-[#6E7A25] bg-[#6E7A25]/10 px-1.5 py-0.5 rounded-full" x-text="item.calories + ' kcal'"></span>
+
+                                        <span
+                                            class="px-2.5 py-1 rounded-full text-[10px] font-extrabold capitalize flex-shrink-0"
+                                            :class="statusBadgeClass(String(order.status || 'pending').toLowerCase())"
+                                            x-text="String(order.status_label || order.status || 'pending').replaceAll('_', ' ')"
+                                        ></span>
                                     </div>
-                                    <div x-show="item.ingredients?.length" class="mb-2">
-                                        <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wide mb-1">{{ __('Ingredients') }}</p>
-                                        <div class="flex flex-wrap items-center gap-1">
-                                            <template x-for="(ing, iIdx) in item.ingredients" :key="iIdx">
-                                                <span class="px-1.5 py-0.5 rounded-full bg-white border border-[#6E7A25]/15 text-[10px] text-gray-600" x-text="ing"></span>
-                                            </template>
-                                        </div>
-                                    </div>
-                                    <div x-show="item.allergens?.length">
-                                        <p class="text-[9px] font-bold text-red-400 uppercase tracking-wide mb-1">{{ __('Allergens') }}</p>
-                                        <div class="flex flex-wrap items-center gap-1">
-                                            <template x-for="(a, aIdx) in item.allergens" :key="aIdx">
-                                                <span class="px-1.5 py-0.5 rounded-full bg-red-50 border border-red-100 text-[10px] text-red-600" x-text="a"></span>
-                                            </template>
-                                        </div>
+
+                                    <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[10px] text-gray-500">
+                                        <span x-show="order.customer_phone" class="flex items-center gap-1">
+                                            <svg class="w-3 h-3 text-[#6E7A25]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                            </svg>
+                                            <span x-text="order.customer_phone"></span>
+                                        </span>
+
+                                        <span x-show="order.delivery_address" class="flex items-center gap-1 min-w-0">
+                                            <svg class="w-3 h-3 text-[#6E7A25] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            </svg>
+                                            <span class="truncate" x-text="order.delivery_address"></span>
+                                        </span>
                                     </div>
                                 </div>
-                            </template>
-                            <template x-if="!currentOrder.items || currentOrder.items.length === 0">
-                                <p class="text-xs text-gray-400 text-center py-2">{{ __('No item details for this order.') }}</p>
-                            </template>
+                            </div>
+
+                            <div x-show="order.delivery_notes" class="mt-3 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2 text-[10px] text-amber-800">
+                                <span class="font-black">{{ __('Delivery Note') }}:</span>
+                                <span x-text="order.delivery_notes"></span>
+                            </div>
                         </div>
-                    </div>
 
-                    {{-- Status + Actions --}}
-                    <div class="flex items-center justify-center gap-2">
-                        <span class="px-3 py-1 rounded-full text-[11px] font-bold" :class="statusBadgeClass(currentOrder.status)" x-text="currentOrder.status_label"></span>
-                    </div>
+                        {{-- Meal details --}}
+                        <div class="p-4">
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <div>
+                                    <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">{{ __('Customer Menu Details') }}</p>
+                                    <p class="text-[10px] text-gray-400 mt-0.5">{{ __('Pack each item using the exact assigned amount.') }}</p>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full bg-[#6E7A25]/10 text-[#173327] text-[10px] font-black"
+                                    x-text="(order.items?.length || 0) + ' {{ __('items') }}'">
+                                </span>
+                            </div>
 
-                    <div class="grid grid-cols-1 gap-2">
-                        <template x-if="['pending','confirmed','scheduled'].includes(currentOrder.status)">
-                            <button @click="doStartPreparing()" class="btn-action w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-sm font-bold shadow-lg shadow-[#173327]/20 flex items-center justify-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                {{ __('Start Preparing') }}
-                            </button>
-                        </template>
-                        <template x-if="currentOrder.status === 'preparing'">
-                            <button @click="doMarkReady()" class="btn-action w-full py-3.5 rounded-2xl bg-green-600 text-white text-sm font-bold shadow-md shadow-green-600/20 flex items-center justify-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                {{ __('Mark as Ready') }}
-                            </button>
-                        </template>
-                        <template x-if="['ready_for_delivery'].includes(currentOrder.status)">
-                            <button @click="openAssignDriver(currentOrder)" class="btn-action w-full py-3.5 rounded-2xl bg-blue-600 text-white text-sm font-bold shadow-md shadow-blue-600/20 flex items-center justify-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 18a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
-                                {{ __('Assign Driver') }}
-                            </button>
-                        </template>
-                        <template x-if="['ready_for_delivery','out_for_delivery','delivered'].includes(currentOrder.status)">
-                            <button @click="goNext()" class="btn-action w-full py-3.5 rounded-2xl bg-gray-100 text-gray-700 text-sm font-bold flex items-center justify-center gap-2">
-                                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                {{ __('Already Ready') }} — {{ __('Next') }}
-                            </button>
-                        </template>
-                    </div>
+                            <div class="space-y-3">
+                                <template x-for="(item, itemIndex) in (order.items || [])" :key="item.meal_id || itemIndex">
+                                    <div class="rounded-2xl border border-[#6E7A25]/15 bg-gradient-to-br from-[#6E7A25]/5 to-white p-3.5">
+                                        <div class="flex items-start gap-3">
+                                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6E7A25] to-[#173327] text-white flex items-center justify-center flex-shrink-0">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17"/>
+                                                </svg>
+                                            </div>
 
-                    <p class="text-center text-[10px] text-gray-400">{{ __('Tap after weighing and packing to move to the next customer') }}</p>
+                                            <div class="min-w-0 flex-1">
+                                                <div class="flex flex-wrap items-start justify-between gap-2">
+                                                    <div class="min-w-0">
+                                                        <p class="text-sm font-extrabold text-gray-900" x-text="item.meal_name || item.name || strings.item"></p>
+                                                        <p x-show="item.meal_name_ar" class="text-[10px] text-gray-400 mt-0.5" x-text="item.meal_name_ar"></p>
+                                                    </div>
 
-                    {{-- Prev / Next --}}
-                    <div class="flex items-center justify-between pt-2">
-                        <button @click="goPrev()" :disabled="walkthrough.index === 0" class="flex items-center gap-1 text-xs font-bold text-gray-500 disabled:opacity-30 disabled:cursor-not-allowed">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                            {{ __('Previous') }}
-                        </button>
-                        <button @click="goNext()" class="flex items-center gap-1 text-xs font-bold text-[#173327]">
-                            {{ __('Next') }}
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" transform="rotate(180 12 12)"/></svg>
-                        </button>
-                    </div>
-                </div>
-            </template>
+                                                    <div class="text-right flex-shrink-0">
+                                                        <p class="text-sm font-black text-[#173327]" x-text="formatAmount(item.preparation_quantity, item.preparation_unit)"></p>
+                                                        <p class="text-[9px] text-gray-400" x-text="'×' + (item.quantity || 1) + ' {{ __('package(s)') }}'"></p>
+                                                    </div>
+                                                </div>
+
+                                                <div class="grid grid-cols-3 gap-1.5 mt-3" x-show="item.calories || item.protein_g || item.carbs_g">
+                                                    <div class="rounded-lg bg-white border border-gray-100 px-2 py-1.5 text-center" x-show="item.calories">
+                                                        <p class="text-[9px] text-gray-400">{{ __('Calories') }}</p>
+                                                        <p class="text-[10px] font-black text-gray-700" x-text="item.calories"></p>
+                                                    </div>
+                                                    <div class="rounded-lg bg-white border border-gray-100 px-2 py-1.5 text-center" x-show="item.protein_g">
+                                                        <p class="text-[9px] text-gray-400">{{ __('Protein') }}</p>
+                                                        <p class="text-[10px] font-black text-gray-700" x-text="item.protein_g + 'g'"></p>
+                                                    </div>
+                                                    <div class="rounded-lg bg-white border border-gray-100 px-2 py-1.5 text-center" x-show="item.carbs_g">
+                                                        <p class="text-[9px] text-gray-400">{{ __('Carbs') }}</p>
+                                                        <p class="text-[10px] font-black text-gray-700" x-text="item.carbs_g + 'g'"></p>
+                                                    </div>
+                                                </div>
+
+                                                <div x-show="item.ingredients?.length" class="mt-3">
+                                                    <p class="text-[9px] font-black uppercase tracking-wide text-gray-400 mb-1">{{ __('Ingredients') }}</p>
+                                                    <div class="flex flex-wrap gap-1">
+                                                        <template x-for="(ingredient, ingredientIndex) in item.ingredients" :key="ingredientIndex">
+                                                            <span class="px-2 py-0.5 rounded-full bg-white border border-gray-200 text-[9px] text-gray-600" x-text="ingredient"></span>
+                                                        </template>
+                                                    </div>
+                                                </div>
+
+                                                <div x-show="item.allergens?.length" class="mt-3">
+                                                    <p class="text-[9px] font-black uppercase tracking-wide text-red-400 mb-1">{{ __('Allergen Warning') }}</p>
+                                                    <div class="flex flex-wrap gap-1">
+                                                        <template x-for="(allergen, allergenIndex) in item.allergens" :key="allergenIndex">
+                                                            <span class="px-2 py-0.5 rounded-full bg-red-50 border border-red-100 text-[9px] font-bold text-red-600" x-text="allergen"></span>
+                                                        </template>
+                                                    </div>
+                                                </div>
+
+                                                <div x-show="item.notes" class="mt-3 rounded-lg border border-amber-100 bg-amber-50 px-2.5 py-2 text-[10px] text-amber-800">
+                                                    <span class="font-black">{{ __('Packing Note') }}:</span>
+                                                    <span x-text="item.notes"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <div x-show="!order.items || order.items.length === 0" class="rounded-xl bg-gray-50 p-4 text-center text-xs text-gray-400">
+                                    {{ __('No menu details are available for this customer.') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Per-customer kitchen actions --}}
+                        <div class="px-4 pb-4">
+                            <div class="grid gap-2 sm:grid-cols-2">
+                                <button
+                                    x-show="['pending','confirmed','scheduled'].includes(String(order.status || '').toLowerCase())"
+                                    type="button"
+                                    @click.stop="startPreparingOrder(order)"
+                                    class="btn-action w-full py-3 rounded-xl bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-xs font-extrabold flex items-center justify-center gap-2"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                    </svg>
+                                    {{ __('Start Cooking for This Customer') }}
+                                </button>
+
+                                <button
+                                    x-show="String(order.status || '').toLowerCase() === 'preparing'"
+                                    type="button"
+                                    @click.stop="markReadyOrder(order)"
+                                    class="btn-action w-full py-3 rounded-xl bg-green-600 text-white text-xs font-extrabold flex items-center justify-center gap-2"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    {{ __('Packed & Ready for Driver') }}
+                                </button>
+
+                                <div
+                                    x-show="['ready_for_delivery','out_for_delivery','delivered'].includes(String(order.status || '').toLowerCase())"
+                                    class="w-full py-3 rounded-xl bg-green-50 border border-green-100 text-green-700 text-xs font-extrabold flex items-center justify-center gap-2"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    {{ __('Packaging Completed') }}
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </template>
+            </div>
         </div>
     </div>
 
@@ -842,6 +941,7 @@ function chefShift() {
         transferring: false,
         openMeals: [],
         walkthrough: { open: false, index: 0 },
+        prepSearch: '',
         assignDriverModal: false,
         assignDriverOrder: null,
         drivers: [],
@@ -1284,13 +1384,62 @@ function chefShift() {
         },
 
         openWalkthrough() {
-            const firstPending = this.activeOrders.findIndex(o => !['ready_for_delivery', 'out_for_delivery', 'delivered'].includes(o.status));
-            this.walkthrough.index = firstPending === -1 ? 0 : firstPending;
+            this.prepSearch = '';
             this.walkthrough.open = true;
+
+            window.setTimeout(() => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'instant'
+                });
+            }, 0);
         },
 
         closeWalkthrough() {
             this.walkthrough.open = false;
+
+            window.setTimeout(() => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'instant'
+                });
+            }, 0);
+        },
+
+        get filteredPrepOrders() {
+            const query = String(this.prepSearch || '')
+                .trim()
+                .toLowerCase();
+
+            if (!query) {
+                return this.activeOrders;
+            }
+
+            return this.activeOrders.filter(order => {
+                const mealNames = (order.items || [])
+                    .map(item =>
+                        item.meal_name
+                        || item.name
+                        || item.name_en
+                        || ''
+                    )
+                    .join(' ');
+
+                const searchable = [
+                    order.customer,
+                    order.customer_name,
+                    order.order_number,
+                    order.id,
+                    order.customer_phone,
+                    order.delivery_address,
+                    mealNames,
+                ]
+                    .filter(Boolean)
+                    .join(' ')
+                    .toLowerCase();
+
+                return searchable.includes(query);
+            });
         },
 
         get walkthroughDone() {
@@ -1483,6 +1632,53 @@ function chefShift() {
             // data (and every other tab's counts) in sync after a
             // transfer or status change.
             window.location.reload();
+        },
+
+        async startPreparingOrder(order) {
+            if (!order) {
+                return;
+            }
+
+            const orderId = order.id || order.order_id;
+
+            const ok = await chefAction(
+                `{{ url('chef/orders') }}/${orderId}/start-preparing`,
+                {
+                    title: this.strings.startPrepTitle,
+                    text: this.strings.startPrepText,
+                    confirmText: this.strings.yesStart,
+                    icon: 'question',
+                }
+            );
+
+            if (ok) {
+                order.status = 'preparing';
+                order.status_label = this.strings.preparingLabel;
+            }
+        },
+
+        async markReadyOrder(order) {
+            if (!order) {
+                return;
+            }
+
+            const orderId = order.id || order.order_id;
+
+            const ok = await chefAction(
+                `{{ url('chef/orders') }}/${orderId}/mark-ready`,
+                {
+                    title: this.strings.readyTitle,
+                    text: this.strings.readyText,
+                    confirmText: this.strings.yesReady,
+                    icon: 'success',
+                    confirmColor: '#16a34a',
+                }
+            );
+
+            if (ok) {
+                order.status = 'ready_for_delivery';
+                order.status_label = this.strings.readyForDeliveryLabel;
+            }
         },
 
         async doStartPreparing() {
