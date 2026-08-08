@@ -503,7 +503,12 @@ class UserController extends Controller
                     'total_referrals' => 0,
                     'pending_referrals' => 0,
                     'rewarded_referrals' => 0,
+                    'successful_transactions' => 0,
+                    'total_earned' => 0,
+                    'available_credit' => 0,
+                    'used_credit' => 0,
                     'rewards' => [],
+                    'earnings' => [],
                     'referrals' => [],
                 ];
             }
@@ -2397,7 +2402,12 @@ class UserController extends Controller
                     'total_referrals' => 0,
                     'pending_referrals' => 0,
                     'rewarded_referrals' => 0,
+                    'successful_transactions' => 0,
+                    'total_earned' => 0,
+                    'available_credit' => 0,
+                    'used_credit' => 0,
                     'rewards' => [],
+                    'earnings' => [],
                     'referrals' => [],
                 ];
             }

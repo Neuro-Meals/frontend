@@ -232,7 +232,9 @@ return [
 
         'referrals' => [
             'my'              => '/referrals/me',
+            'my_earnings'     => '/referrals/me/earnings',
             'admin_list'      => '/referrals/admin',
+            'admin_earnings'  => '/referrals/admin/earnings',
             'admin_settings'  => '/referrals/admin/settings',
             'update_settings' => '/referrals/admin/settings',
         ],

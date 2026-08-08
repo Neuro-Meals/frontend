@@ -49,7 +49,7 @@
 
 {{-- Refer & Earn --}}
 <div class="mb-6 rounded-2xl border border-[#6E7A25]/15 bg-gradient-to-r from-[#f7f8ef] to-white p-4 sm:p-5 shadow-sm animate__animated animate__fadeInUp">
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div class="flex items-start gap-3">
             <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-[#173327] text-white">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-5-4M9 20H4v-2a4 4 0 014-4h1m4-9a4 4 0 110 8 4 4 0 010-8zm6 3a3 3 0 11-6 0"/></svg>
@@ -61,13 +61,24 @@
                     <span class="font-mono font-black tracking-wider text-[#173327]">{{ $referralSummary['referral_code'] ?? __('Unavailable') }}</span>
                 </p>
                 <p class="mt-1 text-[10px] text-gray-400">
-                    {{ (int) ($referralSummary['rewarded_referrals'] ?? 0) }} {{ __('rewarded referrals') }}
+                    {{ (int) ($referralSummary['successful_transactions'] ?? 0) }} {{ __('rewarded transactions') }}
                 </p>
             </div>
         </div>
-        <a href="{{ route('user.referrals') }}" class="inline-flex items-center justify-center rounded-xl bg-[#6E7A25] px-4 py-2.5 text-xs font-extrabold text-white transition hover:bg-[#7d8a2b]">
-            {{ __('Open Referral Center') }}
-        </a>
+
+        <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+            <div class="rounded-xl bg-white px-3 py-2 shadow-sm">
+                <p class="text-[9px] font-bold uppercase text-gray-400">{{ __('Total Earned') }}</p>
+                <p class="mt-0.5 text-xs font-black text-green-700">SAR {{ number_format((float) ($referralSummary['total_earned'] ?? 0), 2) }}</p>
+            </div>
+            <div class="rounded-xl bg-white px-3 py-2 shadow-sm">
+                <p class="text-[9px] font-bold uppercase text-gray-400">{{ __('Available') }}</p>
+                <p class="mt-0.5 text-xs font-black text-[#6E7A25]">SAR {{ number_format((float) ($referralSummary['available_credit'] ?? 0), 2) }}</p>
+            </div>
+            <a href="{{ route('user.referrals') }}" class="col-span-2 inline-flex items-center justify-center rounded-xl bg-[#6E7A25] px-4 py-2.5 text-xs font-extrabold text-white transition hover:bg-[#7d8a2b] sm:col-auto">
+                {{ __('Referral Center') }}
+            </a>
+        </div>
     </div>
 </div>
 

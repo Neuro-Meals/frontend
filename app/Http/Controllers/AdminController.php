@@ -7051,11 +7051,25 @@ foreach ($deliveryPreferencesRaw as $preference) {
 
         $referralMeta = $referralResponse['meta'] ?? [];
 
+        $earningsResponse = $referralApi->adminEarnings([
+            'page' => 1,
+            'limit' => 100,
+        ]);
+
+        $referralEarnings = $earningsResponse['data']
+            ?? (array_is_list($earningsResponse) ? $earningsResponse : []);
+
+        $earningsMeta = $earningsResponse['meta'] ?? [];
+
         $referralSettings = $referralApi->settings();
         if (($referralSettings['success'] ?? true) === false) {
             $referralSettings = [
                 'is_active' => true,
+                'reward_mode' => 'fixed_first_payment',
+                'reward_value' => 100,
                 'reward_amount' => 100,
+                'commission_scope' => 'first_payment_only',
+                'max_reward_per_payment' => null,
                 'reward_expiry_days' => 90,
                 'referred_customer_must_make_first_payment' => true,
             ];
@@ -7063,6 +7077,26 @@ foreach ($deliveryPreferencesRaw as $preference) {
             $referralSettings = $referralSettings['data']
                 ?? $referralSettings;
         }
+
+        $referralSettings['reward_mode'] =
+            $referralSettings['reward_mode'] ?? 'fixed_first_payment';
+
+        $referralSettings['reward_value'] = (float) (
+            $referralSettings['reward_value']
+            ?? $referralSettings['reward_amount']
+            ?? 100
+        );
+
+        $referralSettings['commission_scope'] =
+            $referralSettings['commission_scope']
+            ?? (
+                !empty($referralSettings['referred_customer_must_make_first_payment'])
+                    ? 'first_payment_only'
+                    : 'every_payment'
+            );
+
+        $referralSettings['max_reward_per_payment'] =
+            $referralSettings['max_reward_per_payment'] ?? null;
 
         $plansResponse = $planApi->list(['limit' => 100]);
         $plans = $plansResponse['data']
@@ -7072,6 +7106,8 @@ foreach ($deliveryPreferencesRaw as $preference) {
             'coupons',
             'referrals',
             'referralMeta',
+            'referralEarnings',
+            'earningsMeta',
             'referralSettings',
             'plans'
         ));
@@ -7174,10 +7210,36 @@ foreach ($deliveryPreferencesRaw as $preference) {
     ) {
         $validated = $request->validate([
             'is_active' => ['required', 'boolean'],
-            'reward_amount' => ['required', 'numeric', 'gt:0'],
-            'reward_expiry_days' => ['required', 'integer', 'min:1'],
-            'referred_customer_must_make_first_payment' => ['required', 'boolean'],
+            'reward_mode' => [
+                'required',
+                'in:fixed_per_payment,percentage_of_payment,fixed_first_payment',
+            ],
+            'reward_value' => ['required', 'numeric', 'gt:0'],
+            'commission_scope' => [
+                'required',
+                'in:first_payment_only,every_payment',
+            ],
+            'max_reward_per_payment' => ['nullable', 'numeric', 'gt:0'],
+            'reward_expiry_days' => ['required', 'integer', 'min:1', 'max:3650'],
         ]);
+
+        if ($validated['reward_mode'] === 'percentage_of_payment'
+            && $validated['reward_value'] > 100) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Percentage reward cannot exceed 100%.'),
+            ], 422);
+        }
+
+        if ($validated['reward_mode'] === 'fixed_first_payment') {
+            $validated['commission_scope'] = 'first_payment_only';
+        }
+
+        // Legacy fields are included so older backend/frontend nodes remain
+        // compatible during rolling deployment.
+        $validated['reward_amount'] = $validated['reward_value'];
+        $validated['referred_customer_must_make_first_payment'] =
+            $validated['commission_scope'] === 'first_payment_only';
 
         $response = $referralApi->updateSettings($validated);
 
