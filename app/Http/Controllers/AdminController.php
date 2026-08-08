@@ -9,6 +9,8 @@ use App\Services\Api\AuthApiService;
 use App\Services\Api\AdminApiService;
 use App\Services\Api\ChefApiService;
 use App\Services\Api\CustomerDriverApiService;
+use App\Services\Api\CouponApiService;
+use App\Services\Api\ReferralApiService;
 use App\Services\Api\DeliveryApiService;
 use App\Services\Api\DriverApiService;
 use App\Services\Api\MealApiService;
@@ -7024,6 +7026,174 @@ foreach ($deliveryPreferencesRaw as $preference) {
         ];
 
         return view('admin.content', compact('pages', 'stats'));
+    }
+
+    public function promotions(
+        CouponApiService $couponApi,
+        ReferralApiService $referralApi,
+        PlanApiService $planApi
+    ) {
+        $couponResponse = $couponApi->list([
+            'page' => 1,
+            'limit' => 100,
+        ]);
+
+        $coupons = $couponResponse['data']
+            ?? (array_is_list($couponResponse) ? $couponResponse : []);
+
+        $referralResponse = $referralApi->adminList([
+            'page' => 1,
+            'limit' => 100,
+        ]);
+
+        $referrals = $referralResponse['data']
+            ?? (array_is_list($referralResponse) ? $referralResponse : []);
+
+        $referralMeta = $referralResponse['meta'] ?? [];
+
+        $referralSettings = $referralApi->settings();
+        if (($referralSettings['success'] ?? true) === false) {
+            $referralSettings = [
+                'is_active' => true,
+                'reward_amount' => 100,
+                'reward_expiry_days' => 90,
+                'referred_customer_must_make_first_payment' => true,
+            ];
+        } else {
+            $referralSettings = $referralSettings['data']
+                ?? $referralSettings;
+        }
+
+        $plansResponse = $planApi->list(['limit' => 100]);
+        $plans = $plansResponse['data']
+            ?? (array_is_list($plansResponse) ? $plansResponse : []);
+
+        return view('admin.promotions', compact(
+            'coupons',
+            'referrals',
+            'referralMeta',
+            'referralSettings',
+            'plans'
+        ));
+    }
+
+    public function storeCoupon(
+        Request $request,
+        CouponApiService $couponApi
+    ) {
+        $validated = $request->validate([
+            'code' => ['required', 'string', 'max:50'],
+            'description' => ['nullable', 'string', 'max:500'],
+            'discount_type' => ['required', 'in:percentage,fixed'],
+            'discount_value' => ['required', 'numeric', 'gt:0'],
+            'max_uses' => ['nullable', 'integer', 'min:1'],
+            'max_uses_per_user' => ['nullable', 'integer', 'min:1'],
+            'min_order_amount' => ['nullable', 'numeric', 'min:0'],
+            'applicable_plan_id' => ['nullable', 'integer', 'min:1'],
+            'allowed_user_id' => ['nullable', 'integer', 'min:1'],
+            'new_customers_only' => ['nullable', 'boolean'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $validated['code'] = strtoupper(trim($validated['code']));
+        $validated['new_customers_only'] = (bool) (
+            $validated['new_customers_only'] ?? false
+        );
+        $validated['is_active'] = (bool) (
+            $validated['is_active'] ?? true
+        );
+
+        $response = $couponApi->create($validated);
+
+        if (($response['success'] ?? true) === false) {
+            return response()->json([
+                'success' => false,
+                'message' => $response['message']
+                    ?? __('Unable to create discount code.'),
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => __('Discount code created successfully.'),
+            'data' => $response['data'] ?? $response,
+        ]);
+    }
+
+    public function updateCoupon(
+        Request $request,
+        int $id,
+        CouponApiService $couponApi
+    ) {
+        $validated = $request->validate([
+            'description' => ['nullable', 'string', 'max:500'],
+            'discount_type' => ['nullable', 'in:percentage,fixed'],
+            'discount_value' => ['nullable', 'numeric', 'gt:0'],
+            'max_uses' => ['nullable', 'integer', 'min:1'],
+            'max_uses_per_user' => ['nullable', 'integer', 'min:1'],
+            'min_order_amount' => ['nullable', 'numeric', 'min:0'],
+            'applicable_plan_id' => ['nullable', 'integer', 'min:1'],
+            'allowed_user_id' => ['nullable', 'integer', 'min:1'],
+            'new_customers_only' => ['nullable', 'boolean'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $response = $couponApi->update($id, $validated);
+
+        if (($response['success'] ?? true) === false) {
+            return response()->json([
+                'success' => false,
+                'message' => $response['message']
+                    ?? __('Unable to update discount code.'),
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => __('Discount code updated successfully.'),
+            'data' => $response['data'] ?? $response,
+        ]);
+    }
+
+    public function destroyCoupon(
+        int $id,
+        CouponApiService $couponApi
+    ) {
+        $response = $couponApi->deleteCoupon($id);
+
+        return response()->json([
+            'success' => ($response['success'] ?? true) !== false,
+            'message' => $response['message']
+                ?? __('Discount code removed.'),
+        ], (($response['success'] ?? true) === false) ? 422 : 200);
+    }
+
+    public function updateReferralProgram(
+        Request $request,
+        ReferralApiService $referralApi
+    ) {
+        $validated = $request->validate([
+            'is_active' => ['required', 'boolean'],
+            'reward_amount' => ['required', 'numeric', 'gt:0'],
+            'reward_expiry_days' => ['required', 'integer', 'min:1'],
+            'referred_customer_must_make_first_payment' => ['required', 'boolean'],
+        ]);
+
+        $response = $referralApi->updateSettings($validated);
+
+        if (($response['success'] ?? true) === false) {
+            return response()->json([
+                'success' => false,
+                'message' => $response['message']
+                    ?? __('Unable to update referral program.'),
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => __('Referral program updated successfully.'),
+            'data' => $response['data'] ?? $response,
+        ]);
     }
 
     public function settings(RbacApiService $rbacApi, PaymentApiService $paymentApi, PlanApiService $planApi, DriverApiService $driverApi)

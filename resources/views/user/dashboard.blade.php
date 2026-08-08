@@ -47,6 +47,30 @@
 </div>
 @endif
 
+{{-- Refer & Earn --}}
+<div class="mb-6 rounded-2xl border border-[#6E7A25]/15 bg-gradient-to-r from-[#f7f8ef] to-white p-4 sm:p-5 shadow-sm animate__animated animate__fadeInUp">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-start gap-3">
+            <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-[#173327] text-white">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-5-4M9 20H4v-2a4 4 0 014-4h1m4-9a4 4 0 110 8 4 4 0 010-8zm6 3a3 3 0 11-6 0"/></svg>
+            </div>
+            <div>
+                <p class="text-sm font-black text-gray-900">{{ __('Refer & Earn') }}</p>
+                <p class="mt-0.5 text-xs text-gray-500">
+                    {{ __('Your code') }}:
+                    <span class="font-mono font-black tracking-wider text-[#173327]">{{ $referralSummary['referral_code'] ?? __('Unavailable') }}</span>
+                </p>
+                <p class="mt-1 text-[10px] text-gray-400">
+                    {{ (int) ($referralSummary['rewarded_referrals'] ?? 0) }} {{ __('rewarded referrals') }}
+                </p>
+            </div>
+        </div>
+        <a href="{{ route('user.referrals') }}" class="inline-flex items-center justify-center rounded-xl bg-[#6E7A25] px-4 py-2.5 text-xs font-extrabold text-white transition hover:bg-[#7d8a2b]">
+            {{ __('Open Referral Center') }}
+        </a>
+    </div>
+</div>
+
 {{-- Hero Card --}}
 @php $heroMeal = $upcomingMeals[0] ?? null; @endphp
 @if ($heroMeal)

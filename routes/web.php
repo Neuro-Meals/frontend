@@ -237,6 +237,11 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
     Route::post('/chefs/assign-existing', [AdminController::class, 'assignExistingUserAsChef'])->name('chefs.assign-existing');
     Route::post('/chefs/{id}/remove-role', [AdminController::class, 'removeChefRole'])->name('chefs.remove-role');
     Route::get('/payments', [AdminController::class, 'payments'])->name('payments');
+    Route::get('/promotions', [AdminController::class, 'promotions'])->name('promotions');
+    Route::post('/promotions/coupons', [AdminController::class, 'storeCoupon'])->name('promotions.coupons.store');
+    Route::put('/promotions/coupons/{id}', [AdminController::class, 'updateCoupon'])->name('promotions.coupons.update');
+    Route::delete('/promotions/coupons/{id}', [AdminController::class, 'destroyCoupon'])->name('promotions.coupons.destroy');
+    Route::patch('/promotions/referrals/settings', [AdminController::class, 'updateReferralProgram'])->name('promotions.referrals.settings');
     Route::get('/notifications', [AdminController::class, 'notifications'])->name('notifications');
     Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
     Route::get('/content', [AdminController::class, 'content'])->name('content');
@@ -293,11 +298,16 @@ Route::prefix('chef')->name('chef.')->middleware(['api.auth', 'api.chef'])->grou
 // User routes (customer only)
 Route::prefix('user')->name('user.')->middleware(['api.auth', 'api.customer'])->group(function () {
     Route::get(
-            '/onboarding/delivery-preferences',
-            [UserController::class,'deliveryPreferencesPage']
-        )->name('onboarding.delivery-preferences.page');
+        '/onboarding/delivery-preferences',
+        [UserController::class, 'deliveryPreferencesPage']
+    )->name('onboarding.delivery-preferences.page');
 
-        Route::post(
+    Route::get(
+        '/refer-and-earn',
+        [UserController::class, 'referrals']
+    )->name('referrals');
+
+    Route::post(
             '/onboarding/health-profile',
             [UserController::class,'saveHealthProfile']
         )->name('onboarding.health-profile');

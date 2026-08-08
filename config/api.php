@@ -220,6 +220,23 @@ return [
             'verify_charge'                => '/payments/verify-charge/{charge_id}',
         ],
 
+        'coupons' => [
+            'list'        => '/coupons/',
+            'create'      => '/coupons/',
+            'show'        => '/coupons/{coupon_id}',
+            'update'      => '/coupons/{coupon_id}',
+            'delete'      => '/coupons/{coupon_id}',
+            'validate'    => '/coupons/validate',
+            'redemptions' => '/coupons/redemptions',
+        ],
+
+        'referrals' => [
+            'my'              => '/referrals/me',
+            'admin_list'      => '/referrals/admin',
+            'admin_settings'  => '/referrals/admin/settings',
+            'update_settings' => '/referrals/admin/settings',
+        ],
+
         // ─── Drivers ───
         'drivers' => [
             'list'   => '/driver/admin',

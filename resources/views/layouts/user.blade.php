@@ -155,6 +155,14 @@
                 </a>
             </div>
 
+            {{-- Refer & Earn --}}
+            <li>
+                <a href="{{ route('user.referrals') }}" onclick="closeSidebar()" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.referrals') ? 'active' : '' }}">
+                    <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3-1.119-3-2.5S10.343 3 12 3s3 1.119 3 2.5S13.657 8 12 8zm-7 5h14m-7-5v13m-5-8c-1.657 0-3-1.119-3-2.5S5.343 8 7 8c2.5 0 5 5 5 5s-2.5 0-5 0zm10 0c1.657 0 3-1.119 3-2.5S18.657 8 17 8c-2.5 0-5 5-5 5s2.5 0 5 0z"/></svg>
+                    <span>{{ __('Refer & Earn') }}</span>
+                </a>
+            </li>
+
             {{-- Settings --}}
             <div class="sidebar-group">
                 <a href="{{ route('user.settings') }}" onclick="closeSidebar()" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('user.settings*') ? 'active' : '' }}">

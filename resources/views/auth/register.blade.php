@@ -135,7 +135,32 @@
                     </div>
                 </div>
 
-                {{-- Password --}}
+                {{-- Referral Code --}}
+            <div>
+                <label for="referral_code" class="block text-xs font-semibold text-gray-600 mb-1.5">
+                    {{ __('Referral Code') }}
+                    <span class="font-normal text-gray-400">({{ __('Optional') }})</span>
+                </label>
+                <input
+                    id="referral_code"
+                    name="referral_code"
+                    type="text"
+                    value="{{ old('referral_code', request('ref')) }}"
+                    maxlength="30"
+                    autocomplete="off"
+                    placeholder="{{ __('Enter a friend referral code') }}"
+                    class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold uppercase tracking-wider text-gray-800 outline-none transition focus:border-[#6E7A25] focus:bg-white focus:ring-2 focus:ring-[#6E7A25]/10"
+                    @input="$event.target.value = $event.target.value.toUpperCase()"
+                >
+                <p class="mt-1.5 text-[10px] text-gray-400">
+                    {{ __('If a friend invited you, enter their referral code here.') }}
+                </p>
+                @error('referral_code')
+                    <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- Password --}}
                 <div>
                     <label for="password"
                         class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Password') }}</label>

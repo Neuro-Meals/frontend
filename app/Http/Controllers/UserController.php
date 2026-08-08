@@ -16,6 +16,7 @@ use App\Services\Api\PaymentApiService;
 use App\Services\Api\PlanApiService;
 use App\Services\Api\ProfileApiService;
 use App\Services\Api\SubscriptionApiService;
+use App\Services\Api\ReferralApiService;
 use App\Services\Api\UserApiService;
 
 class UserController extends Controller
@@ -41,7 +42,8 @@ class UserController extends Controller
         PlanApiService $planApi,
         MealSelectionApiService $selectionApi,
         OrderApiService $orderApi,
-        UserApiService $userApi
+        UserApiService $userApi,
+        ReferralApiService $referralApi
     ) {
         $user = $this->apiData($authApi->me(), function () use ($authApi) {
             return $authApi->user() ?? [];
@@ -493,7 +495,34 @@ class UserController extends Controller
             }
         }
 
-        return view('user.dashboard', compact('user', 'stats', 'weeklyProgress', 'upcomingMeals', 'recentOrders', 'activeSubscription', 'chartData', 'weightHistory', 'profileIncomplete', 'mealCategories', 'existingDeliveryPrefs'));
+        $referralSummary = $this->apiData(
+            $referralApi->my(),
+            function () {
+                return [
+                    'referral_code' => null,
+                    'total_referrals' => 0,
+                    'pending_referrals' => 0,
+                    'rewarded_referrals' => 0,
+                    'rewards' => [],
+                    'referrals' => [],
+                ];
+            }
+        );
+
+        return view('user.dashboard', compact(
+            'user',
+            'stats',
+            'weeklyProgress',
+            'upcomingMeals',
+            'recentOrders',
+            'activeSubscription',
+            'chartData',
+            'weightHistory',
+            'profileIncomplete',
+            'mealCategories',
+            'existingDeliveryPrefs',
+            'referralSummary'
+        ));
     }
 
     /**
@@ -929,8 +958,11 @@ class UserController extends Controller
         return redirect()->route('user.subscriptions')->with('error', __('Unable to start payment. Please try again.'));
     }
 
-    public function checkoutJson(int $subscriptionId, PaymentApiService $paymentApi)
-    {
+    public function checkoutJson(
+        Request $request,
+        int $subscriptionId,
+        PaymentApiService $paymentApi
+    ) {
         if ($subscriptionId <= 0) {
             return response()->json([
                 'success' => false,
@@ -938,7 +970,14 @@ class UserController extends Controller
             ], 422);
         }
 
-        $checkoutResponse = $paymentApi->createCheckout($subscriptionId);
+        $couponCode = $request->filled('coupon_code')
+            ? strtoupper(trim((string) $request->input('coupon_code')))
+            : null;
+
+        $checkoutResponse = $paymentApi->createCheckout(
+            $subscriptionId,
+            $couponCode
+        );
 
         if (($checkoutResponse['success'] ?? true) === false) {
             $message = $this->apiErrorMessage($checkoutResponse);
@@ -2346,6 +2385,25 @@ class UserController extends Controller
         }
 
         return date('M d', $time);
+    }
+
+    public function referrals(ReferralApiService $referralApi)
+    {
+        $referralData = $this->apiData(
+            $referralApi->my(),
+            function () {
+                return [
+                    'referral_code' => null,
+                    'total_referrals' => 0,
+                    'pending_referrals' => 0,
+                    'rewarded_referrals' => 0,
+                    'rewards' => [],
+                    'referrals' => [],
+                ];
+            }
+        );
+
+        return view('user.referrals', compact('referralData'));
     }
 
     public function settings(ProfileApiService $profileApi, SubscriptionApiService $subscriptionApi, PlanApiService $planApi, PaymentApiService $paymentApi)

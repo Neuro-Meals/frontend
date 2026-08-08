@@ -157,6 +157,12 @@
                 <span>{{ __('Payments') }}</span>
             </a>
 
+
+            <a href="{{ route('admin.promotions') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.promotions*') ? 'active' : '' }}">
+                <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M3 11l8.586-8.586a2 2 0 012.828 0l7.172 7.172a2 2 0 010 2.828L13 21H3v-10zM15 6l3 3"/></svg>
+                <span>{{ __('Promotions') }}</span>
+            </a>
+
             <a href="{{ route('admin.notifications') }}" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-brand-100 text-sm font-medium {{ request()->routeIs('admin.notifications*') ? 'active' : '' }}">
                 <svg class="w-5 h-5 flex-shrink-0 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                 <span>{{ __('Notifications') }}</span>

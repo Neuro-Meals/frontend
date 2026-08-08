@@ -4,11 +4,18 @@ namespace App\Services\Api;
 
 class PaymentApiService extends BaseApiService
 {
-    public function createCheckout(int $subscriptionId): array
+    public function createCheckout(int $subscriptionId, ?string $couponCode = null): array
     {
-        return $this->post('payments.create_checkout', [], [
+        $payload = [
             'subscription_id' => $subscriptionId,
-        ]);
+        ];
+
+        $couponCode = strtoupper(trim((string) $couponCode));
+        if ($couponCode !== '') {
+            $payload['coupon_code'] = $couponCode;
+        }
+
+        return $this->post('payments.create_checkout', [], $payload);
     }
 
     public function createPlanChangeCheckout(int $planChangeId): array
