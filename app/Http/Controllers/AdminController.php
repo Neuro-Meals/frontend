@@ -6732,6 +6732,7 @@ foreach ($deliveryPreferencesRaw as $preference) {
         $paymentsResponse = $paymentApi->list($query);
         $paymentsData = $this->apiData($paymentsResponse, fn () => []);
 
+        
         // Fetch all payments (up to 100) for accurate KPI aggregation
         $allPaymentsResponse = $paymentApi->list(['limit' => 100]);
         $allPaymentsData = $this->apiData($allPaymentsResponse, fn () => []);
