@@ -354,10 +354,10 @@
                 </div>
 
                 {{-- Discount / Referral Reward Code --}}
-                <div id="checkout-discount-panel" class="mb-5 rounded-2xl border border-[#6E7A25]/20 bg-[#f8f9f2] p-4">
+                <div id="checkout-discount-panel" class="mb-5 hidden rounded-2xl border border-[#6E7A25]/20 bg-[#f8f9f2] p-4">
                     <div>
-                        <p class="text-xs font-extrabold text-gray-800">{{ __('Discount or Reward Code') }}</p>
-                        <p class="mt-0.5 text-[10px] text-gray-400">
+                        <p id="checkout-promo-title" class="text-xs font-extrabold text-gray-800">{{ __('Discount or Reward Code') }}</p>
+                        <p id="checkout-promo-help" class="mt-0.5 text-[10px] text-gray-400">
                             {{ __('Use an active promotion code or your referral reward credit.') }}
                         </p>
                     </div>
@@ -582,6 +582,12 @@
     let currentCheckoutUrl = null;
     let currentCheckoutOriginalAmountSar = 0;
     let currentCheckoutAppliedCode = '';
+    let currentCouponAvailability = {
+        show_discount_box: false,
+        has_public_coupon: false,
+        has_reward_credit: false,
+        display_mode: 'hidden',
+    };
 
     function money2(value) {
         return Number(value || 0).toFixed(2);
@@ -622,6 +628,78 @@
         }
         if (finalEl) {
             finalEl.textContent = money2(finalAmountSar);
+        }
+    }
+
+    function setCheckoutPromoVisibility(availability) {
+        currentCouponAvailability = {
+            show_discount_box: !!availability?.show_discount_box,
+            has_public_coupon: !!availability?.has_public_coupon,
+            has_reward_credit: !!availability?.has_reward_credit,
+            display_mode: availability?.display_mode || 'hidden',
+        };
+
+        const panel = document.getElementById('checkout-discount-panel');
+        const title = document.getElementById('checkout-promo-title');
+        const help = document.getElementById('checkout-promo-help');
+
+        if (!panel) return;
+
+        if (!currentCouponAvailability.show_discount_box) {
+            panel.classList.add('hidden');
+            resetCheckoutCouponUi();
+            return;
+        }
+
+        panel.classList.remove('hidden');
+
+        if (currentCouponAvailability.display_mode === 'reward_only') {
+            if (title) title.textContent = '{{ __("Reward Code") }}';
+            if (help) help.textContent = '{{ __("You have available referral credit. Enter your private reward code to use it on this payment.") }}';
+        } else if (currentCouponAvailability.display_mode === 'discount_only') {
+            if (title) title.textContent = '{{ __("Discount Code") }}';
+            if (help) help.textContent = '{{ __("An active promotion is available for this subscription. Enter the promotion code to apply it.") }}';
+        } else {
+            if (title) title.textContent = '{{ __("Discount or Reward Code") }}';
+            if (help) help.textContent = '{{ __("Use an active promotion code or your available referral reward credit.") }}';
+        }
+    }
+
+    async function checkCheckoutCouponAvailability(subscriptionId) {
+        if (!subscriptionId) {
+            setCheckoutPromoVisibility({show_discount_box:false, display_mode:'hidden'});
+            return;
+        }
+
+        const availabilityUrl =
+            @js(route('user.subscriptions.coupon-availability', ['subscriptionId' => '__SUB__']))
+                .replace('__SUB__', subscriptionId);
+
+        try {
+            const response = await fetch(availabilityUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin',
+            });
+
+            const result = await response.json().catch(() => ({}));
+
+            if (!response.ok || result.success === false) {
+                throw new Error(result.message || '{{ __("Unable to check promotion availability.") }}');
+            }
+
+            setCheckoutPromoVisibility(result.availability || result);
+        } catch (error) {
+            console.warn('Coupon availability check failed', error);
+            setCheckoutPromoVisibility({
+                show_discount_box: false,
+                has_public_coupon: false,
+                has_reward_credit: false,
+                display_mode: 'hidden',
+            });
         }
     }
 
@@ -814,6 +892,11 @@
         }
 
         updateCheckoutPriceSummary(amountSarNumber);
+
+        if (!preserveCouponUi) {
+            checkCheckoutCouponAvailability(currentCheckoutSubscriptionId);
+        }
+
         const currency = checkout.currency || 'SAR';
         const description = checkout.description || 'Subscription Payment';
         const publishableKey = checkout.publishable_api_key;
@@ -962,7 +1045,16 @@
         currentCheckoutUrl = null;
         currentCheckoutOriginalAmountSar = 0;
         currentCheckoutAppliedCode = '';
+        currentCouponAvailability = {
+            show_discount_box: false,
+            has_public_coupon: false,
+            has_reward_credit: false,
+            display_mode: 'hidden',
+        };
         resetCheckoutCouponUi();
+
+        const promoPanel = document.getElementById('checkout-discount-panel');
+        if (promoPanel) promoPanel.classList.add('hidden');
 
         const modal = document.getElementById('moyasar-modal');
         const formContainer = document.getElementById('moyasar-form-container');

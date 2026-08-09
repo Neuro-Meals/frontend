@@ -13,6 +13,7 @@ use App\Services\Api\NotificationApiService;
 use App\Services\Api\NutritionApiService;
 use App\Services\Api\OrderApiService;
 use App\Services\Api\PaymentApiService;
+use App\Services\Api\CouponApiService;
 use App\Services\Api\PlanApiService;
 use App\Services\Api\ProfileApiService;
 use App\Services\Api\SubscriptionApiService;
@@ -961,6 +962,33 @@ class UserController extends Controller
 
         \Illuminate\Support\Facades\Log::warning('Payment checkout returned no Moyasar data', ['response' => $checkoutResponse]);
         return redirect()->route('user.subscriptions')->with('error', __('Unable to start payment. Please try again.'));
+    }
+
+    public function couponAvailability(
+        int $subscriptionId,
+        CouponApiService $couponApi
+    ) {
+        $response = $couponApi->availability($subscriptionId);
+
+        if (($response['success'] ?? true) === false) {
+            return response()->json([
+                'success' => false,
+                'message' => $response['message']
+                    ?? $response['detail']
+                    ?? __('Unable to check promotion availability.'),
+                'availability' => [
+                    'show_discount_box' => false,
+                    'has_public_coupon' => false,
+                    'has_reward_credit' => false,
+                    'display_mode' => 'hidden',
+                ],
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'availability' => $response['data'] ?? $response,
+        ]);
     }
 
     public function checkoutJson(

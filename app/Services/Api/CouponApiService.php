@@ -29,6 +29,13 @@ class CouponApiService extends BaseApiService
         return $this->delete('coupons.delete', ['coupon_id' => $couponId]);
     }
 
+    public function availability(int $subscriptionId): array
+    {
+        return $this->get('coupons.availability', [], [
+            'subscription_id' => $subscriptionId,
+        ]);
+    }
+
     public function validateCode(string $code, float $amount, ?int $planId = null): array
     {
         $payload = [

@@ -221,13 +221,14 @@ return [
         ],
 
         'coupons' => [
-            'list'        => '/coupons/',
-            'create'      => '/coupons/',
-            'show'        => '/coupons/{coupon_id}',
-            'update'      => '/coupons/{coupon_id}',
-            'delete'      => '/coupons/{coupon_id}',
-            'validate'    => '/coupons/validate',
-            'redemptions' => '/coupons/redemptions',
+            'list'         => '/coupons/',
+            'create'       => '/coupons/',
+            'show'         => '/coupons/{coupon_id}',
+            'update'       => '/coupons/{coupon_id}',
+            'delete'       => '/coupons/{coupon_id}',
+            'validate'     => '/coupons/validate',
+            'availability' => '/coupons/availability',
+            'redemptions'  => '/coupons/redemptions',
         ],
 
         'referrals' => [
