@@ -866,7 +866,7 @@
         preserveCouponUi = false
     ) {
         const modal = document.getElementById('moyasar-modal');
-        const formContainer = document.getElementById('moyasar-form-container');
+        let formContainer = document.getElementById('moyasar-form-container');
         const loadingEl = document.getElementById('moyasar-loading');
         const errorEl = document.getElementById('moyasar-error');
         const amountText = document.getElementById('moyasar-amount-text');
@@ -912,16 +912,41 @@
         errorEl.classList.add('hidden');
         errorEl.textContent = '';
 
-        formContainer.innerHTML = '';
-        formContainer.style.display = '';
-        loadingEl.classList.remove('hidden');
-
-        if (moyasarFormInstance && typeof moyasarFormInstance.destroy === 'function') {
-            try { moyasarFormInstance.destroy(); } catch (e) {}
+        /*
+         * IMPORTANT:
+         * Moyasar's SDK can keep internal references/listeners on the element
+         * it was first mounted into. Clearing innerHTML and immediately
+         * calling Moyasar.init() again can leave a blank container after a
+         * coupon changes the checkout amount.
+         *
+         * Destroy first (when supported), then replace the entire mount node
+         * with a fresh DOM element. Moyasar then receives a completely clean
+         * #moyasar-form-container for the discounted checkout.
+         */
+        if (
+            moyasarFormInstance
+            && typeof moyasarFormInstance.destroy === 'function'
+        ) {
+            try {
+                moyasarFormInstance.destroy();
+            } catch (e) {
+                console.warn('Moyasar destroy warning:', e);
+            }
         }
         moyasarFormInstance = null;
 
-        const moyasarCallbackUrl = callbackUrl + (callbackUrl.includes('?') ? '&' : '?') + 'payment_id=' + localPaymentId;
+        const freshFormContainer = formContainer.cloneNode(false);
+        freshFormContainer.innerHTML = '';
+        freshFormContainer.style.display = '';
+        formContainer.replaceWith(freshFormContainer);
+        formContainer = freshFormContainer;
+
+        loadingEl.classList.remove('hidden');
+
+        const moyasarCallbackUrl = callbackUrl
+            + (callbackUrl.includes('?') ? '&' : '?')
+            + 'payment_id='
+            + localPaymentId;
 
         modal.classList.remove('hidden');
 
@@ -1029,14 +1054,21 @@
                 retries++;
                 if (typeof Moyasar !== 'undefined') {
                     clearInterval(retryInterval);
-                    initMoyasarForm();
+                    window.requestAnimationFrame(() => {
+                        initMoyasarForm();
+                    });
                 } else if (retries >= maxRetries) {
                     clearInterval(retryInterval);
                     initMoyasarForm();
                 }
             }, 1000);
         } else {
-            initMoyasarForm();
+            // The container may have just been replaced after applying or
+            // removing a coupon. Waiting one animation frame guarantees that
+            // the new mount node is present before Moyasar initializes.
+            window.requestAnimationFrame(() => {
+                initMoyasarForm();
+            });
         }
     }
 
@@ -1052,6 +1084,18 @@
             display_mode: 'hidden',
         };
         resetCheckoutCouponUi();
+
+        if (
+            moyasarFormInstance
+            && typeof moyasarFormInstance.destroy === 'function'
+        ) {
+            try {
+                moyasarFormInstance.destroy();
+            } catch (e) {
+                console.warn('Moyasar close destroy warning:', e);
+            }
+        }
+        moyasarFormInstance = null;
 
         const promoPanel = document.getElementById('checkout-discount-panel');
         if (promoPanel) promoPanel.classList.add('hidden');
