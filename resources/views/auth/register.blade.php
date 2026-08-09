@@ -145,12 +145,12 @@
                     id="referral_code"
                     name="referral_code"
                     type="text"
-                    value="{{ old('referral_code', request('ref')) }}"
+                    x-model="form.referral_code"
                     maxlength="30"
                     autocomplete="off"
                     placeholder="{{ __('Enter a friend referral code') }}"
                     class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold uppercase tracking-wider text-gray-800 outline-none transition focus:border-[#6E7A25] focus:bg-white focus:ring-2 focus:ring-[#6E7A25]/10"
-                    @input="$event.target.value = $event.target.value.toUpperCase()"
+                    @input="form.referral_code = String(form.referral_code || '').toUpperCase()"
                 >
                 <p class="mt-1.5 text-[10px] text-gray-400">
                     {{ __('If a friend invited you, enter their referral code here.') }}
@@ -538,6 +538,7 @@ function registerForm() {
             password_confirmation: '',
             location: '', // Backend location = selected region name
             address: '',  // Backend address = selected city name
+            referral_code: @json(strtoupper((string) old('referral_code', request('ref', '')))),
             agree_terms: false
         },
 
@@ -741,6 +742,7 @@ function registerForm() {
                 password_confirmation: this.form.password_confirmation,
                 location: this.form.location,
                 address: this.form.address,
+                referral_code: String(this.form.referral_code || '').trim().toUpperCase() || null,
                 agree_terms: this.form.agree_terms
             };
 

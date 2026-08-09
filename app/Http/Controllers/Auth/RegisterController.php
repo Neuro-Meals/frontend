@@ -71,8 +71,9 @@ class RegisterController extends Controller
             'email'      => ['required', 'string', 'email', 'max:255'],
             'phone'      => ['required', 'string', 'min:8'],
             'password'   => ['required', 'string', 'min:6', 'confirmed'],
-            'location'   => ['required', 'string', 'max:255'],
-            'address'    => ['required', 'string', 'max:255'],
+            'location'      => ['required', 'string', 'max:255'],
+            'address'       => ['required', 'string', 'max:255'],
+            'referral_code' => ['nullable', 'string', 'max:30'],
         ]);
 
         if ($validator->fails()) {
@@ -92,8 +93,11 @@ class RegisterController extends Controller
             'email'      => $request->email,
             'phone'      => $request->phone,
             'password'   => $request->password,
-            'location'   => $request->location,
-            'address'    => $request->address,
+            'location'      => $request->location,
+            'address'       => $request->address,
+            'referral_code' => $request->filled('referral_code')
+                ? strtoupper(trim((string) $request->referral_code))
+                : null,
         ]);
 
         // Store location in session for post-verification redirect check
