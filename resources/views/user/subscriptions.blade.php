@@ -126,6 +126,7 @@
             <div class="text-xs text-white/70 mb-1">{{ __('Complete payment to activate') }}</div>
             <button type="button" onclick="openMoyasarCheckout(this)"
                 data-checkout-url="{{ route('user.subscriptions.checkout', $activePlan['id']) }}"
+                data-subscription-id="{{ $activePlan['id'] }}"
                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white text-[#173327] hover:bg-white/90 text-xs font-bold transition-colors shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 <span class="pay-label">{{ __('Pay') }} SAR {{ $activePlan['price'] }}</span>
@@ -235,6 +236,7 @@
                             @if($item['status'] !== 'cancelled' && $item['payment_status'] !== 'paid' && !empty($item['id']))
                             <button type="button" onclick="openMoyasarCheckout(this)"
                                 data-checkout-url="{{ route('user.subscriptions.checkout', $item['id']) }}"
+                                data-subscription-id="{{ $item['id'] }}"
                                 class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#173327] to-[#6E7A25] text-white text-[10px] font-bold hover:shadow-md transition-all">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                                 <span class="pay-label">{{ __('Pay') }}</span>
@@ -350,6 +352,73 @@
                     <p class="text-2xl font-bold text-[#173327]" id="moyasar-amount-text"></p>
                     <p class="text-xs text-gray-400 mt-1" id="moyasar-description-text"></p>
                 </div>
+
+                {{-- Discount / Referral Reward Code --}}
+                <div id="checkout-discount-panel" class="mb-5 rounded-2xl border border-[#6E7A25]/20 bg-[#f8f9f2] p-4">
+                    <div>
+                        <p class="text-xs font-extrabold text-gray-800">{{ __('Discount or Reward Code') }}</p>
+                        <p class="mt-0.5 text-[10px] text-gray-400">
+                            {{ __('Use an active promotion code or your referral reward credit.') }}
+                        </p>
+                    </div>
+
+                    <div class="mt-3 flex gap-2">
+                        <input
+                            id="checkout-coupon-code"
+                            type="text"
+                            maxlength="50"
+                            autocomplete="off"
+                            placeholder="{{ __('Enter code') }}"
+                            oninput="this.value = this.value.toUpperCase(); clearCheckoutCouponError();"
+                            onkeydown="if(event.key === 'Enter'){ event.preventDefault(); applyCheckoutCoupon(); }"
+                            class="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-bold uppercase tracking-wider outline-none focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/10"
+                        >
+                        <button
+                            id="checkout-coupon-apply"
+                            type="button"
+                            onclick="applyCheckoutCoupon()"
+                            class="rounded-xl bg-[#173327] px-4 py-2.5 text-xs font-extrabold text-white disabled:opacity-50"
+                        >
+                            {{ __('Apply') }}
+                        </button>
+                    </div>
+
+                    <p id="checkout-coupon-error" class="mt-2 hidden text-xs font-semibold text-red-600"></p>
+
+                    <div id="checkout-coupon-success" class="mt-3 hidden rounded-xl border border-green-100 bg-green-50 px-3 py-2.5">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <p class="text-xs font-extrabold text-green-800">
+                                    {{ __('Code applied') }}:
+                                    <span id="checkout-applied-code"></span>
+                                </p>
+                                <p class="mt-0.5 text-[10px] text-green-700">
+                                    {{ __('You save') }} SAR
+                                    <span id="checkout-discount-value">0.00</span>
+                                </p>
+                            </div>
+                            <button type="button" onclick="removeCheckoutCoupon()" class="text-[10px] font-extrabold text-red-600">
+                                {{ __('Remove') }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 space-y-1.5 rounded-xl border border-gray-100 bg-white px-3 py-2.5 text-[10px]">
+                        <div class="flex justify-between text-gray-500">
+                            <span>{{ __('Original amount') }}</span>
+                            <span>SAR <span id="checkout-original-amount">0.00</span></span>
+                        </div>
+                        <div id="checkout-discount-row" class="hidden flex justify-between font-semibold text-green-700">
+                            <span>{{ __('Discount') }}</span>
+                            <span>- SAR <span id="checkout-discount-amount">0.00</span></span>
+                        </div>
+                        <div class="flex justify-between border-t border-gray-100 pt-1.5 font-extrabold text-gray-900">
+                            <span>{{ __('Amount to pay') }}</span>
+                            <span>SAR <span id="checkout-final-amount">0.00</span></span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="mysr-form" id="moyasar-form-container"></div>
                 <div id="moyasar-loading" class="hidden text-center py-8">
                     <svg class="w-8 h-8 text-[#6E7A25] animate-spin mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -509,7 +578,215 @@
 
     let moyasarFormInstance = null;
 
-    function openMoyasarModal(checkout) {
+    let currentCheckoutSubscriptionId = null;
+    let currentCheckoutUrl = null;
+    let currentCheckoutOriginalAmountSar = 0;
+    let currentCheckoutAppliedCode = '';
+
+    function money2(value) {
+        return Number(value || 0).toFixed(2);
+    }
+
+    function clearCheckoutCouponError() {
+        const el = document.getElementById('checkout-coupon-error');
+        if (!el) return;
+        el.textContent = '';
+        el.classList.add('hidden');
+    }
+
+    function resetCheckoutCouponUi() {
+        const input = document.getElementById('checkout-coupon-code');
+        const success = document.getElementById('checkout-coupon-success');
+        const discountRow = document.getElementById('checkout-discount-row');
+        const applied = document.getElementById('checkout-applied-code');
+        const discountValue = document.getElementById('checkout-discount-value');
+        const discountAmount = document.getElementById('checkout-discount-amount');
+
+        if (input) input.value = '';
+        if (success) success.classList.add('hidden');
+        if (discountRow) discountRow.classList.add('hidden');
+        if (applied) applied.textContent = '';
+        if (discountValue) discountValue.textContent = '0.00';
+        if (discountAmount) discountAmount.textContent = '0.00';
+
+        currentCheckoutAppliedCode = '';
+        clearCheckoutCouponError();
+    }
+
+    function updateCheckoutPriceSummary(finalAmountSar) {
+        const originalEl = document.getElementById('checkout-original-amount');
+        const finalEl = document.getElementById('checkout-final-amount');
+
+        if (originalEl) {
+            originalEl.textContent = money2(currentCheckoutOriginalAmountSar);
+        }
+        if (finalEl) {
+            finalEl.textContent = money2(finalAmountSar);
+        }
+    }
+
+    async function applyCheckoutCoupon() {
+        const input = document.getElementById('checkout-coupon-code');
+        const button = document.getElementById('checkout-coupon-apply');
+        const errorEl = document.getElementById('checkout-coupon-error');
+        const successEl = document.getElementById('checkout-coupon-success');
+        const discountRow = document.getElementById('checkout-discount-row');
+        const appliedEl = document.getElementById('checkout-applied-code');
+        const discountValueEl = document.getElementById('checkout-discount-value');
+        const discountAmountEl = document.getElementById('checkout-discount-amount');
+
+        const code = String(input?.value || '').trim().toUpperCase();
+
+        if (!code) {
+            if (errorEl) {
+                errorEl.textContent = '{{ __("Enter a discount or reward code.") }}';
+                errorEl.classList.remove('hidden');
+            }
+            return;
+        }
+
+        if (!currentCheckoutUrl || !currentCheckoutSubscriptionId) {
+            if (errorEl) {
+                errorEl.textContent = '{{ __("Unable to identify this subscription checkout.") }}';
+                errorEl.classList.remove('hidden');
+            }
+            return;
+        }
+
+        clearCheckoutCouponError();
+        if (button) {
+            button.disabled = true;
+            button.textContent = '{{ __("Checking...") }}';
+        }
+
+        try {
+            const response = await fetch(currentCheckoutUrl, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    coupon_code: code,
+                }),
+            });
+
+            const result = await response.json().catch(() => ({}));
+
+            if (!response.ok || !result.success || !result.checkout) {
+                throw new Error(
+                    result.message
+                    || result.detail
+                    || '{{ __("This discount code cannot be applied.") }}'
+                );
+            }
+
+            const newCheckout = result.checkout;
+            const finalAmountSar = Number(newCheckout.amount || 0) / 100;
+            const discountSar = Math.max(
+                currentCheckoutOriginalAmountSar - finalAmountSar,
+                0
+            );
+
+            currentCheckoutAppliedCode = code;
+
+            if (appliedEl) appliedEl.textContent = code;
+            if (discountValueEl) discountValueEl.textContent = money2(discountSar);
+            if (discountAmountEl) discountAmountEl.textContent = money2(discountSar);
+            if (successEl) successEl.classList.remove('hidden');
+            if (discountRow) discountRow.classList.remove('hidden');
+
+            updateCheckoutPriceSummary(finalAmountSar);
+
+            // Rebuild Moyasar using the authoritative discounted checkout
+            // returned by FastAPI.
+            openMoyasarModal(
+                newCheckout,
+                currentCheckoutSubscriptionId,
+                currentCheckoutUrl,
+                true
+            );
+        } catch (err) {
+            if (successEl) successEl.classList.add('hidden');
+            if (discountRow) discountRow.classList.add('hidden');
+            if (errorEl) {
+                errorEl.textContent = err?.message
+                    || '{{ __("Unable to apply discount code.") }}';
+                errorEl.classList.remove('hidden');
+            }
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.textContent = '{{ __("Apply") }}';
+            }
+        }
+    }
+
+    async function removeCheckoutCoupon() {
+        if (!currentCheckoutUrl || !currentCheckoutSubscriptionId) {
+            return;
+        }
+
+        const button = document.getElementById('checkout-coupon-apply');
+        clearCheckoutCouponError();
+
+        if (button) {
+            button.disabled = true;
+        }
+
+        try {
+            const response = await fetch(currentCheckoutUrl, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({}),
+            });
+
+            const result = await response.json().catch(() => ({}));
+
+            if (!response.ok || !result.success || !result.checkout) {
+                throw new Error(
+                    result.message
+                    || '{{ __("Unable to remove discount code.") }}'
+                );
+            }
+
+            resetCheckoutCouponUi();
+
+            openMoyasarModal(
+                result.checkout,
+                currentCheckoutSubscriptionId,
+                currentCheckoutUrl,
+                true
+            );
+        } catch (err) {
+            const errorEl = document.getElementById('checkout-coupon-error');
+            if (errorEl) {
+                errorEl.textContent = err?.message
+                    || '{{ __("Unable to remove discount code.") }}';
+                errorEl.classList.remove('hidden');
+            }
+        } finally {
+            if (button) {
+                button.disabled = false;
+            }
+        }
+    }
+
+    function openMoyasarModal(
+        checkout,
+        subscriptionId = null,
+        checkoutUrl = null,
+        preserveCouponUi = false
+    ) {
         const modal = document.getElementById('moyasar-modal');
         const formContainer = document.getElementById('moyasar-form-container');
         const loadingEl = document.getElementById('moyasar-loading');
@@ -519,8 +796,24 @@
 
         if (!modal || !formContainer) return;
 
+        if (subscriptionId) {
+            currentCheckoutSubscriptionId = Number(subscriptionId);
+        }
+
+        if (checkoutUrl) {
+            currentCheckoutUrl = checkoutUrl;
+        }
+
         const amountHalalas = checkout.amount || 0;
-        const amountSar = (amountHalalas / 100).toFixed(2);
+        const amountSarNumber = Number(amountHalalas) / 100;
+        const amountSar = amountSarNumber.toFixed(2);
+
+        if (!preserveCouponUi) {
+            currentCheckoutOriginalAmountSar = amountSarNumber;
+            resetCheckoutCouponUi();
+        }
+
+        updateCheckoutPriceSummary(amountSarNumber);
         const currency = checkout.currency || 'SAR';
         const description = checkout.description || 'Subscription Payment';
         const publishableKey = checkout.publishable_api_key;
@@ -665,6 +958,12 @@
     }
 
     function closeMoyasarModal() {
+        currentCheckoutSubscriptionId = null;
+        currentCheckoutUrl = null;
+        currentCheckoutOriginalAmountSar = 0;
+        currentCheckoutAppliedCode = '';
+        resetCheckoutCouponUi();
+
         const modal = document.getElementById('moyasar-modal');
         const formContainer = document.getElementById('moyasar-form-container');
         const loadingEl = document.getElementById('moyasar-loading');
@@ -716,7 +1015,11 @@
                 return;
             }
 
-            openMoyasarModal(result.checkout);
+            openMoyasarModal(
+                result.checkout,
+                button?.getAttribute('data-subscription-id'),
+                url
+            );
         } catch (err) {
             showPaymentError('Network error. Please try again.');
         } finally {
@@ -794,7 +1097,21 @@
                 return;
             }
 
-            openMoyasarModal(result.checkout);
+            const newSubscriptionId =
+                result.subscription_id
+                || result.checkout?.metadata?.subscription_id
+                || null;
+
+            const checkoutUrl = newSubscriptionId
+                ? '{{ route("user.subscriptions.checkout", ["subscriptionId" => "__SUB__"]) }}'
+                    .replace('__SUB__', newSubscriptionId)
+                : null;
+
+            openMoyasarModal(
+                result.checkout,
+                newSubscriptionId,
+                checkoutUrl
+            );
         } catch (err) {
             showPaymentError('Network error. Please try again.');
         } finally {
