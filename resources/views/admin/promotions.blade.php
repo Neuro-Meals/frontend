@@ -89,7 +89,22 @@
                             </span>
                         </td>
                         <td class="px-4 py-4 text-right">
-                            <button type="button" @click='editCoupon(@json($coupon))' class="font-bold text-[#6E7A25]">{{ __('Edit') }}</button>
+                            <div class="inline-flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    @click='openCouponUsage(@json($coupon))'
+                                    class="rounded-lg bg-[#173327] px-3 py-2 text-[10px] font-extrabold text-white transition hover:bg-[#214b35]"
+                                >
+                                    {{ __('Usage') }}
+                                </button>
+                                <button
+                                    type="button"
+                                    @click='editCoupon(@json($coupon))'
+                                    class="rounded-lg bg-[#f4f6e8] px-3 py-2 text-[10px] font-extrabold text-[#6E7A25] transition hover:bg-[#eef1dc]"
+                                >
+                                    {{ __('Edit') }}
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     @empty
@@ -308,6 +323,107 @@
         </div>
     </section>
 
+    {{-- Coupon Usage Modal --}}
+    <div
+        x-show="usageModal"
+        x-cloak
+        class="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-3"
+        @click.self="closeCouponUsage()"
+    >
+        <div class="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div class="flex items-start justify-between gap-4 border-b border-gray-100 px-5 py-4">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-[.16em] text-gray-400">{{ __('Coupon Usage History') }}</p>
+                    <h3 class="mt-1 text-lg font-black text-gray-900">
+                        <span class="font-mono tracking-wider text-[#173327]" x-text="usageCoupon?.code || ''"></span>
+                    </h3>
+                    <p class="mt-1 text-[10px] text-gray-400">
+                        {{ __('Only successful coupon redemptions are shown here.') }}
+                    </p>
+                </div>
+                <button type="button" @click="closeCouponUsage()" class="text-xl text-gray-400 hover:text-gray-700">✕</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 border-b border-gray-100 bg-gray-50/60 p-4 lg:grid-cols-4">
+                <div class="rounded-xl border border-gray-100 bg-white p-3">
+                    <p class="text-[9px] font-bold uppercase text-gray-400">{{ __('Successful Uses') }}</p>
+                    <p class="mt-1 text-xl font-black text-[#173327]" x-text="usageSummary.successful_uses || 0"></p>
+                </div>
+                <div class="rounded-xl border border-gray-100 bg-white p-3">
+                    <p class="text-[9px] font-bold uppercase text-gray-400">{{ __('Original Revenue') }}</p>
+                    <p class="mt-1 text-lg font-black text-gray-800">SAR <span x-text="money(usageSummary.original_revenue)"></span></p>
+                </div>
+                <div class="rounded-xl border border-gray-100 bg-white p-3">
+                    <p class="text-[9px] font-bold uppercase text-gray-400">{{ __('Discount Given') }}</p>
+                    <p class="mt-1 text-lg font-black text-red-600">SAR <span x-text="money(usageSummary.total_discount)"></span></p>
+                </div>
+                <div class="rounded-xl border border-gray-100 bg-white p-3">
+                    <p class="text-[9px] font-bold uppercase text-gray-400">{{ __('Paid After Discount') }}</p>
+                    <p class="mt-1 text-lg font-black text-green-700">SAR <span x-text="money(usageSummary.revenue_after_discount)"></span></p>
+                </div>
+            </div>
+
+            <div class="min-h-0 flex-1 overflow-auto">
+                <div x-show="usageLoading" class="flex min-h-[260px] items-center justify-center p-8">
+                    <div class="text-center">
+                        <div class="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-[#6E7A25]"></div>
+                        <p class="mt-3 text-xs font-semibold text-gray-400">{{ __('Loading usage history...') }}</p>
+                    </div>
+                </div>
+
+                <div x-show="!usageLoading && usageError" class="p-8 text-center">
+                    <p class="text-sm font-bold text-red-600" x-text="usageError"></p>
+                </div>
+
+                <div x-show="!usageLoading && !usageError && usageRows.length === 0" class="p-10 text-center">
+                    <p class="text-sm font-bold text-gray-500">{{ __('No successful uses yet') }}</p>
+                    <p class="mt-1 text-xs text-gray-400">{{ __('Customers will appear here after they complete payment using this code.') }}</p>
+                </div>
+
+                <div x-show="!usageLoading && !usageError && usageRows.length > 0" class="overflow-x-auto">
+                    <table class="min-w-[900px] w-full text-left text-xs">
+                        <thead class="sticky top-0 bg-gray-50 text-[9px] uppercase tracking-wider text-gray-400">
+                            <tr>
+                                <th class="px-4 py-3">{{ __('Customer') }}</th>
+                                <th class="px-4 py-3">{{ __('Subscription') }}</th>
+                                <th class="px-4 py-3">{{ __('Payment') }}</th>
+                                <th class="px-4 py-3">{{ __('Original') }}</th>
+                                <th class="px-4 py-3">{{ __('Discount') }}</th>
+                                <th class="px-4 py-3">{{ __('Paid') }}</th>
+                                <th class="px-4 py-3">{{ __('Redeemed At') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            <template x-for="row in usageRows" :key="row.id || `${row.user_id}-${row.payment_id}`">
+                                <tr class="hover:bg-gray-50/50">
+                                    <td class="px-4 py-3">
+                                        <p class="font-bold text-gray-800" x-text="row.customer_email || row.user_email || `User #${row.user_id || '-'}`"></p>
+                                        <p class="mt-0.5 text-[9px] text-gray-400" x-show="row.user_id">#<span x-text="row.user_id"></span></p>
+                                    </td>
+                                    <td class="px-4 py-3 font-mono text-gray-600">#<span x-text="row.subscription_id || '-'"></span></td>
+                                    <td class="px-4 py-3 font-mono text-gray-600">#<span x-text="row.payment_id || '-'"></span></td>
+                                    <td class="px-4 py-3">SAR <span x-text="money(row.original_amount)"></span></td>
+                                    <td class="px-4 py-3 font-bold text-red-600">- SAR <span x-text="money(row.discount_amount)"></span></td>
+                                    <td class="px-4 py-3 font-black text-green-700">SAR <span x-text="money(row.final_amount)"></span></td>
+                                    <td class="px-4 py-3 text-[10px] text-gray-500" x-text="dateTime(row.redeemed_at)"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-3 border-t border-gray-100 bg-white px-5 py-3">
+                <p class="text-[10px] text-gray-400">
+                    <span x-text="usageSummary.successful_uses || 0"></span> {{ __('successful redemption(s)') }}
+                </p>
+                <button type="button" @click="closeCouponUsage()" class="rounded-xl bg-gray-100 px-4 py-2.5 text-xs font-bold text-gray-600">
+                    {{ __('Close') }}
+                </button>
+            </div>
+        </div>
+    </div>
+
     {{-- Coupon Modal --}}
     <div x-show="couponModal" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-3" @click.self="couponModal=false">
         <div class="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
@@ -380,6 +496,18 @@ function promotionsApp() {
         couponModal: false,
         savingCoupon: false,
         savingReferral: false,
+
+        usageModal: false,
+        usageLoading: false,
+        usageError: '',
+        usageCoupon: null,
+        usageRows: [],
+        usageSummary: {
+            successful_uses: 0,
+            original_revenue: 0,
+            total_discount: 0,
+            revenue_after_discount: 0,
+        },
         referralSettings: {
             is_active: true,
             reward_mode: 'fixed_first_payment',
@@ -390,6 +518,105 @@ function promotionsApp() {
             ...@json($referralSettings),
         },
         couponForm: {},
+
+        money(value) {
+            return Number(value || 0).toFixed(2);
+        },
+
+        dateTime(value) {
+            if (!value) return '-';
+
+            try {
+                return new Intl.DateTimeFormat(
+                    document.documentElement.lang || 'en',
+                    {
+                        year: 'numeric',
+                        month: 'short',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                    }
+                ).format(new Date(value));
+            } catch (_) {
+                return value;
+            }
+        },
+
+        closeCouponUsage() {
+            this.usageModal = false;
+            this.usageLoading = false;
+            this.usageError = '';
+            this.usageCoupon = null;
+            this.usageRows = [];
+            this.usageSummary = {
+                successful_uses: 0,
+                original_revenue: 0,
+                total_discount: 0,
+                revenue_after_discount: 0,
+            };
+        },
+
+        async openCouponUsage(coupon) {
+            this.usageModal = true;
+            this.usageLoading = true;
+            this.usageError = '';
+            this.usageCoupon = coupon;
+            this.usageRows = [];
+            this.usageSummary = {
+                successful_uses: Number(coupon?.used_count || 0),
+                original_revenue: 0,
+                total_discount: 0,
+                revenue_after_discount: 0,
+            };
+
+            try {
+                const url = @js(route('admin.promotions.coupons.usage', ['id' => '__ID__']))
+                    .replace('__ID__', coupon.id);
+
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok || data.success === false) {
+                    throw new Error(
+                        data.message
+                        || '{{ __('Unable to load coupon usage history.') }}'
+                    );
+                }
+
+                this.usageRows = Array.isArray(data.data)
+                    ? data.data
+                    : [];
+
+                this.usageSummary = {
+                    successful_uses: Number(
+                        data.summary?.successful_uses
+                        ?? this.usageRows.length
+                    ),
+                    original_revenue: Number(
+                        data.summary?.original_revenue || 0
+                    ),
+                    total_discount: Number(
+                        data.summary?.total_discount || 0
+                    ),
+                    revenue_after_discount: Number(
+                        data.summary?.revenue_after_discount || 0
+                    ),
+                };
+            } catch (error) {
+                this.usageError = error?.message
+                    || '{{ __('Unable to load coupon usage history.') }}';
+            } finally {
+                this.usageLoading = false;
+            }
+        },
 
         emptyCoupon() {
             return {

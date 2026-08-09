@@ -7156,6 +7156,66 @@ foreach ($deliveryPreferencesRaw as $preference) {
         ]);
     }
 
+    public function couponUsage(
+        Request $request,
+        int $id,
+        CouponApiService $couponApi
+    ) {
+        $page = max(1, (int) $request->query('page', 1));
+        $limit = min(100, max(1, (int) $request->query('limit', 50)));
+
+        $response = $couponApi->redemptions([
+            'coupon_id' => $id,
+            'page' => $page,
+            'limit' => $limit,
+        ]);
+
+        if (($response['success'] ?? true) === false) {
+            return response()->json([
+                'success' => false,
+                'message' => $response['message']
+                    ?? $response['detail']
+                    ?? __('Unable to load coupon usage history.'),
+            ], 422);
+        }
+
+        $rows = $response['data'] ?? (
+            array_is_list($response) ? $response : []
+        );
+
+        $meta = $response['meta'] ?? [
+            'total' => count($rows),
+            'page' => $page,
+            'limit' => $limit,
+        ];
+
+        $summary = [
+            'successful_uses' => count($rows),
+            'total_discount' => 0.0,
+            'revenue_after_discount' => 0.0,
+            'original_revenue' => 0.0,
+        ];
+
+        foreach ($rows as $row) {
+            $summary['total_discount'] += (float) ($row['discount_amount'] ?? 0);
+            $summary['revenue_after_discount'] += (float) ($row['final_amount'] ?? 0);
+            $summary['original_revenue'] += (float) ($row['original_amount'] ?? 0);
+        }
+
+        // If backend pagination is active, successful_uses should represent the
+        // backend total even though monetary totals reflect returned rows.
+        if (isset($meta['total'])) {
+            $summary['successful_uses'] = (int) $meta['total'];
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $rows,
+            'meta' => $meta,
+            'summary' => $summary,
+        ]);
+    }
+
     public function updateCoupon(
         Request $request,
         int $id,

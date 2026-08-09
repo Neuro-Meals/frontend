@@ -240,6 +240,7 @@ Route::prefix('admin')->name('admin.')->middleware('api.admin')->group(function 
     Route::get('/promotions', [AdminController::class, 'promotions'])->name('promotions');
     Route::post('/promotions/coupons', [AdminController::class, 'storeCoupon'])->name('promotions.coupons.store');
     Route::put('/promotions/coupons/{id}', [AdminController::class, 'updateCoupon'])->name('promotions.coupons.update');
+    Route::get('/promotions/coupons/{id}/usage', [AdminController::class, 'couponUsage'])->name('promotions.coupons.usage');
     Route::delete('/promotions/coupons/{id}', [AdminController::class, 'destroyCoupon'])->name('promotions.coupons.destroy');
     Route::patch('/promotions/referrals/settings', [AdminController::class, 'updateReferralProgram'])->name('promotions.referrals.settings');
     Route::get('/notifications', [AdminController::class, 'notifications'])->name('notifications');
