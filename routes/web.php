@@ -112,13 +112,22 @@ Route::get('register', [RegisterController::class, 'showRegistrationForm'])->nam
 Route::post('register', [RegisterController::class, 'register']);
 Route::get('register/locations', [RegisterController::class, 'locations'])->name('register.locations');
 
-// Forgot Password
-Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+// Password Reset (OTP flow)
+// Step 1: request OTP
+Route::get('password/forgot', [ForgotPasswordController::class, 'showLinkRequestForm'])
+    ->name('password.request');
+Route::post('password/forgot', [ForgotPasswordController::class, 'sendResetLinkEmail'])
+    ->name('password.email');
 
-// Reset Password
-Route::get('password/reset/{token?}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
-Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
+// Step 2: enter OTP + new password
+Route::get('password/otp', [ResetPasswordController::class, 'showResetForm'])
+    ->name('password.reset');
+Route::post('password/otp/resend', [ForgotPasswordController::class, 'resend'])
+    ->name('password.otp.resend');
+
+// Step 3: reset password
+Route::post('password/reset', [ResetPasswordController::class, 'reset'])
+    ->name('password.update');
 
 // Email Verification (OTP-based)
 Route::get('verify-email', [VerificationController::class, 'show'])->name('verify.email');

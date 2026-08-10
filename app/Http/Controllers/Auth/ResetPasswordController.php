@@ -9,49 +9,75 @@ use Illuminate\Support\Facades\Validator;
 
 class ResetPasswordController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Password Reset Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller is responsible for handling password reset requests
-    | and uses a simple trait to include this behavior. You're free to
-    | explore this trait and override any methods you wish to tweak.
-    |
-    */
-
-    public function showResetForm(Request $request, $token = null)
+    public function showResetForm(Request $request)
     {
-        return view('auth.passwords.reset')->with([
-            'token' => $token,
-            'email' => $request->email,
+        $email = strtolower(trim((string) (
+            $request->query('email')
+            ?: session('password_reset_email', '')
+        )));
+
+        if ($email === '') {
+            return redirect()
+                ->route('password.request')
+                ->withErrors([
+                    'email' => __('Enter your email first to request a reset OTP.'),
+                ]);
+        }
+
+        return view('auth.passwords.reset', [
+            'email' => $email,
         ]);
     }
 
-    public function reset(Request $request, AuthApiService $authApi)
-    {
+    public function reset(
+        Request $request,
+        AuthApiService $authApi
+    ) {
         $validator = Validator::make($request->all(), [
-            'email'    => ['required', 'string', 'email'],
-            'token'    => ['required', 'string'],
-            'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'email' => ['required', 'string', 'email'],
+            'otp' => ['required', 'string', 'regex:/^[0-9]{6}$/'],
+            'password' => [
+                'required',
+                'string',
+                'min:6',
+                'max:128',
+                'confirmed',
+            ],
+        ], [
+            'otp.regex' => __('Enter the 6-digit OTP sent to your email.'),
         ]);
 
         if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput($request->only('email'));
+            return back()
+                ->withErrors($validator)
+                ->withInput($request->only('email', 'otp'));
         }
 
+        $email = strtolower(trim((string) $request->email));
+
         $response = $authApi->resetPassword(
-            $request->email,
-            $request->token,
-            $request->password
+            $email,
+            trim((string) $request->otp),
+            (string) $request->password
         );
 
-        if (isset($response['success']) && $response['success'] === false) {
-            return back()->withErrors(['email' => $response['message'] ?? 'Password reset failed.'])
+        if (($response['success'] ?? true) === false) {
+            $message = $response['message']
+                ?? $response['detail']
+                ?? __('Invalid or expired OTP.');
+
+            return back()
+                ->withErrors(['otp' => $message])
                 ->withInput($request->only('email'));
         }
 
-        return redirect()->route('login')
-            ->with('status', __('Your password has been reset. You can now log in.'));
+        session()->forget('password_reset_email');
+
+        return redirect()
+            ->route('login')
+            ->with(
+                'status',
+                __('Your password has been reset successfully. Please log in with your new password.')
+            );
     }
 }

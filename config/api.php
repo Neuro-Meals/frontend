@@ -56,6 +56,7 @@ return [
             'resend_verification_otp' => '/auth/resend-verification-otp',
             'me'                      => '/auth/me',
             'forgot_password'         => '/auth/forgot-password',
+            'resend_password_reset_otp' => '/auth/resend-password-reset-otp',
             'reset_password'          => '/auth/reset-password',
             'change_password'         => '/auth/change-password',
         ],

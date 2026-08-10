@@ -79,6 +79,16 @@ class AuthApiService extends BaseApiService
     }
 
     /**
+     * Resend password reset OTP.
+     */
+    public function resendPasswordResetOtp(string $email): array
+    {
+        return $this->post('auth.resend_password_reset_otp', [], [
+            'email' => $email,
+        ]);
+    }
+
+    /**
      * Reset password using OTP.
      */
     public function resetPassword(string $email, string $otp, string $newPassword): array

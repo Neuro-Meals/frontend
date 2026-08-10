@@ -1,124 +1,88 @@
 @extends('layouts.auth')
 
-@section('title', __('New Password') . ' - ' . __('Nutrio Meals'))
+@section('title', __('Verify OTP & Reset Password') . ' - ' . __('Nutrio Meals'))
 
 @section('content')
 <div class="w-full max-w-md animate-simple-fade-in">
-    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-        {{-- Header --}}
-        <div class="bg-white px-8 py-8 text-center border-b border-gray-100">
-            <div class="mx-auto mb-4 flex items-center justify-center">
-                <img src="{{ asset('whitelogo.png') }}" alt="{{ config('app.name', 'Nitromeals') }}" class="h-20 w-auto object-contain">
-            </div>
-            <h2 class="text-2xl font-extrabold text-gray-900">{{ __('New Password') }}</h2>
-            <p class="text-gray-500 text-sm mt-1">{{ __('Create a new secure password') }}</p>
+    <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl">
+        <div class="border-b border-gray-100 px-8 py-7 text-center">
+            <img src="{{ asset('whitelogo.png') }}" alt="{{ config('app.name', 'NutrioMeals') }}" class="mx-auto h-20 w-auto object-contain">
+
+            <h2 class="mt-4 text-2xl font-extrabold text-gray-900">{{ __('Check Your Email') }}</h2>
+            <p class="mt-2 text-sm text-gray-500">{{ __('Enter the 6-digit OTP sent to') }}</p>
+            <p class="mt-1 break-all text-sm font-extrabold text-[#173327]">{{ $email }}</p>
+            <p class="mt-2 text-[11px] text-gray-400">{{ __('The OTP expires after 10 minutes.') }}</p>
         </div>
 
-        {{-- Form --}}
-        <div class="p-8" x-data="{ loading: false }">
-            @if (session('status'))
-                <div class="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm flex items-center gap-2">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div class="p-8" x-data="{ loading: false, showPassword: false, showConfirmation: false }">
+            @if(session('status'))
+                <div class="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
                     {{ session('status') }}
                 </div>
             @endif
 
             <form method="POST" action="{{ route('password.update') }}" class="space-y-5" @submit="loading = true">
                 @csrf
+                <input type="hidden" name="email" value="{{ $email }}">
 
-                {{-- OTP Code --}}
                 <div>
-                    <label for="token" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Reset Code') }}</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                        </div>
-                        <input id="token" type="text" name="token" value="{{ $token }}" required maxlength="6" pattern="[0-9]{6}"
-                            class="w-full pl-11 pr-4 py-2.5 rounded-lg border @error('token') border-red-300 ring-2 ring-red-100 @else border-gray-200 @enderror focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm"
-                            placeholder="{{ __('Enter the 6-digit code') }}">
-                    </div>
-                    @error('token')
-                        <p class="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            {{ $message }}
-                        </p>
+                    <label for="otp" class="mb-1.5 block text-sm font-semibold text-gray-700">{{ __('6-Digit OTP') }}</label>
+                    <input id="otp" type="text" inputmode="numeric" name="otp" value="{{ old('otp') }}" required maxlength="6"
+                        pattern="[0-9]{6}" autocomplete="one-time-code" autofocus placeholder="000000"
+                        oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,6)"
+                        class="w-full rounded-xl border @error('otp') border-red-300 @else border-gray-200 @enderror px-4 py-3 text-center font-mono text-xl font-black tracking-[.45em] outline-none focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/10">
+                    @error('otp')
+                        <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
-                {{-- Email --}}
                 <div>
-                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Email') }}</label>
+                    <label for="password" class="mb-1.5 block text-sm font-semibold text-gray-700">{{ __('New Password') }}</label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
-                            </svg>
-                        </div>
-                        <input id="email" type="email" name="email" value="{{ $email ?? old('email') }}" required autocomplete="email" autofocus
-                            class="w-full pl-11 pr-4 py-2.5 rounded-lg border @error('email') border-red-300 ring-2 ring-red-100 @else border-gray-200 @enderror focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm bg-gray-50"
-                            placeholder="you@example.com">
-                    </div>
-                    @error('email')
-                        <p class="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            {{ $message }}
-                        </p>
-                    @enderror
-                </div>
-
-                {{-- Password --}}
-                <div>
-                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('New Password') }}</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                            </svg>
-                        </div>
-                        <input id="password" type="password" name="password" required autocomplete="new-password"
-                            class="w-full pl-11 pr-4 py-2.5 rounded-lg border @error('password') border-red-300 ring-2 ring-red-100 @else border-gray-200 @enderror focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm"
-                            placeholder="{{ __('Create a new secure password') }}">
+                        <input id="password" :type="showPassword ? 'text' : 'password'" name="password" required minlength="6" maxlength="128"
+                            autocomplete="new-password" placeholder="{{ __('Enter new password') }}"
+                            class="w-full rounded-xl border @error('password') border-red-300 @else border-gray-200 @enderror px-4 py-3 pr-12 text-sm outline-none focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/10">
+                        <button type="button" @click="showPassword=!showPassword" class="absolute inset-y-0 right-3 text-xs font-bold text-gray-400"
+                            x-text="showPassword ? '{{ __('Hide') }}' : '{{ __('Show') }}'"></button>
                     </div>
                     @error('password')
-                        <p class="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            {{ $message }}
-                        </p>
+                        <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
-                {{-- Confirm Password --}}
                 <div>
-                    <label for="password-confirm" class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Confirm Password') }}</label>
+                    <label for="password_confirmation" class="mb-1.5 block text-sm font-semibold text-gray-700">{{ __('Confirm New Password') }}</label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <input id="password-confirm" type="password" name="password_confirmation" required autocomplete="new-password"
-                            class="w-full pl-11 pr-4 py-2.5 rounded-lg border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all text-sm"
-                            placeholder="{{ __('Re-enter your password') }}">
+                        <input id="password_confirmation" :type="showConfirmation ? 'text' : 'password'" name="password_confirmation" required minlength="6" maxlength="128"
+                            autocomplete="new-password" placeholder="{{ __('Re-enter new password') }}"
+                            class="w-full rounded-xl border border-gray-200 px-4 py-3 pr-12 text-sm outline-none focus:border-[#6E7A25] focus:ring-2 focus:ring-[#6E7A25]/10">
+                        <button type="button" @click="showConfirmation=!showConfirmation" class="absolute inset-y-0 right-3 text-xs font-bold text-gray-400"
+                            x-text="showConfirmation ? '{{ __('Hide') }}' : '{{ __('Show') }}'"></button>
                     </div>
                 </div>
 
-                {{-- Submit --}}
                 <button type="submit" :disabled="loading"
-                    class="w-full py-3 text-sm font-bold text-white rounded-lg shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                    :class="loading ? 'bg-gray-400' : 'bg-gradient-to-r from-brand-light to-brand-dark hover:from-brand-dark hover:to-brand-light hover:shadow-lg'">
-                    <svg x-show="!loading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                    <svg x-show="loading" class="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span x-text="loading ? '{{ __('Please wait...') }}' : '{{ __('Reset Password') }}'"></span>
+                    class="flex w-full items-center justify-center rounded-xl bg-[#173327] py-3 text-sm font-extrabold text-white hover:bg-[#214b35] disabled:opacity-60">
+                    <span x-show="!loading">{{ __('Verify OTP & Reset Password') }}</span>
+                    <span x-show="loading">{{ __('Resetting Password...') }}</span>
                 </button>
             </form>
+
+            <div class="mt-5 border-t border-gray-100 pt-5 text-center">
+                <p class="text-xs text-gray-400">{{ __("Didn't receive the OTP?") }}</p>
+                <form method="POST" action="{{ route('password.otp.resend') }}" class="mt-2">
+                    @csrf
+                    <input type="hidden" name="email" value="{{ $email }}">
+                    <button type="submit" class="text-sm font-extrabold text-[#6E7A25] hover:underline">{{ __('Resend OTP') }}</button>
+                </form>
+            </div>
+
+            <div class="mt-4 text-center">
+                <a href="{{ route('password.request') }}" class="text-xs font-semibold text-gray-400 hover:text-gray-600">
+                    {{ __('Use a different email') }}
+                </a>
+            </div>
         </div>
     </div>
-
-    <p class="mt-6 text-center text-xs text-gray-300">&copy; {{ date('Y') }} {{ config('app.name', 'Nitromeals') }}. All rights reserved.</p>
 </div>
 @endsection
