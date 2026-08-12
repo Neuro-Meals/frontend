@@ -326,6 +326,9 @@ Route::prefix('user')->name('user.')->middleware(['api.auth', 'api.customer'])->
     Route::post('/subscriptions', [UserController::class, 'subscribe'])->name('subscriptions.subscribe');
     Route::post('/subscriptions/{subscriptionId}/pay', [UserController::class, 'paySubscription'])->name('subscriptions.pay');
     Route::post('/subscriptions/{subscriptionId}/checkout', [UserController::class, 'checkoutJson'])->name('subscriptions.checkout');
+    Route::post('/subscriptions/{subscriptionId}/paypal', [UserController::class, 'paypalCheckoutJson'])->name('subscriptions.paypal');
+    Route::get('/payment/paypal/return', [UserController::class, 'paypalReturn'])->name('payment.paypal.return');
+    Route::get('/payment/paypal/cancel', [UserController::class, 'paypalCancel'])->name('payment.paypal.cancel');
     Route::get('/subscriptions/{subscriptionId}/coupon-availability', [UserController::class, 'couponAvailability'])->name('subscriptions.coupon-availability');
     Route::post('/payments/{paymentId}/attach-moyasar', [UserController::class, 'attachMoyasarAjax'])->name('payments.attach-moyasar');
     Route::post('/subscriptions/{subscriptionId}/pause', [UserController::class, 'pauseSubscription'])->name('subscriptions.pause');

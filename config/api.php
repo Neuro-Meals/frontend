@@ -214,6 +214,8 @@ return [
             'create_checkout'              => '/payments/create-checkout',
             'create_plan_change_checkout' => '/payments/create-plan-change-checkout',
             'attach_moyasar_payment'      => '/payments/attach-moyasar-payment',
+            'paypal_create_order'          => '/payments/paypal/create-order',
+            'paypal_capture_order'         => '/payments/paypal/capture-order',
             'verify_payment'              => '/payments/verify/{payment_id}',
             'my'                           => '/payments/my',
             'list'                         => '/payments/',

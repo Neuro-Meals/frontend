@@ -968,6 +968,14 @@
                 callback_url: moyasarCallbackUrl,
                 supported_networks: supportedNetworks,
                 methods: methods,
+                apple_pay: methods.includes('applepay')
+                    ? {
+                        country: 'SA',
+                        label: 'NutrioMeals',
+                        validate_merchant_url:
+                            'https://api.moyasar.com/v1/applepay/initiate',
+                    }
+                    : undefined,
                 metadata: metadata,
                 language: document.documentElement.lang || 'en',
                 on_completed: async function(payment) {
@@ -1377,3 +1385,4 @@
     }
 </script>
 @endpush
+

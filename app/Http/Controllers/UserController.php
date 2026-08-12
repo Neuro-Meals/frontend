@@ -1048,6 +1048,87 @@ class UserController extends Controller
         ], 400);
     }
 
+    public function paypalCheckoutJson(
+        Request $request,
+        int $subscriptionId,
+        PaymentApiService $paymentApi
+    ) {
+        $couponCode = $request->filled('coupon_code')
+            ? strtoupper(
+                trim((string) $request->input('coupon_code'))
+            )
+            : null;
+
+        $response = $paymentApi->createPayPalOrder(
+            $subscriptionId,
+            $couponCode
+        );
+
+        if (($response['success'] ?? true) === false) {
+            return response()->json([
+                'success' => false,
+                'message' => $this->apiErrorMessage($response),
+            ], 400);
+        }
+
+        $data = $response['data'] ?? $response;
+
+        return response()->json([
+            'success' => true,
+            'approval_url' => $data['approval_url'] ?? null,
+        ]);
+    }
+
+    public function paypalReturn(
+        Request $request,
+        PaymentApiService $paymentApi
+    ) {
+        $paymentId = (int) $request->query('payment_id', 0);
+        $paypalOrderId = trim(
+            (string) $request->query('token', '')
+        );
+
+        if ($paymentId <= 0 || $paypalOrderId === '') {
+            return redirect()
+                ->route('user.subscriptions')
+                ->with(
+                    'error',
+                    __('Invalid PayPal return data.')
+                );
+        }
+
+        $response = $paymentApi->capturePayPalOrder(
+            $paymentId,
+            $paypalOrderId
+        );
+
+        if (($response['success'] ?? true) === false) {
+            return redirect()
+                ->route('user.subscriptions')
+                ->with(
+                    'error',
+                    $this->apiErrorMessage($response)
+                );
+        }
+
+        return redirect()
+            ->route('user.subscriptions')
+            ->with(
+                'success',
+                __('PayPal payment completed successfully.')
+            );
+    }
+
+    public function paypalCancel()
+    {
+        return redirect()
+            ->route('user.subscriptions')
+            ->with(
+                'error',
+                __('PayPal payment was cancelled.')
+            );
+    }
+
     public function attachMoyasarAjax(int $paymentId, Request $request, PaymentApiService $paymentApi)
     {
         $moyasarPaymentId = $request->input('moyasar_payment_id');

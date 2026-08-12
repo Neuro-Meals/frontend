@@ -18,6 +18,41 @@ class PaymentApiService extends BaseApiService
         return $this->post('payments.create_checkout', [], $payload);
     }
 
+    public function createPayPalOrder(
+        int $subscriptionId,
+        ?string $couponCode = null
+    ): array {
+        $payload = [
+            'subscription_id' => $subscriptionId,
+        ];
+
+        $couponCode = strtoupper(trim((string) $couponCode));
+
+        if ($couponCode !== '') {
+            $payload['coupon_code'] = $couponCode;
+        }
+
+        return $this->post(
+            'payments.paypal_create_order',
+            [],
+            $payload
+        );
+    }
+
+    public function capturePayPalOrder(
+        int $localPaymentId,
+        string $paypalOrderId
+    ): array {
+        return $this->post(
+            'payments.paypal_capture_order',
+            [],
+            [
+                'local_payment_id' => $localPaymentId,
+                'paypal_order_id' => $paypalOrderId,
+            ]
+        );
+    }
+
     public function createPlanChangeCheckout(int $planChangeId): array
     {
         return $this->post('payments.create_plan_change_checkout', [], [
